@@ -1,0 +1,86 @@
+/*
+ * ContestLogX - Amateur Radio Contest Logging Software
+ * Copyright (c) 2025, by Steve Woodruff, N9OH
+ */
+
+#ifndef CONTESTENGINE_H
+#define CONTESTENGINE_H
+
+#include <QObject>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QString>
+#include <QList>
+#include <QSet>
+#include "qsorecord.h"
+#include "DxccDatabase.h"
+
+class ContestEngine : public QObject
+{
+    Q_OBJECT
+
+public:
+    explicit ContestEngine(QObject *parent = nullptr);
+    ~ContestEngine();
+    
+    // Load contest definition
+    bool loadContest(const QJsonObject& contestDef);
+    QJsonObject getContestDefinition() const { return m_contestDef; }
+    QString getContestName() const;
+    
+    // Field information
+    QStringList getExchangeFields() const;
+    QStringList getLogColumns() const;
+    QString getFieldLabel(const QString& fieldName) const;
+    QString getFieldType(const QString& fieldName) const;
+    int getFieldMaxLength(const QString& fieldName) const;
+    
+    // Validation
+    bool validateExchange(const QString& fieldName, const QString& value, QString& errorMsg) const;
+    bool validateQso(const QsoRecord& qso, QString& errorMsg) const;
+    
+    // Duplicate checking
+    bool isDupe(const QsoRecord& qso, const QList<QsoRecord>& existingQsos) const;
+    QString getDupeScope() const; // "overall", "per_band", "per_mode", "per_band_mode"
+    
+    // Scoring
+    int calculatePoints(const QsoRecord& qso, const QString& myCallsign) const;
+    QStringList getMultipliers(const QsoRecord& qso) const;
+    int calculateTotalScore(const QList<QsoRecord>& qsos, int& totalQsos, int& totalMults) const;
+    
+    // DXCC
+    void setDxccDatabase(DxccDatabase* dxcc) { m_dxccDatabase = dxcc; }
+    DxccDatabase* dxccDatabase() const { return m_dxccDatabase; }
+    
+    // Band/Mode validation
+    bool isValidBand(double freqKhz) const;
+    bool isValidMode(const QString& mode) const;
+    QStringList getAllowedModes() const;
+    
+    // Station class support
+    bool needsStationClass() const;
+    QString getStationClassPrompt() const;
+    QStringList getStationClassOptions() const;
+    void setStationClass(const QString& classId);
+    QString getStationClass() const { return m_stationClass; }
+    QString getDefaultSentExchange(const QString& stationQth, int serialNumber) const;
+
+private:
+    bool validateSerialNumber(const QString& value) const;
+    bool validateState(const QString& value) const;
+    bool validateProvince(const QString& value) const;
+    bool validateGridSquare(const QString& value) const;
+    bool validateRSTReport(const QString& value) const;
+    
+    QString extractMultiplier(const QsoRecord& qso) const;
+    int getPointsForMode(const QString& mode) const;
+    
+    QJsonObject m_contestDef;
+    QSet<QString> m_validStates;
+    QSet<QString> m_validProvinces;
+    QSet<QString> m_validMultipliers;
+    QString m_stationClass;
+    DxccDatabase* m_dxccDatabase;
+};
+
+#endif // CONTESTENGINE_H

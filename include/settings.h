@@ -1,0 +1,124 @@
+/*
+ * ContestLogX - Amateur Radio Contest Logging Software
+ * Copyright (c) 2025, by Steve Woodruff, N9OH
+ */
+
+#ifndef SETTINGS_H
+#define SETTINGS_H
+
+#include <QString>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QRect>
+#include <QMap>
+#include <QList>
+#include "cwmemory.h"
+
+/**
+ * @brief Application settings manager
+ * 
+ * Uses JSON file format for cross-platform settings storage
+ */
+class Settings
+{
+public:
+    static Settings& instance();
+    
+    // Station info
+    QString getCallsign() const;
+    void setCallsign(const QString& call);
+    
+    QString getOperatorName() const;
+    void setOperatorName(const QString& name);
+    
+    QString getGridSquare() const;
+    void setGridSquare(const QString& grid);
+    
+    QString getState() const;
+    void setState(const QString& state);
+    
+    // flrig connection
+    QString getFlrigHost() const;
+    void setFlrigHost(const QString& host);
+    
+    int getFlrigPort() const;
+    void setFlrigPort(int port);
+    
+    int getFlrigPollInterval() const;
+    void setFlrigPollInterval(int ms);
+    
+    bool getFlrigAutoConnect() const;
+    void setFlrigAutoConnect(bool autoConnect);
+    
+    // CW settings
+    int getCwWpm() const;
+    void setCwWpm(int wpm);
+    
+    QList<CwMemory> getCwMemories() const;
+    void setCwMemories(const QList<CwMemory>& memories);
+    
+    // Window geometry
+    QRect getWindowGeometry() const;
+    void setWindowGeometry(const QRect& geometry);
+    
+    bool getWindowMaximized() const;
+    void setWindowMaximized(bool maximized);
+    
+    // Column widths
+    QMap<int, int> getColumnWidths() const;
+    void setColumnWidth(int column, int width);
+    
+    // Splitter sizes
+    QList<int> getMainSplitterSizes() const;
+    void setMainSplitterSizes(const QList<int>& sizes);
+    
+    QList<int> getRightPanelSplitterSizes() const;
+    void setRightPanelSplitterSizes(const QList<int>& sizes);
+    
+    // DX Cluster settings
+    QString getDxClusterServer() const;
+    void setDxClusterServer(const QString& server);
+    
+    QString getDxClusterCallsign() const;
+    void setDxClusterCallsign(const QString& callsign);
+    
+    // Panel visibility
+    bool getDxClusterVisible() const;
+    void setDxClusterVisible(bool visible);
+    
+    bool getCwConsoleVisible() const;
+    void setCwConsoleVisible(bool visible);
+    
+    // Debug settings
+    bool getFlrigDebugEnabled() const;
+    void setFlrigDebugEnabled(bool enabled);
+    bool getMainWindowDebugEnabled() const;
+    void setMainWindowDebugEnabled(bool enabled);
+    bool getContestEngineDebugEnabled() const;
+    void setContestEngineDebugEnabled(bool enabled);
+    bool getCWWindowDebugEnabled() const;
+    void setCWWindowDebugEnabled(bool enabled);
+    
+    bool getDxccDatabaseDebugEnabled() const;
+    void setDxccDatabaseDebugEnabled(bool enabled);
+    
+    // Splitter states (as byte arrays)
+    QByteArray getMainSplitterState() const;
+    void setMainSplitterState(const QByteArray& state);
+    
+    QByteArray getRightPanelSplitterState() const;
+    void setRightPanelSplitterState(const QByteArray& state);
+    
+    void save();
+    
+private:
+    Settings();
+    void load();
+    
+    QString settingsFilePath() const;
+    
+    QJsonObject m_settings;
+    bool m_modified;
+};
+
+#endif // SETTINGS_H

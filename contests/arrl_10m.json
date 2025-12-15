@@ -1,0 +1,215 @@
+{
+  "contest": {
+    "name": "ARRL 10 Meter Contest",
+    "abbreviation": "ARRL10M",
+    "sponsor": "ARRL",
+    "startDate": "second full weekend in December",
+    "duration": 48,
+    "modes": ["CW", "SSB", "DIGITAL"],
+    "bands": ["10m"],
+    "url": "https://contests.arrl.org/contestrules/10-meter-contest-rules/",
+    "categories": {
+      "power": ["HIGH", "LOW", "QRP"],
+      "modes": ["CW", "SSB", "MIXED", "DIGITAL"],
+      "stations": ["SINGLE_OP", "MULTI_OP"]
+    }
+  },
+  "frequencies": {
+    "10m": {
+      "start": 28000,
+      "end": 29700,
+      "cw": {"start": 28000, "end": 28300},
+      "digital": {"start": 28000, "end": 28300},
+      "phone": {"start": 28300, "end": 29700}
+    }
+  },
+  "stationClasses": {
+    "enabled": true,
+    "prompt": "Is your station located in the US, Canada, or Mexico?",
+    "classes": [
+      {
+        "id": "W_VE_XE",
+        "name": "US/Canada/Mexico",
+        "description": "Send State/Province",
+        "exchangeSent": {
+          "type": "state_province",
+          "source": "station_qth"
+        }
+      },
+      {
+        "id": "DX",
+        "name": "DX (Outside US/VE/XE)",
+        "description": "Send Serial Number",
+        "exchangeSent": {
+          "type": "serial",
+          "startingNumber": 1
+        }
+      }
+    ]
+  },
+  "exchangeFields": {
+    "sent": [
+      {
+        "name": "RST",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report"
+      },
+      {
+        "name": "EXCH",
+        "type": "string",
+        "required": true,
+        "description": "State/Province or Serial Number (based on station class)"
+      }
+    ],
+    "received": [
+      {
+        "name": "RST",
+        "type": "rst",
+        "required": true,
+        "validation": "^[1-5][1-9][1-9]?$",
+        "description": "Signal report"
+      },
+      {
+        "name": "EXCH",
+        "type": "string",
+        "required": true,
+        "description": "State/Province or Serial Number"
+      }
+    ]
+  },
+  "qsoFields": [
+    {
+      "name": "Date",
+      "column": "DATE",
+      "type": "date",
+      "format": "yyyy-MM-dd",
+      "required": true
+    },
+    {
+      "name": "Time",
+      "column": "TIME",
+      "type": "time",
+      "format": "HH:mm:ss",
+      "required": true
+    },
+    {
+      "name": "Callsign",
+      "column": "CALL",
+      "type": "string",
+      "required": true,
+      "uppercase": true
+    },
+    {
+      "name": "Frequency",
+      "column": "FREQ",
+      "type": "number",
+      "unit": "kHz",
+      "required": true
+    },
+    {
+      "name": "Mode",
+      "column": "MODE",
+      "type": "enum",
+      "values": ["CW", "SSB", "DIGITAL"],
+      "required": true
+    },
+    {
+      "name": "RST Sent",
+      "column": "RST_SENT",
+      "type": "string",
+      "required": true,
+      "default": "599"
+    },
+    {
+      "name": "RST Received",
+      "column": "RST_RCV",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "Exchange Sent",
+      "column": "EXF",
+      "type": "string",
+      "required": true,
+      "description": "State/Province/Serial sent"
+    },
+    {
+      "name": "Exchange Received",
+      "column": "EXC",
+      "type": "string",
+      "required": true,
+      "description": "State/Province/Serial received"
+    },
+    {
+      "name": "Points",
+      "column": "POINTS",
+      "type": "number",
+      "calculated": true
+    },
+    {
+      "name": "Multiplier",
+      "column": "MULT",
+      "type": "string",
+      "calculated": true
+    }
+  ],
+  "scoring": {
+    "points": {
+      "sameContinent": {
+        "CW": 2,
+        "SSB": 2,
+        "DIGITAL": 2
+      },
+      "differentContinent": {
+        "CW": 4,
+        "SSB": 4,
+        "DIGITAL": 4
+      }
+    },
+    "multipliers": {
+      "type": "perBandAndMode",
+      "description": "US states, Canadian provinces/territories, and DXCC countries",
+      "categories": ["states", "provinces", "dxcc"],
+      "countOncePerBandAndMode": true
+    },
+    "finalScore": "SUM(points) * (stateMultipliers + provinceMultipliers + dxccMultipliers)"
+  },
+  "dupeChecking": {
+    "type": "perBandAndMode",
+    "description": "Station may be worked once per band per mode"
+  },
+  "logging": {
+    "requiredFields": ["date", "time", "frequency", "mode", "callsign", "rstSent", "rstReceived", "exchangeSent", "exchangeReceived"],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "ARRL-10",
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {rst_sent} {exch_sent} {call} {rst_rcvd} {exch_rcvd}"
+    }
+  },
+  "validation": {
+    "minimumQSOs": 1,
+    "maxOperatingTime": 48,
+    "offTimesRequired": false,
+    "exchangeValidation": {
+      "type": "stateProvinceOrSerial",
+      "description": "US/VE stations send state/province, DX stations send serial number",
+      "multipliers": ["AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY", "DC", "AB", "BC", "MB", "NB", "NL", "NT", "NS", "NU", "ON", "PE", "QC", "SK", "YT"],
+      "serialNumberFormat": "^[0-9]{1,4}$",
+      "logic": "Accept if value matches a multiplier OR matches serialNumberFormat"
+    }
+  },
+  "ui": {
+    "logColumns": ["DATE", "TIME", "CALL", "FREQ", "MODE", "RSTs", "RSTr", "EXCHs", "EXCHr", "Nr", "M", "C", "COMMENT"],
+    "entryFields": ["CALL", "RSTr", "EXCHr"],
+    "bandMap": {
+      "enabled": true,
+      "bands": ["10m"]
+    },
+    "multiplierDisplay": {
+      "showStates": true,
+      "showProvinces": true,
+      "showDXCC": true
+    }
+  }
+}

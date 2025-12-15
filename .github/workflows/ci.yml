@@ -1,0 +1,24 @@
+name: Build and Check ContestLogX
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build with make
+        run: |
+          sudo apt-get install -y qt6-base-dev qt6-base-dev-tools qt6-tools-dev libqt6network6 qt6-serialport-dev qt6-multimedia-dev cmake build-essential libxml2-dev
+          make
+
+      - name: Verify clx binary exists
+        run: ./clx --help

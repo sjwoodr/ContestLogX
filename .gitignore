@@ -1,0 +1,29 @@
+# Qt build artifacts
+build/
+*.pro.user
+*.autosave
+.qmake.stash
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+
+# Compiled files
+*.o
+*.so
+*.a
+moc_*
+ui_*
+qrc_*
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*~
+
+clx_debug.log
+cty.dat
+clx
