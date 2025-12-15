@@ -2,6 +2,9 @@
 
 **Copyright (c) 2025, by Steve Woodruff, N9OH**
 
+## Project Status
+[![Build](https://github.com/sjwoodr/ContestLogX/actions/workflows/ci.yml/badge.svg)](https://github.com/sjwoodr/ContestLogX/actions/workflows/ci.yml)
+
 ## What is ContestLogX?
 
 ContestLogX is a cross-platform amateur radio contest logging application built entirely from scratch using Qt6. It was initially envisioned as a Qt port of WriteLog but evolved into a completely independent application with its own architecture, file formats, and feature set.

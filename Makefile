@@ -1,8 +1,19 @@
 # Top-level Makefile
+#
+# Usage:
+#   make              - Build with parallel jobs (default: nproc)
+#   make JOBS=4       - Build with 4 parallel jobs
+#   make test         - Run unit tests
+#   make clean        - Clean build artifacts
+#   make version      - Update version number
+#   make reset        - Reset application settings
+
+# Number of parallel build jobs (default: number of CPU cores)
+JOBS ?= $(shell nproc)
 
 # Default target
 all: build/Makefile
-	$(MAKE) -C build -j$$(nproc) && ln -sf build/ContestLogX ./clx
+	$(MAKE) -C build -j$(JOBS) && ln -sf build/ContestLogX ./clx
 
 # Generate build system with CMake
 build/Makefile:

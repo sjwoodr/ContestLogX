@@ -1,4 +1,4 @@
-name: Build and Check ContestLogX
+name: Build and Test ContestLogX
 
 on:
   push:
