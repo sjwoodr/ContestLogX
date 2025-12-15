@@ -31,6 +31,11 @@ jobs:
       - name: Build with make
         run: make
 
+      - name: Run unit tests
+        run: make test
+        env:
+          QT_QPA_PLATFORM: offscreen
+
       - name: Verify clx binary exists
         run: |
           ls -la clx

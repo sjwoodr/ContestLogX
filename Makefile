@@ -13,6 +13,11 @@ build/Makefile:
 clean:
 	rm -rf build clx
 
+# Run unit tests
+test: build/Makefile
+	@echo "Running unit tests..."
+	cd build && ctest --output-on-failure
+
 # Update version number across all files
 version:
 	@echo "Current version: $$(grep 'project(ContestLogX VERSION' CMakeLists.txt | sed 's/.*VERSION \([0-9.]*\).*/\1/')"
@@ -56,4 +61,4 @@ reset:
 		echo "Reset cancelled."; \
 	fi
 
-.PHONY: all clean version reset
+.PHONY: all clean test version reset

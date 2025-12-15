@@ -102,3 +102,11 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 install(TARGETS ${PROJECT_NAME}
     RUNTIME DESTINATION bin
 )
+
+# Enable testing
+option(BUILD_TESTS "Build unit tests" ON)
+
+if(BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(tests)
+endif()
