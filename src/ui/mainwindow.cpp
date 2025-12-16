@@ -981,6 +981,11 @@ void MainWindow::loadLogFile(const QString& filename)
         // Auto-recalculate score to validate and mark dupes/out-of-band
         onRecalculateScore();
         
+        // Set focus to call field
+        if (m_callEdit) {
+            m_callEdit->setFocus();
+        }
+        
         m_statusLabel->setText("File loaded: " + filename + " (" + 
             QString::number(loadedQsos.count()) + " QSOs)");
     });

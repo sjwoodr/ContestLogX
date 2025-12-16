@@ -85,10 +85,10 @@ bool ContestEngine::loadContest(const QJsonObject& contestDef)
         }
     }
     
-    // Log Alaska/Hawaii treatment
-    QString akHiTreatment = getAlaskaHawaiiTreatment();
+    // Log Alaska/Hawaii DXCC treatment
+    bool akHiCountDxcc = getAlaskaHawaiiCountDxcc();
     DebugLogger::instance().log("ContestEngine", 
-        QString("Alaska/Hawaii treatment: %1").arg(akHiTreatment));
+        QString("Alaska/Hawaii count as DXCC: %1").arg(akHiCountDxcc ? "true" : "false"));
     
     // Log US/Canada DXCC counting
     bool usCanadaDxcc = getUsAndCanadaCountDxcc();
@@ -605,49 +605,30 @@ QStringList ContestEngine::getMultipliers(const QsoRecord& qso) const
         mults.append(multUpper);
         
         // Handle Alaska and Hawaii special case
+        // AK and HI are in namedMults (like states) but may also count as DXCC mults
         if (multUpper == "AK" || multUpper == "HI") {
-            QString treatment = getAlaskaHawaiiTreatment();
+            bool akHiCountDxcc = getAlaskaHawaiiCountDxcc();
             
             DebugLogger::instance().log("ContestEngine", 
-                QString("  Found AK/HI multiplier '%1' - treatment: %2").arg(multUpper).arg(treatment));
+                QString("  Found AK/HI multiplier '%1' - counts as DXCC: %2").arg(multUpper).arg(akHiCountDxcc ? "yes" : "no"));
             
-            // If treatment is 'none', don't count AK/HI as multipliers at all
-            if (treatment == "none") {
-                mults.clear();
-                DebugLogger::instance().log("ContestEngine", 
-                    QString("  Removed '%1' (treatment is 'none' - not a multiplier)").arg(multUpper));
-                return mults;
-            }
-            
-            // Get DXCC entity for the callsign
-            if (m_dxccDatabase) {
-                DxccEntity entity = m_dxccDatabase->lookupCallsign(qso.getCall());
-                QString dxccName = entity.country;
-                
-                DebugLogger::instance().log("ContestEngine", 
-                    QString("  DXCC lookup: %1 = %2 (DXCC %3)").arg(qso.getCall()).arg(dxccName).arg(entity.dxcc));
-                
-                // Alaska is DXCC 006, Hawaii is DXCC 110
-                bool isAlaska = (entity.dxcc == 6 || dxccName.contains("Alaska", Qt::CaseInsensitive));
-                bool isHawaii = (entity.dxcc == 110 || dxccName.contains("Hawaii", Qt::CaseInsensitive));
-                
-                if ((isAlaska || isHawaii) && treatment == "both") {
-                    // Count as both state and DXCC - add DXCC mult
-                    QString dxccMult = isAlaska ? "KL7" : "KH6";
-                    mults.append(dxccMult);
-                    DebugLogger::instance().log("ContestEngine", 
-                        QString("  Added DXCC mult '%1' (both state and DXCC)").arg(dxccMult));
-                } else if ((isAlaska || isHawaii) && treatment == "dxcc") {
-                    // Count only as DXCC, replace state with DXCC mult
-                    mults.clear();
-                    QString dxccMult = isAlaska ? "KL7" : "KH6";
-                    mults.append(dxccMult);
-                    DebugLogger::instance().log("ContestEngine", 
-                        QString("  Replaced with DXCC mult '%1' (dxcc only)").arg(dxccMult));
-                } else if (treatment == "states") {
-                    // Keep only the state mult (already in list)
-                    DebugLogger::instance().log("ContestEngine", 
-                        QString("  Keeping state mult '%1' only").arg(multUpper));
+            // If dxcc is in multiplier categories and AK/HI should count as DXCC, add the DXCC mult
+            if (akHiCountDxcc && dxccIsMult) {
+                // Get DXCC entity for the callsign to get the proper prefix
+                if (m_dxccDatabase) {
+                    DxccEntity entity = m_dxccDatabase->lookupCallsign(qso.getCall());
+                    QString dxccName = entity.country;
+                    
+                    // Alaska is DXCC 006, Hawaii is DXCC 110
+                    bool isAlaska = (entity.dxcc == 6 || dxccName.contains("Alaska", Qt::CaseInsensitive));
+                    bool isHawaii = (entity.dxcc == 110 || dxccName.contains("Hawaii", Qt::CaseInsensitive));
+                    
+                    if (isAlaska || isHawaii) {
+                        QString dxccMult = isAlaska ? "KL7" : "KH6";
+                        mults.append(dxccMult);
+                        DebugLogger::instance().log("ContestEngine", 
+                            QString("  Added DXCC mult '%1' (AK/HI count as both state and DXCC)").arg(dxccMult));
+                    }
                 }
             }
         }
@@ -700,31 +681,14 @@ QList<ContestEngine::MultiplierInfo> ContestEngine::getMultipliersWithCategory(c
         
         // Handle Alaska and Hawaii special case
         if (multUpper == "AK" || multUpper == "HI") {
-            QString treatment = getAlaskaHawaiiTreatment();
+            bool akHiCountDxcc = getAlaskaHawaiiCountDxcc();
             
-            if (treatment == "none") {
-                result.clear();
-                return result;
-            }
-            
-            if (treatment == "dxcc") {
-                // Replace named mult with DXCC only
-                result.clear();
-                if (dxccIsMult && m_dxccDatabase) {
-                    DxccEntity entity = m_dxccDatabase->lookupCallsign(qso.getCall());
-                    if (!entity.primaryPrefix.isEmpty() || !entity.prefixes.isEmpty()) {
-                        QString dxccMult = entity.primaryPrefix.isEmpty() ? entity.prefixes.first().prefix : entity.primaryPrefix;
-                        result.append({dxccMult, "dxcc"});
-                    }
-                }
-            } else if (treatment == "both") {
-                // Keep named mult and add DXCC
-                if (dxccIsMult && m_dxccDatabase) {
-                    DxccEntity entity = m_dxccDatabase->lookupCallsign(qso.getCall());
-                    if (!entity.primaryPrefix.isEmpty() || !entity.prefixes.isEmpty()) {
-                        QString dxccMult = entity.primaryPrefix.isEmpty() ? entity.prefixes.first().prefix : entity.primaryPrefix;
-                        result.append({dxccMult, "dxcc"});
-                    }
+            // If dxcc is in multiplier categories and AK/HI should count as DXCC
+            if (akHiCountDxcc && dxccIsMult && m_dxccDatabase) {
+                DxccEntity entity = m_dxccDatabase->lookupCallsign(qso.getCall());
+                if (!entity.primaryPrefix.isEmpty() || !entity.prefixes.isEmpty()) {
+                    QString dxccMult = entity.primaryPrefix.isEmpty() ? entity.prefixes.first().prefix : entity.primaryPrefix;
+                    result.append({dxccMult, "dxcc"});
                 }
             }
         }
@@ -738,8 +702,8 @@ QList<ContestEngine::MultiplierInfo> ContestEngine::getMultipliersWithCategory(c
         bool alreadyAddedDxcc = false;
         QString multUpper = mult.toUpper();
         if ((multUpper == "AK" || multUpper == "HI")) {
-            QString treatment = getAlaskaHawaiiTreatment();
-            if (treatment == "dxcc" || treatment == "both") {
+            bool akHiCountDxcc = getAlaskaHawaiiCountDxcc();
+            if (akHiCountDxcc) {
                 alreadyAddedDxcc = true;
             }
         }
@@ -771,7 +735,8 @@ QList<ContestEngine::MultiplierInfo> ContestEngine::getMultipliersWithCategory(c
     if (ituRegionIsMult && m_dxccDatabase) {
         int ituZone = m_dxccDatabase->getItuZone(qso.getCall());
         int ituRegion = m_dxccDatabase->mapItuZoneToRegion(ituZone);
-        qDebug() << "ContestEngine: ITU lookup for" << qso.getCall() << "-> Zone:" << ituZone << "-> Region:" << ituRegion;
+        DebugLogger::instance().log("ContestEngine", QString("ITU lookup for %1 -> Zone: %2 -> Region: %3")
+            .arg(qso.getCall()).arg(ituZone).arg(ituRegion));
         if (ituRegion > 0) {
             result.append({QString::number(ituRegion), "ituRegions"});
         }
@@ -879,16 +844,16 @@ QStringList ContestEngine::getMultiplierCategories() const
     return categories;
 }
 
-QString ContestEngine::getAlaskaHawaiiTreatment() const
+bool ContestEngine::getAlaskaHawaiiCountDxcc() const
 {
     if (m_contestDef.contains("scoring")) {
         QJsonObject scoring = m_contestDef["scoring"].toObject();
         if (scoring.contains("multipliers")) {
             QJsonObject mults = scoring["multipliers"].toObject();
-            return mults["alaskaAndHawaiiAre"].toString("both");
+            return mults["alaskaAndHawaiiCountDxcc"].toBool(true);
         }
     }
-    return "both"; // Default: count as both state and DXCC
+    return true; // Default: AK/HI count as both state and DXCC mults
 }
 
 bool ContestEngine::getUsAndCanadaCountDxcc() const

@@ -68,7 +68,7 @@ public:
     int calculateTotalScore(const QList<QsoRecord>& qsos, int& totalQsos, int& totalMults) const;
     QString getMultiplierType() const;
     QStringList getMultiplierCategories() const;
-    QString getAlaskaHawaiiTreatment() const;
+    bool getAlaskaHawaiiCountDxcc() const;
     bool getUsAndCanadaCountDxcc() const;
     
     // Running score tracking
