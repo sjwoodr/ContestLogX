@@ -115,6 +115,12 @@ public:
     QByteArray getRightPanelSplitterState() const;
     void setRightPanelSplitterState(const QByteArray& state);
     
+    // Keyboard shortcuts
+    QMap<QString, QString> getShortcuts() const;
+    void setShortcuts(const QMap<QString, QString>& shortcuts);
+    QString getShortcut(const QString& actionName) const;
+    void setShortcut(const QString& actionName, const QString& keySequence);
+    
     void save();
     
 private:

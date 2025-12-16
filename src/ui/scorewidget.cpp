@@ -4,6 +4,7 @@
  */
 
 #include "scorewidget.h"
+#include "debuglogger.h"
 #include <QHeaderView>
 #include <QFont>
 
@@ -96,6 +97,17 @@ void ScoreWidget::setContestBands(const QStringList& bands)
 
 void ScoreWidget::updateScore(const ContestEngine::ContestScore& score)
 {
+    DebugLogger::instance().log("ScoreWidget", 
+        QString("updateScore called - bandStats size: %1").arg(score.bandStats.size()));
+    for (auto it = score.bandStats.begin(); it != score.bandStats.end(); ++it) {
+        DebugLogger::instance().log("ScoreWidget", 
+            QString("  Received %1: CW=%2 SSB=%3 Digi=%4")
+                .arg(it.key())
+                .arg(it.value().cwQsos)
+                .arg(it.value().ssbQsos)
+                .arg(it.value().digitalQsos));
+    }
+    
     // Build map of band name to row index
     QMap<QString, int> bandRowMap;
     for (int i = 0; i < m_contestBands.size(); ++i) {
@@ -114,11 +126,21 @@ void ScoreWidget::updateScore(const ContestEngine::ContestScore& score)
         QString band = it.key();
         const ContestEngine::BandModeStats& stats = it.value();
         
+        DebugLogger::instance().log("ScoreWidget", 
+            QString("Looking for band '%1' in bandRowMap").arg(band));
+        
         if (bandRowMap.contains(band)) {
             int row = bandRowMap[band];
+            DebugLogger::instance().log("ScoreWidget", 
+                QString("Found band '%1' at row %2, updating with CW=%3 SSB=%4 Digi=%5")
+                    .arg(band).arg(row)
+                    .arg(stats.cwQsos).arg(stats.ssbQsos).arg(stats.digitalQsos));
             m_scoreTable->item(row, 1)->setText(QString::number(stats.cwQsos));
             m_scoreTable->item(row, 2)->setText(QString::number(stats.ssbQsos));
             m_scoreTable->item(row, 3)->setText(QString::number(stats.digitalQsos));
+        } else {
+            DebugLogger::instance().log("ScoreWidget", 
+                QString("Band '%1' NOT found in bandRowMap").arg(band));
         }
     }
     

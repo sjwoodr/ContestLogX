@@ -35,6 +35,7 @@ struct DxccEntity {
     double latitude;
     double longitude;
     double gmtOffset;
+    QString primaryPrefix;
     QList<DxccPrefix> prefixes;
 };
 

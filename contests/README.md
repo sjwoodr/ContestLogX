@@ -166,6 +166,12 @@ Defines how points and multipliers are calculated:
 }
 ```
 
+**US/Canada DXCC Counting:**
+In some contests, US states and Canadian provinces count as BOTH state/province multipliers AND DXCC entity multipliers. In other contests, they count ONLY as state/province multipliers.
+
+- `"usAndCanadaCountDxcc": true` - US/Canada stations count as BOTH their state/province AND their DXCC entity (K for USA, VE for Canada). Example: Working W4ABC in NC counts as both NC state mult and K DXCC mult. (Default if not specified)
+- `"usAndCanadaCountDxcc": false` - US/Canada stations count ONLY as their state/province. They do NOT contribute to DXCC multipliers. Example: Working W4ABC in NC only counts as NC state mult.
+
 **Alaska and Hawaii Special Handling:**
 Alaska (AK) and Hawaii (HI) are both US states AND separate DXCC entities (KL7 and KH6). Different contests treat them differently:
 - `"alaskaAndHawaiiAre": "states"` - Count only as state multipliers (e.g., ARRL 10M, Sweepstakes)

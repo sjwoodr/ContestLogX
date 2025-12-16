@@ -33,6 +33,8 @@ public:
     void addQso(const QsoRecord& qso);
     void removeQso(int row);
     void updateQso(int row, const QsoRecord& qso);
+    void updateMultiplierCount(int row, int multCount);
+    void updateDxccCount(int row, int dxccCount);
     QsoRecord getQso(int row) const;
     void clear();
     

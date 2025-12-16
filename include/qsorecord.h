@@ -45,6 +45,7 @@ public:
     int getDxccCount() const { return m_dxccCount; }
     int getPoints() const { return m_points; }
     QString getComment() const { return m_comment; }
+    bool isOutOfBand() const { return m_outOfBand; }
 
     // Mutators
     void setCall(const QString& call);
@@ -70,6 +71,7 @@ public:
     void setDxccCount(int count) { m_dxccCount = count; }
     void setPoints(int points) { m_points = points; }
     void setComment(const QString& comment) { m_comment = comment; }
+    void setOutOfBand(bool outOfBand) { m_outOfBand = outOfBand; }
 
     // Validation
     bool isValid() const;
@@ -85,6 +87,7 @@ private:
     QString m_exchange;  // Cached exchange string
     unsigned long m_serial = 0;
     bool m_dupe = false;
+    bool m_outOfBand = false;
     QMap<QString, QString> m_exchangeFields;  // Individual exchange fields
     int m_multiplierCount = 0;
     int m_dxccCount = 0;

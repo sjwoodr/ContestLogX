@@ -112,6 +112,7 @@ bool DxccDatabase::loadFromFile(const QString &filename)
             }
             
             entity.dxcc = nextDxccNumber++;
+            entity.primaryPrefix = primaryPrefix;
 
             // Read alias prefixes on following lines until semicolon
             QString aliasText;

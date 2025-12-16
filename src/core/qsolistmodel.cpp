@@ -80,13 +80,13 @@ QVariant QsoListModel::data(const QModelIndex &index, int role) const
         }
     }
     else if (role == Qt::BackgroundRole) {
-        // Highlight dupes in red
-        if (qso.isDupe()) {
+        // Highlight dupes and out-of-band in red
+        if (qso.isDupe() || qso.isOutOfBand()) {
             return QColor(255, 200, 200);
         }
     }
     else if (role == Qt::ForegroundRole) {
-        if (qso.isDupe()) {
+        if (qso.isDupe() || qso.isOutOfBand()) {
             return QColor(139, 0, 0);  // Dark red text
         }
     }
@@ -145,6 +145,34 @@ void QsoListModel::updateQso(int row, const QsoRecord& qso)
     m_qsos[row] = qso;
     emit dataChanged(index(row, 0), index(row, m_columnHeaders.count() - 1));
     emit qsoUpdated(row);
+}
+
+void QsoListModel::updateMultiplierCount(int row, int multCount)
+{
+    if (row < 0 || row >= m_qsos.count())
+        return;
+    
+    m_qsos[row].setMultiplierCount(multCount);
+    
+    // Find the M column index to update just that cell
+    int multColIndex = m_columnHeaders.indexOf("M");
+    if (multColIndex >= 0) {
+        emit dataChanged(index(row, multColIndex), index(row, multColIndex));
+    }
+}
+
+void QsoListModel::updateDxccCount(int row, int dxccCount)
+{
+    if (row < 0 || row >= m_qsos.count())
+        return;
+    
+    m_qsos[row].setDxccCount(dxccCount);
+    
+    // Find the C column index to update just that cell
+    int dxccColIndex = m_columnHeaders.indexOf("C");
+    if (dxccColIndex >= 0) {
+        emit dataChanged(index(row, dxccColIndex), index(row, dxccColIndex));
+    }
 }
 
 QsoRecord QsoListModel::getQso(int row) const

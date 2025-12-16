@@ -598,6 +598,28 @@ void MainWindow::onNewLog()
                     for (const QsoRecord& qso : loadedQsos) {
                         m_qsoModel->addQso(qso);
                     }
+                    
+                    // Update contest scoring with loaded QSOs and recalculate M/C columns
+                    if (m_contestEngine) {
+                        QString myCallsign = Settings::instance().getCallsign();
+                        
+                        // Process QSOs incrementally to calculate running multiplier counts
+                        for (int i = 0; i < loadedQsos.size(); ++i) {
+                            QList<QsoRecord> qsosUpToNow = loadedQsos.mid(0, i + 1);
+                            m_contestEngine->updateRunningScore(qsosUpToNow, myCallsign);
+                            ContestEngine::ContestScore score = m_contestEngine->getRunningScore();
+                            
+                            // Update the M and C columns with running totals
+                            m_qsoModel->updateMultiplierCount(i, score.multipliers);
+                            m_qsoModel->updateDxccCount(i, score.dxccCount);
+                        }
+                        
+                        // Final update for score widget
+                        if (m_scoreWidget) {
+                            m_scoreWidget->updateScore(m_contestEngine->getRunningScore());
+                        }
+                    }
+                    
                     m_currentFile = selectedFile;
                     m_isModified = false;
                     updateWindowTitle();
@@ -645,6 +667,27 @@ void MainWindow::onOpenLog()
         m_qsoModel->clear();
         for (const QsoRecord& qso : loadedQsos) {
             m_qsoModel->addQso(qso);
+        }
+        
+        // Update contest scoring with loaded QSOs and recalculate M/C columns
+        if (m_contestEngine) {
+            QString myCallsign = Settings::instance().getCallsign();
+            
+            // Process QSOs incrementally to calculate running multiplier counts
+            for (int i = 0; i < loadedQsos.size(); ++i) {
+                QList<QsoRecord> qsosUpToNow = loadedQsos.mid(0, i + 1);
+                m_contestEngine->updateRunningScore(qsosUpToNow, myCallsign);
+                ContestEngine::ContestScore score = m_contestEngine->getRunningScore();
+                
+                // Update the M and C columns with running totals
+                m_qsoModel->updateMultiplierCount(i, score.multipliers);
+                m_qsoModel->updateDxccCount(i, score.dxccCount);
+            }
+            
+            // Final update for score widget
+            if (m_scoreWidget) {
+                m_scoreWidget->updateScore(m_contestEngine->getRunningScore());
+            }
         }
         
         m_currentFile = fileName;
@@ -787,9 +830,26 @@ void MainWindow::onLogQso()
     qso.setCall(callsign);
     // Use frequency from rig (stored in m_lastFrequency)
     qso.setFrequency(QString::number(m_lastFrequency, 'f', 1));
+    
+    // Get band from frequency
+    QString band = m_contestEngine->getBandFromFrequency(m_lastFrequency);
+    if (!band.isEmpty()) {
+        // Find band index for setBand()
+        const char* bands[] = {"160m", "80m", "40m", "30m", "20m", "17m", "15m", "12m", "10m", "6m", "2m"};
+        for (int i = 0; i < 11; i++) {
+            if (band == bands[i]) {
+                qso.setBand(i);
+                break;
+            }
+        }
+    }
+    
     qso.setMode(m_lastMode);
     qso.setDateTime(QDateTime::currentDateTimeUtc());
     qso.setSerial(m_qsoModel->count() + 1);
+    
+    DebugLogger::instance().log("MainWindow", 
+        QString("QSO frequency set to: %1 kHz (m_lastFrequency=%2), band=%3").arg(qso.getFrequency()).arg(m_lastFrequency, 0, 'f', 1).arg(band));
     
     // Set RST sent based on mode (always auto-calculated)
     QString rstSent = (m_lastMode == "CW" || m_lastMode == "RTTY") ? "599" : 
@@ -827,6 +887,8 @@ void MainWindow::onLogQso()
                 qso.setRstReceived(value);
                 DebugLogger::instance().log("MainWindow", "RST Received set successfully");
             } else if (fieldName.startsWith("EXCH")) {
+                DebugLogger::instance().log("MainWindow", 
+                    QString("Setting Exchange Received: '%1'").arg(value));
                 qso.setExchangeReceived(value);
             } else {
                 // Store as generic exchange field
@@ -845,74 +907,101 @@ void MainWindow::onLogQso()
     DebugLogger::instance().log("MainWindow", "QSO is valid, proceeding...");
     
     // Contest-specific validation if we have a contest loaded
+    bool isOutOfBand = false;
     if (!m_contestDefinition.isEmpty()) {
-        // Check for dupes
-        QList<QsoRecord> existingQsos = m_qsoModel->getAllQsos();
-        if (m_contestEngine->isDupe(qso, existingQsos)) {
-            QMessageBox::StandardButton reply = QMessageBox::question(
-                this,
-                "Duplicate QSO",
-                QString("Duplicate: %1. Log anyway?").arg(qso.getCall()),
-                QMessageBox::Yes | QMessageBox::No);
-            
-            if (reply == QMessageBox::No) {
+        // Check if out-of-band first
+        double freqKhz = qso.getFrequency().toDouble();  // Already in kHz
+        if (!m_contestEngine->isValidBand(freqKhz)) {
+            isOutOfBand = true;
+            qso.setOutOfBand(true);
+            qso.setComment("Out of band for contest");
+            qso.setPoints(0);
+            m_statusLabel->setText("Warning: QSO is out of band for this contest");
+            DebugLogger::instance().log("MainWindow", "QSO marked as out of band");
+        } else {
+            // Validate exchange fields FIRST (before checking dupes)
+            DebugLogger::instance().log("MainWindow", QString("About to validate QSO - RST: '%1'").arg(qso.getRstReceived()));
+            QString errorMsg;
+            if (!m_contestEngine->validateQso(qso, errorMsg)) {
+                DebugLogger::instance().log("MainWindow", QString("Contest validation failed: %1").arg(errorMsg));
+                m_statusLabel->setText(errorMsg);
+                // Don't clear the form - leave fields populated so user can correct
                 return;
             }
+            
+            // Check for dupes
+            QList<QsoRecord> existingQsos = m_qsoModel->getAllQsos();
+            bool isDupe = m_contestEngine->isDupe(qso, existingQsos);
+            
+             if (isDupe) {
+                 QMessageBox::StandardButton reply = QMessageBox::question(
+                     this,
+                     "Duplicate QSO",
+                     QString("Duplicate: %1. Log anyway?").arg(qso.getCall()),
+                     QMessageBox::Yes | QMessageBox::No);
+                 
+                 if (reply == QMessageBox::No) {
+                     return;
+                 }
+                 
+                 // Mark as dupe and set points to 0
+                 qso.setDupe(true);
+                 qso.setPoints(0);
+                 
+                 // Get dupe reason and set comment
+                 QString dupeReason = m_contestEngine->getDupeReason(qso, existingQsos);
+                 QString comment = QString("Duplicate contact for %1").arg(dupeReason);
+                 qso.setComment(comment);
+                 
+                 m_statusLabel->setText("Duplicate QSO logged with 0 points");
+                 DebugLogger::instance().log("MainWindow", 
+                     QString("Dupe QSO logged: %1 with 0 points").arg(qso.getCall()));
+             } else {
+                 // Calculate points (pass station callsign)
+                 QString myCallsign = Settings::instance().getCallsign();
+                 int points = m_contestEngine->calculatePoints(qso, myCallsign);
+                 qso.setPoints(points);
+                 m_statusLabel->setText("QSO logged");
+                 DebugLogger::instance().log("MainWindow", 
+                     QString("QSO worth %1 points").arg(points));
+             }
         }
-        
-        // Validate exchange fields
-        DebugLogger::instance().log("MainWindow", QString("About to validate QSO - RST: '%1'").arg(qso.getRstReceived()));
-        QString errorMsg;
-        if (!m_contestEngine->validateQso(qso, errorMsg)) {
-            DebugLogger::instance().log("MainWindow", QString("Contest validation failed: %1").arg(errorMsg));
-            QMessageBox::warning(this, "Invalid Exchange", errorMsg);
-            return;
-        }
-        
-        // Calculate points (pass station callsign)
-        QString myCallsign = Settings::instance().getCallsign();
-        int points = m_contestEngine->calculatePoints(qso, myCallsign);
-        qso.setPoints(points);
-        DebugLogger::instance().log("MainWindow", 
-            QString("QSO worth %1 points").arg(points));
     }
     
-    // Calculate and set multiplier/DXCC counts
-    QList<QsoRecord> existingQsos = m_qsoModel->getQsos();
-    QSet<QString> workedMultipliers;
-    
-    // Collect all multipliers worked so far
-    for (const QsoRecord& existingQso : existingQsos) {
-        QStringList mults = m_contestEngine->getMultipliers(existingQso);
-        for (const QString& mult : mults) {
-            workedMultipliers.insert(mult.toUpper());
-        }
-    }
-    
-    // Check if this QSO provides a new multiplier
-    QStringList newMults = m_contestEngine->getMultipliers(qso);
-    for (const QString& mult : newMults) {
-        if (!workedMultipliers.contains(mult.toUpper())) {
-            workedMultipliers.insert(mult.toUpper());
-        }
-    }
-    
-    qso.setMultiplierCount(workedMultipliers.size());
-    qso.setDxccCount(1);  // TODO: Implement DXCC tracking
-    
+    // Add the QSO first so it's included in score calculations
     m_qsoModel->addQso(qso);
+    
+    // Update running score and get total multiplier count
+    if (m_contestEngine && m_scoreWidget) {
+        QString myCallsign = Settings::instance().getCallsign();
+        QList<QsoRecord> allQsos = m_qsoModel->getQsos();
+        m_contestEngine->updateRunningScore(allQsos, myCallsign);
+        
+        // Get the running score which includes calculated multipliers
+        ContestEngine::ContestScore score = m_contestEngine->getRunningScore();
+        
+        // Update the multiplier and DXCC count on the QSO we just added
+        // This represents the totals AFTER this QSO
+        int lastQsoIndex = m_qsoModel->count() - 1;
+        m_qsoModel->updateMultiplierCount(lastQsoIndex, score.multipliers);
+        m_qsoModel->updateDxccCount(lastQsoIndex, score.dxccCount);
+        
+        // Update score widget
+        m_scoreWidget->updateScore(score);
+        
+        DebugLogger::instance().log("MainWindow", 
+            QString("QSO logged: %1 points, %2 total mults, %3 DXCCs, %4 total score")
+                .arg(qso.getPoints())
+                .arg(score.multipliers)
+                .arg(score.dxccCount)
+                .arg(score.contestScore));
+    }
+    
     clearEntryForm();
     m_callEdit->setFocus();
     
     // Update QSO count in status bar
     m_qsoCountLabel->setText(QString("QSOs: %1").arg(m_qsoModel->count()));
-    
-    // Update running score
-    if (m_contestEngine && m_scoreWidget) {
-        QString myCallsign = Settings::instance().getCallsign();
-        m_contestEngine->updateRunningScore(m_qsoModel->getQsos(), myCallsign);
-        m_scoreWidget->updateScore(m_contestEngine->getRunningScore());
-    }
 }
 
 void MainWindow::onRigControl()
@@ -948,12 +1037,24 @@ void MainWindow::onUpdateRigDisplay()
     }
     
     // Request frequency, mode, and WPM from rig
-    double freq = m_flrigClient->getFrequency();
-    QString mode = m_flrigClient->getMode();
-    int wpm = m_flrigClient->getCWSpeed();
+    // Catch errors to prevent UI lag when radio is off or unresponsive
+    double freq = 0;
+    QString mode;
+    int wpm = 0;
+    
+    try {
+        freq = m_flrigClient->getFrequency();
+        mode = m_flrigClient->getMode();
+        wpm = m_flrigClient->getCWSpeed();
+    } catch (...) {
+        // Ignore errors - radio might be off or unresponsive
+        return;
+    }
     
     // even though this is mainwindow, this belongs in the Flrig filter
-    DebugLogger::instance().log("Flrig", QString("Rig poll: freq=%1 mode=%2 wpm=%3").arg(freq).arg(mode).arg(wpm));
+    if (DebugLogger::instance().isFlrigDebugEnabled()) {
+        DebugLogger::instance().log("Flrig", QString("Rig poll: freq=%1 mode=%2 wpm=%3").arg(freq).arg(mode).arg(wpm));
+    }
     
     // Update frequency if changed (100 Hz tolerance)
     if (freq > 0) {

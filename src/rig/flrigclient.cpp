@@ -388,7 +388,9 @@ QVariant FlrigClient::parseXmlRpcResponse(const QString& xml)
     }
     
     if (reader.hasError()) {
-        qWarning() << "XML parsing error:" << reader.errorString();
+        if (DebugLogger::instance().isFlrigDebugEnabled()) {
+            qWarning() << "XML parsing error:" << reader.errorString();
+        }
         return QVariant();
     }
     

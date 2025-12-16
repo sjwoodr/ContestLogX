@@ -41,15 +41,28 @@ public:
     
     // Duplicate checking
     bool isDupe(const QsoRecord& qso, const QList<QsoRecord>& existingQsos) const;
+    QString getDupeReason(const QsoRecord& qso, const QList<QsoRecord>& existingQsos) const;
     QString getDupeScope() const; // "overall", "per_band", "per_mode", "per_band_mode"
     
     // Scoring
     int calculatePoints(const QsoRecord& qso, const QString& myCallsign) const;
+    struct MultiplierInfo {
+        QString value;      // The multiplier value (e.g., "OH", "ON", "DL")
+        QString category;   // The category (e.g., "states", "provinces", "dxcc")
+        
+        bool operator==(const MultiplierInfo& other) const {
+            return value == other.value && category == other.category;
+        }
+    };
+    
     QStringList getMultipliers(const QsoRecord& qso) const;
+    QList<MultiplierInfo> getMultipliersWithCategory(const QsoRecord& qso) const;
     bool isNewMultiplier(const QString& mult, const QString& band, const QString& mode, const QList<QsoRecord>& existingQsos) const;
     int calculateTotalScore(const QList<QsoRecord>& qsos, int& totalQsos, int& totalMults) const;
     QString getMultiplierType() const;
+    QStringList getMultiplierCategories() const;
     QString getAlaskaHawaiiTreatment() const;
+    bool getUsAndCanadaCountDxcc() const;
     
     // Running score tracking
     struct BandModeStats {
@@ -63,6 +76,10 @@ public:
         QMap<QString, BandModeStats> bandStats;  // Key: band name (e.g., "20m")
         int contactScore = 0;
         int multipliers = 0;
+        int stateMults = 0;       // State multipliers (for category scoring)
+        int provinceMults = 0;    // Province multipliers (for category scoring)
+        int dxccMults = 0;        // DXCC multipliers (for category scoring)
+        int dxccCount = 0;        // Total unique DXCC entities worked (for info)
         int bonusPoints = 0;
         int contestScore = 0;
     };
@@ -79,6 +96,7 @@ public:
     bool isValidBand(double freqKhz) const;
     bool isValidMode(const QString& mode) const;
     QStringList getAllowedModes() const;
+    QString getBandFromFrequency(double freqKhz) const;
     
     // Station class support
     bool needsStationClass() const;

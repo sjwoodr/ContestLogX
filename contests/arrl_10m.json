@@ -188,7 +188,8 @@
       "type": "multsPerBandAndMode",
       "description": "US states, Canadian provinces/territories, and DXCC countries",
       "categories": ["states", "provinces", "dxcc"],
-      "alaskaAndHawaiiAre": "states"
+      "alaskaAndHawaiiAre": "states",
+      "usAndCanadaCountDxcc": true
     },
     "finalScore": "SUM(points) * (stateMultipliers + provinceMultipliers + dxccMultipliers)"
   },
