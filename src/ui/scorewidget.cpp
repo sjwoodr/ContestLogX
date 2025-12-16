@@ -34,6 +34,14 @@ ScoreWidget::ScoreWidget(QWidget *parent)
     
     mainLayout->addLayout(titleLayout);
     
+    // Multiplier summary (smaller font)
+    m_multsSummaryLabel = new QLabel("", this);
+    QFont summaryFont = m_multsSummaryLabel->font();
+    summaryFont.setPointSize(summaryFont.pointSize() - 1);
+    m_multsSummaryLabel->setFont(summaryFont);
+    m_multsSummaryLabel->setStyleSheet("color: palette(text);");
+    mainLayout->addWidget(m_multsSummaryLabel);
+    
     // Score table
     m_scoreTable = new QTableWidget(this);
     setupTable();
@@ -146,6 +154,9 @@ void ScoreWidget::updateScore(const ContestEngine::ContestScore& score)
     
     // Update contest score
     m_contestScoreLabel->setText(QString::number(score.contestScore));
+    
+    // Update multiplier summary
+    updateMultsSummary(score);
 }
 
 void ScoreWidget::clear()
@@ -172,4 +183,22 @@ QString ScoreWidget::getBandDisplayOrder(int index) const
         return bands[index];
     }
     return QString();
+}
+
+void ScoreWidget::updateMultsSummary(const ContestEngine::ContestScore& score)
+{
+    QStringList parts;
+    
+    if (m_multCategories.contains("namedMults") && score.namedMultCount > 0) {
+        parts.append(QString("Named: %1").arg(score.namedMultCount));
+    }
+    if (m_multCategories.contains("dxcc") && score.dxccMultCount > 0) {
+        parts.append(QString("DXCC: %1").arg(score.dxccMultCount));
+    }
+    if (m_multCategories.contains("ituRegions") && score.ituRegionMultCount > 0) {
+        parts.append(QString("ITU: %1").arg(score.ituRegionMultCount));
+    }
+    
+    QString summary = parts.join(" | ");
+    m_multsSummaryLabel->setText(summary);
 }

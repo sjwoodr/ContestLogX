@@ -1918,6 +1918,12 @@ void MainWindow::loadContestDefinition(const QString& filePath)
                     QString("Set score widget bands: %1").arg(contestBands.join(", ")));
             }
         }
+        
+        // Set multiplier categories for score widget display
+        QStringList multCategories = m_contestEngine->getMultiplierCategories();
+        if (!multCategories.isEmpty()) {
+            m_scoreWidget->setMultCategories(multCategories);
+        }
     }
     
     updateWindowTitle();

@@ -22,17 +22,21 @@ public:
     
     void updateScore(const ContestEngine::ContestScore& score);
     void setContestBands(const QStringList& bands);
+    void setMultCategories(const QStringList& categories) { m_multCategories = categories; }
     void clear();
     void resetScore();
 
 private:
     QTableWidget* m_scoreTable;
     QLabel* m_contestScoreLabel;
+    QLabel* m_multsSummaryLabel;
     QStringList m_contestBands;
+    QStringList m_multCategories;
     
     void setupTable();
     void rebuildTable();
     QString getBandDisplayOrder(int index) const;
+    void updateMultsSummary(const ContestEngine::ContestScore& score);
 };
 
 #endif // SCOREWIDGET_H
