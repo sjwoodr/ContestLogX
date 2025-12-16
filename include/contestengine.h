@@ -84,9 +84,10 @@ public:
         int contestScore = 0;
     };
     
-    void updateRunningScore(const QList<QsoRecord>& qsos, const QString& myCallsign);
+    void updateRunningScore(QList<QsoRecord>& qsos, const QString& myCallsign, bool verbose = false);
     ContestScore getRunningScore() const { return m_runningScore; }
     QMap<QString, BandModeStats> getBandBreakdown() const { return m_runningScore.bandStats; }
+    void resetScore();
     
     // DXCC
     void setDxccDatabase(DxccDatabase* dxcc) { m_dxccDatabase = dxcc; }

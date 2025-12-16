@@ -23,6 +23,7 @@ public:
     void updateScore(const ContestEngine::ContestScore& score);
     void setContestBands(const QStringList& bands);
     void clear();
+    void resetScore();
 
 private:
     QTableWidget* m_scoreTable;

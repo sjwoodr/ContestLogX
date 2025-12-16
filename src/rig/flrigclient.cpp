@@ -67,16 +67,28 @@ QString FlrigClient::getMode()
         return QString();
     }
     
+    // Clear buffer before sending to avoid stale data
+    m_responseBuffer.clear();
+    
     QString request = buildXmlRpcCall("rig.get_mode");
     if (DebugLogger::instance().isFlrigDebugEnabled()) DebugLogger::instance().log("Flrig", QString("Sending mode request: %1").arg(request).toStdString().c_str());
     sendRequest(request);
     
-    if (m_socket->waitForReadyRead(1000)) {
-        if (DebugLogger::instance().isFlrigDebugEnabled()) DebugLogger::instance().log("Flrig", QString("Response buffer: %1").arg(m_responseBuffer).toStdString().c_str());
-        QVariant result = parseXmlRpcResponse(m_responseBuffer);
-        m_responseBuffer.clear();
-        if (DebugLogger::instance().isFlrigDebugEnabled()) DebugLogger::instance().log("Flrig", QString("Parsed mode: %1").arg(result.toString()).toStdString().c_str());
-        return result.toString();
+    // Wait for a response that contains methodResponse
+    int attempts = 0;
+    while (attempts < 50) {  // 5 seconds max (50 * 100ms)
+        if (m_responseBuffer.contains("</methodResponse>")) {
+            if (DebugLogger::instance().isFlrigDebugEnabled()) DebugLogger::instance().log("Flrig", QString("Response buffer: %1").arg(m_responseBuffer).toStdString().c_str());
+            QVariant result = parseXmlRpcResponse(m_responseBuffer);
+            m_responseBuffer.clear();
+            if (DebugLogger::instance().isFlrigDebugEnabled()) DebugLogger::instance().log("Flrig", QString("Parsed mode: %1").arg(result.toString()).toStdString().c_str());
+            return result.toString();
+        }
+        
+        if (m_socket->waitForReadyRead(100)) {
+            // More data arrived, loop will check again
+        }
+        attempts++;
     }
     
     if (DebugLogger::instance().isFlrigDebugEnabled()) DebugLogger::instance().log("Flrig", "Mode request timeout");
@@ -109,16 +121,28 @@ double FlrigClient::getFrequency()
         return 0.0;
     }
     
+    // Clear buffer before sending to avoid stale data
+    m_responseBuffer.clear();
+    
     QString request = buildXmlRpcCall("rig.get_vfo");
     if (DebugLogger::instance().isFlrigDebugEnabled()) DebugLogger::instance().log("Flrig", QString("Sending frequency request: %1").arg(request).toStdString().c_str());
     sendRequest(request);
     
-    if (m_socket->waitForReadyRead(1000)) {
-        if (DebugLogger::instance().isFlrigDebugEnabled()) DebugLogger::instance().log("Flrig", QString("Response buffer: %1").arg(m_responseBuffer).toStdString().c_str());
-        QVariant result = parseXmlRpcResponse(m_responseBuffer);
-        m_responseBuffer.clear();
-        if (DebugLogger::instance().isFlrigDebugEnabled()) DebugLogger::instance().log("Flrig", QString("Parsed frequency: %1").arg(result.toDouble()).toStdString().c_str());
-        return result.toDouble();
+    // Wait for a response that contains methodResponse
+    int attempts = 0;
+    while (attempts < 50) {  // 5 seconds max (50 * 100ms)
+        if (m_responseBuffer.contains("</methodResponse>")) {
+            if (DebugLogger::instance().isFlrigDebugEnabled()) DebugLogger::instance().log("Flrig", QString("Response buffer: %1").arg(m_responseBuffer).toStdString().c_str());
+            QVariant result = parseXmlRpcResponse(m_responseBuffer);
+            m_responseBuffer.clear();
+            if (DebugLogger::instance().isFlrigDebugEnabled()) DebugLogger::instance().log("Flrig", QString("Parsed frequency: %1").arg(result.toDouble()).toStdString().c_str());
+            return result.toDouble();
+        }
+        
+        if (m_socket->waitForReadyRead(100)) {
+            // More data arrived, loop will check again
+        }
+        attempts++;
     }
     
     if (DebugLogger::instance().isFlrigDebugEnabled()) DebugLogger::instance().log("Flrig", "Frequency request timeout");

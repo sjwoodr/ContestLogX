@@ -160,6 +160,11 @@ void ScoreWidget::clear()
     m_contestScoreLabel->setText("0");
 }
 
+void ScoreWidget::resetScore()
+{
+    clear();
+}
+
 QString ScoreWidget::getBandDisplayOrder(int index) const
 {
     QStringList bands = {"70cm", "2m", "6m", "10m", "15m", "20m", "40m", "80m", "160m"};

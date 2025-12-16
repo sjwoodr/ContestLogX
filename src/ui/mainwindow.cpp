@@ -11,6 +11,7 @@
 #include "shortcutsdialog.h"
 #include "contestengine.h"
 #include "filehandler.h"
+#include "loadingworker.h"
 #include "settings.h"
 #include "../utils/bandplan.h"
 #include "debuglogger.h"
@@ -38,6 +39,7 @@
 #include <QDateTime>
 #include <QHeaderView>
 #include <QSplitter>
+#include <QThread>
 #include <QDockWidget>
 #include <QCloseEvent>
 #include <QtMath>
@@ -475,6 +477,12 @@ void MainWindow::setupMenus()
     QAction *editCWMemAction = rigMenu->addAction("Edit CW &Memories...");
     connect(editCWMemAction, &QAction::triggered, this, &MainWindow::onEditCWMemories);
     
+    // Contest menu
+    QMenu *contestMenu = menuBar()->addMenu("&Contest");
+    
+    QAction *recalcScoreAction = contestMenu->addAction("&Recalculate score");
+    connect(recalcScoreAction, &QAction::triggered, this, &MainWindow::onRecalculateScore);
+    
     // Window menu
     QMenu *windowMenu = menuBar()->addMenu("&Window");
     
@@ -579,13 +587,47 @@ void MainWindow::onNewLog()
         QString selectedFile = dialog.selectedContestFile();
         if (!selectedFile.isEmpty()) {
             if (dialog.isOpeningExisting()) {
-                // User selected "Open Existing" - load the .clx file
-                QList<QsoRecord> loadedQsos;
-                QString contestFile;
-                QString stationClass;
-                FileHandler fileHandler;
+                // User selected "Open Existing" - load the .clx file using threaded approach
+                // Create progress dialog
+                QProgressDialog *progressDialog = new QProgressDialog("Loading file...", QString(), 0, 0, this);
+                progressDialog->setWindowTitle("Loading Log");
+                progressDialog->setWindowModality(Qt::WindowModal);
+                progressDialog->setAutoClose(false);
+                progressDialog->setAutoReset(false);
+                progressDialog->show();
+                QApplication::processEvents();
                 
-                if (fileHandler.loadWl2WithContest(selectedFile, loadedQsos, contestFile, stationClass)) {
+                // Create worker and thread
+                QThread *loadThread = new QThread(this);
+                LoadingWorker *worker = new LoadingWorker(selectedFile, nullptr);
+                worker->moveToThread(loadThread);
+                
+                // Connect signals
+                connect(loadThread, &QThread::started, worker, &LoadingWorker::doLoad);
+                
+                connect(worker, &LoadingWorker::loadingComplete, this, [this, selectedFile, progressDialog, loadThread, worker](QList<QsoRecord> loadedQsos, bool success, QString errorMessage) {
+                    loadThread->quit();
+                    loadThread->wait();
+                    worker->deleteLater();
+                    loadThread->deleteLater();
+                    
+                    if (!success) {
+                        progressDialog->close();
+                        progressDialog->deleteLater();
+                        QMessageBox::warning(this, "Load Failed", 
+                            "Failed to load file:\n\n" + errorMessage);
+                        return;
+                    }
+                    
+                    // Extract contest file and station class from the loaded QSOs
+                    QString contestFile;
+                    QString stationClass;
+                    FileHandler fileHandler;
+                    
+                    // We need to parse the file to get contest info - for now we'll load it separately
+                    QList<QsoRecord> temp;
+                    fileHandler.loadWl2WithContest(selectedFile, temp, contestFile, stationClass);
+                    
                     // Load the contest definition if specified
                     if (!contestFile.isEmpty()) {
                         QString contestPath = QCoreApplication::applicationDirPath() + "/contests/" + contestFile;
@@ -600,40 +642,52 @@ void MainWindow::onNewLog()
                         }
                     }
                     
+                    // Clear the model first
                     m_qsoModel->clear();
-                    for (const QsoRecord& qso : loadedQsos) {
-                        m_qsoModel->addQso(qso);
-                    }
                     
-                    // Update contest scoring with loaded QSOs and recalculate M/C columns
+                    // Recalculate scores on the loaded QSOs
+                    progressDialog->setRange(0, loadedQsos.size() + 1);
+                    progressDialog->setLabelText("Recalculating scores...");
+                    progressDialog->show();
+                    QApplication::processEvents();
+                    
                     if (m_contestEngine) {
                         QString myCallsign = Settings::instance().getCallsign();
+                        m_contestEngine->updateRunningScore(loadedQsos, myCallsign, false);  // Don't spam logs during load
+                    }
+                    
+                    // Now add all QSOs to the model once
+                    progressDialog->setLabelText("Updating display...");
+                    progressDialog->setRange(0, loadedQsos.size());
+                    QApplication::processEvents();
+                    
+                    for (int i = 0; i < loadedQsos.size(); ++i) {
+                        m_qsoModel->addQso(loadedQsos[i]);
                         
-                        // Process QSOs incrementally to calculate running multiplier counts
-                        for (int i = 0; i < loadedQsos.size(); ++i) {
-                            QList<QsoRecord> qsosUpToNow = loadedQsos.mid(0, i + 1);
-                            m_contestEngine->updateRunningScore(qsosUpToNow, myCallsign);
-                            ContestEngine::ContestScore score = m_contestEngine->getRunningScore();
-                            
-                            // Update the M and C columns with running totals
-                            m_qsoModel->updateMultiplierCount(i, score.multipliers);
-                            m_qsoModel->updateDxccCount(i, score.dxccCount);
+                        // Update progress every 50 QSOs to avoid excessive redraws
+                        if (i % 50 == 0) {
+                            progressDialog->setValue(i);
+                            QApplication::processEvents();
                         }
-                        
-                        // Final update for score widget
-                        if (m_scoreWidget) {
-                            m_scoreWidget->updateScore(m_contestEngine->getRunningScore());
-                        }
+                    }
+                    progressDialog->setValue(loadedQsos.size());
+                    
+                    if (m_scoreWidget && m_contestEngine) {
+                        m_scoreWidget->updateScore(m_contestEngine->getRunningScore());
                     }
                     
                     m_currentFile = selectedFile;
                     m_isModified = false;
                     updateWindowTitle();
                     updateQsoEntryFields();
+                    
+                    progressDialog->close();
+                    progressDialog->deleteLater();
+                    
                     m_statusLabel->setText(QString("Loaded %1 QSOs").arg(loadedQsos.size()));
-                } else {
-                    QMessageBox::warning(this, "Error", "Failed to load file");
-                }
+                });
+                
+                loadThread->start();
             } else {
                 // User selected a contest definition - create new log
                 loadContestDefinition(selectedFile);
@@ -665,53 +719,82 @@ void MainWindow::onOpenLog()
     if (fileName.isEmpty())
         return;
     
-    // Load file
-    QList<QsoRecord> loadedQsos;
-    FileHandler fileHandler;
+    // Create progress dialog
+    QProgressDialog *progressDialog = new QProgressDialog("Loading file...", QString(), 0, 0, this);
+    progressDialog->setWindowTitle("Loading Log");
+    progressDialog->setWindowModality(Qt::WindowModal);
+    progressDialog->setAutoClose(false);
+    progressDialog->setAutoReset(false);
+    progressDialog->show();
+    QApplication::processEvents();
     
-    if (fileHandler.load(fileName, loadedQsos)) {
-        m_qsoModel->clear();
-        for (const QsoRecord& qso : loadedQsos) {
-            m_qsoModel->addQso(qso);
+    // Create worker and thread
+    QThread *loadThread = new QThread(this);
+    LoadingWorker *worker = new LoadingWorker(fileName, nullptr);
+    worker->moveToThread(loadThread);
+    
+    // Connect signals
+    connect(loadThread, &QThread::started, worker, &LoadingWorker::doLoad);
+    
+    connect(worker, &LoadingWorker::loadingComplete, this, [this, fileName, progressDialog, loadThread, worker](QList<QsoRecord> loadedQsos, bool success, QString errorMessage) {
+        loadThread->quit();
+        loadThread->wait();
+        worker->deleteLater();
+        loadThread->deleteLater();
+        
+        if (!success) {
+            progressDialog->close();
+            progressDialog->deleteLater();
+            QMessageBox::warning(this, "Load Failed", 
+                "Failed to load file:\n\n" + errorMessage);
+            return;
         }
         
-        // Update contest scoring with loaded QSOs and recalculate M/C columns
+        // Clear the model first
+        m_qsoModel->clear();
+        
+        // Recalculate scores on the loaded QSOs
+        progressDialog->setRange(0, loadedQsos.size() + 1);
+        progressDialog->setLabelText("Recalculating scores...");
+        progressDialog->show();
+        QApplication::processEvents();
+        
         if (m_contestEngine) {
             QString myCallsign = Settings::instance().getCallsign();
+            m_contestEngine->updateRunningScore(loadedQsos, myCallsign, false);  // Don't spam logs during load
+        }
+        
+        // Now add all QSOs to the model once
+        progressDialog->setLabelText("Updating display...");
+        progressDialog->setRange(0, loadedQsos.size());
+        QApplication::processEvents();
+        
+        for (int i = 0; i < loadedQsos.size(); ++i) {
+            m_qsoModel->addQso(loadedQsos[i]);
             
-            // Process QSOs incrementally to calculate running multiplier counts
-            for (int i = 0; i < loadedQsos.size(); ++i) {
-                QList<QsoRecord> qsosUpToNow = loadedQsos.mid(0, i + 1);
-                m_contestEngine->updateRunningScore(qsosUpToNow, myCallsign);
-                ContestEngine::ContestScore score = m_contestEngine->getRunningScore();
-                
-                // Update the M and C columns with running totals
-                m_qsoModel->updateMultiplierCount(i, score.multipliers);
-                m_qsoModel->updateDxccCount(i, score.dxccCount);
-            }
-            
-            // Final update for score widget
-            if (m_scoreWidget) {
-                m_scoreWidget->updateScore(m_contestEngine->getRunningScore());
+            // Update progress every 50 QSOs to avoid excessive redraws
+            if (i % 50 == 0) {
+                progressDialog->setValue(i);
+                QApplication::processEvents();
             }
         }
+        progressDialog->setValue(loadedQsos.size());
+        
+        if (m_scoreWidget && m_contestEngine) {
+            m_scoreWidget->updateScore(m_contestEngine->getRunningScore());
+        }
+        
+        progressDialog->close();
+        progressDialog->deleteLater();
         
         m_currentFile = fileName;
         m_isModified = false;
         updateWindowTitle();
         m_statusLabel->setText("File loaded: " + fileName + " (" + 
             QString::number(loadedQsos.count()) + " QSOs)");
-        
-        // Update running score after loading file
-        if (m_contestEngine && m_scoreWidget) {
-            QString myCallsign = Settings::instance().getCallsign();
-            m_contestEngine->updateRunningScore(m_qsoModel->getQsos(), myCallsign);
-            m_scoreWidget->updateScore(m_contestEngine->getRunningScore());
-        }
-    } else {
-        QMessageBox::warning(this, "Load Failed", 
-            "Failed to load file:\n\n" + fileHandler.lastError());
-    }
+    });
+    
+    loadThread->start();
 }
 
 void MainWindow::onSaveLog()
@@ -996,7 +1079,7 @@ void MainWindow::onLogQso()
     if (m_contestEngine && m_scoreWidget) {
         QString myCallsign = Settings::instance().getCallsign();
         QList<QsoRecord> allQsos = m_qsoModel->getQsos();
-        m_contestEngine->updateRunningScore(allQsos, myCallsign);
+        m_contestEngine->updateRunningScore(allQsos, myCallsign, false);  // Suppress verbose logging
         
         // Get the running score which includes calculated multipliers
         ContestEngine::ContestScore score = m_contestEngine->getRunningScore();
@@ -1175,6 +1258,88 @@ void MainWindow::onEditCWMemories()
         
         m_statusLabel->setText("CW memories updated");
     }
+}
+
+void MainWindow::onRecalculateScore()
+{
+    if (!m_contestEngine || m_contestDefinition.isEmpty()) {
+        QMessageBox::warning(this, "No Contest", "No contest is currently loaded");
+        return;
+    }
+    
+    // Clear the score widget
+    if (m_scoreWidget) {
+        m_scoreWidget->resetScore();
+    }
+    
+    // Get all QSOs
+    QList<QsoRecord> allQsos = m_qsoModel->getAllQsos();
+    
+    // Reset contest engine
+    m_contestEngine->resetScore();
+    
+    // Re-score each QSO without popups
+    QString myCallsign = Settings::instance().getCallsign();
+    
+    for (int i = 0; i < allQsos.count(); ++i) {
+        QsoRecord qso = allQsos[i];
+        
+        // Check if out-of-band
+        double freqKhz = qso.getFrequency().toDouble();
+        if (!m_contestEngine->isValidBand(freqKhz)) {
+            qso.setOutOfBand(true);
+            qso.setComment("Out of band for contest");
+            qso.setPoints(0);
+            qso.setDupe(false);
+            m_qsoModel->updateQso(i, qso);
+            continue;
+        }
+        
+        // Reset dupe and out-of-band flags
+        qso.setOutOfBand(false);
+        qso.setDupe(false);
+        qso.setComment("");
+        
+        // Check for duplicates (against previously re-scored QSOs)
+        QList<QsoRecord> previousQsos = allQsos.mid(0, i);
+        bool isDupe = m_contestEngine->isDupe(qso, previousQsos);
+        
+        if (isDupe) {
+            qso.setDupe(true);
+            qso.setPoints(0);
+            QString dupeReason = m_contestEngine->getDupeReason(qso, previousQsos);
+            qso.setComment(QString("Duplicate contact for %1").arg(dupeReason));
+            m_qsoModel->updateQso(i, qso);
+            continue;
+        }
+        
+        // Calculate points
+        int points = m_contestEngine->calculatePoints(qso, myCallsign);
+        qso.setPoints(points);
+        m_qsoModel->updateQso(i, qso);
+    }
+    
+    // Re-calculate running score
+    allQsos = m_qsoModel->getAllQsos();
+    m_contestEngine->updateRunningScore(allQsos, myCallsign, false);  // Suppress verbose logging
+    
+    // Update all QSO multiplier and DXCC counts
+    ContestEngine::ContestScore score = m_contestEngine->getRunningScore();
+    for (int i = 0; i < allQsos.count(); ++i) {
+        // For simplicity, just update the last one's display (user can scroll to see)
+        if (i == allQsos.count() - 1) {
+            m_qsoModel->updateMultiplierCount(i, score.multipliers);
+            m_qsoModel->updateDxccCount(i, score.dxccCount);
+        }
+    }
+    
+    // Update score widget
+    if (m_scoreWidget) {
+        m_scoreWidget->updateScore(score);
+    }
+    
+    m_statusLabel->setText("Score recalculated");
+    DebugLogger::instance().log("MainWindow", "Score recalculated for all QSOs");
 }
 
 void MainWindow::onCWWindow()

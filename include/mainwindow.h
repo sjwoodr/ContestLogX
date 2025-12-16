@@ -52,6 +52,7 @@ private slots:
     void onFreqModeButtonClicked();
     void onCWWindow();
     void onEditCWMemories();
+    void onRecalculateScore();
     void onAbout();
     void onColumnResized(int logicalIndex, int oldSize, int newSize);
     void onPropagationDataReceived(int sfi, int aIndex, int kIndex);

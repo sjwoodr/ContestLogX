@@ -1186,10 +1186,12 @@ QString ContestEngine::getDefaultSentExchange(const QString& stationQth, int ser
     return QString();
 }
 
-void ContestEngine::updateRunningScore(const QList<QsoRecord>& qsos, const QString& myCallsign)
+void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& myCallsign, bool verbose)
 {
-    DebugLogger::instance().log("ContestEngine", 
-        QString("Updating running score for %1 QSOs").arg(qsos.size()));
+    if (verbose) {
+        DebugLogger::instance().log("ContestEngine", 
+            QString("Updating running score for %1 QSOs").arg(qsos.size()));
+    }
     
     // Reset running score
     m_runningScore = ContestScore();
@@ -1229,7 +1231,8 @@ void ContestEngine::updateRunningScore(const QList<QsoRecord>& qsos, const QStri
     };
     
     // Process each QSO
-    for (const QsoRecord& qso : qsos) {
+    for (int i = 0; i < qsos.size(); ++i) {
+        QsoRecord& qso = qsos[i];  // Non-const reference so we can modify
         QString band = qso.getBand();
         
         // If band is empty, derive it from frequency
@@ -1268,6 +1271,7 @@ void ContestEngine::updateRunningScore(const QList<QsoRecord>& qsos, const QStri
         
         // Calculate points for this QSO
         int qsoPoints = calculatePoints(qso, myCallsign);
+        qso.setPoints(qsoPoints);  // Update the QSO with its points
         m_runningScore.bandStats[band].points += qsoPoints;
         m_runningScore.contactScore += qsoPoints;
         
@@ -1298,32 +1302,40 @@ void ContestEngine::updateRunningScore(const QList<QsoRecord>& qsos, const QStri
                 if (category == "states") stateMultsOnce.insert(mult);
                 else if (category == "provinces") provinceMultsOnce.insert(mult);
                 else if (category == "dxcc") dxccMultsOnce.insert(mult);
-                DebugLogger::instance().log("ContestEngine", 
-                    QString("  Mult tracking (once): %1 [%2]").arg(mult).arg(category));
+                if (verbose) {
+                    DebugLogger::instance().log("ContestEngine", 
+                        QString("  Mult tracking (once): %1 [%2]").arg(mult).arg(category));
+                }
             } else if (multType == "multsPerBand") {
                 QString key = QString("%1_%2").arg(mult).arg(band);
                 multPerBand.insert(key);
                 if (category == "states") stateMultsPerBand.insert(key);
                 else if (category == "provinces") provinceMultsPerBand.insert(key);
                 else if (category == "dxcc") dxccMultsPerBand.insert(key);
-                DebugLogger::instance().log("ContestEngine", 
-                    QString("  Mult tracking (per band): %1 [%2]").arg(key).arg(category));
+                if (verbose) {
+                    DebugLogger::instance().log("ContestEngine", 
+                        QString("  Mult tracking (per band): %1 [%2]").arg(key).arg(category));
+                }
             } else if (multType == "multsPerMode") {
                 QString key = QString("%1_%2").arg(mult).arg(modeCategory);
                 multPerMode.insert(key);
                 if (category == "states") stateMultsPerMode.insert(key);
                 else if (category == "provinces") provinceMultsPerMode.insert(key);
                 else if (category == "dxcc") dxccMultsPerMode.insert(key);
-                DebugLogger::instance().log("ContestEngine", 
-                    QString("  Mult tracking (per mode): %1 [%2]").arg(key).arg(category));
+                if (verbose) {
+                    DebugLogger::instance().log("ContestEngine", 
+                        QString("  Mult tracking (per mode): %1 [%2]").arg(key).arg(category));
+                }
             } else if (multType == "multsPerBandAndMode") {
                 QString key = QString("%1_%2_%3").arg(mult).arg(band).arg(modeCategory);
                 multPerBandAndMode.insert(key);
                 if (category == "states") stateMultsPerBandAndMode.insert(key);
                 else if (category == "provinces") provinceMultsPerBandAndMode.insert(key);
                 else if (category == "dxcc") dxccMultsPerBandAndMode.insert(key);
-                DebugLogger::instance().log("ContestEngine", 
-                    QString("  Mult tracking (per band/mode): %1 [%2]").arg(key).arg(category));
+                if (verbose) {
+                    DebugLogger::instance().log("ContestEngine", 
+                        QString("  Mult tracking (per band/mode): %1 [%2]").arg(key).arg(category));
+                }
             }
         }
     }
@@ -1334,34 +1346,40 @@ void ContestEngine::updateRunningScore(const QList<QsoRecord>& qsos, const QStri
         m_runningScore.provinceMults = provinceMultsOnce.size();
         m_runningScore.dxccMults = dxccMultsOnce.size();
         m_runningScore.multipliers = uniqueMultipliers.size();
-        DebugLogger::instance().log("ContestEngine", 
-            QString("Unique mults (once): %1 total (states:%2 provinces:%3 dxcc:%4)")
-                .arg(uniqueMultipliers.size())
-                .arg(m_runningScore.stateMults)
-                .arg(m_runningScore.provinceMults)
-                .arg(m_runningScore.dxccMults));
+        if (verbose) {
+            DebugLogger::instance().log("ContestEngine", 
+                QString("Unique mults (once): %1 total (states:%2 provinces:%3 dxcc:%4)")
+                    .arg(uniqueMultipliers.size())
+                    .arg(m_runningScore.stateMults)
+                    .arg(m_runningScore.provinceMults)
+                    .arg(m_runningScore.dxccMults));
+        }
     } else if (multType == "multsPerBand") {
         m_runningScore.stateMults = stateMultsPerBand.size();
         m_runningScore.provinceMults = provinceMultsPerBand.size();
         m_runningScore.dxccMults = dxccMultsPerBand.size();
         m_runningScore.multipliers = multPerBand.size();
-        DebugLogger::instance().log("ContestEngine", 
-            QString("Mults per band: %1 total (states:%2 provinces:%3 dxcc:%4)")
-                .arg(multPerBand.size())
-                .arg(m_runningScore.stateMults)
-                .arg(m_runningScore.provinceMults)
-                .arg(m_runningScore.dxccMults));
+        if (verbose) {
+            DebugLogger::instance().log("ContestEngine", 
+                QString("Mults per band: %1 total (states:%2 provinces:%3 dxcc:%4)")
+                    .arg(multPerBand.size())
+                    .arg(m_runningScore.stateMults)
+                    .arg(m_runningScore.provinceMults)
+                    .arg(m_runningScore.dxccMults));
+        }
     } else if (multType == "multsPerMode") {
         m_runningScore.stateMults = stateMultsPerMode.size();
         m_runningScore.provinceMults = provinceMultsPerMode.size();
         m_runningScore.dxccMults = dxccMultsPerMode.size();
         m_runningScore.multipliers = multPerMode.size();
-        DebugLogger::instance().log("ContestEngine", 
-            QString("Mults per mode: %1 total (states:%2 provinces:%3 dxcc:%4)")
-                .arg(multPerMode.size())
-                .arg(m_runningScore.stateMults)
-                .arg(m_runningScore.provinceMults)
-                .arg(m_runningScore.dxccMults));
+        if (verbose) {
+            DebugLogger::instance().log("ContestEngine", 
+                QString("Mults per mode: %1 total (states:%2 provinces:%3 dxcc:%4)")
+                    .arg(multPerMode.size())
+                    .arg(m_runningScore.stateMults)
+                    .arg(m_runningScore.provinceMults)
+                    .arg(m_runningScore.dxccMults));
+        }
     } else if (multType == "multsPerBandAndMode") {
         m_runningScore.stateMults = stateMultsPerBandAndMode.size();
         m_runningScore.provinceMults = provinceMultsPerBandAndMode.size();
@@ -1415,4 +1433,10 @@ void ContestEngine::updateRunningScore(const QList<QsoRecord>& qsos, const QStri
                 .arg(it.value().digitalQsos)
                 .arg(it.value().points));
     }
+}
+
+void ContestEngine::resetScore()
+{
+    m_runningScore = ContestScore();
+    DebugLogger::instance().log("ContestEngine", "Score reset");
 }

@@ -44,6 +44,7 @@ set(SOURCES
     src/core/contestinfo.cpp
     src/core/stationinfo.cpp
     src/core/exchangefield.cpp
+    src/core/loadingworker.cpp
     src/fileformats/clxfile.cpp
     src/rig/flrigclient.cpp
     src/utils/settings.cpp
@@ -72,6 +73,7 @@ set(HEADERS
     include/contestinfo.h
     include/stationinfo.h
     include/exchangefield.h
+    include/loadingworker.h
     include/clxfile.h
     include/flrigclient.h
     include/settings.h

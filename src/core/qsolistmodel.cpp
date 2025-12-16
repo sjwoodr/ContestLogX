@@ -79,15 +79,14 @@ QVariant QsoListModel::data(const QModelIndex &index, int role) const
             return qso.getExchangeField(header);
         }
     }
-    else if (role == Qt::BackgroundRole) {
-        // Highlight dupes and out-of-band in red
-        if (qso.isDupe() || qso.isOutOfBand()) {
-            return QColor(255, 200, 200);
-        }
-    }
     else if (role == Qt::ForegroundRole) {
         if (qso.isDupe() || qso.isOutOfBand()) {
             return QColor(139, 0, 0);  // Dark red text
+        }
+    }
+    else if (role == Qt::BackgroundRole) {
+        if (qso.isDupe() || qso.isOutOfBand()) {
+            return QColor(0, 0, 0);  // Black background
         }
     }
     
