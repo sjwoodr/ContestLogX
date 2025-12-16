@@ -30,16 +30,23 @@ Debug information is written to:
 
 **Full DXCC Support Using cty.dat:**
 - Integrated comprehensive DXCC database using AD1C's cty.dat format (CTY Version 9)
-- New `DxccDatabase` class parses cty.dat using proper fixed-width column format:
-  - Columns 1-26: Country Name
-  - Columns 27-31: CQ Zone
-  - Columns 32-36: ITU Zone
-  - Columns 37-41: Continent (2-letter abbreviation)
-  - Columns 42-50: Latitude (+ for North)
-  - Columns 51-60: Longitude (+ for West)
-  - Columns 61-69: GMT offset
-  - Columns 70+: Primary DXCC prefix
-  - Following lines: Alias prefixes (comma-separated, terminated with semicolon)
+- New `DxccDatabase` class parses cty.dat using **colon-delimited format** (NOT fixed-width):
+  - Field 1: Country Name (delimiter: `:`)
+  - Field 2: CQ Zone (delimiter: `:`)
+  - Field 3: ITU Zone (delimiter: `:`)
+  - Field 4: Continent (2-letter abbreviation, delimiter: `:`)
+  - Field 5: Latitude in degrees (+ for North, delimiter: `:`)
+  - Field 6: Longitude in degrees (+ for West, delimiter: `:`)
+  - Field 7: Local GMT offset (delimiter: `:`)
+  - Field 8+: Primary DXCC Prefix and alias prefixes
+  - Alias prefixes: comma-separated on same or consecutive lines, terminated with semicolon
+  - Special prefix modifiers:
+    - `=` prefix: exact match required (e.g., `=4U1VIC`)
+    - `(#)` after prefix: override CQ zone
+    - `[#]` after prefix: override ITU zone
+    - `<#/#>` after prefix: override latitude/longitude
+    - `{aa}` after prefix: override continent
+    - `~#~` after prefix: override GMT offset
 - Handles special prefix modifiers:
   - `=` prefix indicates exact match required
   - `(#)` CQ zone override
@@ -51,6 +58,34 @@ Debug information is written to:
 - File menu option: "Download DXCC Database (cty.dat)" downloads latest from country-files.com
 - Provides accurate country, continent, CQ zone, ITU zone, and lat/long data
 - Smart callsign matching: checks exact matches first, then longest prefix match
+
+**ITU Region Mapping:**
+- ITU Zones (1-75 from cty.dat) are mapped to ITU Regions (1, 2, 3) for contest multipliers
+- Standard mapping:
+  - Region 1: Zones 18–30, 32–45, 48, 49 (Europe, Africa, Middle East)
+  - Region 2: Zones 7–13, 15–17, 31, 46, 47 (North/South America, Greenland, Caribbean)
+  - Region 3: Zones 50–75, zone 34 (Asia-Pacific)
+- **Special case overrides** for territories politically assigned to different regions:
+  - **U.S. Pacific territories (Region 2):**
+    - Alaska (KL): ITU zones 1/2/3 → Region 2
+    - Hawaii (KH6): ITU zone 61 → Region 2
+    - Guam (KH2): ITU zone 64 → Region 2
+    - Northern Mariana Islands (KH0): ITU zone 64 → Region 2
+    - American Samoa (KH8): ITU zone 62 → Region 2
+    - Wake Island (KH9): ITU zone 65 → Region 2
+  - **French Caribbean territories (Region 2):**
+    - Guadeloupe (FG): ITU zones 11/12 → Region 2
+    - Martinique (FM): ITU zones 11/12 → Region 2
+    - French Guiana (FY): ITU zones 11/12 → Region 2
+
+**Portable/Temporary Operation:**
+- Callsigns with portable operation suffixes are handled specially:
+  - Ignorable suffixes: `/M` (mobile), `/P` (portable), `/MM` (maritime mobile), `/AG`, `/AE`
+  - These are stripped before DXCC/ITU lookup (the call operates "as home")
+  - Geographic suffixes: `/W1-W9`, `/VE1-VE4`, `/KL`, `/KH0-KH9`, `/VY0-VY2`, etc.
+  - These ARE used for DXCC/ITU lookup (e.g., N9OH/VE3 operates from Canada as VE3, not K)
+  - Special suffixes like `/VP2` are recognized as DXCC prefixes and processed as such
+- Debug logging shows portable location extraction and final DXCC/ITU determination
 
 **Enhanced Points Calculation:**
 - Points now calculated using actual DXCC data for both stations
