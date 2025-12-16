@@ -486,10 +486,13 @@ int ContestEngine::calculatePoints(const QsoRecord& qso, const QString& myCallsi
         return getPointsForMode(qso.getMode());
     }
     
-    // Get DXCC info for both stations
+    // Get DXCC info for both stations (strip portable suffixes first)
     QString theirCall = qso.getCall();
-    DxccEntity myEntity = m_dxccDatabase->lookupCallsign(myCallsign);
-    DxccEntity theirEntity = m_dxccDatabase->lookupCallsign(theirCall);
+    QString myCallForLookup = m_dxccDatabase->stripPortableSuffixes(myCallsign);
+    QString theirCallForLookup = m_dxccDatabase->stripPortableSuffixes(theirCall);
+    
+    DxccEntity myEntity = m_dxccDatabase->lookupCallsign(myCallForLookup);
+    DxccEntity theirEntity = m_dxccDatabase->lookupCallsign(theirCallForLookup);
     
     QString myCountry = myEntity.country;
     QString theirCountry = theirEntity.country;

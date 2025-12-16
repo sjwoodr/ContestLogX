@@ -244,9 +244,68 @@ void DxccDatabase::onDownloadFinished()
     emit downloadFinished(success, error);
 }
 
-QString DxccDatabase::findBestMatch(const QString &callsign) const
+QString DxccDatabase::stripPortableSuffixes(const QString &callsign) const
 {
     QString call = callsign.toUpper();
+    
+    // Handle portable operation: if there's a slash, check both sides
+    // For example: KL7XX/W4 means use W4 (not KL7XX)
+    // But VP2 after slash is a DXCC prefix (British Virgin Islands), not a portable location
+    
+    if (call.contains("/")) {
+        int slashPos = call.indexOf("/");
+        QString beforeSlash = call.left(slashPos);
+        QString afterSlash = call.mid(slashPos + 1);
+        
+        // Portable suffixes that don't change DXCC lookup
+        QStringList portableSuffixes = {"M", "P", "MM", "AG", "AE"};
+        
+        // If after slash is a portable suffix, ignore it
+        if (portableSuffixes.contains(afterSlash)) {
+            DebugLogger::instance().log("DxccDatabase", 
+                QString("Stripped portable suffix: %1 -> %2").arg(call, beforeSlash));
+            return beforeSlash;
+        }
+        
+        // Check if afterSlash is a valid DXCC prefix in our prefix map
+        // If it is, it's a portable location (like /W4 or /VP2), use that for lookup
+        QString upperAfterSlash = afterSlash.toUpper();
+        if (m_prefixMap.contains(upperAfterSlash)) {
+            // The part after slash is a valid portable location (like /W4 or /VP2)
+            DebugLogger::instance().log("DxccDatabase", 
+                QString("Using portable location: %1 -> %2").arg(call, afterSlash));
+            return afterSlash;
+        } else {
+            // Check for partial matches (e.g., VP2 matches VP2E, VP2M)
+            // Find the best matching prefix that starts with afterSlash
+            QString bestMatch;
+            for (const QString& prefix : m_prefixMap.keys()) {
+                if (prefix.startsWith(upperAfterSlash) && 
+                    (bestMatch.isEmpty() || prefix.length() < bestMatch.length())) {
+                    bestMatch = prefix;
+                }
+            }
+            
+            if (!bestMatch.isEmpty()) {
+                DebugLogger::instance().log("DxccDatabase", 
+                    QString("Using partial portable match: %1 -> %2 (matched %3)").arg(call, afterSlash, bestMatch));
+                return bestMatch;
+            } else {
+                // Unknown suffix, use the base call
+                DebugLogger::instance().log("DxccDatabase", 
+                    QString("Unknown suffix %1, using base call %2").arg(afterSlash, beforeSlash));
+                return beforeSlash;
+            }
+        }
+    }
+    
+    return call;
+}
+
+QString DxccDatabase::findBestMatch(const QString &callsign) const
+{
+    // First strip portable suffixes
+    QString call = stripPortableSuffixes(callsign);
     
     // First, check for exact matches (prefixes that start with =)
     if (m_prefixMap.contains(call)) {

@@ -60,6 +60,7 @@ public:
     
     bool isLoaded() const { return m_loaded; }
     QString getDataPath() const;
+    QString stripPortableSuffixes(const QString &callsign) const;
 
 signals:
     void downloadProgress(qint64 bytesReceived, qint64 bytesTotal);

@@ -1601,7 +1601,7 @@ void MainWindow::onToggleDxccDatabaseDebug(bool checked)
 void MainWindow::onAbout()
 {
     QMessageBox::about(this, "About ContestLogX",
-        "ContestLogX - Version 0.0.2 (Alpha)\n\n"
+        "ContestLogX - Version 0.0.3 (Alpha)\n\n"
         "Cross-platform amateur radio contest logging software\n\n"
         "Radio control via flrig (http://www.w1hkj.com/)\n\n"
         "Copyright (c) 2025 N9OH Software");

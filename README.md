@@ -463,7 +463,7 @@ Website: contestlogx.com (to be created)
 
 ---
 
-**ContestLogX v0.0.2**  
+**ContestLogX v0.0.3**  
 *Amateur Radio Contest Logging Software*  
 Copyright (c) 2025, by Steve Woodruff, N9OH
 

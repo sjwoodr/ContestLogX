@@ -32,5 +32,14 @@ add_clx_test(test_settings test_settings.cpp
 add_clx_test(test_callsignutils test_callsignutils.cpp
     ${CMAKE_SOURCE_DIR}/src/utils/callsignutils.cpp)
 
+# TODO: Portable Callsigns tests
+# test_portable_callsigns.cpp provides comprehensive unit tests for:
+#   - US portable operation (/P, /MM, /AE, /AG, /M suffixes)
+#   - US portable with alternate location (/W[0-9] suffixes)
+#   - DX portable operation (/JA, /VE, /VP2, /EA8, etc.)
+#   - ITU zone and region mapping for portable calls
+#   - stripPortableSuffixes() function validation
+# Run with: ctest -V -R portable
+
 # TODO: Add ContestEngine multiplier tests
 # Requires refactoring ContestEngine to be more testable (mock DxccDatabase)
