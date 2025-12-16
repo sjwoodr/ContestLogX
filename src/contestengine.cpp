@@ -37,32 +37,20 @@ bool ContestEngine::loadContest(const QJsonObject& contestDef)
     m_validStates.clear();
     m_validProvinces.clear();
     
-    // Try to load from validation.exchangeValidation.multipliers
+    // Load from validation.namedMults array (this is the single source of truth)
     if (contestDef.contains("validation")) {
         QJsonObject validation = contestDef["validation"].toObject();
-        if (validation.contains("exchangeValidation")) {
-            QJsonObject exchVal = validation["exchangeValidation"].toObject();
-            if (exchVal.contains("multipliers")) {
-                QJsonArray multList = exchVal["multipliers"].toArray();
-                DebugLogger::instance().log("ContestEngine", 
-                    QString("Loading %1 multipliers").arg(multList.size()));
-                
-                for (const QJsonValue& val : multList) {
-                    QString mult = val.toString().toUpper();
-                    m_validMultipliers.insert(mult);
-                    
-                    // Also add to states or provinces based on length/pattern
-                    if (mult.length() == 2) {
-                        m_validStates.insert(mult);
-                    } else {
-                        m_validProvinces.insert(mult);
-                    }
-                }
-            } else {
-                DebugLogger::instance().log("ContestEngine", "No multipliers array found in exchangeValidation");
+        if (validation.contains("namedMults")) {
+            QJsonArray multList = validation["namedMults"].toArray();
+            DebugLogger::instance().log("ContestEngine", 
+                QString("Loading %1 named multipliers").arg(multList.size()));
+            
+            for (const QJsonValue& val : multList) {
+                QString mult = val.toString().toUpper();
+                m_validMultipliers.insert(mult);
             }
         } else {
-            DebugLogger::instance().log("ContestEngine", "No exchangeValidation found in validation");
+            DebugLogger::instance().log("ContestEngine", "No namedMults array found in validation");
         }
     } else {
         DebugLogger::instance().log("ContestEngine", "No validation section found");
@@ -677,40 +665,18 @@ QList<ContestEngine::MultiplierInfo> ContestEngine::getMultipliersWithCategory(c
 {
     QList<MultiplierInfo> result;
     
-    // Get list of US states and Canadian provinces
-    QStringList usStates = {"AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA",
-                            "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD",
-                            "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ",
-                            "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC",
-                            "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"};
-    
-    QStringList canadianProvinces = {"AB", "BC", "MB", "NB", "NL", "NS", "NT", "NU", 
-                                      "ON", "PE", "QC", "SK", "YT"};
-    
     // Check if DXCC is a multiplier category
     QStringList multCategories = getMultiplierCategories();
     bool dxccIsMult = multCategories.contains("dxcc");
-    bool statesAreMult = multCategories.contains("states");
-    bool provincesAreMult = multCategories.contains("provinces");
     
     // Extract multiplier from exchange (state/province)
     QString mult = extractMultiplier(qso);
     if (!mult.isEmpty() && m_validMultipliers.contains(mult.toUpper())) {
         QString multUpper = mult.toUpper();
-        QString category;
         
-        // Determine category
-        if (usStates.contains(multUpper)) {
-            category = "states";
-        } else if (canadianProvinces.contains(multUpper)) {
-            category = "provinces";
-        }
-        
-        // Only add if this category is being counted
-        if ((category == "states" && statesAreMult) || 
-            (category == "provinces" && provincesAreMult)) {
-            result.append({multUpper, category});
-        }
+        // All named multipliers from validation.namedMults are valid
+        // We don't categorize them anymore - the app doesn't need to know if it's state/province/etc
+        result.append({multUpper, "named"});
         
         // Handle Alaska and Hawaii special case
         if (multUpper == "AK" || multUpper == "HI") {
@@ -722,7 +688,7 @@ QList<ContestEngine::MultiplierInfo> ContestEngine::getMultipliersWithCategory(c
             }
             
             if (treatment == "dxcc") {
-                // Replace state with DXCC only
+                // Replace named mult with DXCC only
                 result.clear();
                 if (dxccIsMult && m_dxccDatabase) {
                     DxccEntity entity = m_dxccDatabase->lookupCallsign(qso.getCall());
@@ -732,7 +698,7 @@ QList<ContestEngine::MultiplierInfo> ContestEngine::getMultipliersWithCategory(c
                     }
                 }
             } else if (treatment == "both") {
-                // Keep state and add DXCC
+                // Keep named mult and add DXCC
                 if (dxccIsMult && m_dxccDatabase) {
                     DxccEntity entity = m_dxccDatabase->lookupCallsign(qso.getCall());
                     if (!entity.primaryPrefix.isEmpty() || !entity.prefixes.isEmpty()) {
@@ -782,6 +748,71 @@ QList<ContestEngine::MultiplierInfo> ContestEngine::getMultipliersWithCategory(c
     
     return result;
 }
+
+ContestEngine::QsoMultiplierCredit ContestEngine::getQsoMultiplierCredit(const QsoRecord& qso, const QList<QsoRecord>& existingQsos) const
+{
+    QsoMultiplierCredit credit;
+    
+    // Get all multiplier info for this QSO
+    QList<MultiplierInfo> multsWithCategory = getMultipliersWithCategory(qso);
+    
+    // Get the multiplier type to determine how to track
+    QString multType = getMultiplierType();
+    
+    for (const MultiplierInfo& multInfo : multsWithCategory) {
+        QString trackingKey = multInfo.value;
+        
+        if (multType == "multsPerBandAndMode") {
+            trackingKey = QString("%1_%2_%3").arg(multInfo.value, qso.getBand(), qso.getMode());
+        } else if (multType == "multsPerBand") {
+            trackingKey = QString("%1_%2").arg(multInfo.value, qso.getBand());
+        } else if (multType == "multsPerMode") {
+            trackingKey = QString("%1_%2").arg(multInfo.value, qso.getMode());
+        }
+        
+        // Check if this multiplier (not the call, but the actual mult value) was already worked with this tracking method
+        bool isNew = true;
+        for (const QsoRecord& existingQso : existingQsos) {
+            // Skip invalid QSOs
+            if (existingQso.isDupe() || existingQso.isOutOfBand()) {
+                continue;
+            }
+            
+            QList<MultiplierInfo> existingMults = getMultipliersWithCategory(existingQso);
+            for (const MultiplierInfo& existingMult : existingMults) {
+                // Check if this is the same mult value and category
+                if (existingMult.value == multInfo.value && existingMult.category == multInfo.category) {
+                    QString existingKey = existingMult.value;
+                    
+                    if (multType == "multsPerBandAndMode") {
+                        existingKey = QString("%1_%2_%3").arg(existingMult.value, existingQso.getBand(), existingQso.getMode());
+                    } else if (multType == "multsPerBand") {
+                        existingKey = QString("%1_%2").arg(existingMult.value, existingQso.getBand());
+                    } else if (multType == "multsPerMode") {
+                        existingKey = QString("%1_%2").arg(existingMult.value, existingQso.getMode());
+                    }
+                    
+                    if (trackingKey == existingKey) {
+                        isNew = false;
+                        break;
+                    }
+                }
+            }
+            if (!isNew) break;
+        }
+        
+        if (isNew) {
+            if (multInfo.category == "named") {
+                credit.namedMultCount++;
+            } else if (multInfo.category == "dxcc") {
+                credit.dxccMultCount++;
+            }
+        }
+    }
+    
+    return credit;
+}
+
 
 QString ContestEngine::getMultiplierType() const
 {
@@ -1204,11 +1235,11 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
     QSet<QString> multPerMode;                          // multsPerMode
     QSet<QString> multPerBandAndMode;                   // multsPerBandAndMode
     
-    // Track multipliers by category
-    QSet<QString> stateMultsOnce, provinceMultsOnce, dxccMultsOnce;
-    QSet<QString> stateMultsPerBand, provinceMultsPerBand, dxccMultsPerBand;
-    QSet<QString> stateMultsPerMode, provinceMultsPerMode, dxccMultsPerMode;
-    QSet<QString> stateMultsPerBandAndMode, provinceMultsPerBandAndMode, dxccMultsPerBandAndMode;
+    // Track multipliers by type (named vs DXCC)
+    QSet<QString> namedMultsOnce, dxccMultsOnce;
+    QSet<QString> namedMultsPerBand, dxccMultsPerBand;
+    QSet<QString> namedMultsPerMode, dxccMultsPerMode;
+    QSet<QString> namedMultsPerBandAndMode, dxccMultsPerBandAndMode;
     
     // Track DXCC entities separately (for informational purposes)
     QSet<int> uniqueDxccEntities;
@@ -1275,11 +1306,19 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
         m_runningScore.bandStats[band].points += qsoPoints;
         m_runningScore.contactScore += qsoPoints;
         
+        // Initialize multiplier counts for this QSO
+        int qsoNamedMults = 0;  // Named multipliers (states/provinces)
+        int qsoDxccMults = 0;   // DXCC multipliers
+        
         // Skip multiplier tracking for out-of-band or duplicate QSOs
         if (qso.isDupe()) {
+            qso.setMultiplierCount(qsoNamedMults);
+            qso.setDxccCount(qsoDxccMults);
             continue;
         }
         if (qsoPoints == 0 && !isValidBand(qso.getFrequency().toDouble())) {  // Already in kHz
+            qso.setMultiplierCount(qsoNamedMults);
+            qso.setDxccCount(qsoDxccMults);
             continue;
         }
         
@@ -1297,99 +1336,127 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
             const QString& mult = multInfo.value;
             const QString& category = multInfo.category;
             
+            // Track whether this mult is new for the QSO-specific count
+            bool isNew = false;
+            
             if (multType == "multsOnce") {
-                uniqueMultipliers.insert(mult);
-                if (category == "states") stateMultsOnce.insert(mult);
-                else if (category == "provinces") provinceMultsOnce.insert(mult);
-                else if (category == "dxcc") dxccMultsOnce.insert(mult);
+                if (!uniqueMultipliers.contains(mult)) {
+                    isNew = true;
+                    uniqueMultipliers.insert(mult);
+                }
+                if (category == "named") {
+                    if (!namedMultsOnce.contains(mult)) namedMultsOnce.insert(mult);
+                } else if (category == "dxcc") {
+                    if (!dxccMultsOnce.contains(mult)) dxccMultsOnce.insert(mult);
+                }
                 if (verbose) {
                     DebugLogger::instance().log("ContestEngine", 
-                        QString("  Mult tracking (once): %1 [%2]").arg(mult).arg(category));
+                        QString("  Mult tracking (once): %1 [%2] %3").arg(mult).arg(category).arg(isNew ? "NEW" : "DUPE"));
                 }
             } else if (multType == "multsPerBand") {
                 QString key = QString("%1_%2").arg(mult).arg(band);
-                multPerBand.insert(key);
-                if (category == "states") stateMultsPerBand.insert(key);
-                else if (category == "provinces") provinceMultsPerBand.insert(key);
-                else if (category == "dxcc") dxccMultsPerBand.insert(key);
+                if (!multPerBand.contains(key)) {
+                    isNew = true;
+                    multPerBand.insert(key);
+                }
+                if (category == "named") {
+                    if (!namedMultsPerBand.contains(key)) namedMultsPerBand.insert(key);
+                } else if (category == "dxcc") {
+                    if (!dxccMultsPerBand.contains(key)) dxccMultsPerBand.insert(key);
+                }
                 if (verbose) {
                     DebugLogger::instance().log("ContestEngine", 
-                        QString("  Mult tracking (per band): %1 [%2]").arg(key).arg(category));
+                        QString("  Mult tracking (per band): %1 [%2] %3").arg(key).arg(category).arg(isNew ? "NEW" : "DUPE"));
                 }
             } else if (multType == "multsPerMode") {
                 QString key = QString("%1_%2").arg(mult).arg(modeCategory);
-                multPerMode.insert(key);
-                if (category == "states") stateMultsPerMode.insert(key);
-                else if (category == "provinces") provinceMultsPerMode.insert(key);
-                else if (category == "dxcc") dxccMultsPerMode.insert(key);
+                if (!multPerMode.contains(key)) {
+                    isNew = true;
+                    multPerMode.insert(key);
+                }
+                if (category == "named") {
+                    if (!namedMultsPerMode.contains(key)) namedMultsPerMode.insert(key);
+                } else if (category == "dxcc") {
+                    if (!dxccMultsPerMode.contains(key)) dxccMultsPerMode.insert(key);
+                }
                 if (verbose) {
                     DebugLogger::instance().log("ContestEngine", 
-                        QString("  Mult tracking (per mode): %1 [%2]").arg(key).arg(category));
+                        QString("  Mult tracking (per mode): %1 [%2] %3").arg(key).arg(category).arg(isNew ? "NEW" : "DUPE"));
                 }
             } else if (multType == "multsPerBandAndMode") {
                 QString key = QString("%1_%2_%3").arg(mult).arg(band).arg(modeCategory);
-                multPerBandAndMode.insert(key);
-                if (category == "states") stateMultsPerBandAndMode.insert(key);
-                else if (category == "provinces") provinceMultsPerBandAndMode.insert(key);
-                else if (category == "dxcc") dxccMultsPerBandAndMode.insert(key);
+                if (!multPerBandAndMode.contains(key)) {
+                    isNew = true;
+                    multPerBandAndMode.insert(key);
+                }
+                if (category == "named") {
+                    if (!namedMultsPerBandAndMode.contains(key)) namedMultsPerBandAndMode.insert(key);
+                } else if (category == "dxcc") {
+                    if (!dxccMultsPerBandAndMode.contains(key)) dxccMultsPerBandAndMode.insert(key);
+                }
                 if (verbose) {
                     DebugLogger::instance().log("ContestEngine", 
-                        QString("  Mult tracking (per band/mode): %1 [%2]").arg(key).arg(category));
+                        QString("  Mult tracking (per band/mode): %1 [%2] %3").arg(key).arg(category).arg(isNew ? "NEW" : "DUPE"));
+                }
+            }
+            
+            // Count this QSO's contribution to named and DXCC mults
+            if (isNew) {
+                if (category == "named") {
+                    qsoNamedMults++;
+                } else if (category == "dxcc") {
+                    qsoDxccMults++;
                 }
             }
         }
+        
+        // Set the multiplier counts for this QSO
+        qso.setMultiplierCount(qsoNamedMults);
+        qso.setDxccCount(qsoDxccMults);
     }
     
-    // Count multipliers based on type and category
+    // Count multipliers based on type
     if (multType == "multsOnce") {
-        m_runningScore.stateMults = stateMultsOnce.size();
-        m_runningScore.provinceMults = provinceMultsOnce.size();
+        m_runningScore.stateMults = namedMultsOnce.size();
         m_runningScore.dxccMults = dxccMultsOnce.size();
         m_runningScore.multipliers = uniqueMultipliers.size();
         if (verbose) {
             DebugLogger::instance().log("ContestEngine", 
-                QString("Unique mults (once): %1 total (states:%2 provinces:%3 dxcc:%4)")
+                QString("Unique mults (once): %1 total (named:%2 dxcc:%3)")
                     .arg(uniqueMultipliers.size())
                     .arg(m_runningScore.stateMults)
-                    .arg(m_runningScore.provinceMults)
                     .arg(m_runningScore.dxccMults));
         }
     } else if (multType == "multsPerBand") {
-        m_runningScore.stateMults = stateMultsPerBand.size();
-        m_runningScore.provinceMults = provinceMultsPerBand.size();
+        m_runningScore.stateMults = namedMultsPerBand.size();
         m_runningScore.dxccMults = dxccMultsPerBand.size();
         m_runningScore.multipliers = multPerBand.size();
         if (verbose) {
             DebugLogger::instance().log("ContestEngine", 
-                QString("Mults per band: %1 total (states:%2 provinces:%3 dxcc:%4)")
+                QString("Mults per band: %1 total (named:%2 dxcc:%3)")
                     .arg(multPerBand.size())
                     .arg(m_runningScore.stateMults)
-                    .arg(m_runningScore.provinceMults)
                     .arg(m_runningScore.dxccMults));
         }
     } else if (multType == "multsPerMode") {
-        m_runningScore.stateMults = stateMultsPerMode.size();
-        m_runningScore.provinceMults = provinceMultsPerMode.size();
+        m_runningScore.stateMults = namedMultsPerMode.size();
         m_runningScore.dxccMults = dxccMultsPerMode.size();
         m_runningScore.multipliers = multPerMode.size();
         if (verbose) {
             DebugLogger::instance().log("ContestEngine", 
-                QString("Mults per mode: %1 total (states:%2 provinces:%3 dxcc:%4)")
+                QString("Mults per mode: %1 total (named:%2 dxcc:%3)")
                     .arg(multPerMode.size())
                     .arg(m_runningScore.stateMults)
-                    .arg(m_runningScore.provinceMults)
                     .arg(m_runningScore.dxccMults));
         }
     } else if (multType == "multsPerBandAndMode") {
-        m_runningScore.stateMults = stateMultsPerBandAndMode.size();
-        m_runningScore.provinceMults = provinceMultsPerBandAndMode.size();
+        m_runningScore.stateMults = namedMultsPerBandAndMode.size();
         m_runningScore.dxccMults = dxccMultsPerBandAndMode.size();
         m_runningScore.multipliers = multPerBandAndMode.size();
         DebugLogger::instance().log("ContestEngine", 
-            QString("Mults per band/mode: %1 total (states:%2 provinces:%3 dxcc:%4)")
+            QString("Mults per band/mode: %1 total (named:%2 dxcc:%3)")
                 .arg(multPerBandAndMode.size())
                 .arg(m_runningScore.stateMults)
-                .arg(m_runningScore.provinceMults)
                 .arg(m_runningScore.dxccMults));
     }
     
@@ -1403,7 +1470,7 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
     // Use sum of category multipliers if contest defines categories
     QStringList multCategories = getMultiplierCategories();
     if (!multCategories.isEmpty()) {
-        int totalMultipliers = m_runningScore.stateMults + m_runningScore.provinceMults + m_runningScore.dxccMults;
+        int totalMultipliers = m_runningScore.stateMults + m_runningScore.dxccMults;
         m_runningScore.contestScore = (m_runningScore.contactScore * totalMultipliers) + m_runningScore.bonusPoints;
     } else {
         // Traditional scoring: points * mults
@@ -1411,12 +1478,11 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
     }
     
     DebugLogger::instance().log("ContestEngine", 
-        QString("Running score updated: %1 QSOs, %2 points, %3 mults (%4+%5+%6), %7 DXCCs = %8 score")
+        QString("Running score updated: %1 QSOs, %2 points, %3 mults (%4 named+%5 dxcc), %6 DXCCs = %7 score")
             .arg(qsos.size())
             .arg(m_runningScore.contactScore)
             .arg(m_runningScore.multipliers)
             .arg(m_runningScore.stateMults)
-            .arg(m_runningScore.provinceMults)
             .arg(m_runningScore.dxccMults)
             .arg(m_runningScore.dxccCount)
             .arg(m_runningScore.contestScore));

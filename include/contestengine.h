@@ -55,8 +55,14 @@ public:
         }
     };
     
+    struct QsoMultiplierCredit {
+        int namedMultCount = 0;  // Count of named multipliers (states/provinces) credited for this QSO
+        int dxccMultCount = 0;   // Count of DXCC entities credited for this QSO
+    };
+    
     QStringList getMultipliers(const QsoRecord& qso) const;
     QList<MultiplierInfo> getMultipliersWithCategory(const QsoRecord& qso) const;
+    QsoMultiplierCredit getQsoMultiplierCredit(const QsoRecord& qso, const QList<QsoRecord>& existingQsos) const;
     bool isNewMultiplier(const QString& mult, const QString& band, const QString& mode, const QList<QsoRecord>& existingQsos) const;
     int calculateTotalScore(const QList<QsoRecord>& qsos, int& totalQsos, int& totalMults) const;
     QString getMultiplierType() const;

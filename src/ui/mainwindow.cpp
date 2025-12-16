@@ -997,6 +997,8 @@ void MainWindow::onLogQso()
             qso.setOutOfBand(true);
             qso.setComment("Out of band for contest");
             qso.setPoints(0);
+            qso.setMultiplierCount(0);
+            qso.setDxccCount(0);
             m_statusLabel->setText("Warning: QSO is out of band for this contest");
             DebugLogger::instance().log("MainWindow", "QSO marked as out of band");
         } else {
@@ -1028,6 +1030,8 @@ void MainWindow::onLogQso()
                  // Mark as dupe and set points to 0
                  qso.setDupe(true);
                  qso.setPoints(0);
+                 qso.setMultiplierCount(0);
+                 qso.setDxccCount(0);
                  
                  // Get dupe reason and set comment
                  QString dupeReason = m_contestEngine->getDupeReason(qso, existingQsos);
@@ -1049,23 +1053,30 @@ void MainWindow::onLogQso()
         }
     }
     
-    // Add the QSO first so it's included in score calculations
+     // Add the QSO first so it's included in score calculations
     m_qsoModel->addQso(qso);
     
     // Update running score and get total multiplier count
     if (m_contestEngine && m_scoreWidget) {
         QString myCallsign = Settings::instance().getCallsign();
         QList<QsoRecord> allQsos = m_qsoModel->getQsos();
+        
+        // Get the multiplier credit BEFORE updating running score
+        // This uses the previous QSOs to determine if this is a new mult
+        QList<QsoRecord> previousQsos = allQsos.mid(0, allQsos.count() - 1);  // All except the one we just added
+        ContestEngine::QsoMultiplierCredit credit = m_contestEngine->getQsoMultiplierCredit(qso, previousQsos);
+        
+        // Update the QSO with mult credit
+        int lastQsoIndex = m_qsoModel->count() - 1;
+        m_qsoModel->updateMultiplierCount(lastQsoIndex, credit.namedMultCount);
+        m_qsoModel->updateDxccCount(lastQsoIndex, credit.dxccMultCount);
+        
+        // Now update running score with the updated QSO
+        allQsos = m_qsoModel->getQsos();
         m_contestEngine->updateRunningScore(allQsos, myCallsign, false);  // Suppress verbose logging
         
         // Get the running score which includes calculated multipliers
         ContestEngine::ContestScore score = m_contestEngine->getRunningScore();
-        
-        // Update the multiplier and DXCC count on the QSO we just added
-        // This represents the totals AFTER this QSO
-        int lastQsoIndex = m_qsoModel->count() - 1;
-        m_qsoModel->updateMultiplierCount(lastQsoIndex, score.multipliers);
-        m_qsoModel->updateDxccCount(lastQsoIndex, score.dxccCount);
         
         // Update score widget
         m_scoreWidget->updateScore(score);
@@ -1268,6 +1279,8 @@ void MainWindow::onRecalculateScore()
             qso.setComment("Out of band for contest");
             qso.setPoints(0);
             qso.setDupe(false);
+            qso.setMultiplierCount(0);
+            qso.setDxccCount(0);
             m_qsoModel->updateQso(i, qso);
             continue;
         }
@@ -1284,6 +1297,8 @@ void MainWindow::onRecalculateScore()
         if (isDupe) {
             qso.setDupe(true);
             qso.setPoints(0);
+            qso.setMultiplierCount(0);
+            qso.setDxccCount(0);
             QString dupeReason = m_contestEngine->getDupeReason(qso, previousQsos);
             qso.setComment(QString("Duplicate contact for %1").arg(dupeReason));
             m_qsoModel->updateQso(i, qso);
@@ -1293,6 +1308,12 @@ void MainWindow::onRecalculateScore()
         // Calculate points
         int points = m_contestEngine->calculatePoints(qso, myCallsign);
         qso.setPoints(points);
+        
+        // Get per-QSO multiplier credit
+        ContestEngine::QsoMultiplierCredit credit = m_contestEngine->getQsoMultiplierCredit(qso, previousQsos);
+        qso.setMultiplierCount(credit.namedMultCount);
+        qso.setDxccCount(credit.dxccMultCount);
+        
         m_qsoModel->updateQso(i, qso);
     }
     
@@ -1300,18 +1321,9 @@ void MainWindow::onRecalculateScore()
     allQsos = m_qsoModel->getAllQsos();
     m_contestEngine->updateRunningScore(allQsos, myCallsign, false);  // Suppress verbose logging
     
-    // Update all QSO multiplier and DXCC counts
-    ContestEngine::ContestScore score = m_contestEngine->getRunningScore();
-    for (int i = 0; i < allQsos.count(); ++i) {
-        // For simplicity, just update the last one's display (user can scroll to see)
-        if (i == allQsos.count() - 1) {
-            m_qsoModel->updateMultiplierCount(i, score.multipliers);
-            m_qsoModel->updateDxccCount(i, score.dxccCount);
-        }
-    }
-    
     // Update score widget
     if (m_scoreWidget) {
+        ContestEngine::ContestScore score = m_contestEngine->getRunningScore();
         m_scoreWidget->updateScore(score);
     }
     

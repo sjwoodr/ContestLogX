@@ -209,12 +209,12 @@
     "minimumQSOs": 1,
     "maxOperatingTime": 48,
     "offTimesRequired": false,
+    "namedMults": ["AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY", "DC", "AB", "BC", "MB", "NB", "NL", "NT", "NS", "NU", "ON", "PE", "QC", "SK", "YT", "AGS", "BAC", "BCS", "CAM", "CHI", "CHH", "CMX", "COA", "COL", "DGO", "EMX", "GTO", "GRO", "HGO", "JAL", "MIC", "MOR", "NAY", "NLE", "OAX", "PUE", "QRO", "QUI", "SLP", "SIN", "SON", "TAB", "TAM", "TLX", "VER", "YUC", "ZAC"],
     "exchangeValidation": {
       "type": "stateProvinceOrSerial",
-      "description": "US/VE stations send state/province, DX stations send serial number",
-      "multipliers": ["AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY", "DC", "AB", "BC", "MB", "NB", "NL", "NT", "NS", "NU", "ON", "PE", "QC", "SK", "YT"],
+      "description": "US/VE/XE stations send state/province, DX stations send serial number",
       "serialNumberFormat": "^[0-9]{1,4}$",
-      "logic": "Accept if value matches a multiplier OR matches serialNumberFormat"
+      "logic": "Accept if value matches a named multiplier OR matches serialNumberFormat"
     }
   },
   "ui": {
