@@ -46,7 +46,30 @@ public:
     // Scoring
     int calculatePoints(const QsoRecord& qso, const QString& myCallsign) const;
     QStringList getMultipliers(const QsoRecord& qso) const;
+    bool isNewMultiplier(const QString& mult, const QString& band, const QString& mode, const QList<QsoRecord>& existingQsos) const;
     int calculateTotalScore(const QList<QsoRecord>& qsos, int& totalQsos, int& totalMults) const;
+    QString getMultiplierType() const;
+    QString getAlaskaHawaiiTreatment() const;
+    
+    // Running score tracking
+    struct BandModeStats {
+        int cwQsos = 0;
+        int ssbQsos = 0;
+        int digitalQsos = 0;
+        int points = 0;
+    };
+    
+    struct ContestScore {
+        QMap<QString, BandModeStats> bandStats;  // Key: band name (e.g., "20m")
+        int contactScore = 0;
+        int multipliers = 0;
+        int bonusPoints = 0;
+        int contestScore = 0;
+    };
+    
+    void updateRunningScore(const QList<QsoRecord>& qsos, const QString& myCallsign);
+    ContestScore getRunningScore() const { return m_runningScore; }
+    QMap<QString, BandModeStats> getBandBreakdown() const { return m_runningScore.bandStats; }
     
     // DXCC
     void setDxccDatabase(DxccDatabase* dxcc) { m_dxccDatabase = dxcc; }
@@ -81,6 +104,7 @@ private:
     QSet<QString> m_validMultipliers;
     QString m_stationClass;
     DxccDatabase* m_dxccDatabase;
+    ContestScore m_runningScore;
 };
 
 #endif // CONTESTENGINE_H

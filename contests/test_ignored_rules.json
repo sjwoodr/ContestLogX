@@ -1,0 +1,48 @@
+{
+  "contest": {
+    "name": "Test Ignored Rules Contest",
+    "abbreviation": "TEST_IGNORED",
+    "description": "Example showing rules defined but not in precedence (triggers warnings)"
+  },
+  "scoring": {
+    "points": {
+      "sameDxccEntity": {
+        "CW": 1,
+        "SSB": 1
+      },
+      "differentDxccEntity": {
+        "CW": 3,
+        "SSB": 2
+      },
+      "sameContinent": {
+        "CW": 2,
+        "SSB": 1,
+        "comment": "This rule is defined but NOT in precedence - will be ignored!"
+      },
+      "differentContinent": {
+        "CW": 5,
+        "SSB": 3,
+        "comment": "This rule is defined but NOT in precedence - will be ignored!"
+      }
+    },
+    "precedence": [
+      "sameDxccEntity",
+      "differentDxccEntity"
+    ],
+    "comment": "Only DXCC rules in precedence - continent rules will be ignored with warnings",
+    "multipliers": {
+      "type": "multsOnce",
+      "categories": ["dxcc"]
+    }
+  },
+  "exchangeFields": {
+    "sent": [
+      {"name": "RST", "type": "rst", "required": true},
+      {"name": "SERIAL", "type": "serial", "required": true}
+    ],
+    "received": [
+      {"name": "RST", "type": "rst", "required": true},
+      {"name": "SERIAL", "type": "string", "required": true}
+    ]
+  }
+}

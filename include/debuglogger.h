@@ -23,6 +23,8 @@ public:
     bool isMainWindowDebugEnabled() const;
     void setContestEngineDebugEnabled(bool enabled);
     bool isContestEngineDebugEnabled() const;
+    void setContestSelectDialogDebugEnabled(bool enabled);
+    bool isContestSelectDialogDebugEnabled() const;
     void setCWWindowDebugEnabled(bool enabled);
     bool isCWWindowDebugEnabled() const;
     void setDxccDatabaseDebugEnabled(bool enabled);
@@ -34,6 +36,7 @@ private:
     bool m_flrigDebugEnabled = false;
     bool m_mainWindowDebugEnabled = false;
     bool m_contestEngineDebugEnabled = false;
+    bool m_contestSelectDialogDebugEnabled = false;
     bool m_cwWindowDebugEnabled = false;
     bool m_dxccDatabaseDebugEnabled = false;
     bool m_stdoutEnabled = false;

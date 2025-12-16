@@ -56,6 +56,7 @@ reset:
 	@echo "  - Station information (callsign, name, grid, etc.)"
 	@echo "  - Window geometry and layout"
 	@echo "  - Radio connection settings"
+	@echo "  - AD1C cty.dat files"
 	@echo "  - CW memories"
 	@echo "  - All other preferences"
 	@echo ""
@@ -63,6 +64,7 @@ reset:
 	if [ "$$CONFIRM" = "yes" ]; then \
 		if [ -f ~/.config/ContestLogX/ContestLogX.json ]; then \
 			rm -f ~/.config/ContestLogX/ContestLogX.json; \
+			rm -f data/cty.dat; \
 			echo "Settings file deleted successfully."; \
 			echo "ContestLogX will start with default settings on next launch."; \
 		else \

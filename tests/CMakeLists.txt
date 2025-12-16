@@ -15,7 +15,7 @@ include_directories(${CMAKE_SOURCE_DIR}/src)
 # Helper function to create a test
 function(add_clx_test test_name test_source)
     add_executable(${test_name} ${test_source} ${ARGN})
-    target_link_libraries(${test_name} PRIVATE Qt6::Test Qt6::Core Qt6::Widgets Qt6::Network)
+    target_link_libraries(${test_name} PRIVATE Qt6::Test Qt6::Core Qt6::Widgets Qt6::Network Qt6::Xml)
     add_test(NAME ${test_name} COMMAND ${test_name})
     set_tests_properties(${test_name} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 endfunction()
@@ -31,3 +31,6 @@ add_clx_test(test_settings test_settings.cpp
 # CallsignUtils tests
 add_clx_test(test_callsignutils test_callsignutils.cpp
     ${CMAKE_SOURCE_DIR}/src/utils/callsignutils.cpp)
+
+# TODO: Add ContestEngine multiplier tests
+# Requires refactoring ContestEngine to be more testable (mock DxccDatabase)

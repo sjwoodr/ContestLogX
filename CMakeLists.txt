@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(ContestLogX VERSION 0.0.1 LANGUAGES CXX)
+project(ContestLogX VERSION 0.0.2 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -32,6 +32,7 @@ set(SOURCES
     src/ui/cwwindow.cpp
     src/ui/cwmemoriesdialog.cpp
     src/ui/dxclusterpanel.cpp
+    src/ui/scorewidget.cpp
     src/ui/stationsetupdialog.cpp
     src/stationclassdialog.cpp
     src/contestselectdialog.cpp
@@ -58,6 +59,7 @@ set(HEADERS
     include/stationclassdialog.h
     include/contestselectdialog.h
     include/contestengine.h
+    include/scorewidget.h
     src/ui/freqmodedialog.h
     src/ui/cwwindow.h
     src/ui/cwmemoriesdialog.h

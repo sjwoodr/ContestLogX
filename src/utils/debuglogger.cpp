@@ -38,6 +38,7 @@ void DebugLogger::loadSettings()
     m_flrigDebugEnabled = settings.value("Debug/FlrigDebug", false).toBool();
     m_mainWindowDebugEnabled = settings.value("Debug/MainWindowDebug", false).toBool();
     m_contestEngineDebugEnabled = settings.value("Debug/ContestEngineDebug", true).toBool();
+    m_contestSelectDialogDebugEnabled = settings.value("Debug/ContestSelectDialogDebug", false).toBool();
     m_cwWindowDebugEnabled = settings.value("Debug/CWWindowDebug", false).toBool();
     m_dxccDatabaseDebugEnabled = settings.value("Debug/DxccDatabaseDebug", true).toBool();
 }
@@ -73,6 +74,17 @@ void DebugLogger::setContestEngineDebugEnabled(bool enabled)
 bool DebugLogger::isContestEngineDebugEnabled() const
 {
     return m_contestEngineDebugEnabled;
+}
+
+void DebugLogger::setContestSelectDialogDebugEnabled(bool enabled)
+{
+    m_contestSelectDialogDebugEnabled = enabled;
+    log("INFO", enabled ? "ContestSelectDialog debug logging enabled" : "ContestSelectDialog debug logging disabled");
+}
+
+bool DebugLogger::isContestSelectDialogDebugEnabled() const
+{
+    return m_contestSelectDialogDebugEnabled;
 }
 
 void DebugLogger::setCWWindowDebugEnabled(bool enabled)
@@ -112,6 +124,9 @@ void DebugLogger::log(const QString& component, const QString& message)
         return;
     }
     if (!m_contestEngineDebugEnabled && component == "ContestEngine") {
+        return;
+    }
+    if (!m_contestSelectDialogDebugEnabled && component == "ContestSelectDialog") {
         return;
     }
     if (!m_cwWindowDebugEnabled && component == "CWWindow") {

@@ -1,8 +1,10 @@
 #include "contestselectdialog.h"
+#include "debuglogger.h"
 #include <QDir>
 #include <QFileInfo>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QJsonParseError>
 #include <QFile>
 #include <QCoreApplication>
 #include <QFileDialog>
@@ -81,26 +83,76 @@ void ContestSelectDialog::loadContestList()
         contestsDir = QDir("contests");
     }
     
+    DebugLogger::instance().log("ContestSelectDialog", 
+        QString("Loading contests from: %1").arg(contestsDir.absolutePath()));
+    
     QStringList filters;
     filters << "*.json";
     QFileInfoList files = contestsDir.entryInfoList(filters, QDir::Files);
     
+    DebugLogger::instance().log("ContestSelectDialog", 
+        QString("Found %1 JSON files").arg(files.size()));
+    
     for (const QFileInfo &fileInfo : files) {
-        QFile file(fileInfo.absoluteFilePath());
-        if (file.open(QIODevice::ReadOnly)) {
-            QJsonDocument doc = QJsonDocument::fromJson(file.readAll());
-            file.close();
-            
-            if (doc.isObject()) {
-                QJsonObject obj = doc.object();
-                QString name = obj["name"].toString();
-                QString description = obj["description"].toString();
-                
-                QListWidgetItem *item = new QListWidgetItem(m_contestList);
-                item->setText(name.isEmpty() ? fileInfo.baseName() : name);
-                item->setToolTip(description);
-                item->setData(Qt::UserRole, fileInfo.absoluteFilePath());
-            }
+        QString filePath = fileInfo.absoluteFilePath();
+        DebugLogger::instance().log("ContestSelectDialog", 
+            QString("Processing: %1").arg(fileInfo.fileName()));
+        
+        QFile file(filePath);
+        if (!file.open(QIODevice::ReadOnly)) {
+            DebugLogger::instance().log("ContestSelectDialog", 
+                QString("ERROR: Cannot open file: %1").arg(filePath));
+            continue;
         }
+        
+        QByteArray data = file.readAll();
+        file.close();
+        
+        QJsonParseError parseError;
+        QJsonDocument doc = QJsonDocument::fromJson(data, &parseError);
+        
+        if (parseError.error != QJsonParseError::NoError) {
+            DebugLogger::instance().log("ContestSelectDialog", 
+                QString("ERROR: JSON parse error in %1: %2 at offset %3")
+                    .arg(fileInfo.fileName())
+                    .arg(parseError.errorString())
+                    .arg(parseError.offset));
+            continue;
+        }
+        
+        if (!doc.isObject()) {
+            DebugLogger::instance().log("ContestSelectDialog", 
+                QString("ERROR: JSON root is not an object in %1").arg(fileInfo.fileName()));
+            continue;
+        }
+        
+        QJsonObject obj = doc.object();
+        
+        // Try to get name from either top-level or nested under "contest"
+        QString name = obj["name"].toString();
+        QString description = obj["description"].toString();
+        
+        if (name.isEmpty() && obj.contains("contest")) {
+            QJsonObject contestObj = obj["contest"].toObject();
+            name = contestObj["name"].toString();
+            description = contestObj["description"].toString();
+        }
+        
+        if (name.isEmpty()) {
+            DebugLogger::instance().log("ContestSelectDialog", 
+                QString("WARNING: No name found in %1, using filename").arg(fileInfo.fileName()));
+            name = fileInfo.baseName();
+        }
+        
+        DebugLogger::instance().log("ContestSelectDialog", 
+            QString("Successfully loaded: %1").arg(name));
+        
+        QListWidgetItem *item = new QListWidgetItem(m_contestList);
+        item->setText(name);
+        item->setToolTip(description.isEmpty() ? name : description);
+        item->setData(Qt::UserRole, filePath);
     }
+    
+    DebugLogger::instance().log("ContestSelectDialog", 
+        QString("Total contests loaded: %1").arg(m_contestList->count()));
 }

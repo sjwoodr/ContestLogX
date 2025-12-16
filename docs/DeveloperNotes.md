@@ -63,9 +63,15 @@ Debug information is written to:
 - `calculatePoints()` now takes station callsign parameter
 - Uses DXCC database to determine geographic relationships
 - Supports all scoring rule types:
-  - `sameCountry`: Points for contacts within same DXCC entity
-  - `sameContinent`: Points for same continent (different country)
+  - `sameDxccEntity`: Points for contacts within same DXCC entity
+  - `differentDxccEntity`: Points for contacts with different DXCC entity
+  - `sameCountry`: Points for contacts within same DXCC entity (backward compatibility alias)
+  - `differentCountry`: Points for contacts with different DXCC entity (backward compatibility alias)
+  - `sameContinent`: Points for same continent (different DXCC entity)
   - `differentContinent`: Points for different continents
+- **Configurable precedence**: Contest JSON can specify `scoring.precedence` array to control evaluation order
+- Default precedence: `["sameDxccEntity", "sameCountry", "differentDxccEntity", "differentCountry", "sameContinent", "differentContinent"]`
+- First matching rule in precedence order is used
 - Mode normalization: SSB/USB/LSB/FM → SSB, RTTY/PSK/FT8/FT4 → DIGITAL
 
 **Data Directory:**

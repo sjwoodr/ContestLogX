@@ -410,6 +410,20 @@ void Settings::setCwConsoleVisible(bool visible)
     save();
 }
 
+QByteArray Settings::getDockWidgetState() const
+{
+    QString base64 = m_settings["ui"].toObject()["dockWidgetState"].toString("");
+    return QByteArray::fromBase64(base64.toLatin1());
+}
+
+void Settings::setDockWidgetState(const QByteArray& state)
+{
+    QJsonObject ui = m_settings["ui"].toObject();
+    ui["dockWidgetState"] = QString::fromLatin1(state.toBase64());
+    m_settings["ui"] = ui;
+    save();
+}
+
 QByteArray Settings::getMainSplitterState() const
 {
     QString base64 = m_settings["ui"].toObject()["mainSplitterState"].toString("");
@@ -473,6 +487,19 @@ void Settings::setContestEngineDebugEnabled(bool enabled)
 {
     QJsonObject debug = m_settings["debug"].toObject();
     debug["contestEngineDebugEnabled"] = enabled;
+    m_settings["debug"] = debug;
+    save();
+}
+
+bool Settings::getContestSelectDialogDebugEnabled() const
+{
+    return m_settings["debug"].toObject()["contestSelectDialogDebugEnabled"].toBool(false);
+}
+
+void Settings::setContestSelectDialogDebugEnabled(bool enabled)
+{
+    QJsonObject debug = m_settings["debug"].toObject();
+    debug["contestSelectDialogDebugEnabled"] = enabled;
     m_settings["debug"] = debug;
     save();
 }

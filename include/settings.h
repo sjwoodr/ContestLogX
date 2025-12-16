@@ -89,6 +89,10 @@ public:
     bool getCwConsoleVisible() const;
     void setCwConsoleVisible(bool visible);
     
+    // Dock widget state
+    QByteArray getDockWidgetState() const;
+    void setDockWidgetState(const QByteArray& state);
+    
     // Debug settings
     bool getFlrigDebugEnabled() const;
     void setFlrigDebugEnabled(bool enabled);
@@ -96,6 +100,8 @@ public:
     void setMainWindowDebugEnabled(bool enabled);
     bool getContestEngineDebugEnabled() const;
     void setContestEngineDebugEnabled(bool enabled);
+    bool getContestSelectDialogDebugEnabled() const;
+    void setContestSelectDialogDebugEnabled(bool enabled);
     bool getCWWindowDebugEnabled() const;
     void setCWWindowDebugEnabled(bool enabled);
     

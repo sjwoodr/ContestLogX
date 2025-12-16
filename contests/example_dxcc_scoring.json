@@ -1,0 +1,69 @@
+{
+  "contest": {
+    "name": "Example DXCC Scoring Contest",
+    "abbreviation": "EXAMPLE",
+    "sponsor": "Example",
+    "description": "Example contest demonstrating sameDxccEntity and differentDxccEntity scoring",
+    "startDate": "TBD",
+    "duration": 24,
+    "modes": ["CW", "SSB"],
+    "bands": ["20m", "40m"],
+    "url": "https://example.com"
+  },
+  "scoring": {
+    "points": {
+      "sameDxccEntity": {
+        "CW": 1,
+        "SSB": 1,
+        "comment": "QSOs within same DXCC entity (e.g., W1AW to N9OH)"
+      },
+      "differentDxccEntity": {
+        "CW": 3,
+        "SSB": 2,
+        "comment": "QSOs with different DXCC entity regardless of continent"
+      }
+    },
+    "precedence": [
+      "sameDxccEntity",
+      "differentDxccEntity"
+    ],
+    "comment": "Precedence array defines evaluation order - first match wins",
+    "multipliers": {
+      "type": "multsPerBand",
+      "description": "DXCC countries",
+      "categories": ["dxcc"],
+      "alaskaAndHawaiiAre": "dxcc"
+    },
+    "finalScore": "SUM(points) * dxccMultipliers"
+  },
+  "exchangeFields": {
+    "sent": [
+      {
+        "name": "RST",
+        "type": "rst",
+        "required": true
+      },
+      {
+        "name": "SERIAL",
+        "type": "serial",
+        "required": true
+      }
+    ],
+    "received": [
+      {
+        "name": "RST",
+        "type": "rst",
+        "required": true
+      },
+      {
+        "name": "SERIAL",
+        "type": "string",
+        "required": true
+      }
+    ]
+  },
+  "dupeChecking": {
+    "type": "perBand",
+    "description": "Station may be worked once per band"
+  }
+}

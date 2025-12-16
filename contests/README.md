@@ -133,6 +133,14 @@ Defines how points and multipliers are calculated:
 ```json
 "scoring": {
   "points": {
+    "sameDxccEntity": {
+      "CW": 1,
+      "SSB": 1
+    },
+    "differentDxccEntity": {
+      "CW": 3,
+      "SSB": 2
+    },
     "sameContinent": {
       "CW": 2,
       "SSB": 1
@@ -142,14 +150,62 @@ Defines how points and multipliers are calculated:
       "SSB": 2
     }
   },
+  "precedence": [
+    "sameDxccEntity",
+    "differentDxccEntity",
+    "sameContinent",
+    "differentContinent"
+  ],
   "multipliers": {
-    "type": "perBandAndMode",
+    "type": "multsPerBandAndMode",
     "description": "US states and DXCC countries",
     "categories": ["states", "dxcc"],
-    "countOncePerBandAndMode": true
+    "alaskaAndHawaiiAre": "states"
   },
-  "finalScore": "SUM(points) * (stateMultipliers + dxccMultipliers)"
+  "finalScore": "SUM(points) * multipliers"
 }
+```
+
+**Alaska and Hawaii Special Handling:**
+Alaska (AK) and Hawaii (HI) are both US states AND separate DXCC entities (KL7 and KH6). Different contests treat them differently:
+- `"alaskaAndHawaiiAre": "states"` - Count only as state multipliers (e.g., ARRL 10M, Sweepstakes)
+- `"alaskaAndHawaiiAre": "dxcc"` - Count only as DXCC multipliers (use KL7/KH6)
+- `"alaskaAndHawaiiAre": "both"` - Count as BOTH state AND DXCC multipliers (default if not specified)
+- `"alaskaAndHawaiiAre": "none"` - AK and HI are NOT counted as multipliers at all
+
+The contest engine automatically detects Alaska/Hawaii stations by DXCC lookup and applies the appropriate multiplier handling.
+
+**Multiplier Types:**
+The `type` field determines how multipliers are counted:
+- `multsOnce`: Each multiplier counts only once (e.g., work OH once for entire contest)
+- `multsPerBand`: Each multiplier counts once per band (e.g., work OH on 20m and 40m = 2 mults)
+- `multsPerMode`: Each multiplier counts once per mode (e.g., work OH on CW and SSB = 2 mults)
+- `multsPerBandAndMode`: Each multiplier counts once per band/mode combination (e.g., work OH on 20m CW, 20m SSB, 40m CW = 3 mults)
+
+**Scoring Rules:**
+- `sameDxccEntity`: Points for contacts within same DXCC entity (e.g., W1AW to N9OH)
+- `differentDxccEntity`: Points for contacts with different DXCC entity
+- `sameCountry`: Backward compatibility alias for `sameDxccEntity`
+- `differentCountry`: Backward compatibility alias for `differentDxccEntity`
+- `sameContinent`: Points for same continent contacts
+- `differentContinent`: Points for different continent contacts
+
+**Precedence Array:**
+The optional `precedence` array defines the order in which scoring rules are evaluated. The first matching rule is used. If not specified, defaults to:
+```json
+["sameDxccEntity", "sameCountry", "differentDxccEntity", "differentCountry", "sameContinent", "differentContinent"]
+```
+
+**Important:** Only rules listed in the `precedence` array will be checked. If you define a scoring rule in `points` but don't include it in `precedence`, it will be **ignored** and a warning will be logged.
+
+Example: To prioritize continent scoring over DXCC:
+```json
+"precedence": ["sameContinent", "differentContinent", "sameDxccEntity", "differentDxccEntity"]
+```
+
+Example: DXCC-only scoring (ignores continent rules even if defined):
+```json
+"precedence": ["sameDxccEntity", "differentDxccEntity"]
 ```
 
 ### Dupe Checking Section

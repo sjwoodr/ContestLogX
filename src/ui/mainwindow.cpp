@@ -4,6 +4,7 @@
 #include "cwwindow.h"
 #include "cwmemoriesdialog.h"
 #include "dxclusterpanel.h"
+#include "scorewidget.h"
 #include "stationsetupdialog.h"
 #include "stationclassdialog.h"
 #include "contestselectdialog.h"
@@ -36,6 +37,8 @@
 #include <QDateTime>
 #include <QHeaderView>
 #include <QSplitter>
+#include <QDockWidget>
+#include <QCloseEvent>
 #include <QtMath>
 #include <QKeyEvent>
 
@@ -205,8 +208,19 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
-    // Save window geometry on exit
+    // Cleanup happens in closeEvent
+}
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    // Save window geometry
     saveWindowGeometry();
+    
+    // Save dock widget state (positions, sizes, floating state)
+    savePanelState();
+    
+    // Accept the close event
+    QMainWindow::closeEvent(event);
 }
 
 bool MainWindow::eventFilter(QObject *obj, QEvent *event)
@@ -326,13 +340,17 @@ void MainWindow::setupUi()
     
     mainSplitter->addWidget(leftPanel);
     
-    // RIGHT SIDE: DX Cluster + CW Console stacked vertically with splitter
-    m_rightPanelSplitter = new QSplitter(Qt::Vertical, this);
+    // Convert all right side panels to QDockWidgets for flexibility
     
-    // DX Cluster Panel (top of right side)
-    m_dxClusterPanel = new DxClusterPanel(this);
+    // DX Cluster Panel as QDockWidget
+    m_dxClusterDock = new QDockWidget("DX Cluster", this);
+    m_dxClusterDock->setObjectName("dxClusterDock");  // Required for saveState/restoreState
+    m_dxClusterPanel = new DxClusterPanel(m_dxClusterDock);
     m_dxClusterPanel->setMinimumHeight(200);
-    m_rightPanelSplitter->addWidget(m_dxClusterPanel);
+    m_dxClusterDock->setWidget(m_dxClusterPanel);
+    m_dxClusterDock->setAllowedAreas(Qt::AllDockWidgetAreas);
+    m_dxClusterDock->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
+    addDockWidget(Qt::RightDockWidgetArea, m_dxClusterDock);
     
     // Connect propagation data signal
     connect(m_dxClusterPanel, &DxClusterPanel::propagationDataReceived, 
@@ -342,39 +360,60 @@ void MainWindow::setupUi()
     connect(m_dxClusterPanel, &DxClusterPanel::spotClicked,
             this, &MainWindow::onDxSpotClicked);
     
-    // CW Console (bottom of right side, always visible)
-    m_cwConsole = new CWWindow(m_flrigClient, this);
+    // CW Console as QDockWidget
+    m_cwConsoleDock = new QDockWidget("CW Console", this);
+    m_cwConsoleDock->setObjectName("cwConsoleDock");  // Required for saveState/restoreState
+    m_cwConsole = new CWWindow(m_flrigClient, m_cwConsoleDock);
     m_cwConsole->setMinimumHeight(250);
-    m_rightPanelSplitter->addWidget(m_cwConsole);
+    m_cwConsoleDock->setWidget(m_cwConsole);
+    m_cwConsoleDock->setAllowedAreas(Qt::AllDockWidgetAreas);
+    m_cwConsoleDock->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
+    addDockWidget(Qt::RightDockWidgetArea, m_cwConsoleDock);
     
-    mainSplitter->addWidget(m_rightPanelSplitter);
+    // Score Widget as QDockWidget
+    m_scoreDock = new QDockWidget("Score", this);
+    m_scoreDock->setObjectName("scoreDock");  // Required for saveState/restoreState
+    m_scoreWidget = new ScoreWidget(m_scoreDock);
+    m_scoreWidget->setMinimumHeight(300);
+    m_scoreDock->setWidget(m_scoreWidget);
+    m_scoreDock->setAllowedAreas(Qt::AllDockWidgetAreas);
+    m_scoreDock->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
+    addDockWidget(Qt::RightDockWidgetArea, m_scoreDock);
     
-    // Store splitter references
+    // Enable nested docking and animated docks
+    setDockNestingEnabled(true);
+    setDockOptions(QMainWindow::AnimatedDocks | QMainWindow::AllowNestedDocks | QMainWindow::AllowTabbedDocks);
+    
+    // Check if we have saved dock state
+    Settings& settings = Settings::instance();
+    QByteArray savedDockState = settings.getDockWidgetState();
+    
+    if (savedDockState.isEmpty()) {
+        // No saved state - set up default layout
+        splitDockWidget(m_dxClusterDock, m_cwConsoleDock, Qt::Vertical);
+        splitDockWidget(m_cwConsoleDock, m_scoreDock, Qt::Vertical);
+        DebugLogger::instance().log("MainWindow", "Using default dock layout");
+    } else {
+        // Will restore saved state later in restorePanelState()
+        DebugLogger::instance().log("MainWindow", "Will restore saved dock layout");
+    }
+    
+    // Store splitter reference
     m_mainSplitter = mainSplitter;
     
     // Set initial splitter sizes (70% left, 30% right)
     mainSplitter->setStretchFactor(0, 7);
     mainSplitter->setStretchFactor(1, 3);
     
-    // Restore splitter sizes from settings
-    Settings& settings = Settings::instance();
+    // Restore splitter sizes from settings (already have settings reference above)
     QList<int> mainSizes = settings.getMainSplitterSizes();
     if (!mainSizes.isEmpty() && mainSizes.size() == 2) {
         m_mainSplitter->setSizes(mainSizes);
     }
     
-    QList<int> rightSizes = settings.getRightPanelSplitterSizes();
-    if (!rightSizes.isEmpty() && rightSizes.size() == 2) {
-        m_rightPanelSplitter->setSizes(rightSizes);
-    }
-    
-    // Connect splitter moved signals to save sizes
+    // Connect splitter moved signal to save sizes
     connect(m_mainSplitter, &QSplitter::splitterMoved, this, [this]() {
         Settings::instance().setMainSplitterSizes(m_mainSplitter->sizes());
-    });
-    
-    connect(m_rightPanelSplitter, &QSplitter::splitterMoved, this, [this]() {
-        Settings::instance().setRightPanelSplitterSizes(m_rightPanelSplitter->sizes());
     });
     
     mainLayout->addWidget(mainSplitter);
@@ -443,6 +482,11 @@ void MainWindow::setupMenus()
     m_cwConsoleAction->setChecked(true);
     connect(m_cwConsoleAction, &QAction::triggered, this, &MainWindow::onToggleCwConsole);
     
+    m_scoreWidgetAction = windowMenu->addAction("&Score");
+    m_scoreWidgetAction->setCheckable(true);
+    m_scoreWidgetAction->setChecked(true);
+    connect(m_scoreWidgetAction, &QAction::triggered, this, &MainWindow::onToggleScoreWidget);
+    
     // Debug menu
     QMenu *debugMenu = menuBar()->addMenu("&Debug");
     
@@ -466,6 +510,13 @@ void MainWindow::setupMenus()
     m_contestEngineDebugAction->setChecked(contestEngineDebugEnabled);
     DebugLogger::instance().setContestEngineDebugEnabled(contestEngineDebugEnabled);
     connect(m_contestEngineDebugAction, &QAction::triggered, this, &MainWindow::onToggleContestEngineDebug);
+    
+    m_contestSelectDialogDebugAction = debugMenu->addAction("Enable Contest&SelectDialog Debug Logging");
+    m_contestSelectDialogDebugAction->setCheckable(true);
+    bool contestSelectDialogDebugEnabled = Settings::instance().getContestSelectDialogDebugEnabled();
+    m_contestSelectDialogDebugAction->setChecked(contestSelectDialogDebugEnabled);
+    DebugLogger::instance().setContestSelectDialogDebugEnabled(contestSelectDialogDebugEnabled);
+    connect(m_contestSelectDialogDebugAction, &QAction::triggered, this, &MainWindow::onToggleContestSelectDialogDebug);
     
     m_cwWindowDebugAction = debugMenu->addAction("Enable C&WWindow Debug Logging");
     m_cwWindowDebugAction->setCheckable(true);
@@ -601,6 +652,13 @@ void MainWindow::onOpenLog()
         updateWindowTitle();
         m_statusLabel->setText("File loaded: " + fileName + " (" + 
             QString::number(loadedQsos.count()) + " QSOs)");
+        
+        // Update running score after loading file
+        if (m_contestEngine && m_scoreWidget) {
+            QString myCallsign = Settings::instance().getCallsign();
+            m_contestEngine->updateRunningScore(m_qsoModel->getQsos(), myCallsign);
+            m_scoreWidget->updateScore(m_contestEngine->getRunningScore());
+        }
     } else {
         QMessageBox::warning(this, "Load Failed", 
             "Failed to load file:\n\n" + fileHandler.lastError());
@@ -848,6 +906,13 @@ void MainWindow::onLogQso()
     
     // Update QSO count in status bar
     m_qsoCountLabel->setText(QString("QSOs: %1").arg(m_qsoModel->count()));
+    
+    // Update running score
+    if (m_contestEngine && m_scoreWidget) {
+        QString myCallsign = Settings::instance().getCallsign();
+        m_contestEngine->updateRunningScore(m_qsoModel->getQsos(), myCallsign);
+        m_scoreWidget->updateScore(m_contestEngine->getRunningScore());
+    }
 }
 
 void MainWindow::onRigControl()
@@ -1014,6 +1079,13 @@ void MainWindow::onToggleContestEngineDebug(bool checked)
     m_statusLabel->setText(checked ? "ContestEngine debug logging enabled" : "ContestEngine debug logging disabled");
 }
 
+void MainWindow::onToggleContestSelectDialogDebug(bool checked)
+{
+    DebugLogger::instance().setContestSelectDialogDebugEnabled(checked);
+    Settings::instance().setContestSelectDialogDebugEnabled(checked);
+    m_statusLabel->setText(checked ? "ContestSelectDialog debug logging enabled" : "ContestSelectDialog debug logging disabled");
+}
+
 void MainWindow::onToggleCWWindowDebug(bool checked)
 {
     DebugLogger::instance().setCWWindowDebugEnabled(checked);
@@ -1031,7 +1103,7 @@ void MainWindow::onToggleDxccDatabaseDebug(bool checked)
 void MainWindow::onAbout()
 {
     QMessageBox::about(this, "About ContestLogX",
-        "ContestLogX - Version 0.0.1 (Alpha)\n\n"
+        "ContestLogX - Version 0.0.2 (Alpha)\n\n"
         "Cross-platform amateur radio contest logging software\n\n"
         "Radio control via flrig (http://www.w1hkj.com/)\n\n"
         "Copyright (c) 2025 N9OH Software");
@@ -1159,16 +1231,24 @@ void MainWindow::onDxSpotClicked(const QString& callsign, double frequency, cons
 
 void MainWindow::onToggleDxCluster(bool checked)
 {
-    if (m_dxClusterPanel) {
-        m_dxClusterPanel->setVisible(checked);
+    if (m_dxClusterDock) {
+        m_dxClusterDock->setVisible(checked);
         savePanelState();
     }
 }
 
 void MainWindow::onToggleCwConsole(bool checked)
 {
-    if (m_cwConsole) {
-        m_cwConsole->setVisible(checked);
+    if (m_cwConsoleDock) {
+        m_cwConsoleDock->setVisible(checked);
+        savePanelState();
+    }
+}
+
+void MainWindow::onToggleScoreWidget(bool checked)
+{
+    if (m_scoreDock) {
+        m_scoreDock->setVisible(checked);
         savePanelState();
     }
 }
@@ -1177,32 +1257,35 @@ void MainWindow::savePanelState()
 {
     Settings& settings = Settings::instance();
     
-    // Save panel visibility
-    settings.setDxClusterVisible(m_dxClusterPanel && m_dxClusterPanel->isVisible());
-    settings.setCwConsoleVisible(m_cwConsole && m_cwConsole->isVisible());
+    // Save dock widget visibility
+    settings.setDxClusterVisible(m_dxClusterDock && m_dxClusterDock->isVisible());
+    settings.setCwConsoleVisible(m_cwConsoleDock && m_cwConsoleDock->isVisible());
     
-    // Save splitter states
+    // Save splitter state
     if (m_mainSplitter) {
         settings.setMainSplitterState(m_mainSplitter->saveState());
     }
-    if (m_rightPanelSplitter) {
-        settings.setRightPanelSplitterState(m_rightPanelSplitter->saveState());
-    }
+    
+    // Save dock widget state (positions, sizes, floating state)
+    QByteArray dockState = saveState();
+    settings.setDockWidgetState(dockState);
+    DebugLogger::instance().log("MainWindow", 
+        QString("Saved dock widget state (%1 bytes)").arg(dockState.size()));
 }
 
 void MainWindow::restorePanelState()
 {
     Settings& settings = Settings::instance();
     
-    // Restore panel visibility
+    // Restore dock widget visibility
     bool dxVisible = settings.getDxClusterVisible();
     bool cwVisible = settings.getCwConsoleVisible();
     
-    if (m_dxClusterPanel) {
-        m_dxClusterPanel->setVisible(dxVisible);
+    if (m_dxClusterDock) {
+        m_dxClusterDock->setVisible(dxVisible);
     }
-    if (m_cwConsole) {
-        m_cwConsole->setVisible(cwVisible);
+    if (m_cwConsoleDock) {
+        m_cwConsoleDock->setVisible(cwVisible);
     }
     
     // Update menu actions
@@ -1213,18 +1296,39 @@ void MainWindow::restorePanelState()
         m_cwConsoleAction->setChecked(cwVisible);
     }
     
-    // Restore splitter states
+    // Restore splitter state
     if (m_mainSplitter) {
         QByteArray state = settings.getMainSplitterState();
         if (!state.isEmpty()) {
             m_mainSplitter->restoreState(state);
         }
     }
-    if (m_rightPanelSplitter) {
-        QByteArray state = settings.getRightPanelSplitterState();
-        if (!state.isEmpty()) {
-            m_rightPanelSplitter->restoreState(state);
-        }
+    
+    // Restore dock widget state (positions, sizes, floating state)
+    QByteArray dockState = settings.getDockWidgetState();
+    if (!dockState.isEmpty()) {
+        DebugLogger::instance().log("MainWindow", 
+            QString("Restoring dock widget state (%1 bytes)").arg(dockState.size()));
+        // Use version 0 for compatibility
+        bool success = restoreState(dockState, 0);
+        DebugLogger::instance().log("MainWindow", 
+            QString("Dock state restore %1").arg(success ? "succeeded" : "failed"));
+        
+        // Log dock widget positions after restore
+        DebugLogger::instance().log("MainWindow", 
+            QString("DX Cluster area: %1, floating: %2")
+                .arg(dockWidgetArea(m_dxClusterDock))
+                .arg(m_dxClusterDock->isFloating()));
+        DebugLogger::instance().log("MainWindow", 
+            QString("CW Console area: %1, floating: %2")
+                .arg(dockWidgetArea(m_cwConsoleDock))
+                .arg(m_cwConsoleDock->isFloating()));
+        DebugLogger::instance().log("MainWindow", 
+            QString("Score area: %1, floating: %2")
+                .arg(dockWidgetArea(m_scoreDock))
+                .arg(m_scoreDock->isFloating()));
+    } else {
+        DebugLogger::instance().log("MainWindow", "No saved dock widget state found");
     }
 }
 
@@ -1292,6 +1396,24 @@ void MainWindow::loadContestDefinition(const QString& filePath)
     // Update contest name in status bar
     if (m_contestNameLabel) {
         m_contestNameLabel->setText(QString("Contest: %1").arg(contestName));
+    }
+    
+    // Extract and set contest bands for score widget
+    if (m_scoreWidget && m_contestDefinition.contains("contest")) {
+        QJsonObject contestObj = m_contestDefinition["contest"].toObject();
+        if (contestObj.contains("bands")) {
+            QJsonArray bandsArray = contestObj["bands"].toArray();
+            QStringList contestBands;
+            for (const QJsonValue& val : bandsArray) {
+                // Bands is an array of strings like ["10m", "15m", "20m"]
+                contestBands.append(val.toString());
+            }
+            if (!contestBands.isEmpty()) {
+                m_scoreWidget->setContestBands(contestBands);
+                DebugLogger::instance().log("MainWindow", 
+                    QString("Set score widget bands: %1").arg(contestBands.join(", ")));
+            }
+        }
     }
     
     updateWindowTitle();

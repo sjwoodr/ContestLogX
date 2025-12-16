@@ -58,15 +58,18 @@ private slots:
     void onDxSpotClicked(const QString& callsign, double frequency, const QString& mode);
     void onToggleDxCluster(bool checked);
     void onToggleCwConsole(bool checked);
+    void onToggleScoreWidget(bool checked);
     void onToggleFlrigDebug(bool checked);
     void onToggleMainWindowDebug(bool checked);
     void onToggleContestEngineDebug(bool checked);
+    void onToggleContestSelectDialogDebug(bool checked);
     void onToggleCWWindowDebug(bool checked);
     void onToggleDxccDatabaseDebug(bool checked);
     void onDownloadCtyDat();
 
 protected:
     bool eventFilter(QObject *obj, QEvent *event) override;
+    void closeEvent(QCloseEvent *event) override;
 
 private:
     void setupUi();
@@ -101,18 +104,24 @@ private:
     QLabel *m_wpmLabel;
     QLabel *m_propagationLabel;
     
-    // Right side panels
+    // Right side panels (now as dock widgets)
     class DxClusterPanel *m_dxClusterPanel;
+    class QDockWidget *m_dxClusterDock;
     class CWWindow *m_cwConsole;
+    class QDockWidget *m_cwConsoleDock;
+    class ScoreWidget *m_scoreWidget;
+    class QDockWidget *m_scoreDock;
     class QSplitter *m_mainSplitter;
     class QSplitter *m_rightPanelSplitter;
     
     // Menu actions for toggleable panels
     QAction *m_dxClusterAction;
     QAction *m_cwConsoleAction;
+    QAction *m_scoreWidgetAction;
     QAction *m_flrigDebugAction;
     QAction *m_mainWindowDebugAction;
     QAction *m_contestEngineDebugAction;
+    QAction *m_contestSelectDialogDebugAction;
     QAction *m_cwWindowDebugAction;
     QAction *m_dxccDatabaseDebugAction;
     

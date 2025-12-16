@@ -157,21 +157,38 @@
   "scoring": {
     "points": {
       "sameContinent": {
-        "CW": 2,
+        "CW": 4,
         "SSB": 2,
-        "DIGITAL": 2
+        "DIGITAL": 0
       },
       "differentContinent": {
         "CW": 4,
-        "SSB": 4,
-        "DIGITAL": 4
+        "SSB": 2,
+        "DIGITAL": 0
+      },
+      "sameDxccEntity": {
+        "CW": 4,
+        "SSB": 2,
+        "DIGITAL": 0
+      },
+      "differentDxccEntity": {
+        "CW": 4,
+        "SSB": 2,
+        "DIGITAL": 0
       }
     },
+    "precedence": [
+      "sameDxccEntity",
+      "sameCountry",
+      "differentDxccEntity",
+      "sameContinent",
+      "differentContinent"
+    ],
     "multipliers": {
-      "type": "perBandAndMode",
+      "type": "multsPerBandAndMode",
       "description": "US states, Canadian provinces/territories, and DXCC countries",
       "categories": ["states", "provinces", "dxcc"],
-      "countOncePerBandAndMode": true
+      "alaskaAndHawaiiAre": "states"
     },
     "finalScore": "SUM(points) * (stateMultipliers + provinceMultipliers + dxccMultipliers)"
   },

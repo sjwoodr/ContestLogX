@@ -16,7 +16,21 @@ ContestEngine::~ContestEngine()
 
 bool ContestEngine::loadContest(const QJsonObject& contestDef)
 {
+    DebugLogger::instance().log("ContestEngine", "loadContest() called");
+    
+    if (contestDef.isEmpty()) {
+        DebugLogger::instance().log("ContestEngine", "ERROR: Contest definition is empty");
+        return false;
+    }
+    
     m_contestDef = contestDef;
+    
+    QString contestName = getContestName();
+    if (contestName.isEmpty()) {
+        DebugLogger::instance().log("ContestEngine", "WARNING: Contest has no name");
+    } else {
+        DebugLogger::instance().log("ContestEngine", QString("Loading contest: %1").arg(contestName));
+    }
     
     // Load multipliers into sets for fast lookup
     m_validMultipliers.clear();
@@ -30,6 +44,9 @@ bool ContestEngine::loadContest(const QJsonObject& contestDef)
             QJsonObject exchVal = validation["exchangeValidation"].toObject();
             if (exchVal.contains("multipliers")) {
                 QJsonArray multList = exchVal["multipliers"].toArray();
+                DebugLogger::instance().log("ContestEngine", 
+                    QString("Loading %1 multipliers").arg(multList.size()));
+                
                 for (const QJsonValue& val : multList) {
                     QString mult = val.toString().toUpper();
                     m_validMultipliers.insert(mult);
@@ -41,14 +58,49 @@ bool ContestEngine::loadContest(const QJsonObject& contestDef)
                         m_validProvinces.insert(mult);
                     }
                 }
+            } else {
+                DebugLogger::instance().log("ContestEngine", "No multipliers array found in exchangeValidation");
+            }
+        } else {
+            DebugLogger::instance().log("ContestEngine", "No exchangeValidation found in validation");
+        }
+    } else {
+        DebugLogger::instance().log("ContestEngine", "No validation section found");
+    }
+    
+    // Validate precedence array covers all defined scoring rules
+    if (contestDef.contains("scoring")) {
+        QJsonObject scoring = contestDef["scoring"].toObject();
+        if (scoring.contains("precedence") && scoring.contains("points")) {
+            QJsonArray precArray = scoring["precedence"].toArray();
+            QStringList precedence;
+            for (const QJsonValue& val : precArray) {
+                precedence.append(val.toString());
+            }
+            
+            QJsonObject points = scoring["points"].toObject();
+            QStringList definedRules = points.keys();
+            for (const QString& rule : definedRules) {
+                if (!precedence.contains(rule)) {
+                    DebugLogger::instance().log("ContestEngine", 
+                        QString("WARNING: Scoring rule '%1' is defined in points but not in precedence array - it will be ignored!")
+                            .arg(rule));
+                }
             }
         }
     }
     
+    // Log Alaska/Hawaii treatment
+    QString akHiTreatment = getAlaskaHawaiiTreatment();
     DebugLogger::instance().log("ContestEngine", 
-                     QString("Contest loaded: %1, Multipliers: %2")
-                     .arg(getContestName())
-                     .arg(m_validMultipliers.size()));
+        QString("Alaska/Hawaii treatment: %1").arg(akHiTreatment));
+    
+    DebugLogger::instance().log("ContestEngine", 
+                     QString("Contest loaded: %1, Multipliers: %2, States: %3, Provinces: %4")
+                     .arg(contestName)
+                     .arg(m_validMultipliers.size())
+                     .arg(m_validStates.size())
+                     .arg(m_validProvinces.size()));
     
     return true;
 }
@@ -310,40 +362,62 @@ int ContestEngine::calculatePoints(const QsoRecord& qso, const QString& myCallsi
             }
             
             // Determine relationship
-            bool sameCountry = (myDxcc == theirDxcc && myDxcc != 0);
+            bool sameDxccEntity = (myDxcc == theirDxcc && myDxcc != 0);
             bool sameContinent = (myContinent == theirContinent && !myContinent.isEmpty());
             
             DebugLogger::instance().log("ContestEngine", 
-                QString("  Relationship: sameCountry=%1 sameContinent=%2 mode=%3")
-                    .arg(sameCountry).arg(sameContinent).arg(mode));
+                QString("  Relationship: sameDxcc=%1 sameContinent=%2 mode=%3")
+                    .arg(sameDxccEntity).arg(sameContinent).arg(mode));
             
-            // Check for same country scoring
-            if (sameCountry && points.contains("sameCountry")) {
-                QJsonObject sameCountryPoints = points["sameCountry"].toObject();
-                if (sameCountryPoints.contains(mode)) {
-                    int pts = sameCountryPoints[mode].toInt();
-                    DebugLogger::instance().log("ContestEngine", QString("  Points: %1 (same country)").arg(pts));
-                    return pts;
+            // Get precedence order from contest definition (defaults to legacy order)
+            QStringList precedence;
+            if (scoring.contains("precedence")) {
+                QJsonArray precArray = scoring["precedence"].toArray();
+                for (const QJsonValue& val : precArray) {
+                    precedence.append(val.toString());
                 }
+                
+                // Warn about defined points not in precedence
+                QStringList definedRules = points.keys();
+                for (const QString& rule : definedRules) {
+                    if (!precedence.contains(rule)) {
+                        DebugLogger::instance().log("ContestEngine", 
+                            QString("WARNING: Scoring rule '%1' is defined in points but not in precedence array - it will be ignored!")
+                                .arg(rule));
+                    }
+                }
+            } else {
+                // Default precedence for backward compatibility
+                precedence << "sameDxccEntity" << "sameCountry" 
+                          << "differentDxccEntity" << "differentCountry"
+                          << "sameContinent" << "differentContinent";
             }
             
-            // Check for same continent scoring
-            if (sameContinent && points.contains("sameContinent")) {
-                QJsonObject sameContPoints = points["sameContinent"].toObject();
-                if (sameContPoints.contains(mode)) {
-                    int pts = sameContPoints[mode].toInt();
-                    DebugLogger::instance().log("ContestEngine", QString("  Points: %1 (same continent)").arg(pts));
-                    return pts;
+            // Check each scoring rule in precedence order
+            for (const QString& rule : precedence) {
+                bool ruleApplies = false;
+                QString debugName = rule;
+                
+                // Determine if this rule applies based on relationship
+                if (rule == "sameDxccEntity" || rule == "sameCountry") {
+                    ruleApplies = sameDxccEntity;
+                } else if (rule == "differentDxccEntity" || rule == "differentCountry") {
+                    ruleApplies = !sameDxccEntity;
+                } else if (rule == "sameContinent") {
+                    ruleApplies = sameContinent;
+                } else if (rule == "differentContinent") {
+                    ruleApplies = !sameContinent;
                 }
-            }
-            
-            // Different continent scoring
-            if (!sameContinent && points.contains("differentContinent")) {
-                QJsonObject diffContPoints = points["differentContinent"].toObject();
-                if (diffContPoints.contains(mode)) {
-                    int pts = diffContPoints[mode].toInt();
-                    DebugLogger::instance().log("ContestEngine", QString("  Points: %1 (different continent)").arg(pts));
-                    return pts;
+                
+                // If rule applies and points are defined, return them
+                if (ruleApplies && points.contains(rule)) {
+                    QJsonObject rulePoints = points[rule].toObject();
+                    if (rulePoints.contains(mode)) {
+                        int pts = rulePoints[mode].toInt();
+                        DebugLogger::instance().log("ContestEngine", 
+                            QString("  Points: %1 (%2)").arg(pts).arg(rule));
+                        return pts;
+                    }
                 }
             }
         }
@@ -361,30 +435,174 @@ QStringList ContestEngine::getMultipliers(const QsoRecord& qso) const
     // Extract multiplier from exchange
     QString mult = extractMultiplier(qso);
     if (!mult.isEmpty() && m_validMultipliers.contains(mult.toUpper())) {
-        mults.append(mult.toUpper());
+        QString multUpper = mult.toUpper();
+        mults.append(multUpper);
+        
+        // Handle Alaska and Hawaii special case
+        if (multUpper == "AK" || multUpper == "HI") {
+            QString treatment = getAlaskaHawaiiTreatment();
+            
+            DebugLogger::instance().log("ContestEngine", 
+                QString("  Found AK/HI multiplier '%1' - treatment: %2").arg(multUpper).arg(treatment));
+            
+            // If treatment is 'none', don't count AK/HI as multipliers at all
+            if (treatment == "none") {
+                mults.clear();
+                DebugLogger::instance().log("ContestEngine", 
+                    QString("  Removed '%1' (treatment is 'none' - not a multiplier)").arg(multUpper));
+                return mults;
+            }
+            
+            // Get DXCC entity for the callsign
+            if (m_dxccDatabase) {
+                DxccEntity entity = m_dxccDatabase->lookupCallsign(qso.getCall());
+                QString dxccName = entity.country;
+                
+                DebugLogger::instance().log("ContestEngine", 
+                    QString("  DXCC lookup: %1 = %2 (DXCC %3)").arg(qso.getCall()).arg(dxccName).arg(entity.dxcc));
+                
+                // Alaska is DXCC 006, Hawaii is DXCC 110
+                bool isAlaska = (entity.dxcc == 6 || dxccName.contains("Alaska", Qt::CaseInsensitive));
+                bool isHawaii = (entity.dxcc == 110 || dxccName.contains("Hawaii", Qt::CaseInsensitive));
+                
+                if ((isAlaska || isHawaii) && treatment == "both") {
+                    // Count as both state and DXCC - add DXCC mult
+                    QString dxccMult = isAlaska ? "KL7" : "KH6";
+                    mults.append(dxccMult);
+                    DebugLogger::instance().log("ContestEngine", 
+                        QString("  Added DXCC mult '%1' (both state and DXCC)").arg(dxccMult));
+                } else if ((isAlaska || isHawaii) && treatment == "dxcc") {
+                    // Count only as DXCC, replace state with DXCC mult
+                    mults.clear();
+                    QString dxccMult = isAlaska ? "KL7" : "KH6";
+                    mults.append(dxccMult);
+                    DebugLogger::instance().log("ContestEngine", 
+                        QString("  Replaced with DXCC mult '%1' (dxcc only)").arg(dxccMult));
+                } else if (treatment == "states") {
+                    // Keep only the state mult (already in list)
+                    DebugLogger::instance().log("ContestEngine", 
+                        QString("  Keeping state mult '%1' only").arg(multUpper));
+                }
+            }
+        }
     }
     
     return mults;
 }
 
+QString ContestEngine::getMultiplierType() const
+{
+    if (m_contestDef.contains("scoring")) {
+        QJsonObject scoring = m_contestDef["scoring"].toObject();
+        if (scoring.contains("multipliers")) {
+            QJsonObject mults = scoring["multipliers"].toObject();
+            return mults["type"].toString("multsOnce");
+        }
+    }
+    return "multsOnce";
+}
+
+QString ContestEngine::getAlaskaHawaiiTreatment() const
+{
+    if (m_contestDef.contains("scoring")) {
+        QJsonObject scoring = m_contestDef["scoring"].toObject();
+        if (scoring.contains("multipliers")) {
+            QJsonObject mults = scoring["multipliers"].toObject();
+            return mults["alaskaAndHawaiiAre"].toString("both");
+        }
+    }
+    return "both"; // Default: count as both state and DXCC
+}
+
+bool ContestEngine::isNewMultiplier(const QString& mult, const QString& band, const QString& mode, const QList<QsoRecord>& existingQsos) const
+{
+    QString multType = getMultiplierType();
+    QString multUpper = mult.toUpper();
+    
+    DebugLogger::instance().log("ContestEngine", 
+        QString("Checking if %1 is new multiplier (type=%2, band=%3, mode=%4)")
+            .arg(multUpper).arg(multType).arg(band).arg(mode));
+    
+    for (const QsoRecord& existingQso : existingQsos) {
+        QStringList existingMults = getMultipliers(existingQso);
+        
+        for (const QString& existingMult : existingMults) {
+            if (existingMult.toUpper() == multUpper) {
+                // Found same multiplier, now check scope
+                if (multType == "multsOnce") {
+                    // Already worked this mult
+                    return false;
+                } else if (multType == "multsPerBand") {
+                    // Check if same band
+                    if (existingQso.getBand() == band) {
+                        return false;
+                    }
+                } else if (multType == "multsPerMode") {
+                    // Check if same mode
+                    if (existingQso.getMode() == mode) {
+                        return false;
+                    }
+                } else if (multType == "multsPerBandAndMode") {
+                    // Check if same band AND mode
+                    if (existingQso.getBand() == band && existingQso.getMode() == mode) {
+                        return false;
+                    }
+                }
+            }
+        }
+    }
+    
+    return true; // New multiplier for this scope
+}
+
 int ContestEngine::calculateTotalScore(const QList<QsoRecord>& qsos, int& totalQsos, int& totalMults) const
 {
     int totalPoints = 0;
-    QSet<QString> uniqueMultipliers;
+    QString multType = getMultiplierType();
     
     totalQsos = qsos.size();
+    
+    // Build multiplier tracking structure based on type
+    QSet<QString> uniqueMultipliers;                          // multsOnce
+    QSet<QString> multPerBand;                                 // multsPerBand: mult_band
+    QSet<QString> multPerMode;                                 // multsPerMode: mult_mode
+    QSet<QString> multPerBandAndMode;                          // multsPerBandAndMode: mult_band_mode
     
     for (const QsoRecord& qso : qsos) {
         // TODO: Pass station callsign for proper scoring
         totalPoints += calculatePoints(qso, "");
         
         QStringList mults = getMultipliers(qso);
+        QString band = qso.getBand();
+        QString mode = qso.getMode();
+        
         for (const QString& mult : mults) {
-            uniqueMultipliers.insert(mult);
+            if (multType == "multsOnce") {
+                uniqueMultipliers.insert(mult);
+            } else if (multType == "multsPerBand") {
+                multPerBand.insert(QString("%1_%2").arg(mult).arg(band));
+            } else if (multType == "multsPerMode") {
+                multPerMode.insert(QString("%1_%2").arg(mult).arg(mode));
+            } else if (multType == "multsPerBandAndMode") {
+                multPerBandAndMode.insert(QString("%1_%2_%3").arg(mult).arg(band).arg(mode));
+            }
         }
     }
     
-    totalMults = uniqueMultipliers.size();
+    // Count multipliers based on type
+    if (multType == "multsOnce") {
+        totalMults = uniqueMultipliers.size();
+    } else if (multType == "multsPerBand") {
+        totalMults = multPerBand.size();
+    } else if (multType == "multsPerMode") {
+        totalMults = multPerMode.size();
+    } else if (multType == "multsPerBandAndMode") {
+        totalMults = multPerBandAndMode.size();
+    }
+    
+    DebugLogger::instance().log("ContestEngine", 
+        QString("Total score: %1 points × %2 mults (type=%3) = %4")
+            .arg(totalPoints).arg(totalMults).arg(multType).arg(totalPoints * totalMults));
     
     return totalPoints * totalMults;
 }
@@ -575,4 +793,94 @@ QString ContestEngine::getDefaultSentExchange(const QString& stationQth, int ser
     }
     
     return QString();
+}
+
+void ContestEngine::updateRunningScore(const QList<QsoRecord>& qsos, const QString& myCallsign)
+{
+    DebugLogger::instance().log("ContestEngine", 
+        QString("Updating running score for %1 QSOs").arg(qsos.size()));
+    
+    // Reset running score
+    m_runningScore = ContestScore();
+    
+    QString multType = getMultiplierType();
+    
+    // Track multipliers based on type
+    QSet<QString> uniqueMultipliers;                    // multsOnce
+    QSet<QString> multPerBand;                          // multsPerBand
+    QSet<QString> multPerMode;                          // multsPerMode
+    QSet<QString> multPerBandAndMode;                   // multsPerBandAndMode
+    
+    // Process each QSO
+    for (const QsoRecord& qso : qsos) {
+        QString band = qso.getBand();
+        QString mode = qso.getMode().toUpper();
+        
+        // Normalize mode for counting
+        QString modeCategory;
+        if (mode == "CW") {
+            modeCategory = "CW";
+        } else if (mode == "SSB" || mode == "USB" || mode == "LSB" || mode == "FM") {
+            modeCategory = "SSB";
+        } else if (mode == "RTTY" || mode == "PSK" || mode == "FT8" || mode == "FT4" || mode == "DIGITAL") {
+            modeCategory = "DIGITAL";
+        } else {
+            modeCategory = "SSB"; // Default unknown modes to SSB
+        }
+        
+        // Initialize band stats if needed
+        if (!m_runningScore.bandStats.contains(band)) {
+            m_runningScore.bandStats[band] = BandModeStats();
+        }
+        
+        // Update QSO count for this band/mode
+        if (modeCategory == "CW") {
+            m_runningScore.bandStats[band].cwQsos++;
+        } else if (modeCategory == "SSB") {
+            m_runningScore.bandStats[band].ssbQsos++;
+        } else if (modeCategory == "DIGITAL") {
+            m_runningScore.bandStats[band].digitalQsos++;
+        }
+        
+        // Calculate points for this QSO
+        int qsoPoints = calculatePoints(qso, myCallsign);
+        m_runningScore.bandStats[band].points += qsoPoints;
+        m_runningScore.contactScore += qsoPoints;
+        
+        // Track multipliers
+        QStringList mults = getMultipliers(qso);
+        for (const QString& mult : mults) {
+            if (multType == "multsOnce") {
+                uniqueMultipliers.insert(mult);
+            } else if (multType == "multsPerBand") {
+                multPerBand.insert(QString("%1_%2").arg(mult).arg(band));
+            } else if (multType == "multsPerMode") {
+                multPerMode.insert(QString("%1_%2").arg(mult).arg(mode));
+            } else if (multType == "multsPerBandAndMode") {
+                multPerBandAndMode.insert(QString("%1_%2_%3").arg(mult).arg(band).arg(mode));
+            }
+        }
+    }
+    
+    // Count multipliers based on type
+    if (multType == "multsOnce") {
+        m_runningScore.multipliers = uniqueMultipliers.size();
+    } else if (multType == "multsPerBand") {
+        m_runningScore.multipliers = multPerBand.size();
+    } else if (multType == "multsPerMode") {
+        m_runningScore.multipliers = multPerMode.size();
+    } else if (multType == "multsPerBandAndMode") {
+        m_runningScore.multipliers = multPerBandAndMode.size();
+    }
+    
+    // Calculate final contest score
+    m_runningScore.bonusPoints = 0; // Hard-coded to 0 for now
+    m_runningScore.contestScore = (m_runningScore.contactScore * m_runningScore.multipliers) + m_runningScore.bonusPoints;
+    
+    DebugLogger::instance().log("ContestEngine", 
+        QString("Running score updated: %1 QSOs, %2 points, %3 mults = %4 score")
+            .arg(qsos.size())
+            .arg(m_runningScore.contactScore)
+            .arg(m_runningScore.multipliers)
+            .arg(m_runningScore.contestScore));
 }
