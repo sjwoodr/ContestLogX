@@ -284,7 +284,7 @@ All logs now include these standard columns regardless of contest:
    - Points calculated per QSO
 
 4. **File Format Integration**
-   - `saveWl2WithContest()` includes contest metadata
+   - `saveClxWithContest()` includes contest metadata
    - Contest name/type saved in .clx files
    - Defaults to "General DXCC Logging" if no contest
 
@@ -658,7 +658,7 @@ All logs now include these standard columns regardless of contest:
 2. **File Format: .clx Now Default**
    - File->Save now defaults to .clx format (JSON)
    - File->Save As defaults to .clx in file dialog
-   - FileHandler properly routes to Wl2File class
+   - FileHandler properly routes to ClxFile class
    - ADIF and CSV still supported for import/export
    - Old .wl binary format NOT supported (users must export to ADIF first)
 

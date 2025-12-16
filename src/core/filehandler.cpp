@@ -34,8 +34,8 @@ bool FileHandler::load(const QString& filename, QList<QsoRecord>& qsos)
     QFileInfo fileInfo(filename);
     QString ext = fileInfo.suffix().toLower();
     
-    if (ext == "wl2") {
-        return loadWl2(filename, qsos);
+    if (ext == "clx") {
+        return loadClx(filename, qsos);
     } else if (ext == "csv") {
         return loadCsv(filename, qsos);
     } else if (ext == "adi" || ext == "adif") {
@@ -43,8 +43,8 @@ bool FileHandler::load(const QString& filename, QList<QsoRecord>& qsos)
     } else if (ext == "wl") {
         return loadWl(filename, qsos);
     } else {
-        // Default to WL2
-        return loadWl2(filename, qsos);
+        // Default to CLX
+        return loadClx(filename, qsos);
     }
 }
 
@@ -53,8 +53,8 @@ bool FileHandler::save(const QString& filename, const QList<QsoRecord>& qsos)
     QFileInfo fileInfo(filename);
     QString ext = fileInfo.suffix().toLower();
     
-    if (ext == "wl2") {
-        return saveWl2(filename, qsos);
+    if (ext == "clx") {
+        return saveClx(filename, qsos);
     } else if (ext == "csv") {
         return saveCsv(filename, qsos);
     } else if (ext == "adi" || ext == "adif") {
@@ -62,8 +62,8 @@ bool FileHandler::save(const QString& filename, const QList<QsoRecord>& qsos)
     } else if (ext == "wl") {
         return saveWl(filename, qsos);
     } else {
-        // Default to WL2
-        return saveWl2(filename, qsos);
+        // Default to CLX
+        return saveClx(filename, qsos);
     }
 }
 
@@ -300,52 +300,52 @@ bool FileHandler::saveWl(const QString& filename, const QList<QsoRecord>& qsos)
     return false;
 }
 
-// WL2 Format (JSON-based)
-bool FileHandler::loadWl2(const QString& filename, QList<QsoRecord>& qsos)
+// CLX Format (JSON-based)
+bool FileHandler::loadClx(const QString& filename, QList<QsoRecord>& qsos)
 {
-    Wl2File wl2File;
-    if (!wl2File.load(filename)) {
-        m_lastError = wl2File.lastError();
+    ClxFile clxFile;
+    if (!clxFile.load(filename)) {
+        m_lastError = clxFile.lastError();
         return false;
     }
     
-    qsos = wl2File.qsos();
+    qsos = clxFile.qsos();
     return true;
 }
 
-bool FileHandler::loadWl2WithContest(const QString& filename, QList<QsoRecord>& qsos, QString& contestFile, QString& stationClass, QString& contestVersion)
+bool FileHandler::loadClxWithContest(const QString& filename, QList<QsoRecord>& qsos, QString& contestFile, QString& stationClass, QString& contestVersion)
 {
-    Wl2File wl2File;
-    if (!wl2File.load(filename)) {
-        m_lastError = wl2File.lastError();
+    ClxFile clxFile;
+    if (!clxFile.load(filename)) {
+        m_lastError = clxFile.lastError();
         return false;
     }
     
-    qsos = wl2File.qsos();
-    contestFile = wl2File.contest().contestFile();
-    stationClass = wl2File.contest().category("station_class");
-    contestVersion = wl2File.contest().contestVersion();
+    qsos = clxFile.qsos();
+    contestFile = clxFile.contest().contestFile();
+    stationClass = clxFile.contest().category("station_class");
+    contestVersion = clxFile.contest().contestVersion();
     return true;
 }
 
-bool FileHandler::saveWl2(const QString& filename, const QList<QsoRecord>& qsos)
+bool FileHandler::saveClx(const QString& filename, const QList<QsoRecord>& qsos)
 {
-    Wl2File wl2File;
+    ClxFile clxFile;
     for (const QsoRecord& qso : qsos) {
-        wl2File.addQso(qso);
+        clxFile.addQso(qso);
     }
     
-    if (!wl2File.save(filename)) {
-        m_lastError = wl2File.lastError();
+    if (!clxFile.save(filename)) {
+        m_lastError = clxFile.lastError();
         return false;
     }
     
     return true;
 }
 
-bool FileHandler::saveWl2WithContest(const QString& filename, const QList<QsoRecord>& qsos, const QString& contestFile, const QJsonObject& contestDef, const QString& stationClass)
+bool FileHandler::saveClxWithContest(const QString& filename, const QList<QsoRecord>& qsos, const QString& contestFile, const QJsonObject& contestDef, const QString& stationClass)
 {
-    Wl2File wl2File;
+    ClxFile clxFile;
     
     // Set contest info
     if (!contestDef.isEmpty()) {
@@ -353,31 +353,31 @@ bool FileHandler::saveWl2WithContest(const QString& filename, const QList<QsoRec
         if (contestName.isEmpty()) {
             contestName = "General DXCC Logging";
         }
-        wl2File.contest().setName(contestName);
-        wl2File.contest().setType(contestName);
-        wl2File.contest().setContestFile(contestFile);
+        clxFile.contest().setName(contestName);
+        clxFile.contest().setType(contestName);
+        clxFile.contest().setContestFile(contestFile);
         
         // Save contest version if available
         if (contestDef.contains("contest")) {
             QJsonObject contestObj = contestDef["contest"].toObject();
             if (contestObj.contains("version")) {
-                wl2File.contest().setContestVersion(contestObj["version"].toString());
+                clxFile.contest().setContestVersion(contestObj["version"].toString());
             }
         }
         
         // Add station class if provided
         if (!stationClass.isEmpty()) {
-            wl2File.contest().setCategory("station_class", stationClass);
+            clxFile.contest().setCategory("station_class", stationClass);
         }
     }
     
     // Add QSOs
     for (const QsoRecord& qso : qsos) {
-        wl2File.addQso(qso);
+        clxFile.addQso(qso);
     }
     
-    if (!wl2File.save(filename)) {
-        m_lastError = wl2File.lastError();
+    if (!clxFile.save(filename)) {
+        m_lastError = clxFile.lastError();
         return false;
     }
     

@@ -627,7 +627,7 @@ void MainWindow::onNewLog()
                     
                     // We need to parse the file to get contest info - for now we'll load it separately
                     QList<QsoRecord> temp;
-                    fileHandler.loadWl2WithContest(selectedFile, temp, contestFile, stationClass, loadedContestVersion);
+                    fileHandler.loadClxWithContest(selectedFile, temp, contestFile, stationClass, loadedContestVersion);
                     
                     // Load the contest definition if specified
                     if (!contestFile.isEmpty()) {
@@ -771,7 +771,7 @@ void MainWindow::onOpenLog()
             FileHandler fileHandler;
             
             QList<QsoRecord> temp;
-            fileHandler.loadWl2WithContest(fileName, temp, contestFile, stationClass, loadedContestVersion);
+            fileHandler.loadClxWithContest(fileName, temp, contestFile, stationClass, loadedContestVersion);
             
             // Load the contest definition if specified
             if (!contestFile.isEmpty()) {
@@ -862,7 +862,7 @@ void MainWindow::onSaveLog()
     // Use contest-aware save for .clx files
     if (m_currentFile.endsWith(".clx", Qt::CaseInsensitive) && !m_contestDefinition.isEmpty()) {
         QString stationClass = m_contestEngine ? m_contestEngine->getStationClass() : QString();
-        success = fileHandler.saveWl2WithContest(m_currentFile, m_qsoModel->getQsos(), m_contestFile, m_contestDefinition, stationClass);
+        success = fileHandler.saveClxWithContest(m_currentFile, m_qsoModel->getQsos(), m_contestFile, m_contestDefinition, stationClass);
     } else {
         success = fileHandler.save(m_currentFile, m_qsoModel->getQsos());
     }

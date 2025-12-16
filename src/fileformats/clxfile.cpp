@@ -11,14 +11,14 @@
 #include <QJsonObject>
 #include <QDebug>
 
-Wl2File::Wl2File()
+ClxFile::ClxFile()
     : m_version("1.0")
     , m_created(QDateTime::currentDateTime())
     , m_modified(QDateTime::currentDateTime())
 {
 }
 
-bool Wl2File::load(const QString& filename)
+bool ClxFile::load(const QString& filename)
 {
     QFile file(filename);
     if (!file.open(QIODevice::ReadOnly)) {
@@ -45,7 +45,7 @@ bool Wl2File::load(const QString& filename)
     return loadJson(doc.object());
 }
 
-bool Wl2File::save(const QString& filename)
+bool ClxFile::save(const QString& filename)
 {
     m_modified = QDateTime::currentDateTime();
     
@@ -64,7 +64,7 @@ bool Wl2File::save(const QString& filename)
     return true;
 }
 
-bool Wl2File::loadJson(const QJsonObject& json)
+bool ClxFile::loadJson(const QJsonObject& json)
 {
     QString format = json["format"].toString();
     
@@ -165,7 +165,7 @@ bool Wl2File::loadJson(const QJsonObject& json)
     return true;
 }
 
-QJsonObject Wl2File::toJson() const
+QJsonObject ClxFile::toJson() const
 {
     QJsonObject json;
     
@@ -248,24 +248,24 @@ QJsonObject Wl2File::toJson() const
     return json;
 }
 
-int Wl2File::totalQsos() const
+int ClxFile::totalQsos() const
 {
     return m_qsos.count();
 }
 
-int Wl2File::totalPoints() const
+int ClxFile::totalPoints() const
 {
     // TODO: Implement contest-specific scoring
     return m_qsos.count();
 }
 
-int Wl2File::totalMultipliers() const
+int ClxFile::totalMultipliers() const
 {
     // TODO: Implement multiplier tracking
     return 0;
 }
 
-int Wl2File::score() const
+int ClxFile::score() const
 {
     return totalPoints() * (totalMultipliers() > 0 ? totalMultipliers() : 1);
 }

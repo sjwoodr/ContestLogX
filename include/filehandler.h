@@ -37,10 +37,10 @@ public:
     bool loadWl(const QString& filename, QList<QsoRecord>& qsos);
     bool saveWl(const QString& filename, const QList<QsoRecord>& qsos);
     
-    bool loadWl2(const QString& filename, QList<QsoRecord>& qsos);
-    bool loadWl2WithContest(const QString& filename, QList<QsoRecord>& qsos, QString& contestFile, QString& stationClass, QString& contestVersion);
-    bool saveWl2(const QString& filename, const QList<QsoRecord>& qsos);
-    bool saveWl2WithContest(const QString& filename, const QList<QsoRecord>& qsos, const QString& contestFile, const QJsonObject& contestDef, const QString& stationClass = QString());
+    bool loadClx(const QString& filename, QList<QsoRecord>& qsos);
+    bool loadClxWithContest(const QString& filename, QList<QsoRecord>& qsos, QString& contestFile, QString& stationClass, QString& contestVersion);
+    bool saveClx(const QString& filename, const QList<QsoRecord>& qsos);
+    bool saveClxWithContest(const QString& filename, const QList<QsoRecord>& qsos, const QString& contestFile, const QJsonObject& contestDef, const QString& stationClass = QString());
     
     QString lastError() const { return m_lastError; }
 

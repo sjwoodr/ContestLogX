@@ -15,10 +15,10 @@
 #include <QMap>
 #include <QJsonObject>
 
-class Wl2File
+class ClxFile
 {
 public:
-    Wl2File();
+    ClxFile();
     
     // File I/O
     bool load(const QString& filename);
