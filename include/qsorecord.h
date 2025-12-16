@@ -54,6 +54,7 @@ public:
     void setRxFrequency(const QString& rxFreq);
     void setMode(const QString& mode);
     void setBand(unsigned char band);
+    void setBandName(const QString& band);
     void setExchange(const QString& exchange);
     void setSerial(unsigned long serial);
     void setDupe(bool dupe);

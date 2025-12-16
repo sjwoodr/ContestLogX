@@ -92,6 +92,7 @@ private:
     void loadContestDefinition(const QString& filePath);
     void updateQsoEntryFields();
     void updateLogHeaders();
+    bool isSemanticVersionEqual(const QString& v1, const QString& v2);
     
     // UI Components
     QLineEdit *m_callEdit;

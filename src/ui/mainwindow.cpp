@@ -622,11 +622,12 @@ void MainWindow::onNewLog()
                     // Extract contest file and station class from the loaded QSOs
                     QString contestFile;
                     QString stationClass;
+                    QString loadedContestVersion;
                     FileHandler fileHandler;
                     
                     // We need to parse the file to get contest info - for now we'll load it separately
                     QList<QsoRecord> temp;
-                    fileHandler.loadWl2WithContest(selectedFile, temp, contestFile, stationClass);
+                    fileHandler.loadWl2WithContest(selectedFile, temp, contestFile, stationClass, loadedContestVersion);
                     
                     // Load the contest definition if specified
                     if (!contestFile.isEmpty()) {
@@ -636,6 +637,30 @@ void MainWindow::onNewLog()
                         }
                         if (QFile::exists(contestPath)) {
                             loadContestDefinition(contestPath);
+                            
+                            // Check if contest version has changed
+                            if (!loadedContestVersion.isEmpty() && !m_contestDefinition.isEmpty()) {
+                                QString currentVersion = m_contestDefinition["contest"].toObject()["version"].toString();
+                                DebugLogger::instance().log("MainWindow", 
+                                    QString("Contest version check: Log file v%1, Current definition v%2").arg(loadedContestVersion, currentVersion));
+                                if (!currentVersion.isEmpty() && !isSemanticVersionEqual(currentVersion, loadedContestVersion)) {
+                                    DebugLogger::instance().log("MainWindow", "Version mismatch detected - showing user warning");
+                                    progressDialog->close();
+                                    QMessageBox::StandardButton reply = QMessageBox::warning(this, "Contest Version Mismatch",
+                                        "The log file was created with contest version " + loadedContestVersion + 
+                                        " but the current definition is version " + currentVersion + ".\n\n" +
+                                        "Loading with a different version may cause scoring issues.\n\n" +
+                                        "Do you want to continue?",
+                                        QMessageBox::Yes | QMessageBox::No);
+                                    if (reply == QMessageBox::No) {
+                                        progressDialog->deleteLater();
+                                        return;
+                                    }
+                                    progressDialog->show();
+                                    QApplication::processEvents();
+                                }
+                            }
+                            
                             if (!stationClass.isEmpty()) {
                                 m_contestEngine->setStationClass(stationClass);
                             }
@@ -736,6 +761,55 @@ void MainWindow::onOpenLog()
             QMessageBox::warning(this, "Load Failed", 
                 "Failed to load file:\n\n" + errorMessage);
             return;
+        }
+        
+        // For .clx files, check and load contest info
+        if (fileName.endsWith(".clx", Qt::CaseInsensitive)) {
+            QString contestFile;
+            QString stationClass;
+            QString loadedContestVersion;
+            FileHandler fileHandler;
+            
+            QList<QsoRecord> temp;
+            fileHandler.loadWl2WithContest(fileName, temp, contestFile, stationClass, loadedContestVersion);
+            
+            // Load the contest definition if specified
+            if (!contestFile.isEmpty()) {
+                QString contestPath = QCoreApplication::applicationDirPath() + "/contests/" + contestFile;
+                if (!QFile::exists(contestPath)) {
+                    contestPath = "contests/" + contestFile;
+                }
+                if (QFile::exists(contestPath)) {
+                    loadContestDefinition(contestPath);
+                    
+                    // Check if contest version has changed
+                    if (!loadedContestVersion.isEmpty() && !m_contestDefinition.isEmpty()) {
+                        QString currentVersion = m_contestDefinition["contest"].toObject()["version"].toString();
+                        DebugLogger::instance().log("MainWindow", 
+                            QString("Contest version check: Log file v%1, Current definition v%2").arg(loadedContestVersion, currentVersion));
+                        if (!currentVersion.isEmpty() && !isSemanticVersionEqual(currentVersion, loadedContestVersion)) {
+                            DebugLogger::instance().log("MainWindow", "Version mismatch detected - showing user warning");
+                            progressDialog->close();
+                            QMessageBox::StandardButton reply = QMessageBox::warning(this, "Contest Version Mismatch",
+                                "The log file was created with contest version " + loadedContestVersion + 
+                                " but the current definition is version " + currentVersion + ".\n\n" +
+                                "Loading with a different version may cause scoring issues.\n\n" +
+                                "Do you want to continue?",
+                                QMessageBox::Yes | QMessageBox::No);
+                            if (reply == QMessageBox::No) {
+                                progressDialog->deleteLater();
+                                return;
+                            }
+                            progressDialog->show();
+                            QApplication::processEvents();
+                        }
+                    }
+                    
+                    if (!stationClass.isEmpty()) {
+                        m_contestEngine->setStationClass(stationClass);
+                    }
+                }
+            }
         }
         
         // Clear the model first
@@ -1927,5 +2001,27 @@ void MainWindow::onDownloadCtyDat()
                 "Download already in progress or failed to start.");
         }
     }
+}
+
+bool MainWindow::isSemanticVersionEqual(const QString& v1, const QString& v2)
+{
+    // Parse semantic versions like "1.0" and "1.0.0" as equivalent
+    auto parseVersion = [](const QString& version) -> QList<int> {
+        QList<int> parts;
+        for (const QString& part : version.split('.')) {
+            parts.append(part.toInt());
+        }
+        // Pad with zeros to ensure same length
+        while (parts.size() < 3) {
+            parts.append(0);
+        }
+        return parts;
+    };
+    
+    QList<int> parts1 = parseVersion(v1);
+    QList<int> parts2 = parseVersion(v2);
+    
+    // Compare major.minor.patch
+    return parts1[0] == parts2[0] && parts1[1] == parts2[1] && parts1[2] == parts2[2];
 }
 

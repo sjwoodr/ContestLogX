@@ -38,7 +38,7 @@ public:
     bool saveWl(const QString& filename, const QList<QsoRecord>& qsos);
     
     bool loadWl2(const QString& filename, QList<QsoRecord>& qsos);
-    bool loadWl2WithContest(const QString& filename, QList<QsoRecord>& qsos, QString& contestFile, QString& stationClass);
+    bool loadWl2WithContest(const QString& filename, QList<QsoRecord>& qsos, QString& contestFile, QString& stationClass, QString& contestVersion);
     bool saveWl2(const QString& filename, const QList<QsoRecord>& qsos);
     bool saveWl2WithContest(const QString& filename, const QList<QsoRecord>& qsos, const QString& contestFile, const QJsonObject& contestDef, const QString& stationClass = QString());
     

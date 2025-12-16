@@ -4,6 +4,7 @@
  */
 
 #include "clxfile.h"
+#include "../utils/bandplan.h"
 #include <QFile>
 #include <QJsonDocument>
 #include <QJsonArray>
@@ -65,8 +66,6 @@ bool Wl2File::save(const QString& filename)
 
 bool Wl2File::loadJson(const QJsonObject& json)
 {
-    // Version check
-    m_version = json["version"].toString("1.0");
     QString format = json["format"].toString();
     
     if (format != "ContestLogX") {
@@ -80,7 +79,16 @@ bool Wl2File::loadJson(const QJsonObject& json)
     
     // Contest
     if (json.contains("contest")) {
-        m_contest = ContestInfo::fromJson(json["contest"].toObject());
+        QJsonObject contestJson = json["contest"].toObject();
+        m_contest = ContestInfo::fromJson(contestJson);
+        // Check version in contest object (new format) or at top level (old format for backwards compat)
+        if (contestJson.contains("version")) {
+            m_version = contestJson["version"].toString("1.0");
+        } else if (json.contains("version")) {
+            m_version = json["version"].toString("1.0");
+        } else {
+            m_version = "1.0";
+        }
     }
     
     // Station
@@ -104,7 +112,20 @@ bool Wl2File::loadJson(const QJsonObject& json)
             QsoRecord qso;
             
             qso.setDateTime(QDateTime::fromString(qsoJson["timestamp"].toString(), Qt::ISODate));
-            qso.setFrequency(QString::number(qsoJson["frequency"].toDouble()));
+            double freqKhz = qsoJson["frequency"].toDouble();
+            qso.setFrequency(QString::number(freqKhz));
+            
+            // Calculate band from frequency if not in file
+            QString band = qsoJson["band"].toString();
+            if (band.isEmpty()) {
+                band = BandPlan::freq2Band(freqKhz);
+                if (!band.isEmpty()) {
+                    qso.setBandName(band);
+                }
+            } else {
+                qso.setBandName(band);
+            }
+            
             qso.setMode(qsoJson["mode"].toString());
             qso.setCall(qsoJson["callsign"].toString());
             qso.setDupe(qsoJson["duplicate"].toBool());
@@ -149,13 +170,14 @@ QJsonObject Wl2File::toJson() const
     QJsonObject json;
     
     // Metadata
-    json["version"] = m_version;
     json["format"] = "ContestLogX";
     json["created"] = m_created.toString(Qt::ISODate);
     json["modified"] = m_modified.toString(Qt::ISODate);
     
     // Contest & Station
-    json["contest"] = m_contest.toJson();
+    QJsonObject contest = m_contest.toJson();
+    contest["version"] = m_version;
+    json["contest"] = contest;
     json["station"] = m_station.toJson();
     
     // Exchange fields

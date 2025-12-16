@@ -37,6 +37,10 @@ QJsonObject ContestInfo::toJson() const
         json["contest_file"] = m_contestFile;
     }
     
+    if (!m_contestVersion.isEmpty()) {
+        json["version"] = m_contestVersion;
+    }
+    
     return json;
 }
 
@@ -62,6 +66,12 @@ ContestInfo ContestInfo::fromJson(const QJsonObject& json)
     
     if (json.contains("contest_file")) {
         info.m_contestFile = json["contest_file"].toString();
+    }
+    
+    if (json.contains("contest_version")) {
+        info.m_contestVersion = json["contest_version"].toString();
+    } else if (json.contains("version")) {
+        info.m_contestVersion = json["version"].toString();
     }
     
     return info;

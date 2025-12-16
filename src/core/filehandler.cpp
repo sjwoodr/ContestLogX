@@ -313,7 +313,7 @@ bool FileHandler::loadWl2(const QString& filename, QList<QsoRecord>& qsos)
     return true;
 }
 
-bool FileHandler::loadWl2WithContest(const QString& filename, QList<QsoRecord>& qsos, QString& contestFile, QString& stationClass)
+bool FileHandler::loadWl2WithContest(const QString& filename, QList<QsoRecord>& qsos, QString& contestFile, QString& stationClass, QString& contestVersion)
 {
     Wl2File wl2File;
     if (!wl2File.load(filename)) {
@@ -324,6 +324,7 @@ bool FileHandler::loadWl2WithContest(const QString& filename, QList<QsoRecord>& 
     qsos = wl2File.qsos();
     contestFile = wl2File.contest().contestFile();
     stationClass = wl2File.contest().category("station_class");
+    contestVersion = wl2File.contest().contestVersion();
     return true;
 }
 
@@ -355,6 +356,14 @@ bool FileHandler::saveWl2WithContest(const QString& filename, const QList<QsoRec
         wl2File.contest().setName(contestName);
         wl2File.contest().setType(contestName);
         wl2File.contest().setContestFile(contestFile);
+        
+        // Save contest version if available
+        if (contestDef.contains("contest")) {
+            QJsonObject contestObj = contestDef["contest"].toObject();
+            if (contestObj.contains("version")) {
+                wl2File.contest().setContestVersion(contestObj["version"].toString());
+            }
+        }
         
         // Add station class if provided
         if (!stationClass.isEmpty()) {

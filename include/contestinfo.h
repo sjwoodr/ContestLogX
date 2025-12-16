@@ -41,6 +41,9 @@ public:
     QString contestFile() const { return m_contestFile; }
     void setContestFile(const QString& file) { m_contestFile = file; }
     
+    QString contestVersion() const { return m_contestVersion; }
+    void setContestVersion(const QString& version) { m_contestVersion = version; }
+    
     QJsonObject toJson() const;
     static ContestInfo fromJson(const QJsonObject& json);
     
@@ -53,6 +56,7 @@ private:
     QDateTime m_endTime;
     QMap<QString, QString> m_categories;
     QString m_contestFile;
+    QString m_contestVersion;
 };
 
 #endif // CONTESTINFO_H

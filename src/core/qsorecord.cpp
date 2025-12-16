@@ -120,6 +120,11 @@ void QsoRecord::setBand(unsigned char band)
     }
 }
 
+void QsoRecord::setBandName(const QString& band)
+{
+    m_band = band;
+}
+
 void QsoRecord::setExchange(const QString& exchange)
 {
     m_exchange = exchange;

@@ -26,10 +26,17 @@ bool ContestEngine::loadContest(const QJsonObject& contestDef)
     m_contestDef = contestDef;
     
     QString contestName = getContestName();
+    QString version = "unknown";
+    if (contestDef.contains("contest")) {
+        QJsonObject contest = contestDef["contest"].toObject();
+        if (contest.contains("version")) {
+            version = contest["version"].toString();
+        }
+    }
     if (contestName.isEmpty()) {
         DebugLogger::instance().log("ContestEngine", "WARNING: Contest has no name");
     } else {
-        DebugLogger::instance().log("ContestEngine", QString("Loading contest: %1").arg(contestName));
+        DebugLogger::instance().log("ContestEngine", QString("Loading contest: %1 (v%2)").arg(contestName, version));
     }
     
     // Load multipliers into sets for fast lookup
@@ -379,6 +386,11 @@ bool ContestEngine::isDupe(const QsoRecord& qso, const QList<QsoRecord>& existin
     }
     
     for (const QsoRecord& existing : existingQsos) {
+        // Skip invalid QSOs (out of band or already marked as dupe)
+        if (existing.isOutOfBand() || existing.isDupe()) {
+            continue;
+        }
+        
         if (existing.getCall().toUpper() == qso.getCall().toUpper()) {
             if (dupeScope == "overall") {
                 return true;
@@ -421,6 +433,11 @@ QString ContestEngine::getDupeReason(const QsoRecord& qso, const QList<QsoRecord
     }
     
     for (const QsoRecord& existing : existingQsos) {
+        // Skip invalid QSOs (out of band or already marked as dupe)
+        if (existing.isOutOfBand() || existing.isDupe()) {
+            continue;
+        }
+        
         if (existing.getCall().toUpper() == qso.getCall().toUpper()) {
             if (dupeScope == "overall") {
                 return "contest";

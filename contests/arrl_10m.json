@@ -2,6 +2,7 @@
   "contest": {
     "name": "ARRL 10 Meter Contest",
     "abbreviation": "ARRL10M",
+    "version": "1.0.1",
     "sponsor": "ARRL",
     "startDate": "second full weekend in December",
     "duration": 48,
@@ -185,8 +186,7 @@
       "differentContinent"
     ],
     "multipliers": {
-      "xtype": "multsPerBandAndMode",
-      "type": "multsPerBand",
+      "type": "multsPerBandAndMode",
       "description": "US states, Canadian provinces/territories, and DXCC countries",
       "categories": ["states", "provinces", "dxcc"],
       "alaskaAndHawaiiAre": "states",

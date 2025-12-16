@@ -7,6 +7,7 @@ class BandPlan
 {
 public:
     static QString freq2Mode(double freqMHz);
+    static QString freq2Band(double freqKhz);
 };
 
 #endif // BANDPLAN_H
