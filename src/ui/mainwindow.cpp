@@ -645,19 +645,8 @@ void MainWindow::onNewLog()
                     // Clear the model first
                     m_qsoModel->clear();
                     
-                    // Recalculate scores on the loaded QSOs
-                    progressDialog->setRange(0, loadedQsos.size() + 1);
-                    progressDialog->setLabelText("Recalculating scores...");
-                    progressDialog->show();
-                    QApplication::processEvents();
-                    
-                    if (m_contestEngine) {
-                        QString myCallsign = Settings::instance().getCallsign();
-                        m_contestEngine->updateRunningScore(loadedQsos, myCallsign, false);  // Don't spam logs during load
-                    }
-                    
                     // Now add all QSOs to the model once
-                    progressDialog->setLabelText("Updating display...");
+                    progressDialog->setLabelText("Loading QSOs...");
                     progressDialog->setRange(0, loadedQsos.size());
                     QApplication::processEvents();
                     
@@ -672,10 +661,6 @@ void MainWindow::onNewLog()
                     }
                     progressDialog->setValue(loadedQsos.size());
                     
-                    if (m_scoreWidget && m_contestEngine) {
-                        m_scoreWidget->updateScore(m_contestEngine->getRunningScore());
-                    }
-                    
                     m_currentFile = selectedFile;
                     m_isModified = false;
                     updateWindowTitle();
@@ -683,6 +668,9 @@ void MainWindow::onNewLog()
                     
                     progressDialog->close();
                     progressDialog->deleteLater();
+                    
+                    // Auto-recalculate score to validate and mark dupes/out-of-band
+                    onRecalculateScore();
                     
                     m_statusLabel->setText(QString("Loaded %1 QSOs").arg(loadedQsos.size()));
                 });
@@ -753,19 +741,8 @@ void MainWindow::onOpenLog()
         // Clear the model first
         m_qsoModel->clear();
         
-        // Recalculate scores on the loaded QSOs
-        progressDialog->setRange(0, loadedQsos.size() + 1);
-        progressDialog->setLabelText("Recalculating scores...");
-        progressDialog->show();
-        QApplication::processEvents();
-        
-        if (m_contestEngine) {
-            QString myCallsign = Settings::instance().getCallsign();
-            m_contestEngine->updateRunningScore(loadedQsos, myCallsign, false);  // Don't spam logs during load
-        }
-        
         // Now add all QSOs to the model once
-        progressDialog->setLabelText("Updating display...");
+        progressDialog->setLabelText("Loading QSOs...");
         progressDialog->setRange(0, loadedQsos.size());
         QApplication::processEvents();
         
@@ -780,16 +757,16 @@ void MainWindow::onOpenLog()
         }
         progressDialog->setValue(loadedQsos.size());
         
-        if (m_scoreWidget && m_contestEngine) {
-            m_scoreWidget->updateScore(m_contestEngine->getRunningScore());
-        }
+        m_currentFile = fileName;
+        m_isModified = false;
+        updateWindowTitle();
         
         progressDialog->close();
         progressDialog->deleteLater();
         
-        m_currentFile = fileName;
-        m_isModified = false;
-        updateWindowTitle();
+        // Auto-recalculate score to validate and mark dupes/out-of-band
+        onRecalculateScore();
+        
         m_statusLabel->setText("File loaded: " + fileName + " (" + 
             QString::number(loadedQsos.count()) + " QSOs)");
     });
