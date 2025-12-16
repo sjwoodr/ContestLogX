@@ -1286,6 +1286,26 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
             modeCategory = "SSB"; // Default unknown modes to SSB
         }
         
+        // Calculate points for this QSO
+        int qsoPoints = calculatePoints(qso, myCallsign);
+        qso.setPoints(qsoPoints);  // Update the QSO with its points
+        
+        // Initialize multiplier counts for this QSO
+        int qsoNamedMults = 0;  // Named multipliers (states/provinces)
+        int qsoDxccMults = 0;   // DXCC multipliers
+        
+        // Skip multiplier and band stat tracking for out-of-band or duplicate QSOs
+        if (qso.isDupe()) {
+            qso.setMultiplierCount(qsoNamedMults);
+            qso.setDxccCount(qsoDxccMults);
+            continue;
+        }
+        if (qsoPoints == 0 && !isValidBand(qso.getFrequency().toDouble())) {  // Already in kHz
+            qso.setMultiplierCount(qsoNamedMults);
+            qso.setDxccCount(qsoDxccMults);
+            continue;
+        }
+        
         // Initialize band stats if needed
         if (!m_runningScore.bandStats.contains(band)) {
             m_runningScore.bandStats[band] = BandModeStats();
@@ -1300,27 +1320,8 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
             m_runningScore.bandStats[band].digitalQsos++;
         }
         
-        // Calculate points for this QSO
-        int qsoPoints = calculatePoints(qso, myCallsign);
-        qso.setPoints(qsoPoints);  // Update the QSO with its points
         m_runningScore.bandStats[band].points += qsoPoints;
         m_runningScore.contactScore += qsoPoints;
-        
-        // Initialize multiplier counts for this QSO
-        int qsoNamedMults = 0;  // Named multipliers (states/provinces)
-        int qsoDxccMults = 0;   // DXCC multipliers
-        
-        // Skip multiplier tracking for out-of-band or duplicate QSOs
-        if (qso.isDupe()) {
-            qso.setMultiplierCount(qsoNamedMults);
-            qso.setDxccCount(qsoDxccMults);
-            continue;
-        }
-        if (qsoPoints == 0 && !isValidBand(qso.getFrequency().toDouble())) {  // Already in kHz
-            qso.setMultiplierCount(qsoNamedMults);
-            qso.setDxccCount(qsoDxccMults);
-            continue;
-        }
         
         // Track DXCC entities (always, for informational purposes)
         if (m_dxccDatabase) {
