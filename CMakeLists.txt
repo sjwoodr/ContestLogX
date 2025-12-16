@@ -36,6 +36,7 @@ set(SOURCES
     src/ui/stationsetupdialog.cpp
     src/stationclassdialog.cpp
     src/contestselectdialog.cpp
+    src/ui/shortcutsdialog.cpp
     src/contestengine.cpp
     src/core/qsorecord.cpp
     src/core/qsolistmodel.cpp
@@ -58,6 +59,7 @@ set(HEADERS
     include/stationsetupdialog.h
     include/stationclassdialog.h
     include/contestselectdialog.h
+    include/shortcutsdialog.h
     include/contestengine.h
     include/scorewidget.h
     src/ui/freqmodedialog.h

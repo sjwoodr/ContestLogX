@@ -57,6 +57,10 @@ void Settings::load()
             }},
             {"maximized", false}
         };
+        // Add default shortcuts
+        QJsonObject shortcuts;
+        shortcuts["clearQsoEntry"] = "Ctrl+W";
+        m_settings["shortcuts"] = shortcuts;
         save();
         return;
     }
@@ -527,5 +531,49 @@ void Settings::setDxccDatabaseDebugEnabled(bool enabled)
     QJsonObject debug = m_settings["debug"].toObject();
     debug["dxccDatabaseDebugEnabled"] = enabled;
     m_settings["debug"] = debug;
+    save();
+}
+
+QMap<QString, QString> Settings::getShortcuts() const
+{
+    QMap<QString, QString> shortcuts;
+    QJsonObject shortcutsObj = m_settings["shortcuts"].toObject();
+    for (auto it = shortcutsObj.begin(); it != shortcutsObj.end(); ++it) {
+        shortcuts[it.key()] = it.value().toString();
+    }
+    return shortcuts;
+}
+
+void Settings::setShortcuts(const QMap<QString, QString>& shortcuts)
+{
+    QJsonObject shortcutsObj;
+    for (auto it = shortcuts.begin(); it != shortcuts.end(); ++it) {
+        shortcutsObj[it.key()] = it.value();
+    }
+    m_settings["shortcuts"] = shortcutsObj;
+    save();
+}
+
+QString Settings::getShortcut(const QString& actionName) const
+{
+    QString value = m_settings["shortcuts"].toObject()[actionName].toString("");
+    
+    // Return default if not found
+    if (value.isEmpty()) {
+        // Check built-in defaults
+        static const QMap<QString, QString> DEFAULTS = {
+            {"clearQsoEntry", "Ctrl+W"}
+        };
+        return DEFAULTS.value(actionName, "");
+    }
+    
+    return value;
+}
+
+void Settings::setShortcut(const QString& actionName, const QString& keySequence)
+{
+    QJsonObject shortcuts = m_settings["shortcuts"].toObject();
+    shortcuts[actionName] = keySequence;
+    m_settings["shortcuts"] = shortcuts;
     save();
 }

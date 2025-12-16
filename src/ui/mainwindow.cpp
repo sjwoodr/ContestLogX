@@ -8,6 +8,7 @@
 #include "stationsetupdialog.h"
 #include "stationclassdialog.h"
 #include "contestselectdialog.h"
+#include "shortcutsdialog.h"
 #include "contestengine.h"
 #include "filehandler.h"
 #include "settings.h"
@@ -454,6 +455,11 @@ void MainWindow::setupMenus()
     
     fileMenu->addSeparator();
     
+    QAction *shortcutsAction = fileMenu->addAction("&Shortcuts...");
+    connect(shortcutsAction, &QAction::triggered, this, &MainWindow::onShortcuts);
+    
+    fileMenu->addSeparator();
+    
     QAction *exitAction = fileMenu->addAction("E&xit");
     exitAction->setShortcut(QKeySequence::Quit);
     connect(exitAction, &QAction::triggered, this, &MainWindow::onExit);
@@ -789,6 +795,21 @@ void MainWindow::onExit()
     }
 }
 
+void MainWindow::onShortcuts()
+{
+    ShortcutsDialog dialog(this);
+    dialog.exec();
+}
+
+void MainWindow::keyPressEvent(QKeyEvent *event)
+{
+    if (event->key() == Qt::Key_W && (event->modifiers() & Qt::ControlModifier)) {
+        clearEntryForm();
+        return;
+    }
+    QMainWindow::keyPressEvent(event);
+}
+
 void MainWindow::onCallChanged(const QString& text)
 {
     // Force uppercase
@@ -1117,6 +1138,12 @@ void MainWindow::onFreqModeButtonClicked()
             m_statusLabel->setText(QString("Rig set to %1 kHz %2")
                 .arg(newFreq, 0, 'f', 1)
                 .arg(newMode));
+        }
+        
+        // Return focus to call field
+        if (m_callEdit) {
+            m_callEdit->setFocus();
+            m_callEdit->selectAll();
         }
     }
 }
