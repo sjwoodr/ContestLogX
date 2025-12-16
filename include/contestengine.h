@@ -83,10 +83,9 @@ public:
         QMap<QString, BandModeStats> bandStats;  // Key: band name (e.g., "20m")
         int contactScore = 0;
         int multipliers = 0;
-        int stateMults = 0;       // State multipliers (for category scoring)
-        int provinceMults = 0;    // Province multipliers (for category scoring)
-        int dxccMults = 0;        // DXCC multipliers (for category scoring)
-        int ituRegionMults = 0;   // ITU Region multipliers (for category scoring)
+        int namedMultCount = 0;   // Named multiplier count (for category scoring)
+        int dxccMultCount = 0;    // DXCC multipliers (for category scoring)
+        int ituRegionMultCount = 0;   // ITU Region multipliers (for category scoring)
         int dxccCount = 0;        // Total unique DXCC entities worked (for info)
         int bonusPoints = 0;
         int contestScore = 0;

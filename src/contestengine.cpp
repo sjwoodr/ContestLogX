@@ -1464,55 +1464,55 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
     
     // Count multipliers based on type
     if (multType == "multsOnce") {
-        m_runningScore.stateMults = namedMultsOnce.size();
-        m_runningScore.dxccMults = dxccMultsOnce.size();
-        m_runningScore.ituRegionMults = ituRegionMultsOnce.size();
+        m_runningScore.namedMultCount = namedMultsOnce.size();
+        m_runningScore.dxccMultCount = dxccMultsOnce.size();
+        m_runningScore.ituRegionMultCount = ituRegionMultsOnce.size();
         m_runningScore.multipliers = uniqueMultipliers.size();
         if (verbose) {
             DebugLogger::instance().log("ContestEngine", 
                 QString("Unique mults (once): %1 total (named:%2 dxcc:%3 itu:%4)")
                     .arg(uniqueMultipliers.size())
-                    .arg(m_runningScore.stateMults)
-                    .arg(m_runningScore.dxccMults)
-                    .arg(m_runningScore.ituRegionMults));
+                    .arg(m_runningScore.namedMultCount)
+                    .arg(m_runningScore.dxccMultCount)
+                    .arg(m_runningScore.ituRegionMultCount));
         }
     } else if (multType == "multsPerBand") {
-        m_runningScore.stateMults = namedMultsPerBand.size();
-        m_runningScore.dxccMults = dxccMultsPerBand.size();
-        m_runningScore.ituRegionMults = ituRegionMultsPerBand.size();
+        m_runningScore.namedMultCount = namedMultsPerBand.size();
+        m_runningScore.dxccMultCount = dxccMultsPerBand.size();
+        m_runningScore.ituRegionMultCount = ituRegionMultsPerBand.size();
         m_runningScore.multipliers = multPerBand.size();
         if (verbose) {
             DebugLogger::instance().log("ContestEngine", 
                 QString("Mults per band: %1 total (named:%2 dxcc:%3 itu:%4)")
                     .arg(multPerBand.size())
-                    .arg(m_runningScore.stateMults)
-                    .arg(m_runningScore.dxccMults)
-                    .arg(m_runningScore.ituRegionMults));
+                    .arg(m_runningScore.namedMultCount)
+                    .arg(m_runningScore.dxccMultCount)
+                    .arg(m_runningScore.ituRegionMultCount));
         }
     } else if (multType == "multsPerMode") {
-        m_runningScore.stateMults = namedMultsPerMode.size();
-        m_runningScore.dxccMults = dxccMultsPerMode.size();
-        m_runningScore.ituRegionMults = ituRegionMultsPerMode.size();
+        m_runningScore.namedMultCount = namedMultsPerMode.size();
+        m_runningScore.dxccMultCount = dxccMultsPerMode.size();
+        m_runningScore.ituRegionMultCount = ituRegionMultsPerMode.size();
         m_runningScore.multipliers = multPerMode.size();
         if (verbose) {
             DebugLogger::instance().log("ContestEngine", 
                 QString("Mults per mode: %1 total (named:%2 dxcc:%3 itu:%4)")
                     .arg(multPerMode.size())
-                    .arg(m_runningScore.stateMults)
-                    .arg(m_runningScore.dxccMults)
-                    .arg(m_runningScore.ituRegionMults));
+                    .arg(m_runningScore.namedMultCount)
+                    .arg(m_runningScore.dxccMultCount)
+                    .arg(m_runningScore.ituRegionMultCount));
         }
     } else if (multType == "multsPerBandAndMode") {
-        m_runningScore.stateMults = namedMultsPerBandAndMode.size();
-        m_runningScore.dxccMults = dxccMultsPerBandAndMode.size();
-        m_runningScore.ituRegionMults = ituRegionMultsPerBandAndMode.size();
+        m_runningScore.namedMultCount = namedMultsPerBandAndMode.size();
+        m_runningScore.dxccMultCount = dxccMultsPerBandAndMode.size();
+        m_runningScore.ituRegionMultCount = ituRegionMultsPerBandAndMode.size();
         m_runningScore.multipliers = multPerBandAndMode.size();
         DebugLogger::instance().log("ContestEngine", 
             QString("Mults per band/mode: %1 total (named:%2 dxcc:%3 itu:%4)")
                 .arg(multPerBandAndMode.size())
-                .arg(m_runningScore.stateMults)
-                .arg(m_runningScore.dxccMults)
-                .arg(m_runningScore.ituRegionMults));
+                .arg(m_runningScore.namedMultCount)
+                .arg(m_runningScore.dxccMultCount)
+                .arg(m_runningScore.ituRegionMultCount));
     }
     
     // Set DXCC count (for informational purposes)
@@ -1525,7 +1525,7 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
     // Use sum of category multipliers if contest defines categories
     QStringList multCategories = getMultiplierCategories();
     if (!multCategories.isEmpty()) {
-        int totalMultipliers = m_runningScore.stateMults + m_runningScore.dxccMults + m_runningScore.ituRegionMults;
+        int totalMultipliers = m_runningScore.namedMultCount + m_runningScore.dxccMultCount + m_runningScore.ituRegionMultCount;
         m_runningScore.contestScore = (m_runningScore.contactScore * totalMultipliers) + m_runningScore.bonusPoints;
     } else {
         // Traditional scoring: points * mults
@@ -1537,9 +1537,9 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
             .arg(validQsoCount)
             .arg(m_runningScore.contactScore)
             .arg(m_runningScore.multipliers)
-            .arg(m_runningScore.stateMults)
-            .arg(m_runningScore.dxccMults)
-            .arg(m_runningScore.ituRegionMults)
+            .arg(m_runningScore.namedMultCount)
+            .arg(m_runningScore.dxccMultCount)
+            .arg(m_runningScore.ituRegionMultCount)
             .arg(m_runningScore.contestScore));
     
     // Debug: Log band stats

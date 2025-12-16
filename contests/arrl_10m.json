@@ -188,7 +188,7 @@
     "multipliers": {
       "type": "multsPerBandAndMode",
       "description": "US states, Canadian provinces/territories, and DXCC countries",
-      "categories": ["states", "provinces", "dxcc", "ituRegions"],
+      "categories": ["namedMults", "dxcc", "ituRegions"],
       "alaskaAndHawaiiAre": "states",
       "usAndCanadaCountDxcc": true
     },
