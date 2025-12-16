@@ -763,6 +763,15 @@ QList<ContestEngine::MultiplierInfo> ContestEngine::getMultipliersWithCategory(c
         }
     }
     
+    // Check if ITU Regions are a multiplier category
+    bool ituRegionIsMult = multCategories.contains("ituRegions");
+    if (ituRegionIsMult && m_dxccDatabase) {
+        int ituRegion = m_dxccDatabase->getItuRegion(qso.getCall());
+        if (ituRegion > 0) {
+            result.append({QString::number(ituRegion), "ituRegions"});
+        }
+    }
+    
     return result;
 }
 
@@ -823,6 +832,8 @@ ContestEngine::QsoMultiplierCredit ContestEngine::getQsoMultiplierCredit(const Q
                 credit.namedMultCount++;
             } else if (multInfo.category == "dxcc") {
                 credit.dxccMultCount++;
+            } else if (multInfo.category == "ituRegions") {
+                credit.ituRegionMultCount++;
             }
         }
     }

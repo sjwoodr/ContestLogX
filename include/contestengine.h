@@ -58,6 +58,7 @@ public:
     struct QsoMultiplierCredit {
         int namedMultCount = 0;  // Count of named multipliers (states/provinces) credited for this QSO
         int dxccMultCount = 0;   // Count of DXCC entities credited for this QSO
+        int ituRegionMultCount = 0;  // Count of ITU regions credited for this QSO
     };
     
     QStringList getMultipliers(const QsoRecord& qso) const;

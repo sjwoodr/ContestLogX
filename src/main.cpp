@@ -90,7 +90,9 @@ int main(int argc, char *argv[])
     QCommandLineOption debugOption("debug", "Write debug logs to stdout in addition to log file");
     parser.addOption(debugOption);
     
-    parser.addPositionalArgument("file", "Log file to open");
+    QCommandLineOption logOption("log", "Load log file on startup", "filename");
+    parser.addOption(logOption);
+    
     parser.process(app);
     
     // Check if --debug flag is set
@@ -118,11 +120,11 @@ int main(int argc, char *argv[])
     MainWindow window;
     window.show();
     
-    // Open file if specified on command line
-    const QStringList args = parser.positionalArguments();
-    if (!args.isEmpty()) {
-        // TODO: Load the specified file
-        DebugLogger::instance().log("INFO", QString("Would load file: %1").arg(args.first()));
+    // Load log file if specified via --log option
+    if (parser.isSet(logOption)) {
+        QString logFilename = parser.value(logOption);
+        DebugLogger::instance().log("INFO", QString("Loading log file from command line: %1").arg(logFilename));
+        window.loadLogFile(logFilename);
     }
     
     int result = app.exec();

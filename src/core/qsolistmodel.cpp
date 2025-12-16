@@ -174,6 +174,24 @@ void QsoListModel::updateDxccCount(int row, int dxccCount)
     }
 }
 
+void QsoListModel::updateItuRegionCount(int row, int ituRegionCount)
+{
+    if (row < 0 || row >= m_qsos.count())
+        return;
+    
+    m_qsos[row].setItuRegionCount(ituRegionCount);
+    
+    // ITU regions may be displayed in a separate column if the contest uses them
+    // For now, we'll look for an "ITU" or similar column
+    int ituColIndex = m_columnHeaders.indexOf("ITU");
+    if (ituColIndex < 0) {
+        ituColIndex = m_columnHeaders.indexOf("Region");
+    }
+    if (ituColIndex >= 0) {
+        emit dataChanged(index(row, ituColIndex), index(row, ituColIndex));
+    }
+}
+
 QsoRecord QsoListModel::getQso(int row) const
 {
     if (row < 0 || row >= m_qsos.count())

@@ -28,6 +28,8 @@ public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
     
+    void loadLogFile(const QString& filename);
+    
     // Public method for self-test
 
 
@@ -137,6 +139,7 @@ private:
     QsoListModel *m_qsoModel;
     QString m_currentFile;
     bool m_isModified;
+    bool m_showingLogFileNotFoundDialog;
     
     // Contest definition
     QJsonObject m_contestDefinition;

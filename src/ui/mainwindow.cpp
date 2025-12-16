@@ -63,6 +63,7 @@ MainWindow::MainWindow(QWidget *parent)
     , m_qsoModel(new QsoListModel(this))
     , m_currentFile("")
     , m_isModified(false)
+    , m_showingLogFileNotFoundDialog(false)
     , m_contestEngine(new ContestEngine(this))
     , m_dxccDatabase(new DxccDatabase(this))
     , m_flrigClient(new FlrigClient(this))
@@ -195,8 +196,19 @@ MainWindow::MainWindow(QWidget *parent)
         DebugLogger::instance().log("MainWindow", "Station not configured, showing station setup dialog");
         QTimer::singleShot(100, this, &MainWindow::onStationSetup);
     } else {
-        DebugLogger::instance().log("MainWindow", "Station configured, showing contest selection dialog");
-        QTimer::singleShot(100, this, &MainWindow::onNewLog);
+        // Check for --log command-line argument
+        QStringList args = QApplication::arguments();
+        int logIndex = args.indexOf("--log");
+        if (logIndex != -1 && logIndex + 1 < args.count()) {
+            QString logFilePath = args[logIndex + 1];
+            DebugLogger::instance().log("MainWindow", QString("Loading log file from command line: %1").arg(logFilePath));
+            QTimer::singleShot(100, this, [this, logFilePath]() {
+                loadLogFile(logFilePath);
+            });
+        } else {
+            DebugLogger::instance().log("MainWindow", "Station configured, showing contest selection dialog");
+            QTimer::singleShot(100, this, &MainWindow::onNewLog);
+        }
     }
     
     // Restore window geometry or use defaults
@@ -848,6 +860,134 @@ void MainWindow::onOpenLog()
     loadThread->start();
 }
 
+void MainWindow::loadLogFile(const QString& filename)
+{
+    if (filename.isEmpty() || !QFile::exists(filename)) {
+        // Prevent duplicate dialogs
+        if (m_showingLogFileNotFoundDialog) {
+            return;
+        }
+        m_showingLogFileNotFoundDialog = true;
+        
+        DebugLogger::instance().log("MainWindow", QString("Log file not found: %1").arg(filename));
+        QMessageBox::warning(this, "Log File Not Found", 
+                           QString("The log file '%1' was not found.").arg(filename),
+                           QMessageBox::Ok);
+        
+        m_showingLogFileNotFoundDialog = false;
+        return;
+    }
+    
+    // Skip the contest selection dialog and go straight to loading
+    DebugLogger::instance().log("MainWindow", QString("Loading log file directly: %1").arg(filename));
+    
+    // Create progress dialog
+    QProgressDialog *progressDialog = new QProgressDialog("Loading file...", QString(), 0, 0, this);
+    progressDialog->setWindowTitle("Loading Log");
+    progressDialog->setWindowModality(Qt::WindowModal);
+    progressDialog->setAutoClose(false);
+    progressDialog->setAutoReset(false);
+    progressDialog->show();
+    QApplication::processEvents();
+    
+    // Create worker and thread
+    QThread *loadThread = new QThread(this);
+    LoadingWorker *worker = new LoadingWorker(filename, nullptr);
+    worker->moveToThread(loadThread);
+    
+    // Connect signals
+    connect(loadThread, &QThread::started, worker, &LoadingWorker::doLoad);
+    
+    connect(worker, &LoadingWorker::loadingComplete, this, [this, filename, progressDialog, loadThread, worker](QList<QsoRecord> loadedQsos, bool success, QString errorMessage) {
+        loadThread->quit();
+        loadThread->wait();
+        worker->deleteLater();
+        loadThread->deleteLater();
+        
+        if (!success) {
+            progressDialog->close();
+            progressDialog->deleteLater();
+            DebugLogger::instance().log("MainWindow", QString("Failed to load file: %1").arg(errorMessage));
+            return;
+        }
+        
+        // For .clx files, check and load contest info
+        if (filename.endsWith(".clx", Qt::CaseInsensitive)) {
+            QString contestFile;
+            QString stationClass;
+            QString loadedContestVersion;
+            FileHandler fileHandler;
+            
+            QList<QsoRecord> temp;
+            fileHandler.loadClxWithContest(filename, temp, contestFile, stationClass, loadedContestVersion);
+            
+            // Load the contest definition if specified
+            if (!contestFile.isEmpty()) {
+                QString contestPath = QCoreApplication::applicationDirPath() + "/contests/" + contestFile;
+                if (!QFile::exists(contestPath)) {
+                    contestPath = "contests/" + contestFile;
+                }
+                if (QFile::exists(contestPath)) {
+                    // Set station class BEFORE loading contest definition to prevent duplicate dialog
+                    if (!stationClass.isEmpty()) {
+                        // Need to create engine first if needed
+                        if (!m_contestEngine) {
+                            m_contestEngine = new ContestEngine(this);
+                        }
+                        m_contestEngine->setStationClass(stationClass);
+                    }
+                    
+                    loadContestDefinition(contestPath);
+                    
+                    // Check if contest version has changed
+                    if (!loadedContestVersion.isEmpty() && !m_contestDefinition.isEmpty()) {
+                        QString currentVersion = m_contestDefinition["contest"].toObject()["version"].toString();
+                        DebugLogger::instance().log("MainWindow", 
+                            QString("Contest version check: Log file v%1, Current definition v%2").arg(loadedContestVersion, currentVersion));
+                        if (!currentVersion.isEmpty() && !isSemanticVersionEqual(currentVersion, loadedContestVersion)) {
+                            DebugLogger::instance().log("MainWindow", "Version mismatch detected");
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Clear the model first
+        m_qsoModel->clear();
+        
+        // Now add all QSOs to the model once
+        progressDialog->setLabelText("Loading QSOs...");
+        progressDialog->setRange(0, loadedQsos.size());
+        QApplication::processEvents();
+        
+        for (int i = 0; i < loadedQsos.size(); ++i) {
+            m_qsoModel->addQso(loadedQsos[i]);
+            
+            // Update progress every 50 QSOs to avoid excessive redraws
+            if (i % 50 == 0) {
+                progressDialog->setValue(i);
+                QApplication::processEvents();
+            }
+        }
+        progressDialog->setValue(loadedQsos.size());
+        
+        m_currentFile = filename;
+        m_isModified = false;
+        updateWindowTitle();
+        
+        progressDialog->close();
+        progressDialog->deleteLater();
+        
+        // Auto-recalculate score to validate and mark dupes/out-of-band
+        onRecalculateScore();
+        
+        m_statusLabel->setText("File loaded: " + filename + " (" + 
+            QString::number(loadedQsos.count()) + " QSOs)");
+    });
+    
+    loadThread->start();
+}
+
 void MainWindow::onSaveLog()
 {
     if (m_currentFile.isEmpty()) {
@@ -1144,6 +1284,7 @@ void MainWindow::onLogQso()
         int lastQsoIndex = m_qsoModel->count() - 1;
         m_qsoModel->updateMultiplierCount(lastQsoIndex, credit.namedMultCount);
         m_qsoModel->updateDxccCount(lastQsoIndex, credit.dxccMultCount);
+        m_qsoModel->updateItuRegionCount(lastQsoIndex, credit.ituRegionMultCount);
         
         // Now update running score with the updated QSO
         allQsos = m_qsoModel->getQsos();
@@ -1387,6 +1528,7 @@ void MainWindow::onRecalculateScore()
         ContestEngine::QsoMultiplierCredit credit = m_contestEngine->getQsoMultiplierCredit(qso, previousQsos);
         qso.setMultiplierCount(credit.namedMultCount);
         qso.setDxccCount(credit.dxccMultCount);
+        qso.setItuRegionCount(credit.ituRegionMultCount);
         
         m_qsoModel->updateQso(i, qso);
     }
@@ -1724,21 +1866,27 @@ void MainWindow::loadContestDefinition(const QString& filePath)
         // Use existing station class if available (from loaded file)
         QString currentClass = m_contestEngine->getStationClass();
         
-        StationClassDialog dialog(
-            m_contestEngine->getStationClassPrompt(),
-            m_contestEngine->getStationClassOptions(),
-            this,
-            currentClass  // Pass current class as default
-        );
-        
-        if (dialog.exec() == QDialog::Accepted) {
-            QString selectedClass = dialog.getSelectedClass();
-            m_contestEngine->setStationClass(selectedClass);
-            DebugLogger::instance().log("MainWindow", 
-                QString("Station class selected: %1").arg(selectedClass));
+        // Only show dialog if no station class is already set
+        if (currentClass.isEmpty()) {
+            StationClassDialog dialog(
+                m_contestEngine->getStationClassPrompt(),
+                m_contestEngine->getStationClassOptions(),
+                this,
+                currentClass  // Pass current class as default
+            );
+            
+            if (dialog.exec() == QDialog::Accepted) {
+                QString selectedClass = dialog.getSelectedClass();
+                m_contestEngine->setStationClass(selectedClass);
+                DebugLogger::instance().log("MainWindow", 
+                    QString("Station class selected: %1").arg(selectedClass));
+            } else {
+                DebugLogger::instance().log("MainWindow", "Station class selection cancelled");
+                return;
+            }
         } else {
-            DebugLogger::instance().log("MainWindow", "Station class selection cancelled");
-            return;
+            DebugLogger::instance().log("MainWindow", 
+                QString("Using existing station class from loaded file: %1").arg(currentClass));
         }
     }
     

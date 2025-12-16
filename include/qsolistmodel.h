@@ -35,6 +35,7 @@ public:
     void updateQso(int row, const QsoRecord& qso);
     void updateMultiplierCount(int row, int multCount);
     void updateDxccCount(int row, int dxccCount);
+    void updateItuRegionCount(int row, int ituRegionCount);
     QsoRecord getQso(int row) const;
     void clear();
     

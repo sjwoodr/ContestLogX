@@ -43,6 +43,7 @@ public:
     // Multiplier and scoring
     int getMultiplierCount() const { return m_multiplierCount; }
     int getDxccCount() const { return m_dxccCount; }
+    int getItuRegionCount() const { return m_ituRegionCount; }
     int getPoints() const { return m_points; }
     QString getComment() const { return m_comment; }
     bool isOutOfBand() const { return m_outOfBand; }
@@ -70,6 +71,7 @@ public:
     // Multiplier and scoring
     void setMultiplierCount(int count) { m_multiplierCount = count; }
     void setDxccCount(int count) { m_dxccCount = count; }
+    void setItuRegionCount(int count) { m_ituRegionCount = count; }
     void setPoints(int points) { m_points = points; }
     void setComment(const QString& comment) { m_comment = comment; }
     void setOutOfBand(bool outOfBand) { m_outOfBand = outOfBand; }
@@ -92,6 +94,7 @@ private:
     QMap<QString, QString> m_exchangeFields;  // Individual exchange fields
     int m_multiplierCount = 0;
     int m_dxccCount = 0;
+    int m_ituRegionCount = 0;
     int m_points = 0;
     QString m_comment;
 };

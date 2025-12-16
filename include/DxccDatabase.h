@@ -54,6 +54,9 @@ public:
     QString getCountry(const QString &callsign) const;
     QString getContinent(const QString &callsign) const;
     int getDxcc(const QString &callsign) const;
+    int getItuZone(const QString &callsign) const;
+    int getItuRegion(const QString &callsign) const;
+    int mapItuZoneToRegion(int ituZone) const;
     
     bool isLoaded() const { return m_loaded; }
     QString getDataPath() const;

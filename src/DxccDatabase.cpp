@@ -318,3 +318,36 @@ int DxccDatabase::getDxcc(const QString &callsign) const
     DxccEntity entity = lookupCallsign(callsign);
     return entity.dxcc;
 }
+
+int DxccDatabase::getItuZone(const QString &callsign) const
+{
+    DxccEntity entity = lookupCallsign(callsign);
+    return entity.ituZone;
+}
+
+int DxccDatabase::mapItuZoneToRegion(int ituZone) const
+{
+    // ITU Region mapping based on ITU zones
+    // Region 1 → ITU zones 14–30, 32–45, 48, 49
+    // Region 2 → ITU zones 7–13, 15–17, 31, 46, 47
+    // Region 3 → ITU zones 50–75, plus zone 34 (some overlap exceptions)
+    
+    if ((ituZone >= 14 && ituZone <= 30) || 
+        (ituZone >= 32 && ituZone <= 45) || 
+        ituZone == 48 || ituZone == 49) {
+        return 1;
+    } else if ((ituZone >= 7 && ituZone <= 13) || 
+               (ituZone >= 15 && ituZone <= 17) || 
+               ituZone == 31 || ituZone == 46 || ituZone == 47) {
+        return 2;
+    } else if ((ituZone >= 50 && ituZone <= 75) || ituZone == 34) {
+        return 3;
+    }
+    return 0; // Invalid zone
+}
+
+int DxccDatabase::getItuRegion(const QString &callsign) const
+{
+    int ituZone = getItuZone(callsign);
+    return mapItuZoneToRegion(ituZone);
+}
