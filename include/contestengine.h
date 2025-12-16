@@ -86,6 +86,7 @@ public:
         int stateMults = 0;       // State multipliers (for category scoring)
         int provinceMults = 0;    // Province multipliers (for category scoring)
         int dxccMults = 0;        // DXCC multipliers (for category scoring)
+        int ituRegionMults = 0;   // ITU Region multipliers (for category scoring)
         int dxccCount = 0;        // Total unique DXCC entities worked (for info)
         int bonusPoints = 0;
         int contestScore = 0;

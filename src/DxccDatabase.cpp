@@ -55,60 +55,44 @@ bool DxccDatabase::loadFromFile(const QString &filename)
             continue;
         }
 
-        // Check if this is a country definition line (has multiple colons in specific pattern)
-        int colonCount = line.count(':');
-        if (colonCount >= 8) {
-            // Parse the fixed-width country definition line
-            // Format: Country Name:CQ:ITU:Cont:Lat:Long:TZ:PFX:
+        // Check if this is a country definition line (has multiple colons)
+        // cty.dat format: Country:CQ:ITU:Cont:Lat:Long:TZ:PFX:
+        if (line.count(':') >= 8) {
+            // Parse using : as delimiter
+            QStringList fields = line.split(':', Qt::SkipEmptyParts);
+            if (fields.size() < 8) {
+                continue;
+            }
+
             DxccEntity entity;
             
-            // Country name (columns 1-26)
-            entity.country = line.mid(0, qMin(26, line.length())).trimmed();
+            // Field 0: Country name
+            entity.country = fields[0].trimmed();
             
-            // CQ Zone (columns 27-31)
-            if (line.length() > 26) {
-                entity.cqZone = line.mid(26, 5).trimmed().toInt();
-            }
+            // Field 1: CQ Zone
+            entity.cqZone = fields[1].trimmed().toInt();
             
-            // ITU Zone (columns 32-36)
-            if (line.length() > 31) {
-                entity.ituZone = line.mid(31, 5).trimmed().toInt();
-            }
+            // Field 2: ITU Zone
+            entity.ituZone = fields[2].trimmed().toInt();
             
-            // Continent (columns 37-41)
-            if (line.length() > 36) {
-                entity.continent = line.mid(36, 5).trimmed();
-            }
+            // Field 3: Continent
+            entity.continent = fields[3].trimmed();
             
-            // Latitude (columns 42-50)
-            if (line.length() > 41) {
-                entity.latitude = line.mid(41, 9).trimmed().toDouble();
-            }
+            // Field 4: Latitude
+            entity.latitude = fields[4].trimmed().toDouble();
             
-            // Longitude (columns 51-60)
-            if (line.length() > 50) {
-                entity.longitude = line.mid(50, 10).trimmed().toDouble();
-            }
+            // Field 5: Longitude
+            entity.longitude = fields[5].trimmed().toDouble();
             
-            // GMT Offset (columns 61-69)
-            if (line.length() > 60) {
-                entity.gmtOffset = line.mid(60, 9).trimmed().toDouble();
-            }
+            // Field 6: GMT Offset
+            entity.gmtOffset = fields[6].trimmed().toDouble();
             
-            // Primary prefix (columns 70+)
-            QString primaryPrefix;
-            if (line.length() > 69) {
-                primaryPrefix = line.mid(69).trimmed();
-                // Remove trailing colon
-                if (primaryPrefix.endsWith(':')) {
-                    primaryPrefix.chop(1);
-                }
-                primaryPrefix = primaryPrefix.trimmed();
-                
-                // Handle * prefix (WAEDC only)
-                if (primaryPrefix.startsWith('*')) {
-                    primaryPrefix = primaryPrefix.mid(1);
-                }
+            // Field 7: Primary prefix
+            QString primaryPrefix = fields[7].trimmed();
+            
+            // Handle * prefix (WAEDC only)
+            if (primaryPrefix.startsWith('*')) {
+                primaryPrefix = primaryPrefix.mid(1);
             }
             
             entity.dxcc = nextDxccNumber++;
