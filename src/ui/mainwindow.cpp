@@ -933,6 +933,8 @@ void MainWindow::loadLogFile(const QString& filename)
                         // Need to create engine first if needed
                         if (!m_contestEngine) {
                             m_contestEngine = new ContestEngine(this);
+                            // Make sure the new engine has the DXCC database
+                            m_contestEngine->setDxccDatabase(m_dxccDatabase);
                         }
                         m_contestEngine->setStationClass(stationClass);
                     }

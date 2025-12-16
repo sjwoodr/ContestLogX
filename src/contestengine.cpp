@@ -682,6 +682,8 @@ QList<ContestEngine::MultiplierInfo> ContestEngine::getMultipliersWithCategory(c
         // Handle Alaska and Hawaii special case
         if (multUpper == "AK" || multUpper == "HI") {
             bool akHiCountDxcc = getAlaskaHawaiiCountDxcc();
+            DebugLogger::instance().log("ContestEngine", 
+                QString("  Found AK/HI multiplier '%1' - counts as DXCC: %2").arg(multUpper).arg(akHiCountDxcc ? "yes" : "no"));
             
             // If dxcc is in multiplier categories and AK/HI should count as DXCC
             if (akHiCountDxcc && dxccIsMult && m_dxccDatabase) {
@@ -689,6 +691,8 @@ QList<ContestEngine::MultiplierInfo> ContestEngine::getMultipliersWithCategory(c
                 if (!entity.primaryPrefix.isEmpty() || !entity.prefixes.isEmpty()) {
                     QString dxccMult = entity.primaryPrefix.isEmpty() ? entity.prefixes.first().prefix : entity.primaryPrefix;
                     result.append({dxccMult, "dxcc"});
+                    DebugLogger::instance().log("ContestEngine", 
+                        QString("  Added DXCC mult '%1' for AK/HI").arg(dxccMult));
                 }
             }
         }
@@ -713,20 +717,33 @@ QList<ContestEngine::MultiplierInfo> ContestEngine::getMultipliersWithCategory(c
         if (alreadyAddedDxcc) {
             // Already handled by AK/HI special treatment
             shouldAddDxcc = false;
+            DebugLogger::instance().log("ContestEngine", 
+                QString("  DXCC: Already added via AK/HI treatment, skipping"));
+        } else if (multUpper == "AK" || multUpper == "HI") {
+            // This is Alaska/Hawaii but didn't count as DXCC, skip
+            shouldAddDxcc = false;
+            DebugLogger::instance().log("ContestEngine", 
+                QString("  DXCC: AK/HI but alaskaAndHawaiiCountDxcc=false, skipping"));
         } else if (!mult.isEmpty() && m_validMultipliers.contains(mult.toUpper())) {
             // This is a US/Canadian station with a state/province
             // Check if they also count as DXCC
             bool usAndCanadaCountDxcc = getUsAndCanadaCountDxcc();
             shouldAddDxcc = usAndCanadaCountDxcc;
+            DebugLogger::instance().log("ContestEngine", 
+                QString("  DXCC: US/Canadian mult '%1' - counts as DXCC: %2").arg(mult.toUpper()).arg(usAndCanadaCountDxcc ? "yes" : "no"));
         } else {
             // This is a DX station (no state/province), always add DXCC
             shouldAddDxcc = true;
+            DebugLogger::instance().log("ContestEngine", 
+                QString("  DXCC: DX station, adding DXCC"));
         }
         
         // Add DXCC if appropriate
         if (shouldAddDxcc && !entity.prefixes.isEmpty()) {
             QString dxccMult = entity.primaryPrefix.isEmpty() ? entity.prefixes.first().prefix : entity.primaryPrefix;
             result.append({dxccMult, "dxcc"});
+            DebugLogger::instance().log("ContestEngine", 
+                QString("  Added DXCC mult '%1'").arg(dxccMult));
         }
     }
     
@@ -734,7 +751,7 @@ QList<ContestEngine::MultiplierInfo> ContestEngine::getMultipliersWithCategory(c
     bool ituRegionIsMult = multCategories.contains("ituRegions");
     if (ituRegionIsMult && m_dxccDatabase) {
         int ituZone = m_dxccDatabase->getItuZone(qso.getCall());
-        int ituRegion = m_dxccDatabase->mapItuZoneToRegion(ituZone);
+        int ituRegion = m_dxccDatabase->getItuRegion(qso.getCall());
         DebugLogger::instance().log("ContestEngine", QString("ITU lookup for %1 -> Zone: %2 -> Region: %3")
             .arg(qso.getCall()).arg(ituZone).arg(ituRegion));
         if (ituRegion > 0) {

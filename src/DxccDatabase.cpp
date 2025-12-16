@@ -373,7 +373,7 @@ int DxccDatabase::mapItuZoneToRegion(int ituZone) const
     // ITU Region mapping based on ITU zones
     // Region 1 → ITU zones 14–30, 32–45, 48, 49
     // Region 2 → ITU zones 7–13, 15–17, 31, 46, 47
-    // Region 3 → ITU zones 50–75, plus zone 34 (some overlap exceptions)
+    // Region 3 → ITU zones 1–6, 50–75, plus zone 34 (some overlap exceptions)
     
     if ((ituZone >= 14 && ituZone <= 30) || 
         (ituZone >= 32 && ituZone <= 45) || 
@@ -383,7 +383,8 @@ int DxccDatabase::mapItuZoneToRegion(int ituZone) const
                (ituZone >= 15 && ituZone <= 17) || 
                ituZone == 31 || ituZone == 46 || ituZone == 47) {
         return 2;
-    } else if ((ituZone >= 50 && ituZone <= 75) || ituZone == 34) {
+    } else if ((ituZone >= 1 && ituZone <= 6) || 
+               (ituZone >= 50 && ituZone <= 75) || ituZone == 34) {
         return 3;
     }
     return 0; // Invalid zone
@@ -391,6 +392,26 @@ int DxccDatabase::mapItuZoneToRegion(int ituZone) const
 
 int DxccDatabase::getItuRegion(const QString &callsign) const
 {
+    QString callWithoutSuffix = stripPortableSuffixes(callsign);
+    
+    // Special case overrides: some DXCC entities are in different regions than their ITU zones suggest
+    // U.S. territories in the Pacific that are assigned to Region 2
+    if (callWithoutSuffix.startsWith("KL") ||  // Alaska
+        callWithoutSuffix.startsWith("KH6") ||  // Hawaii
+        callWithoutSuffix.startsWith("KH2") ||  // Guam
+        callWithoutSuffix.startsWith("KH0") ||  // Northern Mariana Islands
+        callWithoutSuffix.startsWith("KH8") ||  // American Samoa
+        callWithoutSuffix.startsWith("KH9")) {  // Wake Island
+        return 2;  // All U.S. Pacific territories are in Region 2
+    }
+    
+    // Caribbean French territories assigned to Region 2 (despite France being Region 1)
+    if (callWithoutSuffix.startsWith("FG") ||  // Guadeloupe
+        callWithoutSuffix.startsWith("FM") ||  // Martinique
+        callWithoutSuffix.startsWith("FY")) {  // French Guiana
+        return 2;
+    }
+    
     int ituZone = getItuZone(callsign);
     return mapItuZoneToRegion(ituZone);
 }
