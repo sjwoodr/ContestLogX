@@ -676,8 +676,7 @@ QList<ContestEngine::MultiplierInfo> ContestEngine::getMultipliersWithCategory(c
         QString multUpper = mult.toUpper();
         
         // All named multipliers from validation.namedMults are valid
-        // We don't categorize them anymore - the app doesn't need to know if it's state/province/etc
-        result.append({multUpper, "named"});
+        result.append({multUpper, "namedMults"});
         
         // Handle Alaska and Hawaii special case
         if (multUpper == "AK" || multUpper == "HI") {

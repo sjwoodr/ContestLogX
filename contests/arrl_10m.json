@@ -6,6 +6,7 @@
     "sponsor": "ARRL",
     "startDate": "second full weekend in December",
     "duration": 48,
+    "offTimeGapMinutes": 30,
     "modes": ["CW", "SSB", "DIGITAL"],
     "bands": ["10m"],
     "url": "https://contests.arrl.org/contestrules/10-meter-contest-rules/",
