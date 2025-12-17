@@ -111,7 +111,7 @@ bool ClxFile::loadJson(const QJsonObject& json)
             QJsonObject qsoJson = v.toObject();
             QsoRecord qso;
             
-            qso.setDateTime(QDateTime::fromString(qsoJson["timestamp"].toString(), Qt::ISODate));
+            qso.setDateTime(QDateTime::fromString(qsoJson["timestamp"].toString(), Qt::ISODate).toUTC());
             double freqKhz = qsoJson["frequency"].toDouble();
             qso.setFrequency(QString::number(freqKhz));
             
@@ -194,7 +194,7 @@ QJsonObject ClxFile::toJson() const
         QJsonObject qsoJson;
         qsoJson["id"] = id++;
         qsoJson["serial"] = (int)qso.getSerial();
-        qsoJson["timestamp"] = qso.getDateTime().toString(Qt::ISODate);
+        qsoJson["timestamp"] = qso.getDateTime().toUTC().toString(Qt::ISODate);
         qsoJson["frequency"] = qso.getFrequency().toDouble();
         qsoJson["band"] = qso.getBand();
         qsoJson["mode"] = qso.getMode();

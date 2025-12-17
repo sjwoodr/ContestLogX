@@ -916,6 +916,31 @@ void MainWindow::onOpenLog()
         progressDialog->close();
         progressDialog->deleteLater();
         
+        // For ADIF files, ask if user wants to reverse QSO order
+        if (fileName.endsWith(".adi", Qt::CaseInsensitive) || fileName.endsWith(".adif", Qt::CaseInsensitive)) {
+            // Check if QSOs are in reverse chronological order
+            if (m_qsoModel->rowCount() > 1) {
+                QsoRecord firstQso = m_qsoModel->getQso(0);
+                QsoRecord lastQso = m_qsoModel->getQso(m_qsoModel->rowCount() - 1);
+                
+                if (firstQso.getDateTime() > lastQso.getDateTime()) {
+                    // First QSO is newer than last QSO - they're in reverse order
+                    QMessageBox::StandardButton reply = QMessageBox::question(
+                        this,
+                        "Reverse QSO Order",
+                        "The QSOs appear to be in newest-first order.\n\n"
+                        "Do you want to reverse them to oldest-first order?",
+                        QMessageBox::Yes | QMessageBox::No,
+                        QMessageBox::Yes
+                    );
+                    
+                    if (reply == QMessageBox::Yes) {
+                        m_qsoModel->reverseQsos();
+                    }
+                }
+            }
+        }
+        
         // Auto-recalculate score to validate and mark dupes/out-of-band (only if contest loaded)
         DebugLogger::instance().log("MainWindow", QString("After ADIF load, m_contestDefinition.isEmpty(): %1").arg(m_contestDefinition.isEmpty() ? "true" : "false"));
         if (!m_contestDefinition.isEmpty()) {

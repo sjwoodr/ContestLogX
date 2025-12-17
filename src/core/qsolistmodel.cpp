@@ -205,3 +205,14 @@ void QsoListModel::clear()
     m_qsos.clear();
     endResetModel();
 }
+
+void QsoListModel::reverseQsos()
+{
+    if (m_qsos.isEmpty()) {
+        return;
+    }
+    
+    beginResetModel();
+    std::reverse(m_qsos.begin(), m_qsos.end());
+    endResetModel();
+}

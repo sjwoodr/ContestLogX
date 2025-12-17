@@ -27,6 +27,11 @@ void QsoEditDialog::setupUi()
 
     m_callEdit = new QLineEdit();
     m_callEdit->setText(m_originalQso.getCall());
+    connect(m_callEdit, &QLineEdit::textChanged, this, [this](const QString& text) {
+        m_callEdit->blockSignals(true);
+        m_callEdit->setText(text.toUpper());
+        m_callEdit->blockSignals(false);
+    });
     formLayout->addRow("Call:", m_callEdit);
 
     m_freqEdit = new QDoubleSpinBox();
@@ -50,10 +55,20 @@ void QsoEditDialog::setupUi()
 
     m_exchSentEdit = new QLineEdit();
     m_exchSentEdit->setText(m_originalQso.getExchangeSent());
+    connect(m_exchSentEdit, &QLineEdit::textChanged, this, [this](const QString& text) {
+        m_exchSentEdit->blockSignals(true);
+        m_exchSentEdit->setText(text.toUpper());
+        m_exchSentEdit->blockSignals(false);
+    });
     formLayout->addRow("Exchange Sent:", m_exchSentEdit);
 
     m_exchRecvEdit = new QLineEdit();
     m_exchRecvEdit->setText(m_originalQso.getExchangeReceived());
+    connect(m_exchRecvEdit, &QLineEdit::textChanged, this, [this](const QString& text) {
+        m_exchRecvEdit->blockSignals(true);
+        m_exchRecvEdit->setText(text.toUpper());
+        m_exchRecvEdit->blockSignals(false);
+    });
     formLayout->addRow("Exchange Received:", m_exchRecvEdit);
 
     m_commentEdit = new QLineEdit();

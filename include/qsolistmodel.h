@@ -38,6 +38,7 @@ public:
     void updateItuRegionCount(int row, int ituRegionCount);
     QsoRecord getQso(int row) const;
     void clear();
+    void reverseQsos();
     
     // Column configuration
     void setColumnHeaders(const QStringList& headers);
