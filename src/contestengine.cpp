@@ -286,7 +286,7 @@ bool ContestEngine::validateExchange(const QString& fieldName, const QString& va
                 DebugLogger::instance().log("ContestEngine", 
                     QString("  Exchange validation type: %1").arg(validationType));
                 
-                if (validationType == "stateProvinceOrSerial") {
+                if (validationType == "namedMultOrSerial") {
                     // Check if value is a valid multiplier OR a valid serial number
                     QString upper = value.toUpper();
                     

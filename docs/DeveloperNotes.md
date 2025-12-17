@@ -353,7 +353,7 @@ All logs now include these standard columns regardless of contest:
      * Validation rules for exchanges
      * UI configuration (log columns, entry fields, band map settings)
    - **Exchange Validation Logic**:
-     * `type`: "stateProvinceOrSerial" - indicates stations can send either
+     * `type`: "namedMultOrSerial" - indicates stations can send either
      * `multipliers`: Array of all valid state/province codes
      * `serialNumberFormat`: Regex pattern for serial numbers
      * `logic`: Describes acceptance criteria (multiplier OR serial format)
