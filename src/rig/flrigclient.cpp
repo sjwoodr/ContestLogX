@@ -188,10 +188,10 @@ QString FlrigClient::getRigName()
 
 bool FlrigClient::stopCW()
 {
-    DebugLogger::instance().log("CW", "stopCW called - clearing CW buffer");
+    DebugLogger::instance().log("CWWindow", "stopCW called - clearing CW buffer");
     
     if (!isConnected()) {
-        DebugLogger::instance().log("CW", "Not connected, cannot stop");
+        DebugLogger::instance().log("CWWindow", "Not connected, cannot stop");
         return false;
     }
     
@@ -200,7 +200,7 @@ bool FlrigClient::stopCW()
     params << 0;
     
     QString request = buildXmlRpcCall("rig.cwio_send", params);
-    DebugLogger::instance().log("CW", QString("Sending stop command: %1").arg(request));
+    DebugLogger::instance().log("CWWindow", QString("Sending stop command: %1").arg(request));
     
     QByteArray httpRequest = QString(
         "POST /RPC2 HTTP/1.1\r\n"
@@ -213,23 +213,23 @@ bool FlrigClient::stopCW()
     m_socket->write(httpRequest);
     m_socket->flush();
     
-    DebugLogger::instance().log("CW", "Stop command sent");
+    DebugLogger::instance().log("CWWindow", "Stop command sent");
     return true;
 }
 
 bool FlrigClient::sendCW(const QString& text)
 {
     if (DebugLogger::instance().isFlrigDebugEnabled()) DebugLogger::instance().log("Flrig", QString(">>> sendCW ENTRY: text=%1 length=%2").arg(text).arg(text.length()).toStdString().c_str());
-    DebugLogger::instance().log("CW", QString("sendCW called with text: \"%1\"").arg(text));
+    DebugLogger::instance().log("CWWindow", QString("sendCW called with text: \"%1\"").arg(text));
     
     if (!isConnected()) {
         if (DebugLogger::instance().isFlrigDebugEnabled()) DebugLogger::instance().log("Flrig", ">>> sendCW: Not connected");
-        DebugLogger::instance().log("CW", "Not connected, cannot send");
+        DebugLogger::instance().log("CWWindow", "Not connected, cannot send");
         return false;
     }
     
     if (text.isEmpty()) {
-        DebugLogger::instance().log("CW", "Empty text, nothing to send");
+        DebugLogger::instance().log("CWWindow", "Empty text, nothing to send");
         return false;
     }
     
@@ -243,7 +243,7 @@ bool FlrigClient::sendCW(const QString& text)
     QString formattedText = "[" + cwText + "]";
     
     // FIXME: if (DebugLogger::instance().isFlrigDebugEnabled()) DebugLogger::instance().log("Flrig", (">>> sendCW: Original text:" << text << "Formatted:" << formattedText).toStdString().c_str());
-    DebugLogger::instance().log("CW", QString("Sending CW text: \"%1\" formatted as: \"%2\"").arg(cwText).arg(formattedText));
+    DebugLogger::instance().log("CWWindow", QString("Sending CW text: \"%1\" formatted as: \"%2\"").arg(cwText).arg(formattedText));
     
     // Send using rig.cwio_text with bracket formatting
     QVariantList params;
@@ -251,7 +251,7 @@ bool FlrigClient::sendCW(const QString& text)
     
     QString textRequest = buildXmlRpcCall("rig.cwio_text", params);
     if (DebugLogger::instance().isFlrigDebugEnabled()) DebugLogger::instance().log("Flrig", QString(">>> sendCW: XML-RPC request: %1").arg(textRequest).toStdString().c_str());
-    DebugLogger::instance().log("CW", QString("XML-RPC request: %1").arg(textRequest));
+    DebugLogger::instance().log("CWWindow", QString("XML-RPC request: %1").arg(textRequest));
     
     QByteArray httpTextRequest = QString(
         "POST /RPC2 HTTP/1.1\r\n"
@@ -266,7 +266,7 @@ bool FlrigClient::sendCW(const QString& text)
     m_socket->flush();
     
     if (DebugLogger::instance().isFlrigDebugEnabled()) DebugLogger::instance().log("Flrig", ">>> sendCW: DONE, returning true");
-    DebugLogger::instance().log("CW", "CW command sent");
+    DebugLogger::instance().log("CWWindow", "CW command sent");
     return true;
 }
 
@@ -452,15 +452,15 @@ int FlrigClient::getCWSpeed()
 
 bool FlrigClient::setCWSpeed(int wpm)
 {
-    DebugLogger::instance().log("FlrigClient", QString("setCWSpeed called with WPM: %1").arg(wpm));
+    DebugLogger::instance().log("Flrig", QString("setCWSpeed called with WPM: %1").arg(wpm));
     
     if (!isConnected()) {
-        DebugLogger::instance().log("FlrigClient", "Not connected, cannot set CW speed");
+        DebugLogger::instance().log("Flrig", "Not connected, cannot set CW speed");
         return false;
     }
     
     if (wpm < 5 || wpm > 60) {
-        DebugLogger::instance().log("FlrigClient", QString("Invalid WPM value: %1 (must be 5-60)").arg(wpm));
+        DebugLogger::instance().log("Flrig", QString("Invalid WPM value: %1 (must be 5-60)").arg(wpm));
         return false;
     }
     
@@ -468,7 +468,7 @@ bool FlrigClient::setCWSpeed(int wpm)
     params << wpm;
     
     QString request = buildXmlRpcCall("rig.cwio_set_wpm", params);
-    DebugLogger::instance().log("FlrigClient", QString("Sending cwio_set_wpm request: %1").arg(request));
+    DebugLogger::instance().log("Flrig", QString("Sending cwio_set_wpm request: %1").arg(request));
     
     QByteArray httpRequest = QString(
         "POST /RPC2 HTTP/1.1\r\n"
@@ -481,7 +481,7 @@ bool FlrigClient::setCWSpeed(int wpm)
     m_socket->write(httpRequest);
     m_socket->flush();
     
-    DebugLogger::instance().log("FlrigClient", QString("CW speed set to %1 WPM via cwio_set_wpm").arg(wpm));
+    DebugLogger::instance().log("Flrig", QString("CW speed set to %1 WPM via cwio_set_wpm").arg(wpm));
     return true;
 }
 
@@ -516,7 +516,7 @@ bool FlrigClient::setPTT(bool enable)
     QString request = buildXmlRpcCall("rig.set_ptt", params);
     sendRequest(request);
     
-    DebugLogger::instance().log("FlrigClient", QString("PTT set to %1").arg(enable ? "ON" : "OFF"));
+    DebugLogger::instance().log("Flrig", QString("PTT set to %1").arg(enable ? "ON" : "OFF"));
     return true;
 }
 
@@ -551,7 +551,7 @@ bool FlrigClient::setPower(int watts)
     QString request = buildXmlRpcCall("rig.set_power", params);
     sendRequest(request);
     
-    DebugLogger::instance().log("FlrigClient", QString("Power set to %1 watts").arg(watts));
+    DebugLogger::instance().log("Flrig", QString("Power set to %1 watts").arg(watts));
     return true;
 }
 
@@ -586,7 +586,7 @@ bool FlrigClient::setBandwidth(int hz)
     QString request = buildXmlRpcCall("rig.set_bw", params);
     sendRequest(request);
     
-    DebugLogger::instance().log("FlrigClient", QString("Bandwidth set to %1 Hz").arg(hz));
+    DebugLogger::instance().log("Flrig", QString("Bandwidth set to %1 Hz").arg(hz));
     return true;
 }
 
@@ -616,7 +616,7 @@ bool FlrigClient::setVFO(const QString& vfo)
     }
     
     if (vfo != "A" && vfo != "B") {
-        DebugLogger::instance().log("FlrigClient", QString("Invalid VFO: %1 (must be A or B)").arg(vfo));
+        DebugLogger::instance().log("Flrig", QString("Invalid VFO: %1 (must be A or B)").arg(vfo));
         return false;
     }
     
@@ -626,6 +626,6 @@ bool FlrigClient::setVFO(const QString& vfo)
     QString request = buildXmlRpcCall("rig.set_AB", params);
     sendRequest(request);
     
-    DebugLogger::instance().log("FlrigClient", QString("VFO set to %1").arg(vfo));
+    DebugLogger::instance().log("Flrig", QString("VFO set to %1").arg(vfo));
     return true;
 }
