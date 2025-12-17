@@ -56,6 +56,7 @@ private slots:
     void onCWWindow();
     void onEditCWMemories();
     void onRecalculateScore();
+    void onExportCabrillo();
     void onAbout();
     void onColumnResized(int logicalIndex, int oldSize, int newSize);
     void onPropagationDataReceived(int sfi, int aIndex, int kIndex);

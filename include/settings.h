@@ -37,6 +37,51 @@ public:
     QString getState() const;
     void setState(const QString& state);
     
+    QString getCabrilloEmail() const;
+    void setCabrilloEmail(const QString& email);
+    
+    QString getCabrilloAddressCity() const;
+    void setCabrilloAddressCity(const QString& city);
+    
+    QString getCabrilloAddress() const;
+    void setCabrilloAddress(const QString& address);
+    
+    QString getCabrilloPostalCode() const;
+    void setCabrilloPostalCode(const QString& code);
+    
+    QString getCabrilloCountry() const;
+    void setCabrilloCountry(const QString& country);
+    
+    QString getCabrilloClub() const;
+    void setCabrilloClub(const QString& club);
+    
+    QString getCabrillSoapbox() const;
+    void setCabrillSoapbox(const QString& soapbox);
+    
+    QString getCabrilloCategory() const;
+    void setCabrilloCategory(const QString& category);
+    
+    QString getCabrilloPower() const;
+    void setCabrilloPower(const QString& power);
+    
+    QString getCabrilloMode() const;
+    void setCabrilloMode(const QString& mode);
+    
+    QString getCabrilloOperatorType() const;
+    void setCabrilloOperatorType(const QString& opType);
+    
+    QString getCabrilloBand() const;
+    void setCabrilloBand(const QString& band);
+    
+    QString getCabrilloTransmitter() const;
+    void setCabrilloTransmitter(const QString& transmitter);
+    
+    QString getCabrilloAssisted() const;
+    void setCabrilloAssisted(const QString& assisted);
+    
+    QString getCabrilloOverlay() const;
+    void setCabrilloOverlay(const QString& overlay);
+    
     // flrig connection
     QString getFlrigHost() const;
     void setFlrigHost(const QString& host);

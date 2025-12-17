@@ -9,6 +9,8 @@
 #include "stationclassdialog.h"
 #include "contestselectdialog.h"
 #include "shortcutsdialog.h"
+#include "cabrillodialog.h"
+#include "cabrilloexport.h"
 #include "contestengine.h"
 #include "filehandler.h"
 #include "loadingworker.h"
@@ -515,6 +517,11 @@ void MainWindow::setupMenus()
     
     QAction *recalcScoreAction = contestMenu->addAction("&Recalculate score");
     connect(recalcScoreAction, &QAction::triggered, this, &MainWindow::onRecalculateScore);
+    
+    contestMenu->addSeparator();
+    
+    QAction *cabrilloAction = contestMenu->addAction("&Generate Cabrillo log...");
+    connect(cabrilloAction, &QAction::triggered, this, &MainWindow::onExportCabrillo);
     
     // Window menu
     QMenu *windowMenu = menuBar()->addMenu("&Window");
@@ -1626,10 +1633,57 @@ void MainWindow::onToggleDxccDatabaseDebug(bool checked)
     m_statusLabel->setText(checked ? "DxccDatabase debug logging enabled" : "DxccDatabase debug logging disabled");
 }
 
+void MainWindow::onExportCabrillo()
+{
+    if (!m_contestEngine || m_contestDefinition.isEmpty()) {
+        QMessageBox::warning(this, "No Contest", "No contest is currently loaded");
+        return;
+    }
+    
+    if (m_qsoModel->rowCount() == 0) {
+        QMessageBox::warning(this, "No QSOs", "No QSOs to export");
+        return;
+    }
+    
+    // Show Cabrillo header dialog
+    CabrilloDialog dialog(this);
+    dialog.setCallsign(Settings::instance().getCallsign());
+    
+    // Get the final contest score from the score widget (which is the only accurate representation)
+    int totalScore = m_scoreWidget ? m_scoreWidget->getFinalScore() : 0;
+    dialog.setClaimedScore(totalScore);
+    
+    if (dialog.exec() != QDialog::Accepted) {
+        return;
+    }
+    
+    // Ask where to save - use callsign as default filename
+    QString defaultDir = QDir::homePath();
+    QString callsign = Settings::instance().getCallsign();
+    QString defaultFileName = callsign.isEmpty() ? "cabrillo.log" : callsign.toLower() + ".log";
+    
+    QString fileName = QFileDialog::getSaveFileName(this, "Export Cabrillo Log",
+        defaultDir + "/" + defaultFileName, "Log Files (*.log);;Cabrillo Files (*.cbr *.cab);;Text Files (*.txt);;All Files (*)");
+    
+    if (fileName.isEmpty()) {
+        return;
+    }
+    
+    // Export
+    CabrilloExport exporter;
+    QString myCallsign = Settings::instance().getCallsign();
+    if (!exporter.exportToFile(fileName, m_qsoModel->getAllQsos(), m_contestDefinition, dialog.getHeaderData(), myCallsign)) {
+        QMessageBox::critical(this, "Export Failed", "Failed to export Cabrillo log:\n" + exporter.lastError());
+        return;
+    }
+    
+    QMessageBox::information(this, "Export Successful", QString("Cabrillo log exported to:\n%1").arg(fileName));
+}
+
 void MainWindow::onAbout()
 {
     QMessageBox::about(this, "About ContestLogX",
-        "ContestLogX - Version 0.0.3 (Alpha)\n\n"
+        "ContestLogX - Version 0.0.4 (Alpha)\n\n"
         "Cross-platform amateur radio contest logging software\n\n"
         "Radio control via flrig (http://www.w1hkj.com/)\n\n"
         "Copyright (c) 2025 N9OH Software");

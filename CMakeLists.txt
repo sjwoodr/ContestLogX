@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(ContestLogX VERSION 0.0.3 LANGUAGES CXX)
+project(ContestLogX VERSION 0.0.4 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -38,6 +38,7 @@ set(SOURCES
     src/contestselectdialog.cpp
     src/ui/shortcutsdialog.cpp
     src/ui/qsoeditdialog.cpp
+    src/ui/cabrillodialog.cpp
     src/contestengine.cpp
     src/core/qsorecord.cpp
     src/core/qsolistmodel.cpp
@@ -46,6 +47,7 @@ set(SOURCES
     src/core/stationinfo.cpp
     src/core/exchangefield.cpp
     src/core/loadingworker.cpp
+    src/core/cabrilloexport.cpp
     src/fileformats/clxfile.cpp
     src/rig/flrigclient.cpp
     src/utils/settings.cpp
@@ -62,6 +64,8 @@ set(HEADERS
     include/stationclassdialog.h
     include/contestselectdialog.h
     include/shortcutsdialog.h
+    include/cabrillodialog.h
+    include/cabrilloexport.h
     include/qsoeditdialog.h
     include/contestengine.h
     include/scorewidget.h

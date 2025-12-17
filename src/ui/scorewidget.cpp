@@ -153,6 +153,7 @@ void ScoreWidget::updateScore(const ContestEngine::ContestScore& score)
     }
     
     // Update contest score
+    m_finalScore = score.contestScore;
     m_contestScoreLabel->setText(QString::number(score.contestScore));
     
     // Update multiplier summary
@@ -168,6 +169,7 @@ void ScoreWidget::clear()
         }
     }
     
+    m_finalScore = 0;
     m_contestScoreLabel->setText("0");
 }
 

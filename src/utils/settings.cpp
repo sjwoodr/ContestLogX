@@ -577,3 +577,198 @@ void Settings::setShortcut(const QString& actionName, const QString& keySequence
     m_settings["shortcuts"] = shortcuts;
     save();
 }
+
+QString Settings::getCabrilloEmail() const
+{
+    return m_settings["cabrillo"].toObject()["email"].toString("");
+}
+
+void Settings::setCabrilloEmail(const QString& email)
+{
+    QJsonObject cabrillo = m_settings["cabrillo"].toObject();
+    cabrillo["email"] = email;
+    m_settings["cabrillo"] = cabrillo;
+    save();
+}
+
+QString Settings::getCabrilloAddressCity() const
+{
+    return m_settings["cabrillo"].toObject()["addressCity"].toString("");
+}
+
+void Settings::setCabrilloAddressCity(const QString& city)
+{
+    QJsonObject cabrillo = m_settings["cabrillo"].toObject();
+    cabrillo["addressCity"] = city;
+    m_settings["cabrillo"] = cabrillo;
+    save();
+}
+
+QString Settings::getCabrilloAddress() const
+{
+    return m_settings["cabrillo"].toObject()["address"].toString("");
+}
+
+void Settings::setCabrilloAddress(const QString& address)
+{
+    QJsonObject cabrillo = m_settings["cabrillo"].toObject();
+    cabrillo["address"] = address;
+    m_settings["cabrillo"] = cabrillo;
+    save();
+}
+
+QString Settings::getCabrilloPostalCode() const
+{
+    return m_settings["cabrillo"].toObject()["postalCode"].toString("");
+}
+
+void Settings::setCabrilloPostalCode(const QString& code)
+{
+    QJsonObject cabrillo = m_settings["cabrillo"].toObject();
+    cabrillo["postalCode"] = code;
+    m_settings["cabrillo"] = cabrillo;
+    save();
+}
+
+QString Settings::getCabrilloCountry() const
+{
+    return m_settings["cabrillo"].toObject()["country"].toString("");
+}
+
+void Settings::setCabrilloCountry(const QString& country)
+{
+    QJsonObject cabrillo = m_settings["cabrillo"].toObject();
+    cabrillo["country"] = country;
+    m_settings["cabrillo"] = cabrillo;
+    save();
+}
+
+QString Settings::getCabrilloClub() const
+{
+    return m_settings["cabrillo"].toObject()["club"].toString("");
+}
+
+void Settings::setCabrilloClub(const QString& club)
+{
+    QJsonObject cabrillo = m_settings["cabrillo"].toObject();
+    cabrillo["club"] = club;
+    m_settings["cabrillo"] = cabrillo;
+    save();
+}
+
+QString Settings::getCabrillSoapbox() const
+{
+    return m_settings["cabrillo"].toObject()["soapbox"].toString("");
+}
+
+void Settings::setCabrillSoapbox(const QString& soapbox)
+{
+    QJsonObject cabrillo = m_settings["cabrillo"].toObject();
+    cabrillo["soapbox"] = soapbox;
+    m_settings["cabrillo"] = cabrillo;
+    save();
+}
+
+QString Settings::getCabrilloCategory() const
+{
+    return m_settings["cabrillo"].toObject()["category"].toString("SINGLE-OP");
+}
+
+void Settings::setCabrilloCategory(const QString& category)
+{
+    QJsonObject cabrillo = m_settings["cabrillo"].toObject();
+    cabrillo["category"] = category;
+    m_settings["cabrillo"] = cabrillo;
+    save();
+}
+
+QString Settings::getCabrilloPower() const
+{
+    return m_settings["cabrillo"].toObject()["power"].toString("HIGH");
+}
+
+void Settings::setCabrilloPower(const QString& power)
+{
+    QJsonObject cabrillo = m_settings["cabrillo"].toObject();
+    cabrillo["power"] = power;
+    m_settings["cabrillo"] = cabrillo;
+    save();
+}
+
+QString Settings::getCabrilloMode() const
+{
+    return m_settings["cabrillo"].toObject()["mode"].toString("CW");
+}
+
+void Settings::setCabrilloMode(const QString& mode)
+{
+    QJsonObject cabrillo = m_settings["cabrillo"].toObject();
+    cabrillo["mode"] = mode;
+    m_settings["cabrillo"] = cabrillo;
+    save();
+}
+
+QString Settings::getCabrilloOperatorType() const
+{
+    return m_settings["cabrillo"].toObject()["operatorType"].toString("SINGLE");
+}
+
+void Settings::setCabrilloOperatorType(const QString& opType)
+{
+    QJsonObject cabrillo = m_settings["cabrillo"].toObject();
+    cabrillo["operatorType"] = opType;
+    m_settings["cabrillo"] = cabrillo;
+    save();
+}
+
+QString Settings::getCabrilloBand() const
+{
+    return m_settings["cabrillo"].toObject()["band"].toString("ALL-BAND");
+}
+
+void Settings::setCabrilloBand(const QString& band)
+{
+    QJsonObject cabrillo = m_settings["cabrillo"].toObject();
+    cabrillo["band"] = band;
+    m_settings["cabrillo"] = cabrillo;
+    save();
+}
+
+QString Settings::getCabrilloTransmitter() const
+{
+    return m_settings["cabrillo"].toObject()["transmitter"].toString("ONE");
+}
+
+void Settings::setCabrilloTransmitter(const QString& transmitter)
+{
+    QJsonObject cabrillo = m_settings["cabrillo"].toObject();
+    cabrillo["transmitter"] = transmitter;
+    m_settings["cabrillo"] = cabrillo;
+    save();
+}
+
+QString Settings::getCabrilloAssisted() const
+{
+    return m_settings["cabrillo"].toObject()["assisted"].toString("NO");
+}
+
+void Settings::setCabrilloAssisted(const QString& assisted)
+{
+    QJsonObject cabrillo = m_settings["cabrillo"].toObject();
+    cabrillo["assisted"] = assisted;
+    m_settings["cabrillo"] = cabrillo;
+    save();
+}
+
+QString Settings::getCabrilloOverlay() const
+{
+    return m_settings["cabrillo"].toObject()["overlay"].toString("");
+}
+
+void Settings::setCabrilloOverlay(const QString& overlay)
+{
+    QJsonObject cabrillo = m_settings["cabrillo"].toObject();
+    cabrillo["overlay"] = overlay;
+    m_settings["cabrillo"] = cabrillo;
+    save();
+}

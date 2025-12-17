@@ -25,6 +25,7 @@ public:
     void setMultCategories(const QStringList& categories) { m_multCategories = categories; }
     void clear();
     void resetScore();
+    int getFinalScore() const { return m_finalScore; }
 
 private:
     QTableWidget* m_scoreTable;
@@ -32,6 +33,7 @@ private:
     QLabel* m_multsSummaryLabel;
     QStringList m_contestBands;
     QStringList m_multCategories;
+    int m_finalScore = 0;
     
     void setupTable();
     void rebuildTable();
