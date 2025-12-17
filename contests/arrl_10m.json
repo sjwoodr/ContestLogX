@@ -187,10 +187,10 @@
     ],
     "multipliers": {
       "type": "multsPerBandAndMode",
-      "description": "US states, Canadian provinces/territories, and DXCC countries",
-      "categories": ["namedMults", "dxcc", "ituRegions"],
-      "alaskaAndHawaiiCountDxcc": true,
-      "usAndCanadaCountDxcc": true
+      "description": "US states, Canadian provinces/territories, MX states, and DXCC countries",
+      "categories": ["namedMults", "dxcc"],
+      "alaskaAndHawaiiCountDxcc": false,
+      "usAndCanadaCountDxcc": false
     },
     "finalScore": "SUM(points) * (stateMultipliers + provinceMultipliers + dxccMultipliers)"
   },
@@ -210,7 +210,7 @@
     "minimumQSOs": 1,
     "maxOperatingTime": 48,
     "offTimesRequired": false,
-    "namedMults": ["AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY", "DC", "AB", "BC", "MB", "NB", "NL", "NT", "NS", "NU", "ON", "PE", "QC", "SK", "YT", "AGS", "BAC", "BCS", "CAM", "CHI", "CHH", "CMX", "COA", "COL", "DGO", "EMX", "GTO", "GRO", "HGO", "JAL", "MIC", "MOR", "NAY", "NLE", "OAX", "PUE", "QRO", "QUI", "SLP", "SIN", "SON", "TAB", "TAM", "TLX", "VER", "YUC", "ZAC"],
+    "namedMults": ["AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY", "DC", "AB", "BC", "MB", "NB", "NL", "NT", "NS", "NU", "ON", "PE", "QC", "SK", "YT", "AGS", "BAC", "BCS", "CAM", "CHI", "CHH", "CMX", "COA", "COL", "DGO", "EMX", "GTO", "GRO", "HGO", "JAL", "MIC", "MOR", "NAY", "NLE", "OAX", "PUE", "QRO", "QUI", "SLP", "SIN", "SON", "TAB", "TAM", "TLX", "VER", "YUC", "ZAC", "ITU1", "ITU2", "ITU3"],
     "exchangeValidation": {
       "type": "stateProvinceOrSerial",
       "description": "US/VE/XE stations send state/province, DX stations send serial number",
