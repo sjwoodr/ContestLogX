@@ -73,6 +73,9 @@ private slots:
     void onDownloadCtyDat();
     void onShortcuts();
     void onQsoDoubleClicked(const QModelIndex& index);
+    void onQsoContextMenuRequested(const QPoint& pos);
+    void onEditQso();
+    void onDeleteQso();
 
 protected:
     bool eventFilter(QObject *obj, QEvent *event) override;
@@ -94,7 +97,7 @@ private:
     void savePanelState();
     void restorePanelState();
     QString freq2Mode(double freqMHz);
-    void loadContestDefinition(const QString& filePath);
+    bool loadContestDefinition(const QString& filePath);
     void updateQsoEntryFields();
     void updateLogHeaders();
     bool isSemanticVersionEqual(const QString& v1, const QString& v2);
@@ -157,6 +160,9 @@ private:
     double m_lastFrequency;
     QString m_lastMode;
     int m_lastWpm;
+    
+    // Context menu
+    int m_contextMenuRow;
 };
 
 #endif // MAINWINDOW_H

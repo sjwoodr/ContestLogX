@@ -218,19 +218,26 @@ bool FileHandler::loadAdif(const QString& filename, QList<QsoRecord>& qsos)
             qso.setMode(modeMatch.captured(2).trimmed());
         }
         
-        // Extract RST_SENT + RST_RCVD + other exchange
+        // Extract RST_SENT and RST_RCVD
+        QRegularExpression rstSentRx("<rst_sent:(\\d+)>([^<]+)", QRegularExpression::CaseInsensitiveOption);
         QRegularExpression rstRcvdRx("<rst_rcvd:(\\d+)>([^<]+)", QRegularExpression::CaseInsensitiveOption);
         QRegularExpression stxRx("<stx:(\\d+)>([^<]+)", QRegularExpression::CaseInsensitiveOption);
         
-        QString exchange;
+        QRegularExpressionMatch rstSentMatch = rstSentRx.match(record);
+        if (rstSentMatch.hasMatch()) {
+            qso.setRstSent(rstSentMatch.captured(2).trimmed());
+        }
+        
         QRegularExpressionMatch rstRcvdMatch = rstRcvdRx.match(record);
         if (rstRcvdMatch.hasMatch()) {
-            exchange = rstRcvdMatch.captured(2).trimmed();
+            qso.setRstReceived(rstRcvdMatch.captured(2).trimmed());
         }
+        
+        // Also capture STX (Serial TX) or other exchange data
+        QString exchange;
         QRegularExpressionMatch stxMatch = stxRx.match(record);
         if (stxMatch.hasMatch()) {
-            if (!exchange.isEmpty()) exchange += " ";
-            exchange += stxMatch.captured(2).trimmed();
+            exchange = stxMatch.captured(2).trimmed();
         }
         qso.setExchange(exchange);
         
@@ -265,6 +272,8 @@ bool FileHandler::saveAdif(const QString& filename, const QList<QsoRecord>& qsos
         QString call = qso.getCall();
         QString freq = QString::number(qso.getFrequency().toDouble() / 1000.0, 'f', 6); // kHz to MHz
         QString mode = qso.getMode();
+        QString rstSent = qso.getRstSent();
+        QString rstRcvd = qso.getRstReceived();
         QString exchange = qso.getExchange();
         
         out << "<CALL:" << call.length() << ">" << call << " ";
@@ -272,8 +281,20 @@ bool FileHandler::saveAdif(const QString& filename, const QList<QsoRecord>& qsos
         out << "<TIME_ON:6>" << dt.toString("HHmmss") << " ";
         out << "<FREQ:" << freq.length() << ">" << freq << " ";
         out << "<MODE:" << mode.length() << ">" << mode << " ";
-        out << "<RST_SENT:3>599 ";
-        out << "<RST_RCVD:" << exchange.length() << ">" << exchange << " ";
+        
+        // Write RST fields using standard ADIF names
+        if (!rstSent.isEmpty()) {
+            out << "<RST_SENT:" << rstSent.length() << ">" << rstSent << " ";
+        }
+        if (!rstRcvd.isEmpty()) {
+            out << "<RST_RCVD:" << rstRcvd.length() << ">" << rstRcvd << " ";
+        }
+        
+        // Write other exchange data if present
+        if (!exchange.isEmpty()) {
+            out << "<STX:" << exchange.length() << ">" << exchange << " ";
+        }
+        
         out << "<EOR>\n";
     }
     
@@ -349,21 +370,31 @@ bool FileHandler::saveClxWithContest(const QString& filename, const QList<QsoRec
     
     // Set contest info
     if (!contestDef.isEmpty()) {
-        QString contestName = contestDef["name"].toString();
-        if (contestName.isEmpty()) {
-            contestName = "General DXCC Logging";
-        }
-        clxFile.contest().setName(contestName);
-        clxFile.contest().setType(contestName);
-        clxFile.contest().setContestFile(contestFile);
+        QString contestName = "General DXCC Logging";
         
-        // Save contest version if available
+        // Try to get contest name from nested contest object
         if (contestDef.contains("contest")) {
             QJsonObject contestObj = contestDef["contest"].toObject();
+            if (contestObj.contains("name")) {
+                contestName = contestObj["name"].toString();
+            }
+            // Save contest version if available
             if (contestObj.contains("version")) {
                 clxFile.contest().setContestVersion(contestObj["version"].toString());
             }
         }
+        
+        // Fall back to top-level name if nested one not found
+        if (contestName == "General DXCC Logging" && contestDef.contains("name")) {
+            QString topLevelName = contestDef["name"].toString();
+            if (!topLevelName.isEmpty()) {
+                contestName = topLevelName;
+            }
+        }
+        
+        clxFile.contest().setName(contestName);
+        clxFile.contest().setType(contestName);
+        clxFile.contest().setContestFile(contestFile);
         
         // Add station class if provided
         if (!stationClass.isEmpty()) {

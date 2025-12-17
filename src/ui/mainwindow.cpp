@@ -73,6 +73,7 @@ MainWindow::MainWindow(QWidget *parent)
     , m_lastFrequency(14250.0)
     , m_lastMode("USB")
     , m_lastWpm(28)
+    , m_contextMenuRow(-1)
 {
     // Validate startup requirements
     // Check from current working directory first
@@ -309,6 +310,8 @@ void MainWindow::setupUi()
     // Add double-click handling for QSO editing
     connect(m_qsoTable, &QTableView::doubleClicked, this, &MainWindow::onQsoDoubleClicked);
     
+    m_qsoTable->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(m_qsoTable, &QTableView::customContextMenuRequested, this, &MainWindow::onQsoContextMenuRequested);
     connect(m_qsoTable->horizontalHeader(), &QHeaderView::sectionResized,
             this, &MainWindow::onColumnResized);
     restoreColumnWidths();
@@ -852,6 +855,41 @@ void MainWindow::onOpenLog()
             }
         }
         
+        // If no contest is loaded and this is an ADIF file, prompt for contest selection
+        if (m_contestDefinition.isEmpty() && (fileName.endsWith(".adi", Qt::CaseInsensitive) || fileName.endsWith(".adif", Qt::CaseInsensitive))) {
+            DebugLogger::instance().log("MainWindow", "ADIF file loaded without contest, prompting for selection");
+            progressDialog->close();
+            
+            ContestSelectDialog contestDialog(this);
+            if (contestDialog.exec() == QDialog::Rejected) {
+                DebugLogger::instance().log("MainWindow", "User cancelled contest selection");
+                progressDialog->deleteLater();
+                return;
+            }
+            
+            QString selectedContestFile = contestDialog.selectedContestFile();
+            DebugLogger::instance().log("MainWindow", QString("User selected contest: %1").arg(selectedContestFile));
+            
+            if (!selectedContestFile.isEmpty()) {
+                DebugLogger::instance().log("MainWindow", QString("Contest path exists: %1").arg(QFile::exists(selectedContestFile) ? "true" : "false"));
+                
+                if (QFile::exists(selectedContestFile)) {
+                    DebugLogger::instance().log("MainWindow", "Loading contest definition...");
+                    bool contestLoaded = loadContestDefinition(selectedContestFile);
+                    DebugLogger::instance().log("MainWindow", QString("Contest loaded: %1").arg(contestLoaded ? "true" : "false"));
+                    
+                    if (!contestLoaded) {
+                        DebugLogger::instance().log("MainWindow", "Contest definition load failed, aborting");
+                        progressDialog->deleteLater();
+                        return;
+                    }
+                }
+            }
+            
+            progressDialog->show();
+            QApplication::processEvents();
+        }
+        
         // Clear the model first
         m_qsoModel->clear();
         
@@ -878,8 +916,14 @@ void MainWindow::onOpenLog()
         progressDialog->close();
         progressDialog->deleteLater();
         
-        // Auto-recalculate score to validate and mark dupes/out-of-band
-        onRecalculateScore();
+        // Auto-recalculate score to validate and mark dupes/out-of-band (only if contest loaded)
+        DebugLogger::instance().log("MainWindow", QString("After ADIF load, m_contestDefinition.isEmpty(): %1").arg(m_contestDefinition.isEmpty() ? "true" : "false"));
+        if (!m_contestDefinition.isEmpty()) {
+            DebugLogger::instance().log("MainWindow", "Calling onRecalculateScore");
+            onRecalculateScore();
+        } else {
+            DebugLogger::instance().log("MainWindow", "Contest is still empty, not recalculating score");
+        }
         
         m_statusLabel->setText("File loaded: " + fileName + " (" + 
             QString::number(loadedQsos.count()) + " QSOs)");
@@ -1917,13 +1961,15 @@ QString MainWindow::freq2Mode(double freqMHz)
     return BandPlan::freq2Mode(freqMHz);
 }
 
-void MainWindow::loadContestDefinition(const QString& filePath)
+bool MainWindow::loadContestDefinition(const QString& filePath)
 {
+    DebugLogger::instance().log("MainWindow", QString("loadContestDefinition called with: %1").arg(filePath));
+    
     QFile file(filePath);
     if (!file.open(QIODevice::ReadOnly)) {
         DebugLogger::instance().log("MainWindow", 
             QString("Failed to load contest definition: %1").arg(filePath));
-        return;
+        return false;
     }
     
     QJsonDocument doc = QJsonDocument::fromJson(file.readAll());
@@ -1931,7 +1977,7 @@ void MainWindow::loadContestDefinition(const QString& filePath)
     
     if (!doc.isObject()) {
         DebugLogger::instance().log("MainWindow", "Invalid contest definition format");
-        return;
+        return false;
     }
     
     m_contestDefinition = doc.object();
@@ -1940,7 +1986,8 @@ void MainWindow::loadContestDefinition(const QString& filePath)
     // Load into contest engine
     if (!m_contestEngine->loadContest(m_contestDefinition)) {
         DebugLogger::instance().log("MainWindow", "Failed to load contest into engine");
-        return;
+        m_contestDefinition = QJsonObject();  // Clear on failure
+        return false;
     }
     
     // Check if station class selection is needed
@@ -1964,7 +2011,8 @@ void MainWindow::loadContestDefinition(const QString& filePath)
                     QString("Station class selected: %1").arg(selectedClass));
             } else {
                 DebugLogger::instance().log("MainWindow", "Station class selection cancelled");
-                return;
+                m_contestDefinition = QJsonObject();  // Clear on cancellation
+                return false;
             }
         } else {
             DebugLogger::instance().log("MainWindow", 
@@ -2009,6 +2057,9 @@ void MainWindow::loadContestDefinition(const QString& filePath)
     }
     
     updateWindowTitle();
+    DebugLogger::instance().log("MainWindow", QString("loadContestDefinition completed successfully, m_contestDefinition.isEmpty(): %1").arg(m_contestDefinition.isEmpty() ? "true" : "false"));
+    DebugLogger::instance().log("MainWindow", QString("Contest name: %1").arg(m_contestEngine->getContestName()));
+    return true;
 }
 
 void MainWindow::updateLogHeaders()
@@ -2287,3 +2338,79 @@ void MainWindow::onQsoDoubleClicked(const QModelIndex& index)
     }
 }
 
+
+void MainWindow::onQsoContextMenuRequested(const QPoint& pos)
+{
+    // Get the index of the clicked row
+    QModelIndex index = m_qsoTable->indexAt(pos);
+    if (!index.isValid()) {
+        return;
+    }
+
+    m_contextMenuRow = index.row();
+
+    // Create context menu
+    QMenu menu(this);
+    
+    QAction *editAction = menu.addAction("Edit");
+    QAction *deleteAction = menu.addAction("Delete");
+    
+    // Show menu and handle selection
+    QAction *selectedAction = menu.exec(m_qsoTable->mapToGlobal(pos));
+    
+    if (selectedAction == editAction) {
+        onEditQso();
+    } else if (selectedAction == deleteAction) {
+        onDeleteQso();
+    }
+}
+
+void MainWindow::onEditQso()
+{
+    if (m_contextMenuRow < 0 || m_contextMenuRow >= m_qsoModel->getQsos().size()) {
+        return;
+    }
+
+    QsoRecord qso = m_qsoModel->getQsos()[m_contextMenuRow];
+
+    // Show edit dialog (same as double-click)
+    QsoEditDialog dialog(qso, this);
+    if (dialog.exec() == QDialog::Accepted) {
+        QsoRecord editedQso = dialog.getEditedQso();
+        
+        // Update the QSO in the model
+        m_qsoModel->updateQso(m_contextMenuRow, editedQso);
+        
+        // Mark as modified
+        m_isModified = true;
+        
+        // Recalculate score
+        onRecalculateScore();
+    }
+}
+
+void MainWindow::onDeleteQso()
+{
+    if (m_contextMenuRow < 0 || m_contextMenuRow >= m_qsoModel->getQsos().size()) {
+        return;
+    }
+
+    // Get QSO details for confirmation message
+    QsoRecord qso = m_qsoModel->getQsos()[m_contextMenuRow];
+    QString callsign = qso.getCall();
+    
+    // Prompt for confirmation
+    QMessageBox::StandardButton result = QMessageBox::question(
+        this,
+        "Delete QSO",
+        QString("Delete QSO with %1?").arg(callsign),
+        QMessageBox::Yes | QMessageBox::No,
+        QMessageBox::No
+    );
+    
+    if (result == QMessageBox::Yes) {
+        m_qsoModel->removeQso(m_contextMenuRow);
+        m_isModified = true;
+        onRecalculateScore();
+    }
+}
