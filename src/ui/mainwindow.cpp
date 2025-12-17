@@ -526,6 +526,9 @@ void MainWindow::setupMenus()
     QAction *cabrilloAction = contestMenu->addAction("&Generate Cabrillo log...");
     connect(cabrilloAction, &QAction::triggered, this, &MainWindow::onExportCabrillo);
     
+    QAction *summaryAction = contestMenu->addAction("&Create summary sheet...");
+    connect(summaryAction, &QAction::triggered, this, &MainWindow::onCreateSummarySheet);
+    
     // Window menu
     QMenu *windowMenu = menuBar()->addMenu("&Window");
     
@@ -2438,4 +2441,523 @@ void MainWindow::onDeleteQso()
         m_isModified = true;
         onRecalculateScore();
     }
+}
+
+void MainWindow::onCreateSummarySheet()
+{
+    if (m_contestDefinition.isEmpty()) {
+        QMessageBox::warning(this, "No Contest", "No contest is currently loaded");
+        return;
+    }
+    
+    if (m_qsoModel->rowCount() == 0) {
+        QMessageBox::warning(this, "No QSOs", "No QSOs to export");
+        return;
+    }
+    
+    // Get save file location with default filename
+    QString callsign = Settings::instance().getCallsign();
+    QString contestName = m_contestEngine->getContestName();
+    QString year = QString::number(QDate::currentDate().year());
+    
+    // Sanitize filenames - replace spaces and special chars with underscores
+    QString sanitizedContest = contestName.toLower().replace(QRegularExpression("[^a-z0-9]+"), "_").remove(QRegularExpression("^_|_$"));
+    QString sanitizedCall = callsign.toLower().replace(QRegularExpression("[^a-z0-9]+"), "_");
+    
+    QString defaultFilename = QString("%1_%2_%3.txt").arg(sanitizedCall, sanitizedContest, year);
+    
+    QString fileName = QFileDialog::getSaveFileName(this,
+        "Save Summary Sheet", defaultFilename,
+        "Text Files (*.txt);;All Files (*)");
+    
+    if (fileName.isEmpty()) {
+        return;
+    }
+    
+    QFile file(fileName);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        QMessageBox::critical(this, "Error", "Cannot create file: " + file.errorString());
+        return;
+    }
+    
+    QTextStream out(&file);
+    
+    // Header
+    out << "=" << QString("=").repeated(78) << "=" << "\n";
+    out << "CONTEST SUMMARY SHEET\n";
+    out << "=" << QString("=").repeated(78) << "=" << "\n";
+    out << "\n";
+    
+    out << "Contest: " << contestName << "\n";
+    out << "Callsign: " << Settings::instance().getCallsign() << "\n";
+    out << "Date: " << QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss") << "\n";
+    out << "\n";
+    
+    // Score Summary from Score Widget
+    if (m_scoreWidget) {
+        out << "SCORING SUMMARY\n";
+        out << "-" << QString("-").repeated(78) << "-" << "\n";
+        
+        // Get the score table data
+        QTableWidget* scoreTable = nullptr;
+        for (QObject* child : m_scoreWidget->children()) {
+            if (QTableWidget* table = qobject_cast<QTableWidget*>(child)) {
+                scoreTable = table;
+                break;
+            }
+        }
+        
+        if (scoreTable) {
+            // Print table header
+            for (int col = 0; col < scoreTable->columnCount(); ++col) {
+                QString header = scoreTable->horizontalHeaderItem(col)->text();
+                out << QString("%1").arg(header, 12);
+            }
+            out << "\n";
+            out << "-" << QString("-").repeated(78) << "-" << "\n";
+            
+            // Print table data
+            for (int row = 0; row < scoreTable->rowCount(); ++row) {
+                for (int col = 0; col < scoreTable->columnCount(); ++col) {
+                    QTableWidgetItem* item = scoreTable->item(row, col);
+                    QString text = item ? item->text() : "";
+                    out << QString("%1").arg(text, 12);
+                }
+                out << "\n";
+            }
+        }
+        
+        out << "\n";
+    }
+    
+    // Scoring Summary
+    out << "SCORING SUMMARY\n";
+    out << "-" << QString("-").repeated(78) << "-" << "\n";
+    out << "\n";
+    
+    ContestEngine::ContestScore score = m_contestEngine->getRunningScore();
+    
+    // Get QSO count
+    int totalQsos = m_qsoModel->rowCount();
+    int uniqueQsos = 0;
+    for (int i = 0; i < totalQsos; ++i) {
+        if (!m_qsoModel->getQso(i).isDupe()) {
+            uniqueQsos++;
+        }
+    }
+    
+    out << "Total QSOs logged:        " << totalQsos << "\n";
+    out << "Unique QSOs:              " << uniqueQsos << "\n";
+    out << "Duplicates:               " << (totalQsos - uniqueQsos) << "\n";
+    out << "\n";
+    
+    out << "Contact Points:           " << score.contactScore << "\n";
+    
+    // Determine which multipliers are being counted
+    QStringList multTypes;
+    if (score.namedMultCount > 0) {
+        out << "Named Multipliers:        " << score.namedMultCount << "\n";
+        multTypes.append("Named");
+    }
+    if (score.dxccMultCount > 0) {
+        out << "DXCC Multipliers:         " << score.dxccMultCount << "\n";
+        multTypes.append("DXCC");
+    }
+    if (score.ituRegionMultCount > 0) {
+        out << "ITU Region Multipliers:   " << score.ituRegionMultCount << "\n";
+        multTypes.append("ITU Region");
+    }
+    
+    out << "\n";
+    
+    // Show the scoring calculation
+    if (multTypes.size() == 1) {
+        out << "Score Calculation:\n";
+        out << "  " << score.contactScore << " points × " << score.multipliers << " multipliers";
+        if (score.bonusPoints > 0) {
+            out << " + " << score.bonusPoints << " bonus";
+        }
+        out << " = " << score.contestScore << "\n";
+    } else if (multTypes.size() > 1) {
+        out << "Score Calculation:\n";
+        out << "  " << score.contactScore << " points × " << score.multipliers << " multipliers";
+        out << " (" << multTypes.join(" + ") << ")";
+        if (score.bonusPoints > 0) {
+            out << " + " << score.bonusPoints << " bonus";
+        }
+        out << " = " << score.contestScore << "\n";
+    }
+    
+    out << "\n";
+    out << "CLAIMED SCORE: " << score.contestScore << "\n";
+    out << "\n";
+    
+    // Multiplier Details
+    out << "MULTIPLIER DETAILS\n";
+    out << "-" << QString("-").repeated(78) << "-" << "\n";
+    out << "\n";
+    
+    QString multType = m_contestEngine->getMultiplierType();
+    
+    // Helper function to print multiplier list
+    auto printMultiplierSection = [&](const QString& title, const QMap<QString, QSet<QString>>& workedMap, 
+                                       const QMap<QString, QSet<QString>>& countedMap) {
+        out << title << "\n";
+        
+        // Get all unique multipliers
+        QSet<QString> allMults;
+        for (const auto& set : workedMap) {
+            allMults.unite(set);
+        }
+        
+        if (!allMults.isEmpty()) {
+            QStringList sortedMults = QStringList(allMults.begin(), allMults.end());
+            std::sort(sortedMults.begin(), sortedMults.end());
+            
+            // Print in columns (6 per line)
+            for (int i = 0; i < sortedMults.size(); ++i) {
+                bool isCounted = false;
+                for (const auto& set : countedMap) {
+                    if (set.contains(sortedMults[i])) {
+                        isCounted = true;
+                        break;
+                    }
+                }
+                QString mark = isCounted ? "*" : " ";
+                out << QString("%1%2").arg(mark).arg(QString("%1").arg(sortedMults[i], -4));
+                
+                if ((i + 1) % 6 == 0) {
+                    out << "\n";
+                }
+            }
+            if (sortedMults.size() % 6 != 0) {
+            out << "\n";
+                out << "\n";
+            }
+        }
+    };
+    
+    // Process named multipliers based on type
+    if (multType == "multsOnce") {
+        // Simple case: just list all named mults
+        QSet<QString> namedMultsWorked;
+        QSet<QString> namedMultsCounted;
+        
+        for (int i = 0; i < m_qsoModel->rowCount(); ++i) {
+            QsoRecord qso = m_qsoModel->getQso(i);
+            QString exchRecv = qso.getExchangeField("EXCHr");
+            
+            if (!exchRecv.isEmpty() && !exchRecv.at(0).isDigit()) {
+                namedMultsWorked.insert(exchRecv);
+                if (!qso.isDupe()) {
+                    namedMultsCounted.insert(exchRecv);
+                }
+            }
+        }
+        
+        if (!namedMultsWorked.isEmpty()) {
+            out << "Named Multipliers (Worked: " << namedMultsCounted.size() 
+                << ", Total: " << namedMultsWorked.size() << ")\n";
+            printMultiplierSection("", QMap<QString, QSet<QString>>{{QString(), namedMultsWorked}},
+                                  QMap<QString, QSet<QString>>{{QString(), namedMultsCounted}});
+        }
+    } else if (multType == "multsPerBand") {
+        // Breakdown by band
+        QMap<QString, QSet<QString>> namedPerBand, namedCountedPerBand;
+        
+        for (int i = 0; i < m_qsoModel->rowCount(); ++i) {
+            QsoRecord qso = m_qsoModel->getQso(i);
+            QString exchRecv = qso.getExchangeField("EXCHr");
+            QString band = qso.getBand();
+            
+            if (!exchRecv.isEmpty() && !exchRecv.at(0).isDigit()) {
+                namedPerBand[band].insert(exchRecv);
+                if (!qso.isDupe()) {
+                    namedCountedPerBand[band].insert(exchRecv);
+                }
+            }
+        }
+        
+        for (const auto& band : namedPerBand.keys()) {
+            int counted = namedCountedPerBand[band].size();
+            int total = namedPerBand[band].size();
+            out << "Named Multipliers - " << band << " (Worked: " << counted << ")\n";
+            
+            QStringList sortedMults = QStringList(namedPerBand[band].begin(), namedPerBand[band].end());
+            std::sort(sortedMults.begin(), sortedMults.end());
+            
+            for (int i = 0; i < sortedMults.size(); ++i) {
+                QString mark = namedCountedPerBand[band].contains(sortedMults[i]) ? "*" : " ";
+                out << QString("%1%2").arg(mark).arg(QString("%1").arg(sortedMults[i], -4));
+                
+                if ((i + 1) % 6 == 0) {
+                    out << "\n";
+                }
+            }
+            if (sortedMults.size() % 6 != 0) {
+            out << "\n";
+                out << "\n";
+            }
+        }
+    } else if (multType == "multsPerMode") {
+        // Breakdown by mode
+        QMap<QString, QSet<QString>> namedPerMode, namedCountedPerMode;
+        
+        for (int i = 0; i < m_qsoModel->rowCount(); ++i) {
+            QsoRecord qso = m_qsoModel->getQso(i);
+            QString exchRecv = qso.getExchangeField("EXCHr");
+            QString mode = qso.getMode();
+            
+            if (!exchRecv.isEmpty() && !exchRecv.at(0).isDigit()) {
+                namedPerMode[mode].insert(exchRecv);
+                if (!qso.isDupe()) {
+                    namedCountedPerMode[mode].insert(exchRecv);
+                }
+            }
+        }
+        
+        for (const auto& mode : namedPerMode.keys()) {
+            int counted = namedCountedPerMode[mode].size();
+            int total = namedPerMode[mode].size();
+            out << "Named Multipliers - " << mode << " (Worked: " << counted << ")\n";
+            
+            QStringList sortedMults = QStringList(namedPerMode[mode].begin(), namedPerMode[mode].end());
+            std::sort(sortedMults.begin(), sortedMults.end());
+            
+            for (int i = 0; i < sortedMults.size(); ++i) {
+                QString mark = namedCountedPerMode[mode].contains(sortedMults[i]) ? "*" : " ";
+                out << QString("%1%2").arg(mark).arg(QString("%1").arg(sortedMults[i], -4));
+                
+                if ((i + 1) % 6 == 0) {
+                    out << "\n";
+                }
+            }
+            if (sortedMults.size() % 6 != 0) {
+            out << "\n";
+                out << "\n";
+            }
+        }
+    } else if (multType == "multsPerBandAndMode") {
+        // Breakdown by band and mode
+        QMap<QString, QSet<QString>> namedPerBandMode, namedCountedPerBandMode;
+        
+        for (int i = 0; i < m_qsoModel->rowCount(); ++i) {
+            QsoRecord qso = m_qsoModel->getQso(i);
+            QString exchRecv = qso.getExchangeField("EXCHr");
+            QString band = qso.getBand();
+            QString mode = qso.getMode();
+            QString key = band + "/" + mode;
+            
+            if (!exchRecv.isEmpty() && !exchRecv.at(0).isDigit()) {
+                namedPerBandMode[key].insert(exchRecv);
+                if (!qso.isDupe()) {
+                    namedCountedPerBandMode[key].insert(exchRecv);
+                }
+            }
+        }
+        
+        for (const auto& key : namedPerBandMode.keys()) {
+            int counted = namedCountedPerBandMode[key].size();
+            int total = namedPerBandMode[key].size();
+            out << "Named Multipliers - " << key << " (Worked: " << counted << ")\n";
+            
+            QStringList sortedMults = QStringList(namedPerBandMode[key].begin(), namedPerBandMode[key].end());
+            std::sort(sortedMults.begin(), sortedMults.end());
+            
+            for (int i = 0; i < sortedMults.size(); ++i) {
+                QString mark = namedCountedPerBandMode[key].contains(sortedMults[i]) ? "*" : " ";
+                out << QString("%1%2").arg(mark).arg(QString("%1").arg(sortedMults[i], -4));
+                
+                if ((i + 1) % 6 == 0) {
+                    out << "\n";
+                }
+            }
+            if (sortedMults.size() % 6 != 0) {
+            out << "\n";
+                out << "\n";
+            }
+        }
+    }
+    
+    out << "\n";
+    
+    // Then display DXCC and other category multipliers
+    if (!m_contestEngine->getMultiplierCategories().isEmpty()) {
+        for (const QString& category : m_contestEngine->getMultiplierCategories()) {
+            // Skip namedMult as we already handled it
+            if (category == "namedMult") {
+                continue;
+            }
+            
+            if (multType == "multsOnce") {
+                // Simple case: just list all mults
+                QSet<QString> workedMults;
+                QSet<QString> countedMults;
+                
+                for (int i = 0; i < m_qsoModel->rowCount(); ++i) {
+                    QsoRecord qso = m_qsoModel->getQso(i);
+                    QList<ContestEngine::MultiplierInfo> mults = m_contestEngine->getMultipliersWithCategory(qso);
+                    
+                    for (const ContestEngine::MultiplierInfo& mult : mults) {
+                        if (mult.category == category) {
+                            workedMults.insert(mult.value);
+                            if (!qso.isDupe()) {
+                                countedMults.insert(mult.value);
+                            }
+                        }
+                    }
+                }
+                
+                if (!workedMults.isEmpty()) {
+                    out << category << " Multipliers (Worked: " << countedMults.size() 
+                        << ", Total: " << workedMults.size() << ")\n";
+                    
+                    QStringList sortedMults = QStringList(workedMults.begin(), workedMults.end());
+                    std::sort(sortedMults.begin(), sortedMults.end());
+                    
+                    for (int i = 0; i < sortedMults.size(); ++i) {
+                        QString mark = countedMults.contains(sortedMults[i]) ? "*" : " ";
+                        out << QString("%1%2").arg(mark).arg(QString("%1").arg(sortedMults[i], -4));
+                        
+                        if ((i + 1) % 6 == 0) {
+                            out << "\n";
+                        }
+                    }
+                    if (sortedMults.size() % 6 != 0) {
+            out << "\n";
+                        out << "\n";
+                    }
+                }
+            } else if (multType == "multsPerBand") {
+                // Breakdown by band
+                QMap<QString, QSet<QString>> multsPerBand, countedPerBand;
+                
+                for (int i = 0; i < m_qsoModel->rowCount(); ++i) {
+                    QsoRecord qso = m_qsoModel->getQso(i);
+                    QString band = qso.getBand();
+                    QList<ContestEngine::MultiplierInfo> mults = m_contestEngine->getMultipliersWithCategory(qso);
+                    
+                    for (const ContestEngine::MultiplierInfo& mult : mults) {
+                        if (mult.category == category) {
+                            multsPerBand[band].insert(mult.value);
+                            if (!qso.isDupe()) {
+                                countedPerBand[band].insert(mult.value);
+                            }
+                        }
+                    }
+                }
+                
+                for (const auto& band : multsPerBand.keys()) {
+                    int counted = countedPerBand[band].size();
+                    int total = multsPerBand[band].size();
+                    out << category << " Multipliers - " << band << " (Worked: " << counted << ")\n";
+                    
+                    QStringList sortedMults = QStringList(multsPerBand[band].begin(), multsPerBand[band].end());
+                    std::sort(sortedMults.begin(), sortedMults.end());
+                    
+                    for (int i = 0; i < sortedMults.size(); ++i) {
+                        QString mark = countedPerBand[band].contains(sortedMults[i]) ? "*" : " ";
+                        out << QString("%1%2").arg(mark).arg(QString("%1").arg(sortedMults[i], -4));
+                        
+                        if ((i + 1) % 6 == 0) {
+                            out << "\n";
+                        }
+                    }
+                    if (sortedMults.size() % 6 != 0) {
+            out << "\n";
+                        out << "\n";
+                    }
+                }
+            } else if (multType == "multsPerMode") {
+                // Breakdown by mode
+                QMap<QString, QSet<QString>> multsPerMode, countedPerMode;
+                
+                for (int i = 0; i < m_qsoModel->rowCount(); ++i) {
+                    QsoRecord qso = m_qsoModel->getQso(i);
+                    QString mode = qso.getMode();
+                    QList<ContestEngine::MultiplierInfo> mults = m_contestEngine->getMultipliersWithCategory(qso);
+                    
+                    for (const ContestEngine::MultiplierInfo& mult : mults) {
+                        if (mult.category == category) {
+                            multsPerMode[mode].insert(mult.value);
+                            if (!qso.isDupe()) {
+                                countedPerMode[mode].insert(mult.value);
+                            }
+                        }
+                    }
+                }
+                
+                for (const auto& mode : multsPerMode.keys()) {
+                    int counted = countedPerMode[mode].size();
+                    int total = multsPerMode[mode].size();
+                    out << category << " Multipliers - " << mode << " (Worked: " << counted << ")\n";
+                    
+                    QStringList sortedMults = QStringList(multsPerMode[mode].begin(), multsPerMode[mode].end());
+                    std::sort(sortedMults.begin(), sortedMults.end());
+                    
+                    for (int i = 0; i < sortedMults.size(); ++i) {
+                        QString mark = countedPerMode[mode].contains(sortedMults[i]) ? "*" : " ";
+                        out << QString("%1%2").arg(mark).arg(QString("%1").arg(sortedMults[i], -4));
+                        
+                        if ((i + 1) % 6 == 0) {
+                            out << "\n";
+                        }
+                    }
+                    if (sortedMults.size() % 6 != 0) {
+            out << "\n";
+                        out << "\n";
+                    }
+                }
+            } else if (multType == "multsPerBandAndMode") {
+                // Breakdown by band and mode
+                QMap<QString, QSet<QString>> multsPerBandMode, countedPerBandMode;
+                
+                for (int i = 0; i < m_qsoModel->rowCount(); ++i) {
+                    QsoRecord qso = m_qsoModel->getQso(i);
+                    QString band = qso.getBand();
+                    QString mode = qso.getMode();
+                    QString key = band + "/" + mode;
+                    QList<ContestEngine::MultiplierInfo> mults = m_contestEngine->getMultipliersWithCategory(qso);
+                    
+                    for (const ContestEngine::MultiplierInfo& mult : mults) {
+                        if (mult.category == category) {
+                            multsPerBandMode[key].insert(mult.value);
+                            if (!qso.isDupe()) {
+                                countedPerBandMode[key].insert(mult.value);
+                            }
+                        }
+                    }
+                }
+                
+                for (const auto& key : multsPerBandMode.keys()) {
+                    int counted = countedPerBandMode[key].size();
+                    int total = multsPerBandMode[key].size();
+                    out << category << " Multipliers - " << key << " (Worked: " << counted << ")\n";
+                    
+                    QStringList sortedMults = QStringList(multsPerBandMode[key].begin(), multsPerBandMode[key].end());
+                    std::sort(sortedMults.begin(), sortedMults.end());
+                    
+                    for (int i = 0; i < sortedMults.size(); ++i) {
+                        QString mark = countedPerBandMode[key].contains(sortedMults[i]) ? "*" : " ";
+                        out << QString("%1%2").arg(mark).arg(QString("%1").arg(sortedMults[i], -4));
+                        
+                        if ((i + 1) % 6 == 0) {
+                            out << "\n";
+                        }
+                    }
+                    if (sortedMults.size() % 6 != 0) {
+            out << "\n";
+                        out << "\n";
+                    }
+                }
+            }
+        }
+    }
+    
+    out << "\n";
+    
+    file.close();
+    
+    QMessageBox::information(this, "Success", 
+        QString("Summary sheet saved to:\n%1").arg(fileName));
 }
