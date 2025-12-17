@@ -1251,6 +1251,9 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
     QSet<QString> multPerMode;                          // multsPerMode
     QSet<QString> multPerBandAndMode;                   // multsPerBandAndMode
     
+    // For multsPerMode scoring: track multipliers per mode
+    QSet<QString> cwMultipliers, ssbMultipliers, digitalMultipliers;
+    
     // Track multipliers by type (named vs DXCC vs ITU Regions)
     QSet<QString> namedMultsOnce, dxccMultsOnce, ituRegionMultsOnce;
     QSet<QString> namedMultsPerBand, dxccMultsPerBand, ituRegionMultsPerBand;
@@ -1400,7 +1403,17 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
                 if (!multPerMode.contains(key)) {
                     isNew = true;
                     multPerMode.insert(key);
+                    
+                    // Add to mode-specific sets only for NEW multipliers
+                    if (modeCategory == "CW") {
+                        cwMultipliers.insert(mult);
+                    } else if (modeCategory == "SSB") {
+                        ssbMultipliers.insert(mult);
+                    } else if (modeCategory == "DIGITAL") {
+                        digitalMultipliers.insert(mult);
+                    }
                 }
+                
                 if (category == "named") {
                     if (!namedMultsPerMode.contains(key)) namedMultsPerMode.insert(key);
                 } else if (category == "dxcc") {
@@ -1506,9 +1519,35 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
     // Check if contest uses category-based scoring (states + provinces + dxcc)
     m_runningScore.bonusPoints = 0; // Hard-coded to 0 for now
     
-    // Use sum of category multipliers if contest defines categories
     QStringList multCategories = getMultiplierCategories();
-    if (!multCategories.isEmpty()) {
+    
+    if (multType == "multsPerMode") {
+        // For multsPerMode: multipliers are counted per mode, but final score is points × total_mults
+        // Total points = sum of all points
+        // Total mults = sum of unique mults across all modes
+        int totalMults = cwMultipliers.size() + ssbMultipliers.size() + digitalMultipliers.size();
+        m_runningScore.contestScore = (m_runningScore.contactScore * totalMults) + m_runningScore.bonusPoints;
+        
+        if (verbose) {
+            DebugLogger::instance().log("ContestEngine", 
+                QString("Per-mode scoring: %1 pts × %2 mults (CW:%3 + SSB:%4 + Digital:%5) = %6")
+                    .arg(m_runningScore.contactScore).arg(totalMults)
+                    .arg(cwMultipliers.size()).arg(ssbMultipliers.size()).arg(digitalMultipliers.size())
+                    .arg(m_runningScore.contestScore));
+        }
+    } else if (multType == "multsPerBandAndMode") {
+        // For multsPerBandAndMode: multipliers counted per band/mode combo, but final score is points × total_mults
+        // Total mults = count of unique mult_band_mode combinations
+        int totalMults = multPerBandAndMode.size();
+        m_runningScore.contestScore = (m_runningScore.contactScore * totalMults) + m_runningScore.bonusPoints;
+        
+        if (verbose) {
+            DebugLogger::instance().log("ContestEngine", 
+                QString("Per-band/mode scoring: %1 pts × %2 mults = %3")
+                    .arg(m_runningScore.contactScore).arg(totalMults).arg(m_runningScore.contestScore));
+        }
+    } else if (!multCategories.isEmpty()) {
+        // For multsOnce and multsPerBand: use simple points × mults formula
         int totalMultipliers = m_runningScore.namedMultCount + m_runningScore.dxccMultCount + m_runningScore.ituRegionMultCount;
         m_runningScore.contestScore = (m_runningScore.contactScore * totalMultipliers) + m_runningScore.bonusPoints;
     } else {
