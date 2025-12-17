@@ -228,6 +228,24 @@ MainWindow::~MainWindow()
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
+    // Check if log has been modified
+    if (m_isModified) {
+        QMessageBox::StandardButton reply = QMessageBox::question(this, 
+            "Unsaved Changes", 
+            "The log has been modified. Do you want to save changes before exiting?",
+            QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+
+        if (reply == QMessageBox::Save) {
+            // Save the current log
+            if (!m_currentFile.isEmpty()) {
+                onSaveLog();
+            }
+        } else if (reply == QMessageBox::Cancel) {
+            event->ignore();
+            return;
+        }
+    }
+
     // Save window geometry
     saveWindowGeometry();
     
@@ -285,6 +303,9 @@ void MainWindow::setupUi()
     m_qsoTable->horizontalHeader()->setStretchLastSection(true);
     m_qsoTable->verticalHeader()->setVisible(false);
     m_qsoTable->setMinimumHeight(400);
+    
+    // Add double-click handling for QSO editing
+    connect(m_qsoTable, &QTableView::doubleClicked, this, &MainWindow::onQsoDoubleClicked);
     
     connect(m_qsoTable->horizontalHeader(), &QHeaderView::sectionResized,
             this, &MainWindow::onColumnResized);
@@ -2184,5 +2205,31 @@ bool MainWindow::isSemanticVersionEqual(const QString& v1, const QString& v2)
     
     // Compare major.minor.patch
     return parts1[0] == parts2[0] && parts1[1] == parts2[1] && parts1[2] == parts2[2];
+}
+
+void MainWindow::onQsoDoubleClicked(const QModelIndex& index)
+{
+    if (!index.isValid()) {
+        return;
+    }
+
+    // Get the QSO at this row
+    int row = index.row();
+    QsoRecord qso = m_qsoModel->getQsos()[row];
+
+    // Show edit dialog
+    QsoEditDialog dialog(qso, this);
+    if (dialog.exec() == QDialog::Accepted) {
+        QsoRecord editedQso = dialog.getEditedQso();
+        
+        // Update the QSO in the model
+        m_qsoModel->updateQso(row, editedQso);
+        
+        // Mark as modified
+        m_isModified = true;
+        
+        // Recalculate score
+        onRecalculateScore();
+    }
 }
 

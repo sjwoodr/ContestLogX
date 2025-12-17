@@ -19,6 +19,7 @@
 #include "qsolistmodel.h"
 #include "qsorecord.h"
 #include "flrigclient.h"
+#include "qsoeditdialog.h"
 
 class MainWindow : public QMainWindow
 {
@@ -70,6 +71,7 @@ private slots:
     void onToggleDxccDatabaseDebug(bool checked);
     void onDownloadCtyDat();
     void onShortcuts();
+    void onQsoDoubleClicked(const QModelIndex& index);
 
 protected:
     bool eventFilter(QObject *obj, QEvent *event) override;
