@@ -10,13 +10,14 @@ Each contest is defined in a JSON file with the following structure:
 
 1. **contest** - Basic contest information
 2. **frequencies** - Valid frequency ranges by band and mode
-3. **exchangeFields** - Information exchanged during QSOs
-4. **qsoFields** - Fields stored for each QSO
-5. **scoring** - Point and multiplier rules
-6. **dupeChecking** - Duplicate contact rules
-7. **logging** - Log file and Cabrillo format
-8. **validation** - Contest rules and validation
-9. **ui** - User interface configuration
+3. **stationClasses** - Station entry classes and operator information collection
+4. **exchangeFields** - Information exchanged during QSOs
+5. **qsoFields** - Fields stored for each QSO
+6. **scoring** - Point and multiplier rules
+7. **dupeChecking** - Duplicate contact rules
+8. **logging** - Log file and Cabrillo format
+9. **validation** - Contest rules and validation
+10. **ui** - User interface configuration
 
 ### Contest Section
 
@@ -53,6 +54,102 @@ Defines valid operating frequencies for each band:
   }
 }
 ```
+
+### Station Classes Section
+
+Defines entry classes for different operator categories. Some contests require operators to select a class, which may trigger additional input prompts for operator information:
+
+```json
+"stationClasses": {
+  "enabled": true,
+  "prompt": "What is your entry class?",
+  "classes": [
+    {
+      "id": "MEMBER",
+      "name": "Member",
+      "description": "Send First Name and Member Number",
+      "needsInput": true,
+      "inputPrompts": {
+        "name": "Enter your first name",
+        "id": "Enter your member number"
+      },
+      "exchangeFieldMapping": {
+        "name": "NAMEs",
+        "id": "EXCHs"
+      },
+      "inputValidation": {
+        "name": {
+          "forceUppercase": true
+        },
+        "id": {
+          "type": "numeric",
+          "forceUppercase": false
+        }
+      },
+      "exchangeSent": {
+        "type": "customInput",
+        "field": "memberExchange"
+      }
+    },
+    {
+      "id": "NON_MEMBER",
+      "name": "Non-Member",
+      "description": "Send First Name and State",
+      "needsInput": true,
+      "inputPrompts": {
+        "name": "Enter your first name",
+        "id": "Enter your state"
+      },
+      "exchangeFieldMapping": {
+        "name": "NAMEs",
+        "id": "EXCHs"
+      },
+      "inputValidation": {
+        "name": {
+          "forceUppercase": true
+        },
+        "id": {
+          "type": "alphanumeric",
+          "forceUppercase": true
+        }
+      },
+      "exchangeSent": {
+        "type": "customInput"
+      }
+    }
+  ]
+}
+```
+
+#### Station Classes Properties
+
+- **enabled** - Whether station classes are used in this contest (boolean)
+- **prompt** - Message displayed when asking operator to select a class
+- **classes** - Array of available entry classes
+
+#### Class Definition Properties
+
+- **id** - Unique identifier for this class (alphanumeric, no spaces)
+- **name** - Display name of the class
+- **description** - Brief description of this entry class
+- **needsInput** - Whether this class requires operator information input (boolean)
+- **inputPrompts** - Object with prompts for operator input:
+  - **name** - Prompt text for operator's name/first name
+  - **id** - Prompt text for operator identifier (member number, state, country, etc.)
+- **exchangeFieldMapping** - Maps input fields to exchange fields:
+  - **name** - Maps input name to this exchange field (e.g., "NAMEs")
+  - **id** - Maps input id to this exchange field (e.g., "EXCHs")
+- **inputValidation** - Validation rules for operator input:
+  - **name** - Validation for the name field
+    - **forceUppercase** - Convert input to uppercase
+  - **id** - Validation for the id field
+    - **type** - Validation type: "numeric", "alphanumeric", or omit for free text
+    - **defaultValue** - Pre-fill value (optional)
+    - **forceUppercase** - Convert input to uppercase
+- **exchangeSent** - How the exchange is formatted:
+  - **type** - "customInput" (operator provides), "fixedValue" (constant), "state_province" (auto-filled), "serial" (auto-increment)
+  - **value** - For fixedValue type, the constant string to send
+  - **field** - For customInput type, optional field identifier
 
 ### Exchange Fields Section
 
