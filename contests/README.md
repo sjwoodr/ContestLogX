@@ -273,6 +273,10 @@ User interface configuration:
 "ui": {
   "logColumns": ["SEQ", "DATE", "TIME", "CALL", "MODE", "RST_SENT", "RST_RCV"],
   "entryFields": ["CALL", "RST_RCV", "EXC"],
+  "fieldNavigation": {
+    "keys": "both",
+    "description": "Keys used to navigate between QSO entry fields"
+  },
   "bandMap": {
     "enabled": true,
     "bands": ["10m", "15m", "20m"]
@@ -283,6 +287,23 @@ User interface configuration:
   }
 }
 ```
+
+#### Entry Field Navigation
+
+The `fieldNavigation` object controls which keys advance focus to the next QSO entry field:
+
+- **"space"** - Only the Space key advances to the next field. Tab behaves normally and may move focus outside the entry fields.
+- **"tab"** - Only Tab (and Shift+Tab for backward) advance between fields. Space is inserted as text in fields.
+- **"both"** - Both Space and Tab keys advance between fields (most efficient for rapid contest entry). Shift+Tab goes backward. Default if not specified.
+
+Example configurations:
+```json
+"fieldNavigation": {
+  "keys": "space"
+}
+```
+
+When navigating fields, focus wraps around: the last field's Space/Tab moves back to the first field (Call).
 
 ## Creating a New Contest
 

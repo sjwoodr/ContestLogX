@@ -1,6 +1,6 @@
 {
   "contest": {
-    "name": "CWops CWT (CW Test)",
+    "name": "CWops Tests (CWT)",
     "abbreviation": "CWOPS-CWT",
     "version": "1.0.0",
     "sponsor": "CWops",
@@ -287,6 +287,9 @@
   "ui": {
     "logColumns": ["DATE", "TIME", "CALL", "FREQ", "MODE", "RSTs", "RSTr", "NAMEs", "EXCHs", "NAMEr", "EXCHr", "P", "COMMENT"],
     "entryFields": ["CALL", "NAMEr", "EXCHr"],
+    "fieldNavigation": {
+      "keys": "space"
+    },
     "bandMap": {
       "enabled": true,
       "bands": ["160m", "80m", "40m", "20m", "15m", "10m"]

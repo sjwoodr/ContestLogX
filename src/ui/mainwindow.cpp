@@ -265,10 +265,39 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
 {
     if (event->type() == QEvent::KeyPress) {
         QKeyEvent *keyEvent = static_cast<QKeyEvent*>(event);
+        QLineEdit* lineEdit = qobject_cast<QLineEdit*>(obj);
+        
+        // Handle Space and/or Tab keys to advance to next text input field (wraps around)
+        // Which keys are used depends on contest definition
+        bool handleSpace = (m_fieldNavigationKeys == "space" || m_fieldNavigationKeys == "both");
+        bool handleTab = (m_fieldNavigationKeys == "tab" || m_fieldNavigationKeys == "both");
+        
+        if (((keyEvent->key() == Qt::Key_Space && handleSpace) || 
+             (keyEvent->key() == Qt::Key_Tab && handleTab)) && lineEdit) {
+            // Check if this field is in our entry field list
+            int currentIndex = m_entryFieldOrder.indexOf(lineEdit);
+            if (currentIndex >= 0) {
+                // Move to next field, wrapping to first field if at the end
+                int nextIndex = (currentIndex + 1) % m_entryFieldOrder.size();
+                m_entryFieldOrder[nextIndex]->setFocus();
+                return true; // Event handled - don't insert space/tab
+            }
+        }
+        
+        // Handle Shift+Tab to go to previous field (only if tab navigation is enabled)
+        if (keyEvent->key() == Qt::Key_Backtab && handleTab && lineEdit) {
+            // Check if this field is in our entry field list
+            int currentIndex = m_entryFieldOrder.indexOf(lineEdit);
+            if (currentIndex >= 0) {
+                // Move to previous field, wrapping to last field if at the beginning
+                int prevIndex = (currentIndex - 1 + m_entryFieldOrder.size()) % m_entryFieldOrder.size();
+                m_entryFieldOrder[prevIndex]->setFocus();
+                return true; // Event handled
+            }
+        }
         
         // Check if Enter or Return was pressed in any QSO entry field
         if (keyEvent->key() == Qt::Key_Return || keyEvent->key() == Qt::Key_Enter) {
-            QLineEdit* lineEdit = qobject_cast<QLineEdit*>(obj);
             if (lineEdit && m_exchangeFields.values().contains(lineEdit)) {
                 // Trigger Log QSO
                 onLogQso();
@@ -2420,6 +2449,24 @@ void MainWindow::updateQsoEntryFields()
         }
     }
     m_exchangeFields.clear();
+    m_entryFieldOrder.clear();
+    
+    // Read field navigation keys from contest definition
+    m_fieldNavigationKeys = "both";  // Default to both space and tab
+    if (m_contestDefinition.contains("ui")) {
+        QJsonObject ui = m_contestDefinition["ui"].toObject();
+        if (ui.contains("fieldNavigation")) {
+            QJsonObject fieldNav = ui["fieldNavigation"].toObject();
+            if (fieldNav.contains("keys")) {
+                QString keys = fieldNav["keys"].toString();
+                if (keys == "space" || keys == "tab" || keys == "both") {
+                    m_fieldNavigationKeys = keys;
+                }
+            }
+        }
+    }
+    DebugLogger::instance().log("MainWindow", 
+        QString("Field navigation keys: %1").arg(m_fieldNavigationKeys));
     
     // Get exchange field list from contest engine
     QStringList exchangeFields = m_contestEngine->getExchangeFields();
@@ -2528,6 +2575,7 @@ void MainWindow::updateQsoEntryFields()
         
         // Store field for later access
         m_exchangeFields[fieldName] = edit;
+        m_entryFieldOrder.append(edit);  // Track order for Space-to-advance
         
         // Add to layout in correct position
         if (label) {

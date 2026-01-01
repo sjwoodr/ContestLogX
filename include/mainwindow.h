@@ -152,6 +152,8 @@ private:
     QJsonObject m_contestDefinition;
     QString m_contestFile;
     QMap<QString, QLineEdit*> m_exchangeFields;
+    QList<QLineEdit*> m_entryFieldOrder;  // Maintains order of text input fields for Space-to-advance
+    QString m_fieldNavigationKeys;  // "space", "tab", or "both" - from contest definition
     class ContestEngine *m_contestEngine;
     class DxccDatabase *m_dxccDatabase;
     

@@ -224,6 +224,9 @@
   "ui": {
     "logColumns": ["DATE", "TIME", "CALL", "FREQ", "MODE", "RSTs", "RSTr", "EXCHs", "EXCHr", "Nr", "M", "C", "COMMENT"],
     "entryFields": ["CALL", "RSTr", "EXCHr"],
+    "fieldNavigation": {
+      "keys": "tab"
+    },
     "bandMap": {
       "enabled": true,
       "bands": ["10m"]
