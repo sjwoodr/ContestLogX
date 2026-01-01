@@ -1,6 +1,6 @@
 {
   "contest": {
-    "name": "Example DXCC Scoring Contest",
+    "name": "Test DXCC Scoring Precedence",
     "abbreviation": "EXAMPLE",
     "sponsor": "Example",
     "description": "Example contest demonstrating sameDxccEntity and differentDxccEntity scoring",
