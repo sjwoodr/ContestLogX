@@ -182,6 +182,8 @@ public:
 private:
     Settings();
     void load();
+    void scaleDefaultLayout();
+    QString getDataPath() const;
     
     QString settingsFilePath() const;
     

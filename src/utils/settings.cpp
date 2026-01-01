@@ -10,6 +10,8 @@
 #include <QDir>
 #include <QStandardPaths>
 #include <QDebug>
+#include <QApplication>
+#include <QScreen>
 
 Settings& Settings::instance()
 {
@@ -39,7 +41,25 @@ void Settings::load()
     QFile file(path);
     
     if (!file.exists()) {
-        // Create default settings
+        // Load default layout from data/default_layout.json
+        QString defaultLayoutPath = getDataPath() + "/default_layout.json";
+        QFile defaultFile(defaultLayoutPath);
+        
+        if (defaultFile.open(QIODevice::ReadOnly)) {
+            QByteArray data = defaultFile.readAll();
+            defaultFile.close();
+            
+            QJsonDocument doc = QJsonDocument::fromJson(data);
+            if (doc.isObject()) {
+                m_settings = doc.object();
+                // Scale layout if needed based on screen size
+                scaleDefaultLayout();
+                save();
+                return;
+            }
+        }
+        
+        // Fallback to hardcoded defaults if default_layout.json doesn't exist
         m_settings = QJsonObject();
         m_settings["station"] = QJsonObject();
         m_settings["rig"] = QJsonObject{
@@ -828,4 +848,48 @@ void Settings::setScpEnabled(bool enabled)
     scp["enabled"] = enabled;
     m_settings["scp"] = scp;
     m_modified = true;
+}
+
+QString Settings::getDataPath() const
+{
+    QString appDir = QCoreApplication::applicationDirPath();
+    QString dataDir = QDir(appDir).filePath("../data");
+    return QDir(dataDir).absolutePath();
+}
+
+void Settings::scaleDefaultLayout()
+{
+    // Get primary screen geometry
+    QScreen* screen = QApplication::primaryScreen();
+    if (!screen) {
+        return;
+    }
+    
+    QRect screenGeometry = screen->availableGeometry();
+    
+    // Reference dimensions from default layout
+    const int referenceWidth = 2239;
+    const int referenceHeight = 1033;
+    
+    // Calculate scale factor based on screen size
+    double scaleWidth = static_cast<double>(screenGeometry.width()) / referenceWidth;
+    double scaleHeight = static_cast<double>(screenGeometry.height()) / referenceHeight;
+    double scale = qMin(scaleWidth, scaleHeight);
+    
+    // Only scale if screen is significantly smaller
+    if (scale < 0.9) {
+        QJsonObject window = m_settings["window"].toObject();
+        QJsonObject geometry = window["geometry"].toObject();
+        
+        int newWidth = qMax(800, static_cast<int>(referenceWidth * scale));
+        int newHeight = qMax(600, static_cast<int>(referenceHeight * scale));
+        
+        geometry["width"] = newWidth;
+        geometry["height"] = newHeight;
+        geometry["x"] = qMax(0, (screenGeometry.width() - newWidth) / 2);
+        geometry["y"] = qMax(0, (screenGeometry.height() - newHeight) / 2);
+        
+        window["geometry"] = geometry;
+        m_settings["window"] = window;
+    }
 }
