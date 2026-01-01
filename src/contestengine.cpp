@@ -1301,7 +1301,8 @@ QStringList ContestEngine::getStationClassOptions() const
 void ContestEngine::setStationClass(const QString& classId)
 {
     m_stationClass = classId;
-    m_stationClassExchange = QString();  // Reset exchange data when class changes
+    m_stationClassExchangeName = QString();  // Reset exchange data when class changes
+    m_stationClassExchangeId = QString();
     DebugLogger::instance().log("ContestEngine", 
                      QString("Station class set to: %1").arg(classId));
 }
@@ -1309,7 +1310,8 @@ void ContestEngine::setStationClass(const QString& classId)
 void ContestEngine::resetStationClassState()
 {
     m_stationClass = QString();
-    m_stationClassExchange = QString();
+    m_stationClassExchangeName = QString();
+    m_stationClassExchangeId = QString();
     DebugLogger::instance().log("ContestEngine", "Station class state reset");
 }
 
@@ -1339,8 +1341,8 @@ QString ContestEngine::getDefaultSentExchange(const QString& stationQth, int ser
                         } else if (type == "fixedValue") {
                             return exchSent["value"].toString();
                         } else if (type == "customInput") {
-                            // Return the custom exchange data that was set
-                            return m_stationClassExchange;
+                            // Return the combined custom exchange data (name + space + id)
+                            return m_stationClassExchangeName + " " + m_stationClassExchangeId;
                         }
                     }
                 }
@@ -1452,72 +1454,39 @@ QString ContestEngine::getStationClassIdPrompt() const
 
 QString ContestEngine::getSentExchangeName() const
 {
-    // For CWops contests, split the custom input into first name
-    // Format: "FirstName IdOrState" -> returns "FIRSTNAME"
-    if (m_stationClass == "CWOPS_MEMBER" || m_stationClass == "NON_MEMBER") {
-        // Exchange data is "FirstName IdOrState", split on space
-        QString data = getDefaultSentExchange(QString(), 0);
-        if (data.isEmpty()) {
-            return QString();
-        }
-        
-        int spacePos = data.indexOf(' ');
-        if (spacePos > 0) {
-            return data.left(spacePos).toUpper();
-        }
-        return data.toUpper();
-    } else if (m_stationClass == "CW_ACADEMY") {
-        // CW Academy: Exchange data is "FirstName", just return it
-        QString data = getDefaultSentExchange(QString(), 0);
-        if (data.isEmpty()) {
-            return QString();
-        }
-        
-        int spacePos = data.indexOf(' ');
-        if (spacePos > 0) {
-            // If there's a space, take the first part (should be the name)
-            return data.left(spacePos).toUpper();
-        }
-        // For CWA, the data might be "FirstName" without space, return it
-        return data.toUpper();
-    }
-    
-    return QString();
+    // Return the stored exchange name directly
+    return m_stationClassExchangeName;
 }
 
 QString ContestEngine::getSentExchangeId() const
 {
-    // For CWops contests, split the custom input to get ID/State/CWA
-    // Format: "FirstName IdOrState" -> returns "IdOrState"
-    if (m_stationClass == "CWOPS_MEMBER") {
-        // Exchange data is "FirstName MemberId", split on space
-        QString data = getDefaultSentExchange(QString(), 0);
-        if (data.isEmpty()) {
-            return QString();
-        }
-        
-        int spacePos = data.indexOf(' ');
-        if (spacePos > 0 && spacePos < data.length() - 1) {
-            return data.mid(spacePos + 1).toUpper();
-        }
-        return data.toUpper();
-    } else if (m_stationClass == "CW_ACADEMY") {
-        return "CWA";
-    } else if (m_stationClass == "NON_MEMBER") {
-        // Exchange data is "FirstName QTH", split on space
-        QString data = getDefaultSentExchange(QString(), 0);
-        if (data.isEmpty()) {
-            return QString();
-        }
-        
-        int spacePos = data.indexOf(' ');
-        if (spacePos > 0 && spacePos < data.length() - 1) {
-            return data.mid(spacePos + 1).toUpper();
-        }
-        return data.toUpper();
+    // Return the stored exchange ID directly
+    return m_stationClassExchangeId;
+}
+
+void ContestEngine::setStationClassExchangeData(const QString& data)
+{
+    // Legacy method: split combined "Name ID" into separate fields
+    int spacePos = data.indexOf(' ');
+    if (spacePos > 0) {
+        m_stationClassExchangeName = data.left(spacePos);
+        m_stationClassExchangeId = data.mid(spacePos + 1);
+    } else {
+        m_stationClassExchangeName = data;
+        m_stationClassExchangeId = QString();
     }
-    
-    return QString();
+}
+
+QString ContestEngine::getStationClassExchangeData() const
+{
+    // Legacy method: combine separate fields into "Name ID"
+    if (m_stationClassExchangeName.isEmpty()) {
+        return m_stationClassExchangeId;
+    } else if (m_stationClassExchangeId.isEmpty()) {
+        return m_stationClassExchangeName;
+    } else {
+        return m_stationClassExchangeName + " " + m_stationClassExchangeId;
+    }
 }
 
 void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& myCallsign, bool verbose)

@@ -40,8 +40,12 @@ public:
     bool loadClx(const QString& filename, QList<QsoRecord>& qsos);
     bool loadClxWithContest(const QString& filename, QList<QsoRecord>& qsos, QString& contestFile, QString& stationClass, QString& contestVersion);
     bool loadClxWithContest(const QString& filename, QList<QsoRecord>& qsos, QString& contestFile, QString& stationClass, QString& contestVersion, QString& stationClassExchange);
+    // New overloads for separate name and exchange
+    bool loadClxWithContest(const QString& filename, QList<QsoRecord>& qsos, QString& contestFile, QString& stationClass, QString& contestVersion, QString& stationClassExchangeName, QString& stationClassExchangeId);
     bool saveClx(const QString& filename, const QList<QsoRecord>& qsos);
     bool saveClxWithContest(const QString& filename, const QList<QsoRecord>& qsos, const QString& contestFile, const QJsonObject& contestDef, const QString& stationClass = QString(), const QString& stationClassExchange = QString());
+    // New overload for separate name and exchange
+    bool saveClxWithContest(const QString& filename, const QList<QsoRecord>& qsos, const QString& contestFile, const QJsonObject& contestDef, const QString& stationClass, const QString& stationClassExchangeName, const QString& stationClassExchangeId);
     
     QString lastError() const { return m_lastError; }
 

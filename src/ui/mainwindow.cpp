@@ -671,12 +671,13 @@ void MainWindow::onNewLog()
                     QString contestFile;
                     QString stationClass;
                     QString loadedContestVersion;
-                    QString stationClassExchange;
+                    QString stationClassExchangeName;
+                    QString stationClassExchangeId;
                     FileHandler fileHandler;
                     
                     // We need to parse the file to get contest info - for now we'll load it separately
                     QList<QsoRecord> temp;
-                    fileHandler.loadClxWithContest(selectedFile, temp, contestFile, stationClass, loadedContestVersion, stationClassExchange);
+                    fileHandler.loadClxWithContest(selectedFile, temp, contestFile, stationClass, loadedContestVersion, stationClassExchangeName, stationClassExchangeId);
                     
                     // Load the contest definition if specified
                     if (!contestFile.isEmpty()) {
@@ -690,9 +691,10 @@ void MainWindow::onNewLog()
                                 m_contestEngine->setStationClass(stationClass);
                                 DebugLogger::instance().log("MainWindow", QString("(onNewLog) Set station class: %1").arg(stationClass));
                             }
-                            if (!stationClassExchange.isEmpty()) {
-                                m_contestEngine->setStationClassExchangeData(stationClassExchange);
-                                DebugLogger::instance().log("MainWindow", QString("(onNewLog) Set station class exchange: %1").arg(stationClassExchange));
+                            if (!stationClassExchangeName.isEmpty() || !stationClassExchangeId.isEmpty()) {
+                                m_contestEngine->setStationClassExchangeName(stationClassExchangeName);
+                                m_contestEngine->setStationClassExchangeId(stationClassExchangeId);
+                                DebugLogger::instance().log("MainWindow", QString("(onNewLog) Set station class exchange - Name: %1, ID: %2").arg(stationClassExchangeName, stationClassExchangeId));
                             }
                             
                             loadContestDefinition(contestPath);
@@ -823,11 +825,12 @@ void MainWindow::onOpenLog()
             QString contestFile;
             QString stationClass;
             QString loadedContestVersion;
-            QString stationClassExchange;
+            QString stationClassExchangeName;
+            QString stationClassExchangeId;
             FileHandler fileHandler;
             
             QList<QsoRecord> temp;
-            fileHandler.loadClxWithContest(fileName, temp, contestFile, stationClass, loadedContestVersion, stationClassExchange);
+            fileHandler.loadClxWithContest(fileName, temp, contestFile, stationClass, loadedContestVersion, stationClassExchangeName, stationClassExchangeId);
             
             // Load the contest definition if specified
             if (!contestFile.isEmpty()) {
@@ -865,8 +868,9 @@ void MainWindow::onOpenLog()
                         m_contestEngine->setStationClass(stationClass);
                     }
                     
-                    if (!stationClassExchange.isEmpty()) {
-                        m_contestEngine->setStationClassExchangeData(stationClassExchange);
+                    if (!stationClassExchangeName.isEmpty() || !stationClassExchangeId.isEmpty()) {
+                        m_contestEngine->setStationClassExchangeName(stationClassExchangeName);
+                        m_contestEngine->setStationClassExchangeId(stationClassExchangeId);
                     }
                 }
             }
@@ -1030,14 +1034,15 @@ void MainWindow::loadLogFile(const QString& filename)
             QString contestFile;
             QString stationClass;
             QString loadedContestVersion;
-            QString stationClassExchange;
+            QString stationClassExchangeName;
+            QString stationClassExchangeId;
             FileHandler fileHandler;
             
             QList<QsoRecord> temp;
-            fileHandler.loadClxWithContest(filename, temp, contestFile, stationClass, loadedContestVersion, stationClassExchange);
+            fileHandler.loadClxWithContest(filename, temp, contestFile, stationClass, loadedContestVersion, stationClassExchangeName, stationClassExchangeId);
             
             DebugLogger::instance().log("MainWindow", 
-                QString("Loaded from CLX: contestFile='%1' stationClass='%2' exchange='%3'").arg(contestFile, stationClass, stationClassExchange));
+                QString("Loaded from CLX: contestFile='%1' stationClass='%2' exchangeName='%3' exchangeId='%4'").arg(contestFile, stationClass, stationClassExchangeName, stationClassExchangeId));
             
             // Load the contest definition if specified
             if (!contestFile.isEmpty()) {
@@ -1058,13 +1063,14 @@ void MainWindow::loadLogFile(const QString& filename)
                         DebugLogger::instance().log("MainWindow", QString("Set station class in loadLogFile: %1").arg(stationClass));
                     }
                     
-                    if (!stationClassExchange.isEmpty()) {
+                    if (!stationClassExchangeName.isEmpty() || !stationClassExchangeId.isEmpty()) {
                         if (!m_contestEngine) {
                             m_contestEngine = new ContestEngine(this);
                             m_contestEngine->setDxccDatabase(m_dxccDatabase);
                         }
-                        m_contestEngine->setStationClassExchangeData(stationClassExchange);
-                        DebugLogger::instance().log("MainWindow", QString("Set station class exchange in loadLogFile: %1").arg(stationClassExchange));
+                        m_contestEngine->setStationClassExchangeName(stationClassExchangeName);
+                        m_contestEngine->setStationClassExchangeId(stationClassExchangeId);
+                        DebugLogger::instance().log("MainWindow", QString("Set station class exchange in loadLogFile: Name='%1' Id='%2'").arg(stationClassExchangeName, stationClassExchangeId));
                     }
                     
                     loadContestDefinition(contestPath);
@@ -1137,8 +1143,9 @@ void MainWindow::onSaveLog()
     // Use contest-aware save for .clx files
     if (m_currentFile.endsWith(".clx", Qt::CaseInsensitive) && !m_contestDefinition.isEmpty()) {
         QString stationClass = m_contestEngine ? m_contestEngine->getStationClass() : QString();
-        QString stationClassExchange = m_contestEngine ? m_contestEngine->getStationClassExchangeData() : QString();
-        success = fileHandler.saveClxWithContest(m_currentFile, m_qsoModel->getQsos(), m_contestFile, m_contestDefinition, stationClass, stationClassExchange);
+        QString stationClassExchangeName = m_contestEngine ? m_contestEngine->getStationClassExchangeName() : QString();
+        QString stationClassExchangeId = m_contestEngine ? m_contestEngine->getStationClassExchangeId() : QString();
+        success = fileHandler.saveClxWithContest(m_currentFile, m_qsoModel->getQsos(), m_contestFile, m_contestDefinition, stationClass, stationClassExchangeName, stationClassExchangeId);
     } else {
         success = fileHandler.save(m_currentFile, m_qsoModel->getQsos());
     }
@@ -2272,11 +2279,11 @@ bool MainWindow::loadContestDefinition(const QString& filePath)
                     }
                     idDialog->deleteLater();
                     
-                    // Combine name and ID with space (ensure uppercase)
-                    QString combinedExchange = name.toUpper() + " " + id.toUpper();
-                    m_contestEngine->setStationClassExchangeData(combinedExchange);
+                    // Set name and ID separately (ensure uppercase)
+                    m_contestEngine->setStationClassExchangeName(name.toUpper());
+                    m_contestEngine->setStationClassExchangeId(id.toUpper());
                     DebugLogger::instance().log("MainWindow", 
-                        QString("Station class exchange data set - Name: %1, ID: %2 (combined: %3)").arg(name, id, combinedExchange));
+                        QString("Station class exchange data set - Name: %1, ID: %2").arg(name.toUpper(), id.toUpper()));
                 }
             } else {
                 DebugLogger::instance().log("MainWindow", "Station class selection cancelled");
@@ -2288,10 +2295,11 @@ bool MainWindow::loadContestDefinition(const QString& filePath)
                 QString("Using existing station class from loaded file: %1").arg(currentClass));
             
             // If we have saved exchange data, log it
-            QString savedExchange = m_contestEngine->getStationClassExchangeData();
-            if (!savedExchange.isEmpty()) {
+            QString savedName = m_contestEngine->getStationClassExchangeName();
+            QString savedId = m_contestEngine->getStationClassExchangeId();
+            if (!savedName.isEmpty() || !savedId.isEmpty()) {
                 DebugLogger::instance().log("MainWindow", 
-                    QString("Using saved exchange data: %1").arg(savedExchange));
+                    QString("Using saved exchange data: Name=%1, ID=%2").arg(savedName, savedId));
             }
         }
     }

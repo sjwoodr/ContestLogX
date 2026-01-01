@@ -113,8 +113,14 @@ public:
     void setStationClass(const QString& classId);
     QString getStationClass() const { return m_stationClass; }
     QString getDefaultSentExchange(const QString& stationQth, int serialNumber) const;
-    void setStationClassExchangeData(const QString& data) { m_stationClassExchange = data; }
-    QString getStationClassExchangeData() const { return m_stationClassExchange; }
+    // Separate storage for name and exchange (replaces setStationClassExchangeData)
+    void setStationClassExchangeName(const QString& name) { m_stationClassExchangeName = name; }
+    QString getStationClassExchangeName() const { return m_stationClassExchangeName; }
+    void setStationClassExchangeId(const QString& id) { m_stationClassExchangeId = id; }
+    QString getStationClassExchangeId() const { return m_stationClassExchangeId; }
+    // Legacy combined method for backwards compatibility
+    void setStationClassExchangeData(const QString& data);
+    QString getStationClassExchangeData() const;
     QString getSentExchangeName() const;
     QString getSentExchangeId() const;
     bool stationClassNeedsInput() const;
@@ -138,7 +144,8 @@ private:
     QSet<QString> m_validProvinces;
     QSet<QString> m_validMultipliers;
     QString m_stationClass;
-    QString m_stationClassExchange;
+    QString m_stationClassExchangeName;
+    QString m_stationClassExchangeId;
     DxccDatabase* m_dxccDatabase;
     ContestScore m_runningScore;
 };
