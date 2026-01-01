@@ -39,8 +39,9 @@ public:
     
     bool loadClx(const QString& filename, QList<QsoRecord>& qsos);
     bool loadClxWithContest(const QString& filename, QList<QsoRecord>& qsos, QString& contestFile, QString& stationClass, QString& contestVersion);
+    bool loadClxWithContest(const QString& filename, QList<QsoRecord>& qsos, QString& contestFile, QString& stationClass, QString& contestVersion, QString& stationClassExchange);
     bool saveClx(const QString& filename, const QList<QsoRecord>& qsos);
-    bool saveClxWithContest(const QString& filename, const QList<QsoRecord>& qsos, const QString& contestFile, const QJsonObject& contestDef, const QString& stationClass = QString());
+    bool saveClxWithContest(const QString& filename, const QList<QsoRecord>& qsos, const QString& contestFile, const QJsonObject& contestDef, const QString& stationClass = QString(), const QString& stationClassExchange = QString());
     
     QString lastError() const { return m_lastError; }
 

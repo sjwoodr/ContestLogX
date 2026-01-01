@@ -368,21 +368,21 @@ bool ContestEngine::validateQso(const QsoRecord& qso, QString& errorMsg) const
 
 bool ContestEngine::isDupe(const QsoRecord& qso, const QList<QsoRecord>& existingQsos) const
 {
-    // Use multiplier type to determine dupe scope
-    QString multType = getMultiplierType();
-    QString dupeScope;
+    // First check explicit dupeChecking definition
+    QString dupeScope = getDupeScope();
     
-    if (multType == "multsOnce") {
-        dupeScope = "overall";
-    } else if (multType == "multsPerBand") {
-        dupeScope = "per_band";
-    } else if (multType == "multsPerMode") {
-        dupeScope = "per_mode";
-    } else if (multType == "multsPerBandAndMode") {
-        dupeScope = "per_band_mode";
-    } else {
-        // Fall back to explicit dupeChecking if defined
-        dupeScope = getDupeScope();
+    // If no explicit dupe scope, use multiplier type to infer
+    if (dupeScope.isEmpty()) {
+        QString multType = getMultiplierType();
+        if (multType == "multsOnce") {
+            dupeScope = "overall";
+        } else if (multType == "multsPerBand") {
+            dupeScope = "per_band";
+        } else if (multType == "multsPerMode") {
+            dupeScope = "per_mode";
+        } else if (multType == "multsPerBandAndMode") {
+            dupeScope = "per_band_mode";
+        }
     }
     
     for (const QsoRecord& existing : existingQsos) {
@@ -415,21 +415,21 @@ bool ContestEngine::isDupe(const QsoRecord& qso, const QList<QsoRecord>& existin
 
 QString ContestEngine::getDupeReason(const QsoRecord& qso, const QList<QsoRecord>& existingQsos) const
 {
-    // Use multiplier type to determine dupe scope
-    QString multType = getMultiplierType();
-    QString dupeScope;
+    // First check explicit dupeChecking definition
+    QString dupeScope = getDupeScope();
     
-    if (multType == "multsOnce") {
-        dupeScope = "overall";
-    } else if (multType == "multsPerBand") {
-        dupeScope = "per_band";
-    } else if (multType == "multsPerMode") {
-        dupeScope = "per_mode";
-    } else if (multType == "multsPerBandAndMode") {
-        dupeScope = "per_band_mode";
-    } else {
-        // Fall back to explicit dupeChecking if defined
-        dupeScope = getDupeScope();
+    // If no explicit dupe scope, use multiplier type to infer
+    if (dupeScope.isEmpty()) {
+        QString multType = getMultiplierType();
+        if (multType == "multsOnce") {
+            dupeScope = "overall";
+        } else if (multType == "multsPerBand") {
+            dupeScope = "per_band";
+        } else if (multType == "multsPerMode") {
+            dupeScope = "per_mode";
+        } else if (multType == "multsPerBandAndMode") {
+            dupeScope = "per_band_mode";
+        }
     }
     
     for (const QsoRecord& existing : existingQsos) {
@@ -462,6 +462,31 @@ QString ContestEngine::getDupeReason(const QsoRecord& qso, const QList<QsoRecord
 
 QString ContestEngine::getDupeScope() const
 {
+    // Check root-level dupeChecking object first
+    if (m_contestDef.contains("dupeChecking")) {
+        QJsonValue dupeCheckingValue = m_contestDef["dupeChecking"];
+        if (dupeCheckingValue.isObject()) {
+            QJsonObject dupeChecking = dupeCheckingValue.toObject();
+            if (dupeChecking.contains("type")) {
+                QString typeStr = dupeChecking["type"].toString();
+                // Map dupeChecking type to dupeScope
+                if (typeStr == "perBand") {
+                    return "per_band";
+                } else if (typeStr == "perBandAndMode") {
+                    return "per_band_mode";
+                } else if (typeStr == "perMode") {
+                    return "per_mode";
+                } else if (typeStr == "overall") {
+                    return "overall";
+                }
+            }
+        } else if (dupeCheckingValue.isString()) {
+            // Handle legacy string format
+            return dupeCheckingValue.toString();
+        }
+    }
+    
+    // Fallback to scoring section (legacy)
     if (m_contestDef.contains("scoring")) {
         QJsonObject scoring = m_contestDef["scoring"].toObject();
         if (scoring.contains("dupeChecking")) {
@@ -511,6 +536,15 @@ int ContestEngine::calculatePoints(const QsoRecord& qso, const QString& myCallsi
         QJsonObject scoring = m_contestDef["scoring"].toObject();
         if (scoring.contains("points")) {
             QJsonObject points = scoring["points"].toObject();
+            
+            // Check for simple perQso scoring first
+            if (points.contains("perQso")) {
+                int pts = points["perQso"].toInt();
+                DebugLogger::instance().log("ContestEngine", 
+                    QString("  Points: %1 (perQso)").arg(pts));
+                return pts;
+            }
+            
             QString mode = qso.getMode().toUpper();
             
             // Normalize mode names
@@ -594,8 +628,35 @@ QStringList ContestEngine::getMultipliers(const QsoRecord& qso) const
     DebugLogger::instance().log("ContestEngine", 
         QString("Getting multipliers for QSO: %1").arg(qso.getCall()));
     
-    // Check if DXCC is a multiplier category
+    // Check if callsign itself is a multiplier (for contests like CWops CWT)
     QStringList multCategories = getMultiplierCategories();
+    
+    // Check multiplier sources in definition
+    bool callsignIsMult = false;
+    if (m_contestDef.contains("multipliers")) {
+        QJsonObject multipliers = m_contestDef["multipliers"].toObject();
+        if (multipliers.contains("sources")) {
+            QJsonArray sources = multipliers["sources"].toArray();
+            for (const QJsonValue& val : sources) {
+                QJsonObject source = val.toObject();
+                if (source["type"].toString() == "callsign") {
+                    callsignIsMult = true;
+                    break;
+                }
+            }
+        }
+    }
+    
+    // If callsign is the multiplier, return it
+    if (callsignIsMult) {
+        QString call = qso.getCall().toUpper();
+        mults.append(call);
+        DebugLogger::instance().log("ContestEngine", 
+            QString("  Callsign is multiplier: %1").arg(call));
+        return mults;
+    }
+    
+    // Otherwise, extract multiplier from exchange (state/province/DXCC)
     bool dxccIsMult = multCategories.contains("dxcc");
     
     // Extract multiplier from exchange (state/province)
@@ -666,7 +727,30 @@ QList<ContestEngine::MultiplierInfo> ContestEngine::getMultipliersWithCategory(c
 {
     QList<MultiplierInfo> result;
     
-    // Check if DXCC is a multiplier category
+    // Check if callsign itself is a multiplier (for contests like CWops CWT)
+    bool callsignIsMult = false;
+    if (m_contestDef.contains("multipliers")) {
+        QJsonObject multipliers = m_contestDef["multipliers"].toObject();
+        if (multipliers.contains("sources")) {
+            QJsonArray sources = multipliers["sources"].toArray();
+            for (const QJsonValue& val : sources) {
+                QJsonObject source = val.toObject();
+                if (source["type"].toString() == "callsign") {
+                    callsignIsMult = true;
+                    break;
+                }
+            }
+        }
+    }
+    
+    // If callsign is the multiplier, return it
+    if (callsignIsMult) {
+        QString call = qso.getCall().toUpper();
+        result.append({call, "callsign"});
+        return result;
+    }
+    
+    // Otherwise, check if DXCC is a multiplier category
     QStringList multCategories = getMultiplierCategories();
     bool dxccIsMult = multCategories.contains("dxcc");
     
@@ -697,6 +781,7 @@ QList<ContestEngine::MultiplierInfo> ContestEngine::getMultipliersWithCategory(c
         }
     }
     
+
     // Check if we should add DXCC entity as a multiplier
     if (dxccIsMult && m_dxccDatabase) {
         DxccEntity entity = m_dxccDatabase->lookupCallsign(qso.getCall());
@@ -1055,6 +1140,26 @@ bool ContestEngine::isValidMode(const QString& mode) const
 QStringList ContestEngine::getAllowedModes() const
 {
     QStringList modes;
+    
+    // First, check for modes at the contest level
+    if (m_contestDef.contains("contest")) {
+        QJsonObject contest = m_contestDef["contest"].toObject();
+        if (contest.contains("modes")) {
+            QJsonArray contestModes = contest["modes"].toArray();
+            for (const QJsonValue& modeVal : contestModes) {
+                QString mode = modeVal.toString().toUpper();
+                if (!modes.contains(mode)) {
+                    modes.append(mode);
+                }
+            }
+            // If we found modes at contest level, return those
+            if (!modes.isEmpty()) {
+                return modes;
+            }
+        }
+    }
+    
+    // Fall back to checking per-band modes
     if (m_contestDef.contains("bands")) {
         QJsonArray bands = m_contestDef["bands"].toArray();
         for (const QJsonValue& val : bands) {
@@ -1196,8 +1301,16 @@ QStringList ContestEngine::getStationClassOptions() const
 void ContestEngine::setStationClass(const QString& classId)
 {
     m_stationClass = classId;
+    m_stationClassExchange = QString();  // Reset exchange data when class changes
     DebugLogger::instance().log("ContestEngine", 
                      QString("Station class set to: %1").arg(classId));
+}
+
+void ContestEngine::resetStationClassState()
+{
+    m_stationClass = QString();
+    m_stationClassExchange = QString();
+    DebugLogger::instance().log("ContestEngine", "Station class state reset");
 }
 
 QString ContestEngine::getDefaultSentExchange(const QString& stationQth, int serialNumber) const
@@ -1223,11 +1336,185 @@ QString ContestEngine::getDefaultSentExchange(const QString& stationQth, int ser
                             return stationQth.toUpper();
                         } else if (type == "serial") {
                             return QString::number(serialNumber);
+                        } else if (type == "fixedValue") {
+                            return exchSent["value"].toString();
+                        } else if (type == "customInput") {
+                            // Return the custom exchange data that was set
+                            return m_stationClassExchange;
                         }
                     }
                 }
             }
         }
+    }
+    
+    return QString();
+}
+
+bool ContestEngine::stationClassNeedsInput() const
+{
+    if (m_stationClass.isEmpty()) {
+        return false;
+    }
+    
+    if (m_contestDef.contains("stationClasses")) {
+        QJsonObject stationClasses = m_contestDef["stationClasses"].toObject();
+        if (stationClasses.contains("classes")) {
+            QJsonArray classes = stationClasses["classes"].toArray();
+            for (const QJsonValue& val : classes) {
+                QJsonObject classObj = val.toObject();
+                if (classObj["id"].toString() == m_stationClass) {
+                    return classObj.value("needsInput").toBool(false);
+                }
+            }
+        }
+    }
+    
+    return false;
+}
+
+QString ContestEngine::getStationClassInputPrompt() const
+{
+    if (m_stationClass.isEmpty()) {
+        return QString();
+    }
+    
+    if (m_contestDef.contains("stationClasses")) {
+        QJsonObject stationClasses = m_contestDef["stationClasses"].toObject();
+        if (stationClasses.contains("classes")) {
+            QJsonArray classes = stationClasses["classes"].toArray();
+            for (const QJsonValue& val : classes) {
+                QJsonObject classObj = val.toObject();
+                if (classObj["id"].toString() == m_stationClass) {
+                    // Try to get combined prompt first (legacy)
+                    if (classObj.contains("inputPrompt")) {
+                        return classObj.value("inputPrompt").toString();
+                    }
+                    // Return empty for new separate prompt style
+                    return QString();
+                }
+            }
+        }
+    }
+    
+    return QString();
+}
+
+QString ContestEngine::getStationClassNamePrompt() const
+{
+    if (m_stationClass.isEmpty()) {
+        return QString();
+    }
+    
+    if (m_contestDef.contains("stationClasses")) {
+        QJsonObject stationClasses = m_contestDef["stationClasses"].toObject();
+        if (stationClasses.contains("classes")) {
+            QJsonArray classes = stationClasses["classes"].toArray();
+            for (const QJsonValue& val : classes) {
+                QJsonObject classObj = val.toObject();
+                if (classObj["id"].toString() == m_stationClass) {
+                    if (classObj.contains("inputPrompts")) {
+                        QJsonObject prompts = classObj["inputPrompts"].toObject();
+                        return prompts.value("name").toString();
+                    }
+                }
+            }
+        }
+    }
+    
+    return "Enter your first name";
+}
+
+QString ContestEngine::getStationClassIdPrompt() const
+{
+    if (m_stationClass.isEmpty()) {
+        return QString();
+    }
+    
+    if (m_contestDef.contains("stationClasses")) {
+        QJsonObject stationClasses = m_contestDef["stationClasses"].toObject();
+        if (stationClasses.contains("classes")) {
+            QJsonArray classes = stationClasses["classes"].toArray();
+            for (const QJsonValue& val : classes) {
+                QJsonObject classObj = val.toObject();
+                if (classObj["id"].toString() == m_stationClass) {
+                    if (classObj.contains("inputPrompts")) {
+                        QJsonObject prompts = classObj["inputPrompts"].toObject();
+                        return prompts.value("id").toString();
+                    }
+                }
+            }
+        }
+    }
+    
+    return "Enter ID or location";
+}
+
+QString ContestEngine::getSentExchangeName() const
+{
+    // For CWops contests, split the custom input into first name
+    // Format: "FirstName IdOrState" -> returns "FIRSTNAME"
+    if (m_stationClass == "CWOPS_MEMBER" || m_stationClass == "NON_MEMBER") {
+        // Exchange data is "FirstName IdOrState", split on space
+        QString data = getDefaultSentExchange(QString(), 0);
+        if (data.isEmpty()) {
+            return QString();
+        }
+        
+        int spacePos = data.indexOf(' ');
+        if (spacePos > 0) {
+            return data.left(spacePos).toUpper();
+        }
+        return data.toUpper();
+    } else if (m_stationClass == "CW_ACADEMY") {
+        // CW Academy: Exchange data is "FirstName", just return it
+        QString data = getDefaultSentExchange(QString(), 0);
+        if (data.isEmpty()) {
+            return QString();
+        }
+        
+        int spacePos = data.indexOf(' ');
+        if (spacePos > 0) {
+            // If there's a space, take the first part (should be the name)
+            return data.left(spacePos).toUpper();
+        }
+        // For CWA, the data might be "FirstName" without space, return it
+        return data.toUpper();
+    }
+    
+    return QString();
+}
+
+QString ContestEngine::getSentExchangeId() const
+{
+    // For CWops contests, split the custom input to get ID/State/CWA
+    // Format: "FirstName IdOrState" -> returns "IdOrState"
+    if (m_stationClass == "CWOPS_MEMBER") {
+        // Exchange data is "FirstName MemberId", split on space
+        QString data = getDefaultSentExchange(QString(), 0);
+        if (data.isEmpty()) {
+            return QString();
+        }
+        
+        int spacePos = data.indexOf(' ');
+        if (spacePos > 0 && spacePos < data.length() - 1) {
+            return data.mid(spacePos + 1).toUpper();
+        }
+        return data.toUpper();
+    } else if (m_stationClass == "CW_ACADEMY") {
+        return "CWA";
+    } else if (m_stationClass == "NON_MEMBER") {
+        // Exchange data is "FirstName QTH", split on space
+        QString data = getDefaultSentExchange(QString(), 0);
+        if (data.isEmpty()) {
+            return QString();
+        }
+        
+        int spacePos = data.indexOf(' ');
+        if (spacePos > 0 && spacePos < data.length() - 1) {
+            return data.mid(spacePos + 1).toUpper();
+        }
+        return data.toUpper();
     }
     
     return QString();

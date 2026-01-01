@@ -336,6 +336,12 @@ bool FileHandler::loadClx(const QString& filename, QList<QsoRecord>& qsos)
 
 bool FileHandler::loadClxWithContest(const QString& filename, QList<QsoRecord>& qsos, QString& contestFile, QString& stationClass, QString& contestVersion)
 {
+    QString dummy;
+    return loadClxWithContest(filename, qsos, contestFile, stationClass, contestVersion, dummy);
+}
+
+bool FileHandler::loadClxWithContest(const QString& filename, QList<QsoRecord>& qsos, QString& contestFile, QString& stationClass, QString& contestVersion, QString& stationClassExchange)
+{
     ClxFile clxFile;
     if (!clxFile.load(filename)) {
         m_lastError = clxFile.lastError();
@@ -346,6 +352,7 @@ bool FileHandler::loadClxWithContest(const QString& filename, QList<QsoRecord>& 
     contestFile = clxFile.contest().contestFile();
     stationClass = clxFile.contest().category("station_class");
     contestVersion = clxFile.contest().contestVersion();
+    stationClassExchange = clxFile.contest().category("station_class_exchange");
     return true;
 }
 
@@ -364,7 +371,7 @@ bool FileHandler::saveClx(const QString& filename, const QList<QsoRecord>& qsos)
     return true;
 }
 
-bool FileHandler::saveClxWithContest(const QString& filename, const QList<QsoRecord>& qsos, const QString& contestFile, const QJsonObject& contestDef, const QString& stationClass)
+bool FileHandler::saveClxWithContest(const QString& filename, const QList<QsoRecord>& qsos, const QString& contestFile, const QJsonObject& contestDef, const QString& stationClass, const QString& stationClassExchange)
 {
     ClxFile clxFile;
     
@@ -399,6 +406,11 @@ bool FileHandler::saveClxWithContest(const QString& filename, const QList<QsoRec
         // Add station class if provided
         if (!stationClass.isEmpty()) {
             clxFile.contest().setCategory("station_class", stationClass);
+        }
+        
+        // Add station class exchange data if provided
+        if (!stationClassExchange.isEmpty()) {
+            clxFile.contest().setCategory("station_class_exchange", stationClassExchange);
         }
     }
     

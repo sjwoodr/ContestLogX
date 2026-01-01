@@ -35,6 +35,8 @@
 #include <QLabel>
 #include <QComboBox>
 #include <QMessageBox>
+#include <QInputDialog>
+#include <QRegularExpressionValidator>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QDir>
@@ -669,11 +671,12 @@ void MainWindow::onNewLog()
                     QString contestFile;
                     QString stationClass;
                     QString loadedContestVersion;
+                    QString stationClassExchange;
                     FileHandler fileHandler;
                     
                     // We need to parse the file to get contest info - for now we'll load it separately
                     QList<QsoRecord> temp;
-                    fileHandler.loadClxWithContest(selectedFile, temp, contestFile, stationClass, loadedContestVersion);
+                    fileHandler.loadClxWithContest(selectedFile, temp, contestFile, stationClass, loadedContestVersion, stationClassExchange);
                     
                     // Load the contest definition if specified
                     if (!contestFile.isEmpty()) {
@@ -682,6 +685,16 @@ void MainWindow::onNewLog()
                             contestPath = "contests/" + contestFile;
                         }
                         if (QFile::exists(contestPath)) {
+                            // Set station class and exchange data BEFORE loading contest definition
+                            if (!stationClass.isEmpty()) {
+                                m_contestEngine->setStationClass(stationClass);
+                                DebugLogger::instance().log("MainWindow", QString("(onNewLog) Set station class: %1").arg(stationClass));
+                            }
+                            if (!stationClassExchange.isEmpty()) {
+                                m_contestEngine->setStationClassExchangeData(stationClassExchange);
+                                DebugLogger::instance().log("MainWindow", QString("(onNewLog) Set station class exchange: %1").arg(stationClassExchange));
+                            }
+                            
                             loadContestDefinition(contestPath);
                             
                             // Check if contest version has changed
@@ -705,10 +718,6 @@ void MainWindow::onNewLog()
                                     progressDialog->show();
                                     QApplication::processEvents();
                                 }
-                            }
-                            
-                            if (!stationClass.isEmpty()) {
-                                m_contestEngine->setStationClass(stationClass);
                             }
                         }
                     }
@@ -814,10 +823,11 @@ void MainWindow::onOpenLog()
             QString contestFile;
             QString stationClass;
             QString loadedContestVersion;
+            QString stationClassExchange;
             FileHandler fileHandler;
             
             QList<QsoRecord> temp;
-            fileHandler.loadClxWithContest(fileName, temp, contestFile, stationClass, loadedContestVersion);
+            fileHandler.loadClxWithContest(fileName, temp, contestFile, stationClass, loadedContestVersion, stationClassExchange);
             
             // Load the contest definition if specified
             if (!contestFile.isEmpty()) {
@@ -853,6 +863,10 @@ void MainWindow::onOpenLog()
                     
                     if (!stationClass.isEmpty()) {
                         m_contestEngine->setStationClass(stationClass);
+                    }
+                    
+                    if (!stationClassExchange.isEmpty()) {
+                        m_contestEngine->setStationClassExchangeData(stationClassExchange);
                     }
                 }
             }
@@ -1016,10 +1030,14 @@ void MainWindow::loadLogFile(const QString& filename)
             QString contestFile;
             QString stationClass;
             QString loadedContestVersion;
+            QString stationClassExchange;
             FileHandler fileHandler;
             
             QList<QsoRecord> temp;
-            fileHandler.loadClxWithContest(filename, temp, contestFile, stationClass, loadedContestVersion);
+            fileHandler.loadClxWithContest(filename, temp, contestFile, stationClass, loadedContestVersion, stationClassExchange);
+            
+            DebugLogger::instance().log("MainWindow", 
+                QString("Loaded from CLX: contestFile='%1' stationClass='%2' exchange='%3'").arg(contestFile, stationClass, stationClassExchange));
             
             // Load the contest definition if specified
             if (!contestFile.isEmpty()) {
@@ -1028,7 +1046,7 @@ void MainWindow::loadLogFile(const QString& filename)
                     contestPath = "contests/" + contestFile;
                 }
                 if (QFile::exists(contestPath)) {
-                    // Set station class BEFORE loading contest definition to prevent duplicate dialog
+                    // Set station class and exchange data BEFORE loading contest definition to prevent duplicate dialog
                     if (!stationClass.isEmpty()) {
                         // Need to create engine first if needed
                         if (!m_contestEngine) {
@@ -1037,6 +1055,16 @@ void MainWindow::loadLogFile(const QString& filename)
                             m_contestEngine->setDxccDatabase(m_dxccDatabase);
                         }
                         m_contestEngine->setStationClass(stationClass);
+                        DebugLogger::instance().log("MainWindow", QString("Set station class in loadLogFile: %1").arg(stationClass));
+                    }
+                    
+                    if (!stationClassExchange.isEmpty()) {
+                        if (!m_contestEngine) {
+                            m_contestEngine = new ContestEngine(this);
+                            m_contestEngine->setDxccDatabase(m_dxccDatabase);
+                        }
+                        m_contestEngine->setStationClassExchangeData(stationClassExchange);
+                        DebugLogger::instance().log("MainWindow", QString("Set station class exchange in loadLogFile: %1").arg(stationClassExchange));
                     }
                     
                     loadContestDefinition(contestPath);
@@ -1109,7 +1137,8 @@ void MainWindow::onSaveLog()
     // Use contest-aware save for .clx files
     if (m_currentFile.endsWith(".clx", Qt::CaseInsensitive) && !m_contestDefinition.isEmpty()) {
         QString stationClass = m_contestEngine ? m_contestEngine->getStationClass() : QString();
-        success = fileHandler.saveClxWithContest(m_currentFile, m_qsoModel->getQsos(), m_contestFile, m_contestDefinition, stationClass);
+        QString stationClassExchange = m_contestEngine ? m_contestEngine->getStationClassExchangeData() : QString();
+        success = fileHandler.saveClxWithContest(m_currentFile, m_qsoModel->getQsos(), m_contestFile, m_contestDefinition, stationClass, stationClassExchange);
     } else {
         success = fileHandler.save(m_currentFile, m_qsoModel->getQsos());
     }
@@ -1137,9 +1166,12 @@ void MainWindow::onSaveLogAs()
     if (fileName.isEmpty())
         return;
     
-    // Auto-append .clx if no extension provided (default format)
-    QFileInfo fileInfo(fileName);
-    if (fileInfo.suffix().isEmpty()) {
+    // Ensure .clx extension (the default format we save in)
+    if (!fileName.endsWith(".clx", Qt::CaseInsensitive) &&
+        !fileName.endsWith(".csv", Qt::CaseInsensitive) &&
+        !fileName.endsWith(".adi", Qt::CaseInsensitive) &&
+        !fileName.endsWith(".adif", Qt::CaseInsensitive)) {
+        // No recognized extension, add .clx
         fileName += ".clx";
     }
     
@@ -1198,8 +1230,52 @@ void MainWindow::onCallChanged(const QString& text)
         int cursorPos = m_callEdit->cursorPosition();
         m_callEdit->setText(text.toUpper());
         m_callEdit->setCursorPosition(cursorPos);
+        return;  // Return early to avoid processing twice
     }
-    // TODO: Implement call lookup, dupe checking
+    
+    // Look up previous QSO with this callsign and pre-fill exchange
+    QString callsign = text.trimmed().toUpper();
+    if (callsign.isEmpty()) {
+        return;
+    }
+    
+    // Search for the most recent QSO with this callsign
+    QList<QsoRecord> allQsos = m_qsoModel->getQsos();
+    QsoRecord lastQso;
+    bool found = false;
+    
+    // Search backwards to find the most recent QSO with this call
+    for (int i = allQsos.count() - 1; i >= 0; --i) {
+        if (allQsos[i].getCall().toUpper() == callsign) {
+            lastQso = allQsos[i];
+            found = true;
+            break;
+        }
+    }
+    
+    if (found) {
+        // Pre-fill exchange fields with values from last QSO
+        for (auto it = m_exchangeFields.begin(); it != m_exchangeFields.end(); ++it) {
+            QString fieldName = it.key();
+            QLineEdit* field = it.value();
+            
+            // For NAMEr and EXCHr fields, use the received values from last QSO
+            if (fieldName == "NAMEr") {
+                QString lastName = lastQso.getExchangeField("NAMEr");
+                if (!lastName.isEmpty()) {
+                    field->setText(lastName.toUpper());
+                }
+            } else if (fieldName == "EXCHr") {
+                QString lastExch = lastQso.getExchangeField("EXCHr");
+                if (!lastExch.isEmpty()) {
+                    field->setText(lastExch.toUpper());
+                }
+            }
+        }
+        
+        DebugLogger::instance().log("MainWindow", 
+            QString("Pre-filled exchange from last QSO with %1").arg(callsign));
+    }
 }
 
 void MainWindow::onModeChanged(int index)
@@ -1250,6 +1326,17 @@ void MainWindow::onLogQso()
     qso.setDateTime(QDateTime::currentDateTimeUtc());
     qso.setSerial(m_qsoModel->count() + 1);
     
+    // Validate that the mode is allowed for this contest
+    QStringList allowedModes = m_contestEngine->getAllowedModes();
+    if (!allowedModes.isEmpty() && !allowedModes.contains(m_lastMode.toUpper())) {
+        QString errorMsg = QString("Invalid mode '%1'. This contest only allows: %2")
+            .arg(m_lastMode)
+            .arg(allowedModes.join(", "));
+        m_statusLabel->setText(errorMsg);
+        DebugLogger::instance().log("MainWindow", errorMsg);
+        return;
+    }
+    
     DebugLogger::instance().log("MainWindow", 
         QString("QSO frequency set to: %1 kHz (m_lastFrequency=%2), band=%3").arg(qso.getFrequency()).arg(m_lastFrequency, 0, 'f', 1).arg(band));
     
@@ -1258,16 +1345,38 @@ void MainWindow::onLogQso()
                       (m_lastMode.contains("DIGI")) ? "+0" : "59";
     qso.setRstSent(rstSent);
     
-    // Get exchange sent from station settings and contest class
+    // Get exchange sent from contest class and station settings
     QString stationQth = Settings::instance().getState();
     int nextSerial = m_qsoModel->count() + 1;
-    QString exchSent = m_contestEngine->getDefaultSentExchange(stationQth, nextSerial);
-    qso.setExchangeSent(exchSent);
+    
+    // Try to get split NAME and EXCH from contest engine
+    QString sentName = m_contestEngine->getSentExchangeName();
+    QString sentExch = m_contestEngine->getSentExchangeId();
+    
+    // If we have split fields, set them individually
+    if (!sentName.isEmpty() || !sentExch.isEmpty()) {
+        // Store the split exchange in the QSO record using NAMEs and EXCHs fields
+        qso.setExchangeField("NAMEs", sentName);
+        qso.setExchangeField("EXCHs", sentExch);
+        
+        DebugLogger::instance().log("MainWindow", 
+            QString("Exchange sent - NAMEs: '%1', EXCHs: '%2'")
+            .arg(sentName).arg(sentExch));
+    } else {
+        // Fallback to the old method
+        QString exchSent = m_contestEngine->getDefaultSentExchange(stationQth, nextSerial);
+        qso.setExchangeSent(exchSent);
+        DebugLogger::instance().log("MainWindow", 
+            QString("Exchange sent (legacy): '%1'").arg(exchSent));
+    }
     
     // Set exchange fields from dynamic inputs (received exchange)
     if (!m_exchangeFields.isEmpty()) {
         DebugLogger::instance().log("MainWindow", 
             QString("Processing %1 exchange fields").arg(m_exchangeFields.size()));
+        
+        QString receivedName;
+        QString receivedExch;
         
         for (auto it = m_exchangeFields.begin(); it != m_exchangeFields.end(); ++it) {
             QString fieldName = it.key();
@@ -1279,16 +1388,21 @@ void MainWindow::onLogQso()
             if (fieldName == "CALL") {
                 // Already handled above
                 continue;
+            } else if (fieldName == "NAMEr") {
+                // Received name field
+                receivedName = value;
+            } else if (fieldName == "EXCHr") {
+                // Received exchange field (member ID / CWA / state)
+                receivedExch = value;
             } else if (fieldName == "RSTr") {
+                // Optional RST received
                 DebugLogger::instance().log("MainWindow", 
-                    QString("Setting RST Received: '%1' (isEmpty=%2)").arg(value).arg(value.isEmpty()));
-                if (value.isEmpty()) {
-                    QMessageBox::warning(this, "Invalid QSO", "RST Received cannot be empty");
-                    return;
+                    QString("Setting RST Received: '%1'").arg(value));
+                if (!value.isEmpty()) {
+                    qso.setRstReceived(value);
                 }
-                qso.setRstReceived(value);
-                DebugLogger::instance().log("MainWindow", "RST Received set successfully");
             } else if (fieldName.startsWith("EXCH")) {
+                // Legacy exchange field name
                 DebugLogger::instance().log("MainWindow", 
                     QString("Setting Exchange Received: '%1'").arg(value));
                 qso.setExchangeReceived(value);
@@ -1296,6 +1410,27 @@ void MainWindow::onLogQso()
                 // Store as generic exchange field
                 qso.setExchangeField(fieldName, value);
             }
+        }
+        
+        // Store split NAME and EXCH fields separately in the QSO record
+        if (!receivedName.isEmpty()) {
+            qso.setExchangeField("NAMEr", receivedName);
+        }
+        if (!receivedExch.isEmpty()) {
+            qso.setExchangeField("EXCHr", receivedExch);
+        }
+        
+        DebugLogger::instance().log("MainWindow", 
+            QString("Exchange received - NAMEr: '%1', EXCHr: '%2'")
+            .arg(receivedName).arg(receivedExch));
+        
+        // Set default RST received if not provided
+        if (qso.getRstReceived().isEmpty()) {
+            QString defaultRst = (m_lastMode == "CW" || m_lastMode == "RTTY") ? "599" : 
+                                (m_lastMode.contains("DIGI")) ? "+0" : "59";
+            qso.setRstReceived(defaultRst);
+            DebugLogger::instance().log("MainWindow", 
+                QString("Set default RST received: %1").arg(defaultRst));
         }
     }
     
@@ -1993,6 +2128,26 @@ bool MainWindow::loadContestDefinition(const QString& filePath)
 {
     DebugLogger::instance().log("MainWindow", QString("loadContestDefinition called with: %1").arg(filePath));
     
+    // Save current station class state before reset (it may have been loaded from a file)
+    QString savedStationClass = m_contestEngine->getStationClass();
+    QString savedStationClassExchange = m_contestEngine->getStationClassExchangeData();
+    
+    DebugLogger::instance().log("MainWindow", 
+        QString("Before reset: stationClass='%1' exchange='%2'").arg(savedStationClass, savedStationClassExchange));
+    
+    // Reset contest engine state for new log
+    m_contestEngine->resetStationClassState();
+    
+    // Restore station class state if it was saved from file
+    if (!savedStationClass.isEmpty()) {
+        m_contestEngine->setStationClass(savedStationClass);
+        DebugLogger::instance().log("MainWindow", QString("Restored station class: %1").arg(savedStationClass));
+    }
+    if (!savedStationClassExchange.isEmpty()) {
+        m_contestEngine->setStationClassExchangeData(savedStationClassExchange);
+        DebugLogger::instance().log("MainWindow", QString("Restored station class exchange: %1").arg(savedStationClassExchange));
+    }
+    
     QFile file(filePath);
     if (!file.open(QIODevice::ReadOnly)) {
         DebugLogger::instance().log("MainWindow", 
@@ -2037,6 +2192,92 @@ bool MainWindow::loadContestDefinition(const QString& filePath)
                 m_contestEngine->setStationClass(selectedClass);
                 DebugLogger::instance().log("MainWindow", 
                     QString("Station class selected: %1").arg(selectedClass));
+                
+                // Check if this class needs additional input and we don't have saved data
+                if (m_contestEngine->stationClassNeedsInput() && m_contestEngine->getStationClassExchangeData().isEmpty()) {
+                    // Prompt for name and ID separately
+                    QString namePrompt = m_contestEngine->getStationClassNamePrompt();
+                    QString idPrompt = m_contestEngine->getStationClassIdPrompt();
+                    
+                    // Create custom dialog for name with uppercase
+                    QInputDialog *nameDialog = new QInputDialog(this);
+                    nameDialog->setWindowTitle("Station Information");
+                    nameDialog->setLabelText(namePrompt.isEmpty() ? "Enter your first name:" : namePrompt);
+                    nameDialog->setInputMode(QInputDialog::TextInput);
+                    
+                    QLineEdit *nameEdit = nameDialog->findChild<QLineEdit*>();
+                    if (nameEdit) {
+                        connect(nameEdit, &QLineEdit::textChanged, [nameEdit](const QString& text) {
+                            if (text != text.toUpper()) {
+                                int cursorPos = nameEdit->cursorPosition();
+                                nameEdit->blockSignals(true);
+                                nameEdit->setText(text.toUpper());
+                                nameEdit->setCursorPosition(cursorPos);
+                                nameEdit->blockSignals(false);
+                            }
+                        });
+                    }
+                    
+                    bool okName = (nameDialog->exec() == QDialog::Accepted);
+                    QString name = nameDialog->textValue();
+                    
+                    if (!okName || name.isEmpty()) {
+                        DebugLogger::instance().log("MainWindow", "Station class name input cancelled");
+                        m_contestDefinition = QJsonObject();
+                        nameDialog->deleteLater();
+                        return false;
+                    }
+                    nameDialog->deleteLater();
+                    
+                    // Create custom dialog for ID with uppercase
+                    QInputDialog *idDialog = new QInputDialog(this);
+                    idDialog->setWindowTitle("Station Information");
+                    idDialog->setLabelText(idPrompt.isEmpty() ? "Enter ID or location:" : idPrompt);
+                    idDialog->setInputMode(QInputDialog::TextInput);
+                    
+                    // Pre-fill CWA if this is CW Academy class
+                    if (m_contestEngine->getStationClass() == "CW_ACADEMY") {
+                        idDialog->setTextValue("CWA");
+                    }
+                    
+                    QLineEdit *idEdit = idDialog->findChild<QLineEdit*>();
+                    if (idEdit) {
+                        // For CWOPS_MEMBER, only allow digits
+                        if (m_contestEngine->getStationClass() == "CWOPS_MEMBER") {
+                            idEdit->setValidator(new QRegularExpressionValidator(QRegularExpression("^[0-9]*$"), idEdit));
+                        }
+                        
+                        connect(idEdit, &QLineEdit::textChanged, [idEdit, this](const QString& text) {
+                            // For CWA, don't convert to uppercase (it's already CWA)
+                            if (m_contestEngine->getStationClass() != "CW_ACADEMY") {
+                                if (text != text.toUpper()) {
+                                    int cursorPos = idEdit->cursorPosition();
+                                    idEdit->blockSignals(true);
+                                    idEdit->setText(text.toUpper());
+                                    idEdit->setCursorPosition(cursorPos);
+                                    idEdit->blockSignals(false);
+                                }
+                            }
+                        });
+                    }
+                    
+                    bool okId = (idDialog->exec() == QDialog::Accepted);
+                    QString id = idDialog->textValue();
+                    
+                    if (!okId || id.isEmpty()) {
+                        DebugLogger::instance().log("MainWindow", "Station class ID input cancelled");
+                        m_contestDefinition = QJsonObject();
+                        idDialog->deleteLater();
+                        return false;
+                    }
+                    idDialog->deleteLater();
+                    
+                    // Combine name and ID with space (ensure uppercase)
+                    QString combinedExchange = name.toUpper() + " " + id.toUpper();
+                    m_contestEngine->setStationClassExchangeData(combinedExchange);
+                    DebugLogger::instance().log("MainWindow", 
+                        QString("Station class exchange data set - Name: %1, ID: %2 (combined: %3)").arg(name, id, combinedExchange));
+                }
             } else {
                 DebugLogger::instance().log("MainWindow", "Station class selection cancelled");
                 m_contestDefinition = QJsonObject();  // Clear on cancellation
@@ -2045,6 +2286,13 @@ bool MainWindow::loadContestDefinition(const QString& filePath)
         } else {
             DebugLogger::instance().log("MainWindow", 
                 QString("Using existing station class from loaded file: %1").arg(currentClass));
+            
+            // If we have saved exchange data, log it
+            QString savedExchange = m_contestEngine->getStationClassExchangeData();
+            if (!savedExchange.isEmpty()) {
+                DebugLogger::instance().log("MainWindow", 
+                    QString("Using saved exchange data: %1").arg(savedExchange));
+            }
         }
     }
     
@@ -2092,14 +2340,31 @@ bool MainWindow::loadContestDefinition(const QString& filePath)
 
 void MainWindow::updateLogHeaders()
 {
-    // Always include standard required fields
     QStringList fullHeaders;
-    fullHeaders << "DATE" << "TIME" << "CALL" << "FREQ" << "MODE" 
-                << "RSTs" << "RSTr" << "EXCHs" << "EXCHr" 
-                << "Nr" << "Dupe" << "M" << "C" << "P" << "COMMENT";
     
-    // If contest is loaded, we might add contest-specific columns later
-    // but for now all contests use the standard format
+    // Try to get columns from contest definition first
+    if (!m_contestDefinition.isEmpty() && m_contestDefinition.contains("ui")) {
+        QJsonObject ui = m_contestDefinition["ui"].toObject();
+        if (ui.contains("logColumns")) {
+            QJsonArray columns = ui["logColumns"].toArray();
+            for (const QJsonValue& val : columns) {
+                fullHeaders.append(val.toString());
+            }
+            
+            DebugLogger::instance().log("MainWindow", 
+                QString("Using contest-specific log columns: %1").arg(fullHeaders.join(", ")));
+        }
+    }
+    
+    // Fall back to default columns if not found in contest definition
+    if (fullHeaders.isEmpty()) {
+        fullHeaders << "DATE" << "TIME" << "CALL" << "FREQ" << "MODE" 
+                   << "RSTs" << "RSTr" << "EXCHs" << "EXCHr" 
+                   << "Nr" << "Dupe" << "M" << "C" << "P" << "COMMENT";
+        
+        DebugLogger::instance().log("MainWindow", 
+            QString("Using default log columns: %1").arg(fullHeaders.join(", ")));
+    }
     
     // Update the model
     m_qsoModel->setColumnHeaders(fullHeaders);
@@ -2642,6 +2907,63 @@ void MainWindow::onCreateSummarySheet()
     
     QString multType = m_contestEngine->getMultiplierType();
     QStringList multCategories = m_contestEngine->getMultiplierCategories();
+    
+    // Check if callsigns are multipliers
+    bool callsignIsMult = false;
+    if (m_contestDefinition.contains("multipliers")) {
+        QJsonObject multipliers = m_contestDefinition["multipliers"].toObject();
+        if (multipliers.contains("sources")) {
+            QJsonArray sources = multipliers["sources"].toArray();
+            for (const QJsonValue& val : sources) {
+                QJsonObject source = val.toObject();
+                if (source["type"].toString() == "callsign") {
+                    callsignIsMult = true;
+                    break;
+                }
+            }
+        }
+    }
+    
+    // Handle callsign multipliers (e.g., CWops CWT)
+    if (callsignIsMult) {
+        QSet<QString> workedCalls;
+        QSet<QString> countedCalls;
+        
+        for (int i = 0; i < m_qsoModel->rowCount(); ++i) {
+            QsoRecord qso = m_qsoModel->getQso(i);
+            QString call = qso.getCall().toUpper();
+            workedCalls.insert(call);
+            if (!qso.isDupe()) {
+                countedCalls.insert(call);
+            }
+        }
+        
+        if (!workedCalls.isEmpty()) {
+            out << "Callsigns (Worked: " << countedCalls.size() << ")\n";
+            
+            QStringList sortedCalls = QStringList(workedCalls.begin(), workedCalls.end());
+            std::sort(sortedCalls.begin(), sortedCalls.end());
+            
+            // Format with ~80 chars per line
+            QString line;
+            for (const QString& call : sortedCalls) {
+                QString mark = countedCalls.contains(call) ? "*" : " ";
+                QString entry = QString("%1%2 ").arg(mark).arg(call);
+                
+                if ((line + entry).length() > 80 && !line.isEmpty()) {
+                    out << line << "\n";
+                    line.clear();
+                }
+                line += entry;
+            }
+            
+            // Write remaining line
+            if (!line.isEmpty()) {
+                out << line << "\n";
+            }
+            out << "\n";
+        }
+    }
     
     // Process each multiplier category using a unified approach
     for (const QString& category : multCategories) {

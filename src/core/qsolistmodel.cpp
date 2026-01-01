@@ -58,6 +58,10 @@ QVariant QsoListModel::data(const QModelIndex &index, int role) const
             return qso.getRstSent();
         } else if (header == "RSTR") {
             return qso.getRstReceived();
+        } else if (header == "NAMES") {
+            return qso.getExchangeField("NAMEs");
+        } else if (header == "NAMER") {
+            return qso.getExchangeField("NAMEr");
         } else if (header == "EXCHS") {
             return qso.getExchangeSent();
         } else if (header == "EXCHR") {
@@ -70,7 +74,7 @@ QVariant QsoListModel::data(const QModelIndex &index, int role) const
             return qso.getMultiplierCount();
         } else if (header == "C") {
             return qso.getDxccCount();
-        } else if (header == "P") {
+        } else if (header == "P" || header == "POINTS") {
             return qso.getPoints();
         } else if (header == "COMMENT") {
             return qso.getComment();

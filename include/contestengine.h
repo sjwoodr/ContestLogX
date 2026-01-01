@@ -113,6 +113,15 @@ public:
     void setStationClass(const QString& classId);
     QString getStationClass() const { return m_stationClass; }
     QString getDefaultSentExchange(const QString& stationQth, int serialNumber) const;
+    void setStationClassExchangeData(const QString& data) { m_stationClassExchange = data; }
+    QString getStationClassExchangeData() const { return m_stationClassExchange; }
+    QString getSentExchangeName() const;
+    QString getSentExchangeId() const;
+    bool stationClassNeedsInput() const;
+    QString getStationClassInputPrompt() const;
+    QString getStationClassNamePrompt() const;
+    QString getStationClassIdPrompt() const;
+    void resetStationClassState();  // Reset station class and exchange data
 
 private:
     bool validateSerialNumber(const QString& value) const;
@@ -129,6 +138,7 @@ private:
     QSet<QString> m_validProvinces;
     QSet<QString> m_validMultipliers;
     QString m_stationClass;
+    QString m_stationClassExchange;
     DxccDatabase* m_dxccDatabase;
     ContestScore m_runningScore;
 };

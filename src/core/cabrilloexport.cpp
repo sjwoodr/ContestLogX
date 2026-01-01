@@ -148,10 +148,41 @@ QString CabrilloExport::generateQsoLine(const QsoRecord& qso, const QString& qso
     line.replace("{time}", dt.toString("HHmm"));
     line.replace("{mycall}", m_myCall);  // My station's callsign
     line.replace("{rst_sent}", qso.getRstSent());
-    line.replace("{exch_sent}", qso.getExchangeSent());
+    
+    // Handle exchange fields - support both combined and split formats
+    QString nameSent = qso.getExchangeField("NAMEs");
+    QString exchSent = qso.getExchangeField("EXCHs");
+    
+    if (!nameSent.isEmpty() && !exchSent.isEmpty()) {
+        // Split fields available - use them
+        line.replace("{name_sent}", nameSent);
+        line.replace("{exch_sent}", exchSent);
+        // Also support combined format for legacy templates
+        line.replace("{exch_sent}", nameSent + " " + exchSent);
+    } else {
+        // Fall back to combined exchange
+        line.replace("{exch_sent}", qso.getExchangeSent());
+        line.replace("{name_sent}", "");
+    }
+    
     line.replace("{call}", qso.getCall());  // The other station's callsign
     line.replace("{rst_rcvd}", qso.getRstReceived());
-    line.replace("{exch_rcvd}", qso.getExchangeReceived());
+    
+    // Handle received exchange fields
+    QString nameRcvd = qso.getExchangeField("NAMEr");
+    QString exchRcvd = qso.getExchangeField("EXCHr");
+    
+    if (!nameRcvd.isEmpty() && !exchRcvd.isEmpty()) {
+        // Split fields available - use them
+        line.replace("{name_rcvd}", nameRcvd);
+        line.replace("{exch_rcvd}", exchRcvd);
+        // Also support combined format for legacy templates
+        line.replace("{exch_rcvd}", nameRcvd + " " + exchRcvd);
+    } else {
+        // Fall back to combined exchange
+        line.replace("{exch_rcvd}", qso.getExchangeReceived());
+        line.replace("{name_rcvd}", "");
+    }
     
     return line;
 }

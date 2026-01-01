@@ -1,0 +1,256 @@
+{
+  "contest": {
+    "name": "CWops CWT (CW Test)",
+    "abbreviation": "CWOPS-CWT",
+    "version": "1.0.0",
+    "sponsor": "CWops",
+    "startDate": "Every Wednesday at 1300 – 1400z and 1900 – 2000z, and every Thursday at 0300 – 0400z and  0700 – 0800z.",
+    "duration": 2,
+    "offTimeGapMinutes": 0,
+    "modes": ["CW"],
+    "bands": ["10m", "15m", "20m", "40m", "80m", "160m"],
+    "url": "https://www.cwops.org/cwt.html",
+    "categories": {
+      "entryClass": ["CWops Member", "CW Academy Student", "Non-Member"],
+      "stations": ["SINGLE_OP"]
+    }
+  },
+  "frequencies": {
+    "160m": {
+      "start": 1800,
+      "end": 2000,
+      "cw": {"start": 1800, "end": 2000}
+    },
+    "80m": {
+      "start": 3500,
+      "end": 3800,
+      "cw": {"start": 3500, "end": 3800}
+    },
+    "40m": {
+      "start": 7000,
+      "end": 7300,
+      "cw": {"start": 7000, "end": 7125}
+    },
+    "20m": {
+      "start": 14000,
+      "end": 14350,
+      "cw": {"start": 14000, "end": 14150}
+    },
+    "15m": {
+      "start": 21000,
+      "end": 21450,
+      "cw": {"start": 21000, "end": 21200}
+    },
+    "10m": {
+      "start": 28000,
+      "end": 29700,
+      "cw": {"start": 28000, "end": 28300}
+    }
+  },
+  "stationClasses": {
+    "enabled": true,
+    "prompt": "What is your entry class?",
+    "classes": [
+      {
+        "id": "CWOPS_MEMBER",
+        "name": "CWops Member",
+        "description": "Send First Name and CWops Member Number",
+        "needsInput": true,
+        "inputPrompts": {
+          "name": "Enter your first name",
+          "id": "Enter your CWops member number"
+        },
+        "exchangeSent": {
+          "type": "customInput",
+          "field": "memberExchange"
+        }
+      },
+      {
+        "id": "CW_ACADEMY",
+        "name": "CW Academy Student",
+        "description": "Send First Name and 'CWA'",
+        "needsInput": true,
+        "inputPrompts": {
+          "name": "Enter your first name",
+          "id": "CW Academy (will send 'CWA')"
+        },
+        "exchangeSent": {
+          "type": "fixedValue",
+          "value": "CWA"
+        }
+      },
+      {
+        "id": "NON_MEMBER",
+        "name": "Non-Member",
+        "description": "Send First Name and State/Province/DX Country",
+        "needsInput": true,
+        "inputPrompts": {
+          "name": "Enter your first name",
+          "id": "Enter your state/province or DX country prefix"
+        },
+        "exchangeSent": {
+          "type": "customInput",
+          "field": "nonMemberExchange"
+        }
+      }
+    ]
+  },
+  "exchangeFields": {
+    "sent": [
+      {
+        "name": "RST",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report"
+      },
+      {
+        "name": "NAMEs",
+        "type": "string",
+        "required": true,
+        "description": "First Name Sent"
+      },
+      {
+        "name": "EXCHs",
+        "type": "string",
+        "required": true,
+        "description": "Member ID / CWA / State/Province/DX Prefix Sent"
+      }
+    ],
+    "received": [
+      {
+        "name": "RST",
+        "type": "rst",
+        "required": false,
+        "validation": "^[1-5][1-9][1-9]?$",
+        "description": "Signal report (optional for export)"
+      },
+      {
+        "name": "NAMEr",
+        "type": "string",
+        "required": true,
+        "description": "First Name Received"
+      },
+      {
+        "name": "EXCHr",
+        "type": "string",
+        "required": true,
+        "description": "Member ID / CWA / State/Province/DX Prefix Received"
+      }
+    ]
+  },
+  "qsoFields": [
+    {
+      "name": "Date",
+      "column": "DATE",
+      "type": "date",
+      "format": "yyyy-MM-dd",
+      "required": true
+    },
+    {
+      "name": "Time",
+      "column": "TIME",
+      "type": "time",
+      "format": "HH:mm:ss",
+      "required": true
+    },
+    {
+      "name": "Callsign",
+      "column": "CALL",
+      "type": "string",
+      "required": true,
+      "uppercase": true
+    },
+    {
+      "name": "Frequency",
+      "column": "FREQ",
+      "type": "number",
+      "unit": "kHz",
+      "required": true
+    },
+    {
+      "name": "Mode",
+      "column": "MODE",
+      "type": "enum",
+      "values": ["CW"],
+      "required": true,
+      "default": "CW"
+    },
+    {
+      "name": "RST Sent",
+      "column": "RST_SENT",
+      "type": "string",
+      "required": true,
+      "default": "579"
+    },
+    {
+      "name": "RST Received",
+      "column": "RST_RCV",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "Exchange Sent",
+      "column": "EXF",
+      "type": "string",
+      "required": true,
+      "description": "First Name + ID/CWA/QTH sent"
+    },
+    {
+      "name": "Exchange Received",
+      "column": "EXC",
+      "type": "string",
+      "required": true,
+      "description": "First Name + ID/CWA/QTH received"
+    },
+    {
+      "name": "Points",
+      "column": "POINTS",
+      "type": "number",
+      "calculated": true
+    }
+  ],
+  "multipliers": {
+    "type": "multsOnce",
+    "sources": [
+      {
+        "type": "callsign",
+        "description": "Each unique callsign worked counts as 1 multiplier"
+      }
+    ]
+  },
+  "scoring": {
+    "points": {
+      "perQso": 1
+    },
+    "finalScore": {
+      "type": "pointsTimesMultipliers",
+      "description": "1 point per QSO, multiplied by unique callsigns"
+    }
+  },
+  "dupeChecking": {
+    "type": "perBand",
+    "description": "Station may be worked once per band"
+  },
+  "logging": {
+    "requiredFields": ["date", "time", "frequency", "mode", "callsign", "rstSent", "rstReceived", "exchangeSent", "exchangeReceived"],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "CWOPS-CWT",
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {name_sent} {exch_sent} {call} {name_rcvd} {exch_rcvd}",
+      "requiredHeaders": ["CONTEST", "CALLSIGN", "CATEGORY-ASSISTED", "CATEGORY-BAND", "CATEGORY-MODE", "CATEGORY-OPERATOR", "CATEGORY-POWER", "CATEGORY-TRANSMITTER", "CLAIMED-SCORE", "CREATED-BY", "NAME", "EMAIL", "OPERATORS", "SOAPBOX"]
+    }
+  },
+  "validation": {
+    "minimumQSOs": 1,
+    "maxOperatingTime": 2,
+    "offTimesRequired": false
+  },
+  "ui": {
+    "logColumns": ["DATE", "TIME", "CALL", "FREQ", "MODE", "RSTs", "RSTr", "NAMEs", "EXCHs", "NAMEr", "EXCHr", "P", "COMMENT"],
+    "entryFields": ["CALL", "NAMEr", "EXCHr"],
+    "bandMap": {
+      "enabled": true,
+      "bands": ["160m", "80m", "40m", "20m", "15m", "10m"]
+    }
+  }
+}
