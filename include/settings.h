@@ -153,6 +153,9 @@ public:
     bool getDxccDatabaseDebugEnabled() const;
     void setDxccDatabaseDebugEnabled(bool enabled);
     
+    bool getScpDebugEnabled() const;
+    void setScpDebugEnabled(bool enabled);
+    
     // Splitter states (as byte arrays)
     QByteArray getMainSplitterState() const;
     void setMainSplitterState(const QByteArray& state);

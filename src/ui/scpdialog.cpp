@@ -4,6 +4,7 @@
  */
 
 #include "scpdialog.h"
+#include "scpwidget.h"
 #include "supercheckpartial.h"
 #include "settings.h"
 #include "debuglogger.h"
@@ -13,8 +14,8 @@
 #include <QFile>
 #include <QMessageBox>
 
-ScpDialog::ScpDialog(QWidget *parent)
-    : QDialog(parent)
+ScpDialog::ScpDialog(ScpWidget *scpWidget, QWidget *parent)
+    : QDialog(parent), m_scpWidget(scpWidget)
 {
     setupUi();
     updateDatabaseInfo();
@@ -101,6 +102,12 @@ void ScpDialog::onDownloadClicked()
         
         // Reload the database
         updateDatabaseInfo();
+        
+        // Update the SCP widget title since the database is now available
+        if (m_scpWidget) {
+            m_scpWidget->updateTitle();
+        }
+        
         QMessageBox::information(this, "Success", 
             QString("SCP database downloaded successfully!\n%1 callsigns loaded")
             .arg(SuperCheckPartial::instance().getDatabaseSize()));
@@ -119,6 +126,10 @@ void ScpDialog::onScpToggled(bool checked)
     Settings::instance().save();
     DebugLogger::instance().log("ScpDialog", 
         QString("SCP %1").arg(checked ? "enabled" : "disabled"));
+    
+    if (m_scpWidget) {
+        m_scpWidget->updateTitle();
+    }
 }
 
 bool ScpDialog::isScpEnabled() const

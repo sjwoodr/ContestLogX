@@ -7,6 +7,7 @@
 #include "scpwidget.h"
 #include "supercheckpartial.h"
 #include "debuglogger.h"
+#include "settings.h"
 #include <QKeyEvent>
 #include <QTimer>
 
@@ -49,7 +50,9 @@ void ScpLineEdit::setScpEnabled(bool enabled)
 
 void ScpLineEdit::performScpSearch()
 {
-    if (!m_scpEnabled || !m_scpWidget) {
+    // Always check the current setting from Settings
+    bool scpEnabled = Settings::instance().getScpEnabled();
+    if (!scpEnabled || !m_scpWidget) {
         return;
     }
     
@@ -85,3 +88,4 @@ void ScpLineEdit::keyPressEvent(QKeyEvent *event)
     // Allow standard key handling
     QLineEdit::keyPressEvent(event);
 }
+

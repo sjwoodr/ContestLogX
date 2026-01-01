@@ -39,3 +39,4 @@ private:
 };
 
 #endif // SCPLINEEDIT_H
+

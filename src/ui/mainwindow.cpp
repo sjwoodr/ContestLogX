@@ -683,6 +683,13 @@ void MainWindow::setupMenus()
     DebugLogger::instance().setDxccDatabaseDebugEnabled(dxccDatabaseDebugEnabled);
     connect(m_dxccDatabaseDebugAction, &QAction::triggered, this, &MainWindow::onToggleDxccDatabaseDebug);
     
+    m_scpDebugAction = debugMenu->addAction("Enable &Super Check Partial Debug Logging");
+    m_scpDebugAction->setCheckable(true);
+    bool scpDebugEnabled = Settings::instance().getScpDebugEnabled();
+    m_scpDebugAction->setChecked(scpDebugEnabled);
+    DebugLogger::instance().setScpDebugEnabled(scpDebugEnabled);
+    connect(m_scpDebugAction, &QAction::triggered, this, &MainWindow::onToggleScpDebug);
+    
     // Help menu
     QMenu *helpMenu = menuBar()->addMenu("&Help");
     
@@ -2210,6 +2217,13 @@ void MainWindow::onToggleDxccDatabaseDebug(bool checked)
     m_statusLabel->setText(checked ? "DxccDatabase debug logging enabled" : "DxccDatabase debug logging disabled");
 }
 
+void MainWindow::onToggleScpDebug(bool checked)
+{
+    DebugLogger::instance().setScpDebugEnabled(checked);
+    Settings::instance().setScpDebugEnabled(checked);
+    m_statusLabel->setText(checked ? "Super Check Partial debug logging enabled" : "Super Check Partial debug logging disabled");
+}
+
 void MainWindow::onExportCabrillo()
 {
     if (!m_contestEngine || m_contestDefinition.isEmpty()) {
@@ -2260,7 +2274,7 @@ void MainWindow::onExportCabrillo()
 void MainWindow::onAbout()
 {
     QMessageBox::about(this, "About ContestLogX",
-        "ContestLogX - Version 0.0.7 (Alpha)\n\n"
+        "ContestLogX - Version 0.0.8 (Alpha)\n\n"
         "Cross-platform amateur radio contest logging software\n\n"
         "Radio control via flrig (http://www.w1hkj.com/)\n\n"
         "Copyright (c) 2025-2026, by Steve Woodruff, N9OH");
@@ -3128,7 +3142,7 @@ void MainWindow::onDownloadScp()
 
 void MainWindow::onScpDialog()
 {
-    ScpDialog dialog(this);
+    ScpDialog dialog(m_scpWidget, this);
     dialog.exec();
 }
 

@@ -29,6 +29,8 @@ public:
     bool isCWWindowDebugEnabled() const;
     void setDxccDatabaseDebugEnabled(bool enabled);
     bool isDxccDatabaseDebugEnabled() const;
+    void setScpDebugEnabled(bool enabled);
+    bool isScpDebugEnabled() const;
     void setStdoutEnabled(bool enabled);
     
 private:
@@ -39,6 +41,7 @@ private:
     bool m_contestSelectDialogDebugEnabled = false;
     bool m_cwWindowDebugEnabled = false;
     bool m_dxccDatabaseDebugEnabled = false;
+    bool m_scpDebugEnabled = false;
     bool m_stdoutEnabled = false;
 };
 

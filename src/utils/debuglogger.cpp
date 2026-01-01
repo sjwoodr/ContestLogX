@@ -41,6 +41,7 @@ void DebugLogger::loadSettings()
     m_contestSelectDialogDebugEnabled = settings.value("Debug/ContestSelectDialogDebug", false).toBool();
     m_cwWindowDebugEnabled = settings.value("Debug/CWWindowDebug", false).toBool();
     m_dxccDatabaseDebugEnabled = settings.value("Debug/DxccDatabaseDebug", true).toBool();
+    m_scpDebugEnabled = settings.value("Debug/ScpDebug", false).toBool();
 }
 
 void DebugLogger::setFlrigDebugEnabled(bool enabled)
@@ -109,6 +110,17 @@ bool DebugLogger::isDxccDatabaseDebugEnabled() const
     return m_dxccDatabaseDebugEnabled;
 }
 
+void DebugLogger::setScpDebugEnabled(bool enabled)
+{
+    m_scpDebugEnabled = enabled;
+    log("INFO", enabled ? "Super Check Partial debug logging enabled" : "Super Check Partial debug logging disabled");
+}
+
+bool DebugLogger::isScpDebugEnabled() const
+{
+    return m_scpDebugEnabled;
+}
+
 void DebugLogger::setStdoutEnabled(bool enabled)
 {
     m_stdoutEnabled = enabled;
@@ -133,6 +145,9 @@ void DebugLogger::log(const QString& component, const QString& message)
         return;
     }
     if (!m_dxccDatabaseDebugEnabled && component == "DxccDatabase") {
+        return;
+    }
+    if (!m_scpDebugEnabled && (component == "ScpDialog" || component == "ScpLineEdit")) {
         return;
     }
     

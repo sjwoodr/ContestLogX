@@ -11,12 +11,14 @@
 #include <QLabel>
 #include <QCheckBox>
 
+class ScpWidget;
+
 class ScpDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit ScpDialog(QWidget *parent = nullptr);
+    explicit ScpDialog(ScpWidget *scpWidget, QWidget *parent = nullptr);
     
     bool isScpEnabled() const;
     void setScpEnabled(bool enabled);
@@ -29,6 +31,7 @@ private:
     void setupUi();
     void updateDatabaseInfo();
     
+    ScpWidget *m_scpWidget;
     QPushButton *m_downloadButton;
     QPushButton *m_closeButton;
     QLabel *m_statusLabel;

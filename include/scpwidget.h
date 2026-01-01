@@ -7,7 +7,8 @@
 #define SCPWIDGET_H
 
 #include <QDockWidget>
-#include <QListWidget>
+#include <QTableWidget>
+#include <QTableWidgetItem>
 
 class ScpWidget : public QDockWidget
 {
@@ -16,10 +17,10 @@ class ScpWidget : public QDockWidget
 public:
     explicit ScpWidget(QWidget *parent = nullptr);
     
-    // Update the SCP results list
+    // Update the SCP results table
     void updateResults(const QStringList& callsigns);
     
-    // Clear the list
+    // Clear the table
     void clearResults();
     
     // Get the selected callsign
@@ -27,18 +28,26 @@ public:
     
     // Set the search prefix display
     void setSearchPrefix(const QString& prefix);
+    
+    // Update the title based on enabled/disabled state
+    void updateTitle();
 
 signals:
     // Emitted when a callsign is selected (double-clicked)
     void callsignSelected(const QString& callsign);
 
+protected:
+    void resizeEvent(QResizeEvent *event) override;
+
 private slots:
-    void onCallsignDoubleClicked(QListWidgetItem* item);
+    void onCellDoubleClicked(int row, int column);
+    void layoutTable();
 
 private:
     void setupUi();
+    int getColumnCount() const;
     
-    QListWidget *m_callsignList;
+    QTableWidget *m_callsignTable;
 };
 
 #endif // SCPWIDGET_H

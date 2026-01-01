@@ -572,6 +572,19 @@ void Settings::setDxccDatabaseDebugEnabled(bool enabled)
     save();
 }
 
+bool Settings::getScpDebugEnabled() const
+{
+    return m_settings["debug"].toObject()["scpDebugEnabled"].toBool(false);
+}
+
+void Settings::setScpDebugEnabled(bool enabled)
+{
+    QJsonObject debug = m_settings["debug"].toObject();
+    debug["scpDebugEnabled"] = enabled;
+    m_settings["debug"] = debug;
+    save();
+}
+
 QMap<QString, QString> Settings::getShortcuts() const
 {
     QMap<QString, QString> shortcuts;
@@ -849,6 +862,7 @@ void Settings::setScpEnabled(bool enabled)
     m_settings["scp"] = scp;
     m_modified = true;
 }
+
 
 QString Settings::getDataPath() const
 {

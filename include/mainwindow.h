@@ -72,6 +72,7 @@ private slots:
     void onToggleContestSelectDialogDebug(bool checked);
     void onToggleCWWindowDebug(bool checked);
     void onToggleDxccDatabaseDebug(bool checked);
+    void onToggleScpDebug(bool checked);
     void onDownloadCtyDat();
     void onDownloadScp();
     void onManageCallHistory();
@@ -147,6 +148,7 @@ private:
     QAction *m_contestSelectDialogDebugAction;
     QAction *m_cwWindowDebugAction;
     QAction *m_dxccDatabaseDebugAction;
+    QAction *m_scpDebugAction;
     
     // QSO Entry widgets
     QGroupBox *m_qsoEntryGroup;

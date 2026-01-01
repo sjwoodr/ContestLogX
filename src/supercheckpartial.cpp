@@ -4,6 +4,7 @@
  */
 
 #include "supercheckpartial.h"
+#include "debuglogger.h"
 #include <QFile>
 #include <QStandardPaths>
 #include <QDir>
@@ -14,6 +15,7 @@
 #include <QSslConfiguration>
 #include <QSslSocket>
 #include <QEventLoop>
+#include <QCoreApplication>
 #include <QDebug>
 
 SuperCheckPartial& SuperCheckPartial::instance()
@@ -45,7 +47,7 @@ bool SuperCheckPartial::loadDatabase(const QString& filePath)
     }
     
     file.close();
-    qDebug() << "Loaded" << m_callsigns.size() << "callsigns from SCP database";
+    DebugLogger::instance().log("ScpDialog", QString("Loaded %1 callsigns from SCP database").arg(m_callsigns.size()));
     return true;
 }
 
@@ -73,8 +75,13 @@ QStringList SuperCheckPartial::search(const QString& prefix, int maxResults) con
 
 QString SuperCheckPartial::getDataFilePath() const
 {
-    QString dataDir = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
-    QDir dir(dataDir);
+    // Use the data directory in the application directory
+    QDir appDir(QCoreApplication::applicationDirPath());
+    // Go up one level to the project root, then into data folder
+    appDir.cdUp();
+    QString dataPath = appDir.filePath("data");
+    
+    QDir dir(dataPath);
     if (!dir.exists()) {
         dir.mkpath(".");
     }
@@ -120,6 +127,6 @@ bool SuperCheckPartial::downloadLatestDatabase(const QString& targetPath, QStrin
     file.close();
     reply->deleteLater();
     
-    qDebug() << "Downloaded SCP database to:" << targetPath;
+    DebugLogger::instance().log("ScpDialog", QString("Downloaded SCP database to: %1").arg(targetPath));
     return true;
 }
