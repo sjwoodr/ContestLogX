@@ -1452,6 +1452,31 @@ QString ContestEngine::getStationClassIdPrompt() const
     return "Enter ID or location";
 }
 
+QJsonObject ContestEngine::getStationClassInputValidation() const
+{
+    if (m_stationClass.isEmpty()) {
+        return QJsonObject();
+    }
+    
+    if (m_contestDef.contains("stationClasses")) {
+        QJsonObject stationClasses = m_contestDef["stationClasses"].toObject();
+        if (stationClasses.contains("classes")) {
+            QJsonArray classes = stationClasses["classes"].toArray();
+            for (const QJsonValue& val : classes) {
+                QJsonObject classObj = val.toObject();
+                if (classObj["id"].toString() == m_stationClass) {
+                    if (classObj.contains("inputValidation")) {
+                        return classObj["inputValidation"].toObject();
+                    }
+                }
+            }
+        }
+    }
+    
+    return QJsonObject();
+}
+
+
 QString ContestEngine::getSentExchangeName() const
 {
     // Return the stored exchange name directly
@@ -1469,10 +1494,10 @@ void ContestEngine::setStationClassExchangeData(const QString& data)
     // Legacy method: split combined "Name ID" into separate fields
     int spacePos = data.indexOf(' ');
     if (spacePos > 0) {
-        m_stationClassExchangeName = data.left(spacePos);
-        m_stationClassExchangeId = data.mid(spacePos + 1);
+        m_stationClassExchangeName = data.left(spacePos).toUpper();
+        m_stationClassExchangeId = data.mid(spacePos + 1).toUpper();
     } else {
-        m_stationClassExchangeName = data;
+        m_stationClassExchangeName = data.toUpper();
         m_stationClassExchangeId = QString();
     }
 }

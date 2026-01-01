@@ -2205,6 +2205,7 @@ bool MainWindow::loadContestDefinition(const QString& filePath)
                     // Prompt for name and ID separately
                     QString namePrompt = m_contestEngine->getStationClassNamePrompt();
                     QString idPrompt = m_contestEngine->getStationClassIdPrompt();
+                    QJsonObject inputValidation = m_contestEngine->getStationClassInputValidation();
                     
                     // Create custom dialog for name with uppercase
                     QInputDialog *nameDialog = new QInputDialog(this);
@@ -2214,15 +2215,22 @@ bool MainWindow::loadContestDefinition(const QString& filePath)
                     
                     QLineEdit *nameEdit = nameDialog->findChild<QLineEdit*>();
                     if (nameEdit) {
-                        connect(nameEdit, &QLineEdit::textChanged, [nameEdit](const QString& text) {
-                            if (text != text.toUpper()) {
-                                int cursorPos = nameEdit->cursorPosition();
-                                nameEdit->blockSignals(true);
-                                nameEdit->setText(text.toUpper());
-                                nameEdit->setCursorPosition(cursorPos);
-                                nameEdit->blockSignals(false);
-                            }
-                        });
+                        // Extract validation rules for name from contest definition
+                        QJsonObject nameValidation = inputValidation.value("name").toObject();
+                        bool forceUppercase = nameValidation.contains("forceUppercase") ? nameValidation["forceUppercase"].toBool() : true;
+                        
+                        // Apply uppercase conversion if configured
+                        if (forceUppercase) {
+                            connect(nameEdit, &QLineEdit::textChanged, [nameEdit](const QString& text) {
+                                if (text != text.toUpper()) {
+                                    int cursorPos = nameEdit->cursorPosition();
+                                    nameEdit->blockSignals(true);
+                                    nameEdit->setText(text.toUpper());
+                                    nameEdit->setCursorPosition(cursorPos);
+                                    nameEdit->blockSignals(false);
+                                }
+                            });
+                        }
                     }
                     
                     bool okName = (nameDialog->exec() == QDialog::Accepted);
@@ -2236,27 +2244,35 @@ bool MainWindow::loadContestDefinition(const QString& filePath)
                     }
                     nameDialog->deleteLater();
                     
-                    // Create custom dialog for ID with uppercase
+                    // Create custom dialog for ID with validation rules from contest definition
                     QInputDialog *idDialog = new QInputDialog(this);
                     idDialog->setWindowTitle("Station Information");
                     idDialog->setLabelText(idPrompt.isEmpty() ? "Enter ID or location:" : idPrompt);
                     idDialog->setInputMode(QInputDialog::TextInput);
                     
-                    // Pre-fill CWA if this is CW Academy class
-                    if (m_contestEngine->getStationClass() == "CW_ACADEMY") {
-                        idDialog->setTextValue("CWA");
-                    }
-                    
                     QLineEdit *idEdit = idDialog->findChild<QLineEdit*>();
                     if (idEdit) {
-                        // For CWOPS_MEMBER, only allow digits
-                        if (m_contestEngine->getStationClass() == "CWOPS_MEMBER") {
-                            idEdit->setValidator(new QRegularExpressionValidator(QRegularExpression("^[0-9]*$"), idEdit));
+                        // Extract validation rules from contest definition
+                        QJsonObject idValidation = inputValidation.value("id").toObject();
+                        QString validationType = idValidation.contains("type") ? idValidation["type"].toString() : "alphanumeric";
+                        QString defaultValue = idValidation.contains("defaultValue") ? idValidation["defaultValue"].toString() : "";
+                        bool forceUppercase = idValidation.contains("forceUppercase") ? idValidation["forceUppercase"].toBool() : true;
+                        
+                        // Set default value if provided
+                        if (!defaultValue.isEmpty()) {
+                            idDialog->setTextValue(defaultValue);
                         }
                         
-                        connect(idEdit, &QLineEdit::textChanged, [idEdit, this](const QString& text) {
-                            // For CWA, don't convert to uppercase (it's already CWA)
-                            if (m_contestEngine->getStationClass() != "CW_ACADEMY") {
+                        // Apply validator based on type
+                        if (validationType == "numeric") {
+                            idEdit->setValidator(new QRegularExpressionValidator(QRegularExpression("^[0-9]*$"), idEdit));
+                        } else if (validationType == "alphanumeric") {
+                            idEdit->setValidator(new QRegularExpressionValidator(QRegularExpression("^[A-Za-z0-9]*$"), idEdit));
+                        }
+                        
+                        // Apply uppercase conversion if configured
+                        if (forceUppercase) {
+                            connect(idEdit, &QLineEdit::textChanged, [idEdit](const QString& text) {
                                 if (text != text.toUpper()) {
                                     int cursorPos = idEdit->cursorPosition();
                                     idEdit->blockSignals(true);
@@ -2264,8 +2280,8 @@ bool MainWindow::loadContestDefinition(const QString& filePath)
                                     idEdit->setCursorPosition(cursorPos);
                                     idEdit->blockSignals(false);
                                 }
-                            }
-                        });
+                            });
+                        }
                     }
                     
                     bool okId = (idDialog->exec() == QDialog::Accepted);
@@ -2279,9 +2295,9 @@ bool MainWindow::loadContestDefinition(const QString& filePath)
                     }
                     idDialog->deleteLater();
                     
-                    // Set name and ID separately (ensure uppercase)
-                    m_contestEngine->setStationClassExchangeName(name.toUpper());
-                    m_contestEngine->setStationClassExchangeId(id.toUpper());
+                    // Set name and ID separately (setter will force uppercase)
+                    m_contestEngine->setStationClassExchangeName(name);
+                    m_contestEngine->setStationClassExchangeId(id);
                     DebugLogger::instance().log("MainWindow", 
                         QString("Station class exchange data set - Name: %1, ID: %2").arg(name.toUpper(), id.toUpper()));
                 }

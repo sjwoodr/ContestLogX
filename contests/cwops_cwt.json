@@ -11,7 +11,6 @@
     "bands": ["10m", "15m", "20m", "40m", "80m", "160m"],
     "url": "https://www.cwops.org/cwt.html",
     "categories": {
-      "entryClass": ["CWops Member", "CW Academy Student", "Non-Member"],
       "stations": ["SINGLE_OP"]
     }
   },
@@ -60,6 +59,19 @@
           "name": "Enter your first name",
           "id": "Enter your CWops member number"
         },
+        "exchangeFieldMapping": {
+          "name": "NAMEs",
+          "id": "EXCHs"
+        },
+        "inputValidation": {
+          "name": {
+            "forceUppercase": true
+          },
+          "id": {
+            "type": "numeric",
+            "forceUppercase": false
+          }
+        },
         "exchangeSent": {
           "type": "customInput",
           "field": "memberExchange"
@@ -74,6 +86,20 @@
           "name": "Enter your first name",
           "id": "CW Academy (will send 'CWA')"
         },
+        "exchangeFieldMapping": {
+          "name": "NAMEs",
+          "id": "EXCHs"
+        },
+        "inputValidation": {
+          "name": {
+            "forceUppercase": true
+          },
+          "id": {
+            "type": "alphanumeric",
+            "defaultValue": "CWA",
+            "forceUppercase": false
+          }
+        },
         "exchangeSent": {
           "type": "fixedValue",
           "value": "CWA"
@@ -87,6 +113,19 @@
         "inputPrompts": {
           "name": "Enter your first name",
           "id": "Enter your state/province or DX country prefix"
+        },
+        "exchangeFieldMapping": {
+          "name": "NAMEs",
+          "id": "EXCHs"
+        },
+        "inputValidation": {
+          "name": {
+            "forceUppercase": true
+          },
+          "id": {
+            "type": "alphanumeric",
+            "forceUppercase": true
+          }
         },
         "exchangeSent": {
           "type": "customInput",

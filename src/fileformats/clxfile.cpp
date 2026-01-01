@@ -77,18 +77,21 @@ bool ClxFile::loadJson(const QJsonObject& json)
     m_created = QDateTime::fromString(json["created"].toString(), Qt::ISODate);
     m_modified = QDateTime::fromString(json["modified"].toString(), Qt::ISODate);
     
+    // Load format version (for CLX file structure compatibility)
+    if (json.contains("format_version")) {
+        m_version = json["format_version"].toString("1.0");
+    } else if (json.contains("version")) {
+        // Backwards compatibility: old files had version at top level
+        m_version = json["version"].toString("1.0");
+    } else {
+        m_version = "1.0";
+    }
+    
     // Contest
     if (json.contains("contest")) {
         QJsonObject contestJson = json["contest"].toObject();
         m_contest = ContestInfo::fromJson(contestJson);
-        // Check version in contest object (new format) or at top level (old format for backwards compat)
-        if (contestJson.contains("version")) {
-            m_version = contestJson["version"].toString("1.0");
-        } else if (json.contains("version")) {
-            m_version = json["version"].toString("1.0");
-        } else {
-            m_version = "1.0";
-        }
+        // Contest version is preserved in contestJson and loaded by ContestInfo::fromJson
     }
     
     // Station
@@ -171,12 +174,12 @@ QJsonObject ClxFile::toJson() const
     
     // Metadata
     json["format"] = "ContestLogX";
+    json["format_version"] = m_version;
     json["created"] = m_created.toString(Qt::ISODate);
     json["modified"] = m_modified.toString(Qt::ISODate);
     
     // Contest & Station
     QJsonObject contest = m_contest.toJson();
-    contest["version"] = m_version;
     json["contest"] = contest;
     json["station"] = m_station.toJson();
     

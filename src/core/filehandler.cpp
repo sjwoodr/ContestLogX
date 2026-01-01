@@ -509,10 +509,10 @@ bool FileHandler::loadClxWithContest(const QString& filename, QList<QsoRecord>& 
         if (!combined.isEmpty()) {
             int spacePos = combined.indexOf(' ');
             if (spacePos > 0) {
-                stationClassExchangeName = combined.left(spacePos);
-                stationClassExchangeId = combined.mid(spacePos + 1);
+                stationClassExchangeName = combined.left(spacePos).toUpper();
+                stationClassExchangeId = combined.mid(spacePos + 1).toUpper();
             } else {
-                stationClassExchangeName = combined;
+                stationClassExchangeName = combined.toUpper();
             }
         }
     }

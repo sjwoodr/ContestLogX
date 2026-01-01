@@ -114,9 +114,13 @@ public:
     QString getStationClass() const { return m_stationClass; }
     QString getDefaultSentExchange(const QString& stationQth, int serialNumber) const;
     // Separate storage for name and exchange (replaces setStationClassExchangeData)
-    void setStationClassExchangeName(const QString& name) { m_stationClassExchangeName = name; }
+    void setStationClassExchangeName(const QString& name) { 
+        m_stationClassExchangeName = name.toUpper(); 
+    }
     QString getStationClassExchangeName() const { return m_stationClassExchangeName; }
-    void setStationClassExchangeId(const QString& id) { m_stationClassExchangeId = id; }
+    void setStationClassExchangeId(const QString& id) { 
+        m_stationClassExchangeId = id.toUpper(); 
+    }
     QString getStationClassExchangeId() const { return m_stationClassExchangeId; }
     // Legacy combined method for backwards compatibility
     void setStationClassExchangeData(const QString& data);
@@ -127,6 +131,7 @@ public:
     QString getStationClassInputPrompt() const;
     QString getStationClassNamePrompt() const;
     QString getStationClassIdPrompt() const;
+    QJsonObject getStationClassInputValidation() const;  // Get input validation rules
     void resetStationClassState();  // Reset station class and exchange data
 
 private:
