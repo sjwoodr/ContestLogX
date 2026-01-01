@@ -86,6 +86,7 @@ protected:
     bool eventFilter(QObject *obj, QEvent *event) override;
     void closeEvent(QCloseEvent *event) override;
     void keyPressEvent(QKeyEvent *event) override;
+    void resizeEvent(QResizeEvent *event) override;
 
 private:
     void setupUi();
@@ -172,6 +173,9 @@ private:
     double m_lastFrequency;
     QString m_lastMode;
     int m_lastWpm;
+    
+    // UI state saving
+
     
     // Context menu
     int m_contextMenuRow;

@@ -514,6 +514,22 @@ void MainWindow::setupUi()
         Settings::instance().setMainSplitterSizes(m_mainSplitter->sizes());
     });
     
+    // Save dock state when dock widgets are moved or resized
+    connect(m_dxClusterDock, &QDockWidget::dockLocationChanged, this, [this]() {
+        savePanelState();
+    });
+    connect(m_cwConsoleDock, &QDockWidget::dockLocationChanged, this, [this]() {
+        savePanelState();
+    });
+    connect(m_scoreDock, &QDockWidget::dockLocationChanged, this, [this]() {
+        savePanelState();
+    });
+    if (m_scpWidget) {
+        connect(m_scpWidget, &QDockWidget::dockLocationChanged, this, [this]() {
+            savePanelState();
+        });
+    }
+    
     mainLayout->addWidget(mainSplitter);
 }
 
@@ -1529,6 +1545,12 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
     }
     QMainWindow::keyPressEvent(event);
 }
+
+void MainWindow::resizeEvent(QResizeEvent *event)
+{
+    QMainWindow::resizeEvent(event);
+}
+
 
 void MainWindow::onCallChanged(const QString& text)
 {
