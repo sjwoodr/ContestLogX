@@ -279,6 +279,10 @@
       "requiredHeaders": ["CONTEST", "CALLSIGN", "CATEGORY-ASSISTED", "CATEGORY-BAND", "CATEGORY-MODE", "CATEGORY-OPERATOR", "CATEGORY-POWER", "CATEGORY-TRANSMITTER", "CLAIMED-SCORE", "CREATED-BY", "NAME", "EMAIL", "OPERATORS", "SOAPBOX"]
     }
   },
+  "callHistory": {
+    "fieldsToSave": ["NAMEr", "EXCHr"],
+    "description": "Save operator name and exchange info for future lookups"
+  },
   "validation": {
     "minimumQSOs": 1,
     "maxOperatingTime": 2,

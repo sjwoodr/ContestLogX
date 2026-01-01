@@ -209,6 +209,10 @@
       "requiredHeaders": ["CONTEST", "LOCATION", "CALLSIGN", "CATEGORY-ASSISTED", "CATEGORY-BAND", "CATEGORY-MODE", "CATEGORY-OPERATOR", "CATEGORY-POWER", "CATEGORY-TRANSMITTER", "CATEGORY-OVERLAY", "CLAIMED-SCORE", "CLUB", "CREATED-BY", "NAME", "ADDRESS", "ADDRESS-CITY", "ADDRESS-STATE-PROVINCE", "ADDRESS-POSTALCODE", "ADDRESS-COUNTRY", "EMAIL", "OPERATORS", "SOAPBOX"]
     }
   },
+  "callHistory": {
+    "fieldsToSave": ["EXCHr"],
+    "description": "Save exchange info for future lookups"
+  },
   "validation": {
     "minimumQSOs": 1,
     "maxOperatingTime": 48,

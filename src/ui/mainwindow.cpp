@@ -796,10 +796,172 @@ void MainWindow::onNewLog()
                 loadThread->start();
             } else {
                 // User selected a contest definition - create new log
-                loadContestDefinition(selectedFile);
-                
+                // Clear the QSO model first so old data isn't visible
                 m_qsoModel->clear();
                 m_currentFile.clear();
+                
+                // Pass false to NOT restore the previous station class
+                loadContestDefinition(selectedFile, false);
+                
+                // Prompt for station class if the contest requires it
+                if (m_contestEngine && m_contestEngine->needsStationClass()) {
+                    StationClassDialog classDialog(
+                        m_contestEngine->getStationClassPrompt(),
+                        m_contestEngine->getStationClassOptions(),
+                        this);
+                    if (classDialog.exec() == QDialog::Accepted) {
+                        QString selectedClass = classDialog.getSelectedClass();
+                        m_contestEngine->setStationClass(selectedClass);
+                        DebugLogger::instance().log("MainWindow", 
+                            QString("Station class selected: %1").arg(selectedClass));
+                        
+                        // Check if this class needs additional input
+                        if (m_contestEngine->stationClassNeedsInput() && m_contestEngine->getStationClassExchangeData().isEmpty()) {
+                            // Prompt for name and ID separately
+                            QString namePrompt = m_contestEngine->getStationClassNamePrompt();
+                            QString idPrompt = m_contestEngine->getStationClassIdPrompt();
+                            QJsonObject inputValidation = m_contestEngine->getStationClassInputValidation();
+                            
+                            // Prompt for name with real-time uppercase conversion
+                            QString name;
+                            while (true) {
+                                QDialog nameDialog(this);
+                                nameDialog.setWindowTitle("Station Information");
+                                QVBoxLayout layout(&nameDialog);
+                                
+                                QLabel label(namePrompt.isEmpty() ? "Enter your first name:" : namePrompt);
+                                QLineEdit nameEdit;
+                                QDialogButtonBox buttonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+                                
+                                layout.addWidget(&label);
+                                layout.addWidget(&nameEdit);
+                                layout.addWidget(&buttonBox);
+                                
+                                connect(&buttonBox, &QDialogButtonBox::accepted, &nameDialog, &QDialog::accept);
+                                connect(&buttonBox, &QDialogButtonBox::rejected, &nameDialog, &QDialog::reject);
+                                
+                                // Apply real-time uppercase conversion
+                                QJsonObject nameValidation = inputValidation.value("name").toObject();
+                                bool forceUppercase = nameValidation.contains("forceUppercase") ? nameValidation["forceUppercase"].toBool() : true;
+                                
+                                connect(&nameEdit, &QLineEdit::textChanged, [&nameEdit, forceUppercase](const QString& text) {
+                                    QString filtered;
+                                    for (const QChar& c : text) {
+                                        if (c.isLetter()) {
+                                            filtered += forceUppercase ? c.toUpper() : c;
+                                        }
+                                    }
+                                    if (filtered != text) {
+                                        int cursorPos = nameEdit.cursorPosition();
+                                        nameEdit.blockSignals(true);
+                                        nameEdit.setText(filtered);
+                                        nameEdit.setCursorPosition(cursorPos);
+                                        nameEdit.blockSignals(false);
+                                    }
+                                });
+                                
+                                if (nameDialog.exec() == QDialog::Accepted) {
+                                    name = nameEdit.text();
+                                    if (name.isEmpty()) {
+                                        QMessageBox::warning(this, "Input Required", "Name cannot be empty");
+                                        continue;
+                                    }
+                                    break;
+                                } else {
+                                    DebugLogger::instance().log("MainWindow", "Station class name input cancelled");
+                                    m_contestEngine->resetStationClassState();
+                                    return;
+                                }
+                            }
+                            
+                            // Prompt for ID with real-time validation
+                            QString id;
+                            while (true) {
+                                QDialog idDialog(this);
+                                idDialog.setWindowTitle("Station Information");
+                                QVBoxLayout layout(&idDialog);
+                                
+                                QLabel label(idPrompt.isEmpty() ? "Enter ID or location:" : idPrompt);
+                                QLineEdit idEdit;
+                                QDialogButtonBox buttonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+                                
+                                layout.addWidget(&label);
+                                layout.addWidget(&idEdit);
+                                layout.addWidget(&buttonBox);
+                                
+                                connect(&buttonBox, &QDialogButtonBox::accepted, &idDialog, &QDialog::accept);
+                                connect(&buttonBox, &QDialogButtonBox::rejected, &idDialog, &QDialog::reject);
+                                
+                                // Apply validation rules for ID with real-time filtering
+                                QJsonObject idValidation = inputValidation.value("id").toObject();
+                                QString idType = idValidation.value("type").toString("alphanumeric");
+                                bool idForceUppercase = idValidation.contains("forceUppercase") ? idValidation["forceUppercase"].toBool() : false;
+                                QString defaultValue = idValidation.value("defaultValue").toString();
+                                
+                                // Pre-fill with default value if it exists
+                                if (!defaultValue.isEmpty()) {
+                                    idEdit.setText(defaultValue.toUpper());
+                                }
+                                
+                                connect(&idEdit, &QLineEdit::textChanged, [&idEdit, idType, idForceUppercase, defaultValue](const QString& text) {
+                                    QString filtered;
+                                    for (const QChar& c : text) {
+                                        bool charValid = false;
+                                        QChar charToAdd = c;
+                                        
+                                        if (idType == "numeric") {
+                                            if (c.isDigit()) {
+                                                charValid = true;
+                                            }
+                                        } else if (idType == "alphanumeric") {
+                                            if (c.isLetterOrNumber()) {
+                                                charValid = true;
+                                                // Apply uppercase conversion if needed, or always uppercase for fixed exchanges like CWA
+                                                if ((idForceUppercase || !defaultValue.isEmpty()) && c.isLetter()) {
+                                                    charToAdd = c.toUpper();
+                                                }
+                                            }
+                                        }
+                                        
+                                        if (charValid) {
+                                            filtered += charToAdd;
+                                        }
+                                    }
+                                    if (filtered != text) {
+                                        int cursorPos = idEdit.cursorPosition();
+                                        idEdit.blockSignals(true);
+                                        idEdit.setText(filtered);
+                                        idEdit.setCursorPosition(cursorPos);
+                                        idEdit.blockSignals(false);
+                                    }
+                                });
+                                
+                                if (idDialog.exec() == QDialog::Accepted) {
+                                    id = idEdit.text();
+                                    if (id.isEmpty()) {
+                                        QMessageBox::warning(this, "Input Required", "ID cannot be empty");
+                                        continue;
+                                    }
+                                    break;
+                                } else {
+                                    DebugLogger::instance().log("MainWindow", "Station class ID input cancelled");
+                                    m_contestEngine->resetStationClassState();
+                                    return;
+                                }
+                            }
+                            
+                            m_contestEngine->setStationClassExchangeName(name);
+                            m_contestEngine->setStationClassExchangeId(id);
+                            DebugLogger::instance().log("MainWindow", 
+                                QString("Station class exchange data set - Name: %1, ID: %2").arg(name, id));
+                        }
+                    } else {
+                        // User cancelled station class selection
+                        m_contestEngine->resetStationClassState();
+                        return;
+                    }
+                }
+                
                 m_isModified = false;
                 updateWindowTitle();
                 clearEntryForm();
@@ -1239,14 +1401,28 @@ void MainWindow::onStationSetup()
     info.setGrid(settings.getGridSquare());
     info.setState(settings.getState());
     
+    DebugLogger::instance().log("MainWindow", 
+        QString("Station Setup - Before: Call=%1 Name=%2 Grid=%3 State=%4")
+        .arg(info.callsign()).arg(info.operatorName()).arg(info.grid()).arg(info.state()));
+    
     StationSetupDialog dialog(info, this);
     if (dialog.exec() == QDialog::Accepted) {
         StationInfo newInfo = dialog.stationInfo();
+        
+        DebugLogger::instance().log("MainWindow", 
+            QString("Station Setup - After: Call=%1 Name=%2 Grid=%3 State=%4")
+            .arg(newInfo.callsign()).arg(newInfo.operatorName()).arg(newInfo.grid()).arg(newInfo.state()));
+        
         settings.setCallsign(newInfo.callsign());
         settings.setOperatorName(newInfo.operatorName());
         settings.setGridSquare(newInfo.grid());
         settings.setState(newInfo.state());
+        
+        DebugLogger::instance().log("MainWindow", "Calling settings.save()");
         settings.save();
+        DebugLogger::instance().log("MainWindow", "settings.save() completed");
+    } else {
+        DebugLogger::instance().log("MainWindow", "Station Setup - Dialog was cancelled");
     }
 }
 
@@ -1977,10 +2153,10 @@ void MainWindow::onExportCabrillo()
 void MainWindow::onAbout()
 {
     QMessageBox::about(this, "About ContestLogX",
-        "ContestLogX - Version 0.0.4 (Alpha)\n\n"
+        "ContestLogX - Version 0.0.7 (Alpha)\n\n"
         "Cross-platform amateur radio contest logging software\n\n"
         "Radio control via flrig (http://www.w1hkj.com/)\n\n"
-        "Copyright (c) 2025 N9OH Software");
+        "Copyright (c) 2025-2026, by Steve Woodruff, N9OH");
 }
 
 void MainWindow::clearEntryForm()
@@ -2024,45 +2200,36 @@ void MainWindow::updateCallHistory()
 {
     QList<QsoRecord> qsos = m_qsoModel->getQsos();
     
+    // Get fields to save from contest definition, or use defaults
+    QStringList fieldsToSave;
+    if (m_contestEngine) {
+        fieldsToSave = m_contestEngine->getCallHistoryFieldsToSave();
+    } else {
+        // Default: CALL and EXCHr
+        fieldsToSave << "CALL" << "EXCHr";
+    }
+    
     for (const QsoRecord& qso : qsos) {
         QString callsign = qso.getCall();
         if (callsign.isEmpty()) continue;
         
-        // Build a map of exchange fields to save
+        // Build a map of exchange fields to save based on contest definition
         QMap<QString, QString> historyFields;
         
         // Get all exchange fields from the QSO
         QMap<QString, QString> exchangeFields = qso.getExchangeFields();
         
-        // Filter out dynamic/variable fields (date, time, band, freq, RST, points, etc.)
-        // We only want static operator info fields
-        QStringList staticFields;
-        
-        // Common static field names
-        staticFields << "NAME" << "NAMEs" << "NAMEr" << "STATE" << "PROV" 
-                     << "EXC" << "EXCs" << "EXCr" << "QTH" << "CWopsID" 
-                     << "CWA" << "ID" << "SERIAL" << "GRID";
-        
-        for (const QString& fieldName : staticFields) {
-            QString value = exchangeFields.value(fieldName);
-            if (!value.isEmpty()) {
-                historyFields[fieldName] = value;
-            }
-        }
-        
-        // Also include any NAME/EXCH variations
-        for (auto it = exchangeFields.begin(); it != exchangeFields.end(); ++it) {
-            QString fieldName = it.key();
-            // Include if it looks like a static field (contains NAME, QTH, STATE, ID, EXCH)
-            if ((fieldName.contains("NAME", Qt::CaseInsensitive) ||
-                 fieldName.contains("QTH", Qt::CaseInsensitive) ||
-                 fieldName.contains("STATE", Qt::CaseInsensitive) ||
-                 fieldName.contains("ID", Qt::CaseInsensitive) ||
-                 fieldName.contains("EXC", Qt::CaseInsensitive) ||
-                 fieldName.contains("GRID", Qt::CaseInsensitive) ||
-                 fieldName.contains("PROV", Qt::CaseInsensitive)) &&
-                !historyFields.contains(fieldName)) {
-                historyFields[fieldName] = it.value();
+        // Only save fields specified in contest definition (or defaults)
+        for (const QString& fieldName : fieldsToSave) {
+            if (fieldName == "CALL") {
+                // CALL is always the callsign itself
+                historyFields["CALL"] = callsign;
+            } else {
+                // Look for the field in the exchange fields
+                QString value = exchangeFields.value(fieldName);
+                if (!value.isEmpty()) {
+                    historyFields[fieldName] = value;
+                }
             }
         }
         
@@ -2074,7 +2241,7 @@ void MainWindow::updateCallHistory()
     
     CallHistory::instance().save();
     DebugLogger::instance().log("MainWindow", 
-        QString("Updated call history with %1 records").arg(qsos.size()));
+        QString("Updated call history with %1 records (fields: %2)").arg(qsos.size()).arg(fieldsToSave.join(", ")));
 }
 
 bool MainWindow::maybeSave()
@@ -2268,9 +2435,9 @@ QString MainWindow::freq2Mode(double freqMHz)
     return BandPlan::freq2Mode(freqMHz);
 }
 
-bool MainWindow::loadContestDefinition(const QString& filePath)
+bool MainWindow::loadContestDefinition(const QString& filePath, bool restoreStationClass)
 {
-    DebugLogger::instance().log("MainWindow", QString("loadContestDefinition called with: %1").arg(filePath));
+    DebugLogger::instance().log("MainWindow", QString("loadContestDefinition called with: %1 (restoreStationClass=%2)").arg(filePath).arg(restoreStationClass ? "true" : "false"));
     
     // Save current station class state before reset (it may have been loaded from a file)
     QString savedStationClass = m_contestEngine->getStationClass();
@@ -2282,14 +2449,18 @@ bool MainWindow::loadContestDefinition(const QString& filePath)
     // Reset contest engine state for new log
     m_contestEngine->resetStationClassState();
     
-    // Restore station class state if it was saved from file
-    if (!savedStationClass.isEmpty()) {
-        m_contestEngine->setStationClass(savedStationClass);
-        DebugLogger::instance().log("MainWindow", QString("Restored station class: %1").arg(savedStationClass));
-    }
-    if (!savedStationClassExchange.isEmpty()) {
-        m_contestEngine->setStationClassExchangeData(savedStationClassExchange);
-        DebugLogger::instance().log("MainWindow", QString("Restored station class exchange: %1").arg(savedStationClassExchange));
+    // Restore station class state if it was saved from file (and if requested)
+    if (restoreStationClass) {
+        if (!savedStationClass.isEmpty()) {
+            m_contestEngine->setStationClass(savedStationClass);
+            DebugLogger::instance().log("MainWindow", QString("Restored station class: %1").arg(savedStationClass));
+        }
+        if (!savedStationClassExchange.isEmpty()) {
+            m_contestEngine->setStationClassExchangeData(savedStationClassExchange);
+            DebugLogger::instance().log("MainWindow", QString("Restored station class exchange: %1").arg(savedStationClassExchange));
+        }
+    } else {
+        DebugLogger::instance().log("MainWindow", "Station class restore skipped (new log)");
     }
     
     QFile file(filePath);
@@ -2318,7 +2489,8 @@ bool MainWindow::loadContestDefinition(const QString& filePath)
     }
     
     // Check if station class selection is needed
-    if (m_contestEngine->needsStationClass()) {
+    // Only show dialog if we're restoring state (opening existing file), not for new logs
+    if (restoreStationClass && m_contestEngine->needsStationClass()) {
         // Use existing station class if available (from loaded file)
         QString currentClass = m_contestEngine->getStationClass();
         

@@ -1315,6 +1315,27 @@ void ContestEngine::resetStationClassState()
     DebugLogger::instance().log("ContestEngine", "Station class state reset");
 }
 
+QStringList ContestEngine::getCallHistoryFieldsToSave() const
+{
+    // Check if contest defines specific fields to save in call history
+    if (m_contestDef.contains("callHistory")) {
+        QJsonObject callHistoryDef = m_contestDef["callHistory"].toObject();
+        if (callHistoryDef.contains("fieldsToSave")) {
+            QJsonArray fieldsArray = callHistoryDef["fieldsToSave"].toArray();
+            QStringList fields;
+            for (const QJsonValue& val : fieldsArray) {
+                fields.append(val.toString());
+            }
+            return fields;
+        }
+    }
+    
+    // Default: save CALL and EXCHr if not explicitly defined
+    QStringList defaultFields;
+    defaultFields << "CALL" << "EXCHr";
+    return defaultFields;
+}
+
 QString ContestEngine::getDefaultSentExchange(const QString& stationQth, int serialNumber) const
 {
     if (m_stationClass.isEmpty()) {

@@ -87,13 +87,31 @@ void Settings::save()
     QString path = settingsFilePath();
     QFile file(path);
     
-    if (!file.open(QIODevice::WriteOnly)) {
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
         qWarning() << "Could not open settings file for writing:" << path;
+        qWarning() << "Error:" << file.errorString();
         return;
     }
     
     QJsonDocument doc(m_settings);
-    file.write(doc.toJson(QJsonDocument::Indented));
+    QByteArray jsonData = doc.toJson(QJsonDocument::Indented);
+    qint64 bytesWritten = file.write(jsonData);
+    
+    if (bytesWritten == -1) {
+        qWarning() << "Failed to write settings to file:" << file.errorString();
+        file.close();
+        return;
+    }
+    
+    if (bytesWritten != jsonData.size()) {
+        qWarning() << "Warning: Only wrote" << bytesWritten << "of" << jsonData.size() << "bytes";
+    }
+    
+    // Ensure data is written to disk
+    if (!file.flush()) {
+        qWarning() << "Failed to flush settings file:" << file.errorString();
+    }
+    
     file.close();
     m_modified = false;
 }

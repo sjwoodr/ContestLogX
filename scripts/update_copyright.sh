@@ -10,7 +10,7 @@ echo "Updating copyright year to include $CURRENT_YEAR..."
 # Find all .h and .cpp files and update copyright lines
 find "$SCRIPT_DIR" \
     -type f \
-    \( -name "*.h" -o -name "*.cpp" \) \
+    \( -name "*.h" -o -name "*.cpp" -o -name "README.md" -o -name "DeveloperNotes.md" \) \
     ! -path "*/build/*" \
     ! -path "*/.git/*" \
     ! -path "*/CMakeFiles/*" \

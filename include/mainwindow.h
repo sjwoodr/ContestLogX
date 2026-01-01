@@ -100,7 +100,7 @@ private:
     void savePanelState();
     void restorePanelState();
     QString freq2Mode(double freqMHz);
-    bool loadContestDefinition(const QString& filePath);
+    bool loadContestDefinition(const QString& filePath, bool restoreStationClass = true);
     void updateQsoEntryFields();
     void updateLogHeaders();
     bool isSemanticVersionEqual(const QString& v1, const QString& v2);

@@ -133,6 +133,9 @@ public:
     QString getStationClassIdPrompt() const;
     QJsonObject getStationClassInputValidation() const;  // Get input validation rules
     void resetStationClassState();  // Reset station class and exchange data
+    
+    // Call history field configuration
+    QStringList getCallHistoryFieldsToSave() const;
 
 private:
     bool validateSerialNumber(const QString& value) const;

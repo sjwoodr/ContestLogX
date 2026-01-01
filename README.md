@@ -1,6 +1,6 @@
 # ContestLogX - Project Summary
 
-**Copyright (c) 2025, by Steve Woodruff, N9OH**
+**Copyright (c) 2025-2026, by Steve Woodruff, N9OH**
 
 ## Project Status
 [![Build](https://github.com/sjwoodr/ContestLogX/actions/workflows/ci.yml/badge.svg)](https://github.com/sjwoodr/ContestLogX/actions/workflows/ci.yml)
@@ -80,7 +80,7 @@ ContestLogX is a cross-platform amateur radio contest logging application built 
 
 ### Phase 10: Independence & Rebranding
 - Rebranded to ContestLogX
-- Added copyright: "Copyright (c) 2025, by Steve Woodruff, N9OH"
+- Added copyright: "Copyright (c) 2025-2026, by Steve Woodruff, N9OH"
 
 ## Current Feature Set
 
@@ -463,8 +463,8 @@ Website: contestlogx.com (to be created)
 
 ---
 
-**ContestLogX v0.0.4**  
+**ContestLogX v0.0.7**  
 *Amateur Radio Contest Logging Software*  
-Copyright (c) 2025, by Steve Woodruff, N9OH
+Copyright (c) 2025-2026, by Steve Woodruff, N9OH
 
 Last Updated: December 15, 2025
