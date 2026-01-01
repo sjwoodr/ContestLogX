@@ -288,7 +288,7 @@
     "logColumns": ["DATE", "TIME", "CALL", "FREQ", "MODE", "RSTs", "RSTr", "NAMEs", "EXCHs", "NAMEr", "EXCHr", "P", "COMMENT"],
     "entryFields": ["CALL", "NAMEr", "EXCHr"],
     "fieldNavigation": {
-      "keys": "space"
+      "keys": "both"
     },
     "bandMap": {
       "enabled": true,
