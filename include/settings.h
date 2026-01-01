@@ -1,6 +1,6 @@
 /*
  * ContestLogX - Amateur Radio Contest Logging Software
- * Copyright (c) 2025, by Steve Woodruff, N9OH
+ * Copyright (c) 2025-2026, by Steve Woodruff, N9OH
  */
 
 #ifndef SETTINGS_H
@@ -165,6 +165,13 @@ public:
     void setShortcuts(const QMap<QString, QString>& shortcuts);
     QString getShortcut(const QString& actionName) const;
     void setShortcut(const QString& actionName, const QString& keySequence);
+    
+    // Call history settings
+    bool getCallHistoryEnabled() const;
+    void setCallHistoryEnabled(bool enabled);
+    
+    bool getCallHistoryAutoSaveEnabled() const;
+    void setCallHistoryAutoSaveEnabled(bool enabled);
     
     void save();
     

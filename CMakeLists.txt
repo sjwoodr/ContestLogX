@@ -39,6 +39,7 @@ set(SOURCES
     src/ui/shortcutsdialog.cpp
     src/ui/qsoeditdialog.cpp
     src/ui/cabrillodialog.cpp
+    src/ui/callhistorydialog.cpp
     src/contestengine.cpp
     src/core/qsorecord.cpp
     src/core/qsolistmodel.cpp
@@ -48,6 +49,7 @@ set(SOURCES
     src/core/exchangefield.cpp
     src/core/loadingworker.cpp
     src/core/cabrilloexport.cpp
+    src/callhistory.cpp
     src/fileformats/clxfile.cpp
     src/rig/flrigclient.cpp
     src/utils/settings.cpp
@@ -66,6 +68,7 @@ set(HEADERS
     include/shortcutsdialog.h
     include/cabrillodialog.h
     include/cabrilloexport.h
+    include/callhistorydialog.h
     include/qsoeditdialog.h
     include/contestengine.h
     include/scorewidget.h
@@ -83,6 +86,7 @@ set(HEADERS
     include/clxfile.h
     include/flrigclient.h
     include/settings.h
+    include/callhistory.h
     include/debuglogger.h
     src/utils/bandplan.h
     src/utils/callsignutils.h

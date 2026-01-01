@@ -10,11 +10,13 @@
 #include "contestselectdialog.h"
 #include "shortcutsdialog.h"
 #include "cabrillodialog.h"
+#include "callhistorydialog.h"
 #include "cabrilloexport.h"
 #include "contestengine.h"
 #include "filehandler.h"
 #include "loadingworker.h"
 #include "settings.h"
+#include "callhistory.h"
 #include "../utils/bandplan.h"
 #include "debuglogger.h"
 #include "DxccDatabase.h"
@@ -523,6 +525,11 @@ void MainWindow::setupMenus()
     
     QAction *downloadCtyAction = fileMenu->addAction("&Download DXCC Database (cty.dat)...");
     connect(downloadCtyAction, &QAction::triggered, this, &MainWindow::onDownloadCtyDat);
+    
+    fileMenu->addSeparator();
+    
+    QAction *callHistoryAction = fileMenu->addAction("Manage &Call History...");
+    connect(callHistoryAction, &QAction::triggered, this, &MainWindow::onManageCallHistory);
     
     fileMenu->addSeparator();
     
@@ -1182,6 +1189,12 @@ void MainWindow::onSaveLog()
     if (success) {
         m_isModified = false;
         updateWindowTitle();
+        
+        // Update call history if auto-save is enabled
+        if (CallHistory::instance().isAutoSaveEnabled()) {
+            updateCallHistory();
+        }
+        
         m_statusLabel->setText("File saved: " + m_currentFile + " (" +
             QString::number(m_qsoModel->count()) + " QSOs)");
     } else {
@@ -1250,6 +1263,12 @@ void MainWindow::onShortcuts()
     dialog.exec();
 }
 
+void MainWindow::onManageCallHistory()
+{
+    CallHistoryDialog dialog(this);
+    dialog.exec();
+}
+
 void MainWindow::keyPressEvent(QKeyEvent *event)
 {
     if (event->key() == Qt::Key_W && (event->modifiers() & Qt::ControlModifier)) {
@@ -1275,10 +1294,42 @@ void MainWindow::onCallChanged(const QString& text)
         return;
     }
     
-    // Search for the most recent QSO with this callsign
+    bool found = false;
+    
+    // First, try to get from call history if enabled
+    if (CallHistory::instance().isEnabled()) {
+        QMap<QString, QString> historyRecord = CallHistory::instance().getRecord(callsign);
+        if (!historyRecord.isEmpty()) {
+            // Pre-fill exchange fields with values from call history
+            for (auto it = m_exchangeFields.begin(); it != m_exchangeFields.end(); ++it) {
+                QString fieldName = it.key();
+                QLineEdit* field = it.value();
+                
+                // Look for matching fields in history record (e.g., NAMEr, EXCHr, NAME, EXC, STATE, QTH, etc.)
+                if (historyRecord.contains(fieldName)) {
+                    field->setText(historyRecord[fieldName].toUpper());
+                    found = true;
+                } else if (fieldName == "NAMEr" && historyRecord.contains("NAMEs")) {
+                    // Try sent name if received name not available
+                    field->setText(historyRecord["NAMEs"].toUpper());
+                    found = true;
+                } else if (fieldName == "NAMEr" && historyRecord.contains("NAME")) {
+                    field->setText(historyRecord["NAME"].toUpper());
+                    found = true;
+                }
+            }
+            
+            if (found) {
+                DebugLogger::instance().log("MainWindow", 
+                    QString("Pre-filled exchange from call history for %1").arg(callsign));
+                return;
+            }
+        }
+    }
+    
+    // Fallback to searching most recent QSO with this callsign
     QList<QsoRecord> allQsos = m_qsoModel->getQsos();
     QsoRecord lastQso;
-    bool found = false;
     
     // Search backwards to find the most recent QSO with this call
     for (int i = allQsos.count() - 1; i >= 0; --i) {
@@ -1967,6 +2018,63 @@ void MainWindow::updateWindowTitle()
     }
     
     setWindowTitle(title);
+}
+
+void MainWindow::updateCallHistory()
+{
+    QList<QsoRecord> qsos = m_qsoModel->getQsos();
+    
+    for (const QsoRecord& qso : qsos) {
+        QString callsign = qso.getCall();
+        if (callsign.isEmpty()) continue;
+        
+        // Build a map of exchange fields to save
+        QMap<QString, QString> historyFields;
+        
+        // Get all exchange fields from the QSO
+        QMap<QString, QString> exchangeFields = qso.getExchangeFields();
+        
+        // Filter out dynamic/variable fields (date, time, band, freq, RST, points, etc.)
+        // We only want static operator info fields
+        QStringList staticFields;
+        
+        // Common static field names
+        staticFields << "NAME" << "NAMEs" << "NAMEr" << "STATE" << "PROV" 
+                     << "EXC" << "EXCs" << "EXCr" << "QTH" << "CWopsID" 
+                     << "CWA" << "ID" << "SERIAL" << "GRID";
+        
+        for (const QString& fieldName : staticFields) {
+            QString value = exchangeFields.value(fieldName);
+            if (!value.isEmpty()) {
+                historyFields[fieldName] = value;
+            }
+        }
+        
+        // Also include any NAME/EXCH variations
+        for (auto it = exchangeFields.begin(); it != exchangeFields.end(); ++it) {
+            QString fieldName = it.key();
+            // Include if it looks like a static field (contains NAME, QTH, STATE, ID, EXCH)
+            if ((fieldName.contains("NAME", Qt::CaseInsensitive) ||
+                 fieldName.contains("QTH", Qt::CaseInsensitive) ||
+                 fieldName.contains("STATE", Qt::CaseInsensitive) ||
+                 fieldName.contains("ID", Qt::CaseInsensitive) ||
+                 fieldName.contains("EXC", Qt::CaseInsensitive) ||
+                 fieldName.contains("GRID", Qt::CaseInsensitive) ||
+                 fieldName.contains("PROV", Qt::CaseInsensitive)) &&
+                !historyFields.contains(fieldName)) {
+                historyFields[fieldName] = it.value();
+            }
+        }
+        
+        // Add to call history if we have any fields
+        if (!historyFields.isEmpty()) {
+            CallHistory::instance().addOrUpdateRecord(callsign, historyFields);
+        }
+    }
+    
+    CallHistory::instance().save();
+    DebugLogger::instance().log("MainWindow", 
+        QString("Updated call history with %1 records").arg(qsos.size()));
 }
 
 bool MainWindow::maybeSave()

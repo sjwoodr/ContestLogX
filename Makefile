@@ -46,7 +46,10 @@ version:
 	echo "  - CMakeLists.txt"; \
 	echo "  - README.md"; \
 	echo "  - src/main.cpp"; \
-	echo "  - src/ui/mainwindow.cpp"
+	echo "  - src/ui/mainwindow.cpp"; \
+	echo ""; \
+	echo "Updating copyright year..."; \
+	./scripts/update_copyright.sh
 
 # Reset application settings to initial state
 reset:

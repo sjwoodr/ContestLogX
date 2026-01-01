@@ -1,6 +1,6 @@
 /*
  * ContestLogX - Amateur Radio Contest Logging Software
- * Copyright (c) 2025, by Steve Woodruff, N9OH
+ * Copyright (c) 2025-2026, by Steve Woodruff, N9OH
  */
 
 #ifndef MAINWINDOW_H
@@ -72,6 +72,7 @@ private slots:
     void onToggleCWWindowDebug(bool checked);
     void onToggleDxccDatabaseDebug(bool checked);
     void onDownloadCtyDat();
+    void onManageCallHistory();
     void onShortcuts();
     void onQsoDoubleClicked(const QModelIndex& index);
     void onQsoContextMenuRequested(const QPoint& pos);
@@ -92,6 +93,7 @@ private:
     void clearEntryForm();
     void updateWindowTitle();
     bool maybeSave();
+    void updateCallHistory();
     void saveWindowGeometry();
     void restoreWindowGeometry();
     void restoreColumnWidths();

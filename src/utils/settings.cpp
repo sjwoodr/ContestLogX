@@ -1,6 +1,6 @@
 /*
  * ContestLogX - Amateur Radio Contest Logging Software
- * Copyright (c) 2025, by Steve Woodruff, N9OH
+ * Copyright (c) 2025-2026, by Steve Woodruff, N9OH
  */
 
 #include "settings.h"
@@ -770,5 +770,31 @@ void Settings::setCabrilloOverlay(const QString& overlay)
     QJsonObject cabrillo = m_settings["cabrillo"].toObject();
     cabrillo["overlay"] = overlay;
     m_settings["cabrillo"] = cabrillo;
+    save();
+}
+
+bool Settings::getCallHistoryEnabled() const
+{
+    return m_settings["callHistory"].toObject()["enabled"].toBool(false);
+}
+
+void Settings::setCallHistoryEnabled(bool enabled)
+{
+    QJsonObject callHistory = m_settings["callHistory"].toObject();
+    callHistory["enabled"] = enabled;
+    m_settings["callHistory"] = callHistory;
+    save();
+}
+
+bool Settings::getCallHistoryAutoSaveEnabled() const
+{
+    return m_settings["callHistory"].toObject()["autoSave"].toBool(false);
+}
+
+void Settings::setCallHistoryAutoSaveEnabled(bool enabled)
+{
+    QJsonObject callHistory = m_settings["callHistory"].toObject();
+    callHistory["autoSave"] = enabled;
+    m_settings["callHistory"] = callHistory;
     save();
 }

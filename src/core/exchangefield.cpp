@@ -1,6 +1,6 @@
 /*
  * ContestLogX - Amateur Radio Contest Logging Software
- * Copyright (c) 2025, by Steve Woodruff, N9OH
+ * Copyright (c) 2025-2026, by Steve Woodruff, N9OH
  */
 
 #include "exchangefield.h"
