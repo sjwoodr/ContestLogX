@@ -1134,7 +1134,23 @@ QString ContestEngine::getBandFromFrequency(double freqKhz) const
 bool ContestEngine::isValidMode(const QString& mode) const
 {
     QStringList allowed = getAllowedModes();
-    return allowed.isEmpty() || allowed.contains(mode.toUpper());
+    if (allowed.isEmpty()) {
+        return true;  // No restrictions
+    }
+    
+    QString upperMode = mode.toUpper();
+    
+    // Direct match
+    if (allowed.contains(upperMode)) {
+        return true;
+    }
+    
+    // If SSB is allowed, accept LSB and USB as valid
+    if (allowed.contains("SSB") && (upperMode == "LSB" || upperMode == "USB")) {
+        return true;
+    }
+    
+    return false;
 }
 
 QStringList ContestEngine::getAllowedModes() const

@@ -173,6 +173,10 @@ public:
     bool getCallHistoryAutoSaveEnabled() const;
     void setCallHistoryAutoSaveEnabled(bool enabled);
     
+    // Super Check Partial (SCP) settings
+    bool getScpEnabled() const;
+    void setScpEnabled(bool enabled);
+    
     void save();
     
 private:

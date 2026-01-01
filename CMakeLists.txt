@@ -40,6 +40,9 @@ set(SOURCES
     src/ui/qsoeditdialog.cpp
     src/ui/cabrillodialog.cpp
     src/ui/callhistorydialog.cpp
+    src/ui/scpdialog.cpp
+    src/ui/scpwidget.cpp
+    src/ui/scplineedit.cpp
     src/contestengine.cpp
     src/core/qsorecord.cpp
     src/core/qsolistmodel.cpp
@@ -50,6 +53,7 @@ set(SOURCES
     src/core/loadingworker.cpp
     src/core/cabrilloexport.cpp
     src/callhistory.cpp
+    src/supercheckpartial.cpp
     src/fileformats/clxfile.cpp
     src/rig/flrigclient.cpp
     src/utils/settings.cpp
@@ -69,6 +73,9 @@ set(HEADERS
     include/cabrillodialog.h
     include/cabrilloexport.h
     include/callhistorydialog.h
+    include/scpdialog.h
+    include/scpwidget.h
+    include/scplineedit.h
     include/qsoeditdialog.h
     include/contestengine.h
     include/scorewidget.h
@@ -87,6 +94,7 @@ set(HEADERS
     include/flrigclient.h
     include/settings.h
     include/callhistory.h
+    include/supercheckpartial.h
     include/debuglogger.h
     src/utils/bandplan.h
     src/utils/callsignutils.h

@@ -5,18 +5,22 @@
 #include "cwmemoriesdialog.h"
 #include "dxclusterpanel.h"
 #include "scorewidget.h"
+#include "scpwidget.h"
+#include "scplineedit.h"
 #include "stationsetupdialog.h"
 #include "stationclassdialog.h"
 #include "contestselectdialog.h"
 #include "shortcutsdialog.h"
 #include "cabrillodialog.h"
 #include "callhistorydialog.h"
+#include "scpdialog.h"
 #include "cabrilloexport.h"
 #include "contestengine.h"
 #include "filehandler.h"
 #include "loadingworker.h"
 #include "settings.h"
 #include "callhistory.h"
+#include "supercheckpartial.h"
 #include "../utils/bandplan.h"
 #include "debuglogger.h"
 #include "DxccDatabase.h"
@@ -371,18 +375,21 @@ void MainWindow::setupUi()
     m_qsoEntryLayout->setSpacing(5);
     
     m_qsoEntryLayout->addWidget(new QLabel("Call:"));
-    m_callEdit = new QLineEdit();
-    m_callEdit->setMaxLength(14);  // Standard callsign length
-    m_callEdit->setMaximumWidth(120); // Max width for 10 chars
+    ScpLineEdit *callEdit = new ScpLineEdit();
+    m_callEdit = callEdit;  // Store as base QLineEdit pointer for compatibility
+    callEdit->setMaxLength(14);  // Standard callsign length
+    callEdit->setMaximumWidth(120); // Max width for 10 chars
+    // SCP widget will be wired in createConnections() after m_scpWidget is created
+    
     // Force uppercase input
-    connect(m_callEdit, &QLineEdit::textChanged, [this](const QString& text) {
+    connect(callEdit, &QLineEdit::textChanged, [this](const QString& text) {
         if (text != text.toUpper()) {
             int cursorPos = m_callEdit->cursorPosition();
             m_callEdit->setText(text.toUpper());
             m_callEdit->setCursorPosition(cursorPos);
         }
     });
-    m_qsoEntryLayout->addWidget(m_callEdit);
+    m_qsoEntryLayout->addWidget(callEdit);
     
     m_qsoEntryLayout->addWidget(new QLabel("Exchange:"));
     m_exchangeEdit = new QLineEdit();
@@ -453,6 +460,23 @@ void MainWindow::setupUi()
     m_scoreDock->setAllowedAreas(Qt::AllDockWidgetAreas);
     m_scoreDock->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
     addDockWidget(Qt::RightDockWidgetArea, m_scoreDock);
+    
+    // SCP Widget as QDockWidget
+    m_scpWidget = new ScpWidget(this);
+    m_scpWidget->setMinimumHeight(100);
+    m_scpWidget->setMaximumHeight(200);
+    m_scpWidget->setAllowedAreas(Qt::AllDockWidgetAreas);
+    m_scpWidget->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable | QDockWidget::DockWidgetClosable);
+    addDockWidget(Qt::RightDockWidgetArea, m_scpWidget);
+    
+    // Position SCP widget below DX Cluster - use splitDockWidget to control placement
+    // This ensures SCP stays under DX Cluster, and CW Console/Score widgets are below it
+    splitDockWidget(m_dxClusterDock, m_scpWidget, Qt::Vertical);
+    
+    m_scpWidget->hide();  // Hidden by default, user can show via Window menu
+    
+    // Store as m_scpDock for consistency with other docks
+    m_scpDock = m_scpWidget;
     
     // Enable nested docking and animated docks
     setDockNestingEnabled(true);
@@ -526,6 +550,9 @@ void MainWindow::setupMenus()
     QAction *downloadCtyAction = fileMenu->addAction("&Download DXCC Database (cty.dat)...");
     connect(downloadCtyAction, &QAction::triggered, this, &MainWindow::onDownloadCtyDat);
     
+    QAction *downloadScpAction = fileMenu->addAction("Download Super Check Partial (master.scp)...");
+    connect(downloadScpAction, &QAction::triggered, this, &MainWindow::onDownloadScp);
+    
     fileMenu->addSeparator();
     
     QAction *callHistoryAction = fileMenu->addAction("Manage &Call History...");
@@ -561,6 +588,11 @@ void MainWindow::setupMenus()
     
     contestMenu->addSeparator();
     
+    QAction *scpAction = contestMenu->addAction("&Super Check Partial...");
+    connect(scpAction, &QAction::triggered, this, &MainWindow::onScpDialog);
+    
+    contestMenu->addSeparator();
+    
     QAction *cabrilloAction = contestMenu->addAction("&Generate Cabrillo log...");
     connect(cabrilloAction, &QAction::triggered, this, &MainWindow::onExportCabrillo);
     
@@ -584,6 +616,11 @@ void MainWindow::setupMenus()
     m_scoreWidgetAction->setCheckable(true);
     m_scoreWidgetAction->setChecked(true);
     connect(m_scoreWidgetAction, &QAction::triggered, this, &MainWindow::onToggleScoreWidget);
+    
+    m_scpWidgetAction = windowMenu->addAction("&Super Check Partial");
+    m_scpWidgetAction->setCheckable(true);
+    m_scpWidgetAction->setChecked(false);  // Hidden by default
+    connect(m_scpWidgetAction, &QAction::triggered, this, &MainWindow::onToggleScpWidget);
     
     // Debug menu
     QMenu *debugMenu = menuBar()->addMenu("&Debug");
@@ -658,6 +695,45 @@ void MainWindow::createConnections()
         m_lastWpm = wpm;
         m_wpmLabel->setText(QString("WPM: %1").arg(wpm));
     });
+    
+    // Wire SCP to call entry field (m_scpWidget now exists)
+    ScpLineEdit *scpLineEdit = qobject_cast<ScpLineEdit*>(m_callEdit);
+    if (scpLineEdit && m_scpWidget) {
+        scpLineEdit->setScpWidget(m_scpWidget);
+        bool scpEnabled = Settings::instance().getScpEnabled();
+        scpLineEdit->setScpEnabled(scpEnabled);
+        DebugLogger::instance().log("MainWindow", "SCP wired to call entry field");
+        
+        // Load SCP database if it exists and is enabled
+        if (scpEnabled) {
+            QString scpFilePath = SuperCheckPartial::instance().getDataFilePath();
+            QFile scpFile(scpFilePath);
+            if (scpFile.exists()) {
+                if (SuperCheckPartial::instance().loadDatabase(scpFilePath)) {
+                    DebugLogger::instance().log("MainWindow", 
+                        QString("SCP database loaded from %1").arg(scpFilePath));
+                } else {
+                    DebugLogger::instance().log("MainWindow", 
+                        QString("Failed to load SCP database from %1").arg(scpFilePath));
+                }
+            } else {
+                DebugLogger::instance().log("MainWindow", 
+                    QString("SCP database file not found at %1").arg(scpFilePath));
+            }
+        }
+    }
+    
+    // SCP Widget state changes
+    if (m_scpWidget) {
+        connect(m_scpWidget, &QDockWidget::topLevelChanged, this, [this](bool floating) {
+            Q_UNUSED(floating);
+            updateScpWidgetMenuText();
+        });
+        connect(m_scpWidget, &QDockWidget::visibilityChanged, this, [this](bool visible) {
+            Q_UNUSED(visible);
+            updateScpWidgetMenuText();
+        });
+    }
 }
 
 void MainWindow::onNewLog()
@@ -1591,13 +1667,22 @@ void MainWindow::onLogQso()
     
     // Validate that the mode is allowed for this contest
     QStringList allowedModes = m_contestEngine->getAllowedModes();
-    if (!allowedModes.isEmpty() && !allowedModes.contains(m_lastMode.toUpper())) {
-        QString errorMsg = QString("Invalid mode '%1'. This contest only allows: %2")
-            .arg(m_lastMode)
-            .arg(allowedModes.join(", "));
-        m_statusLabel->setText(errorMsg);
-        DebugLogger::instance().log("MainWindow", errorMsg);
-        return;
+    if (!allowedModes.isEmpty()) {
+        bool modeValid = allowedModes.contains(m_lastMode.toUpper());
+        
+        // If SSB is allowed, also accept LSB and USB
+        if (!modeValid && allowedModes.contains("SSB")) {
+            modeValid = (m_lastMode == "LSB" || m_lastMode == "USB");
+        }
+        
+        if (!modeValid) {
+            QString errorMsg = QString("Invalid mode '%1'. This contest only allows: %2")
+                .arg(m_lastMode)
+                .arg(allowedModes.join(", "));
+            m_statusLabel->setText(errorMsg);
+            DebugLogger::instance().log("MainWindow", errorMsg);
+            return;
+        }
     }
     
     DebugLogger::instance().log("MainWindow", 
@@ -2351,6 +2436,55 @@ void MainWindow::onToggleScoreWidget(bool checked)
     }
 }
 
+void MainWindow::onToggleScpWidget(bool checked)
+{
+    if (m_scpWidget) {
+        if (checked) {
+            // Show the widget
+            m_scpWidget->setVisible(true);
+            
+            // If it's floating, dock it back to the right panel
+            if (m_scpWidget->isFloating()) {
+                // Get the dock area where it last was (default to right)
+                m_scpWidget->setFloating(false);
+                // Ensure it's in the right dock area
+                addDockWidget(Qt::RightDockWidgetArea, m_scpWidget);
+                // Stack it below the score widget if possible
+                if (m_scoreDock) {
+                    splitDockWidget(m_scoreDock, m_scpWidget, Qt::Vertical);
+                }
+                DebugLogger::instance().log("MainWindow", "SCP widget docked to right panel");
+            } else {
+                DebugLogger::instance().log("MainWindow", "SCP widget shown (already docked)");
+            }
+        } else {
+            // Hide the widget
+            m_scpWidget->setVisible(false);
+            DebugLogger::instance().log("MainWindow", "SCP widget hidden");
+        }
+        updateScpWidgetMenuText();
+        savePanelState();
+    }
+}
+
+void MainWindow::updateScpWidgetMenuText()
+{
+    if (!m_scpWidgetAction || !m_scpWidget) {
+        return;
+    }
+    
+    // Update menu text based on widget state
+    if (m_scpWidget->isVisible()) {
+        if (m_scpWidget->isFloating()) {
+            m_scpWidgetAction->setText("&Super Check Partial (floating)");
+        } else {
+            m_scpWidgetAction->setText("&Super Check Partial (docked)");
+        }
+    } else {
+        m_scpWidgetAction->setText("&Super Check Partial");
+    }
+}
+
 void MainWindow::savePanelState()
 {
     Settings& settings = Settings::instance();
@@ -2933,6 +3067,47 @@ void MainWindow::onDownloadCtyDat()
                 "Download already in progress or failed to start.");
         }
     }
+}
+
+void MainWindow::onDownloadScp()
+{
+    QMessageBox msgBox(this);
+    msgBox.setWindowTitle("Download Super Check Partial");
+    msgBox.setText("Download the latest master.scp from supercheckpartial.com?");
+    msgBox.setInformativeText("This will download and install the latest SCP callsign database.");
+    msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
+    msgBox.setDefaultButton(QMessageBox::Ok);
+    
+    if (msgBox.exec() == QMessageBox::Ok) {
+        QProgressDialog *progress = new QProgressDialog("Downloading master.scp...", "Cancel", 0, 0, this);
+        progress->setWindowModality(Qt::WindowModal);
+        progress->setMinimumDuration(0);
+        progress->show();
+        QApplication::processEvents();
+        
+        QString targetPath = SuperCheckPartial::instance().getDataFilePath();
+        QString errorMessage;
+        
+        if (SuperCheckPartial::downloadLatestDatabase(targetPath, errorMessage)) {
+            progress->close();
+            progress->deleteLater();
+            QMessageBox::information(this, "Download Complete", 
+                "Master.scp downloaded and installed successfully!");
+            DebugLogger::instance().log("MainWindow", "SCP database downloaded successfully");
+        } else {
+            progress->close();
+            progress->deleteLater();
+            QMessageBox::warning(this, "Download Failed", 
+                QString("Failed to download SCP database:\n%1").arg(errorMessage));
+            DebugLogger::instance().log("MainWindow", "SCP download failed: " + errorMessage);
+        }
+    }
+}
+
+void MainWindow::onScpDialog()
+{
+    ScpDialog dialog(this);
+    dialog.exec();
 }
 
 bool MainWindow::isSemanticVersionEqual(const QString& v1, const QString& v2)

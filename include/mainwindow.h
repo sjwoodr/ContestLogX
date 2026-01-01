@@ -65,6 +65,7 @@ private slots:
     void onToggleDxCluster(bool checked);
     void onToggleCwConsole(bool checked);
     void onToggleScoreWidget(bool checked);
+    void onToggleScpWidget(bool checked);
     void onToggleFlrigDebug(bool checked);
     void onToggleMainWindowDebug(bool checked);
     void onToggleContestEngineDebug(bool checked);
@@ -72,7 +73,9 @@ private slots:
     void onToggleCWWindowDebug(bool checked);
     void onToggleDxccDatabaseDebug(bool checked);
     void onDownloadCtyDat();
+    void onDownloadScp();
     void onManageCallHistory();
+    void onScpDialog();
     void onShortcuts();
     void onQsoDoubleClicked(const QModelIndex& index);
     void onQsoContextMenuRequested(const QPoint& pos);
@@ -94,6 +97,7 @@ private:
     void updateWindowTitle();
     bool maybeSave();
     void updateCallHistory();
+    void updateScpWidgetMenuText();
     void saveWindowGeometry();
     void restoreWindowGeometry();
     void restoreColumnWidths();
@@ -126,6 +130,8 @@ private:
     class QDockWidget *m_cwConsoleDock;
     class ScoreWidget *m_scoreWidget;
     class QDockWidget *m_scoreDock;
+    class ScpWidget *m_scpWidget;  // ScpWidget IS a QDockWidget
+    class QDockWidget *m_scpDock;   // Pointer to m_scpWidget for consistency
     class QSplitter *m_mainSplitter;
     class QSplitter *m_rightPanelSplitter;
     
@@ -133,6 +139,7 @@ private:
     QAction *m_dxClusterAction;
     QAction *m_cwConsoleAction;
     QAction *m_scoreWidgetAction;
+    QAction *m_scpWidgetAction;
     QAction *m_flrigDebugAction;
     QAction *m_mainWindowDebugAction;
     QAction *m_contestEngineDebugAction;

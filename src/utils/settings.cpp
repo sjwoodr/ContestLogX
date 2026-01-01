@@ -816,3 +816,16 @@ void Settings::setCallHistoryAutoSaveEnabled(bool enabled)
     m_settings["callHistory"] = callHistory;
     save();
 }
+
+bool Settings::getScpEnabled() const
+{
+    return m_settings["scp"].toObject()["enabled"].toBool(false);
+}
+
+void Settings::setScpEnabled(bool enabled)
+{
+    QJsonObject scp = m_settings["scp"].toObject();
+    scp["enabled"] = enabled;
+    m_settings["scp"] = scp;
+    m_modified = true;
+}
