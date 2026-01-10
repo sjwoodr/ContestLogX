@@ -1,0 +1,514 @@
+{
+  "contest": {
+    "name": "North American QSO Party",
+    "abbreviation": "NAQP",
+    "version": "1.0.0",
+    "sponsor": "NCJWEB / CQ Magazine",
+    "startDate": "CW: Second full weekend in January and first full weekend in August; SSB: Third full weekend in January and August; RTTY: Last Saturday in February and third full weekend in July",
+    "duration": 12,
+    "offTimeGapMinutes": 30,
+    "modes": ["CW", "SSB", "RTTY"],
+    "bands": ["160m", "80m", "40m", "20m", "15m", "10m"],
+    "url": "https://www.ncjweb.com/naqp.html",
+    "categories": {
+      "mode": ["CW", "SSB", "RTTY"],
+      "stations": ["SINGLE_OP", "MULTI_OP"],
+      "power": ["QRP", "LOW_POWER", "HIGH_POWER"]
+    }
+  },
+  "frequencies": {
+    "160m": {
+      "start": 1800,
+      "end": 2000,
+      "cw": {"start": 1800, "end": 2000},
+      "phone": {"start": 1800, "end": 2000},
+      "digital": {"start": 1800, "end": 2000}
+    },
+    "80m": {
+      "start": 3500,
+      "end": 4000,
+      "cw": {"start": 3500, "end": 3600},
+      "phone": {"start": 3600, "end": 4000},
+      "digital": {"start": 3500, "end": 3600}
+    },
+    "40m": {
+      "start": 7000,
+      "end": 7300,
+      "cw": {"start": 7000, "end": 7125},
+      "phone": {"start": 7125, "end": 7300},
+      "digital": {"start": 7000, "end": 7125}
+    },
+    "20m": {
+      "start": 14000,
+      "end": 14350,
+      "cw": {"start": 14000, "end": 14150},
+      "phone": {"start": 14150, "end": 14350},
+      "digital": {"start": 14000, "end": 14150}
+    },
+    "15m": {
+      "start": 21000,
+      "end": 21450,
+      "cw": {"start": 21000, "end": 21200},
+      "phone": {"start": 21200, "end": 21450},
+      "digital": {"start": 21000, "end": 21200}
+    },
+    "10m": {
+      "start": 28000,
+      "end": 29700,
+      "cw": {"start": 28000, "end": 28300},
+      "phone": {"start": 28300, "end": 29700},
+      "digital": {"start": 28000, "end": 28300}
+    }
+  },
+  "stationClasses": {
+    "enabled": true,
+    "prompt": "Select your entry class and mode",
+    "classes": [
+      {
+        "id": "SO_UNASSISTED_CW",
+        "name": "Single Operator Unassisted - CW",
+        "description": "One operator, no spotting assistance, CW mode",
+        "needsInput": true,
+        "inputPrompts": {
+          "name": "Enter your first name",
+          "id": "Enter your state/province/country"
+        },
+        "exchangeFieldMapping": {
+          "name": "NAMEs",
+          "id": "EXCHs"
+        },
+        "inputValidation": {
+          "name": {
+            "forceUppercase": true
+          },
+          "id": {
+            "forceUppercase": true
+          }
+        },
+        "exchangeSent": {
+          "type": "customInput"
+        },
+        "mode": "CW"
+      },
+      {
+        "id": "SO_UNASSISTED_SSB",
+        "name": "Single Operator Unassisted - SSB",
+        "description": "One operator, no spotting assistance, SSB mode",
+        "needsInput": true,
+        "inputPrompts": {
+          "name": "Enter your first name",
+          "id": "Enter your state/province/country"
+        },
+        "exchangeFieldMapping": {
+          "name": "NAMEs",
+          "id": "EXCHs"
+        },
+        "inputValidation": {
+          "name": {
+            "forceUppercase": true
+          },
+          "id": {
+            "forceUppercase": true
+          }
+        },
+        "exchangeSent": {
+          "type": "customInput"
+        },
+        "mode": "SSB"
+      },
+      {
+        "id": "SO_UNASSISTED_RTTY",
+        "name": "Single Operator Unassisted - RTTY",
+        "description": "One operator, no spotting assistance, RTTY mode",
+        "needsInput": true,
+        "inputPrompts": {
+          "name": "Enter your first name",
+          "id": "Enter your state/province/country"
+        },
+        "exchangeFieldMapping": {
+          "name": "NAMEs",
+          "id": "EXCHs"
+        },
+        "inputValidation": {
+          "name": {
+            "forceUppercase": true
+          },
+          "id": {
+            "forceUppercase": true
+          }
+        },
+        "exchangeSent": {
+          "type": "customInput"
+        },
+        "mode": "RTTY"
+      },
+      {
+        "id": "SO_ASSISTED_CW",
+        "name": "Single Operator Assisted - CW",
+        "description": "One operator, spotting assistance allowed, CW mode",
+        "needsInput": true,
+        "inputPrompts": {
+          "name": "Enter your first name",
+          "id": "Enter your state/province/country"
+        },
+        "exchangeFieldMapping": {
+          "name": "NAMEs",
+          "id": "EXCHs"
+        },
+        "inputValidation": {
+          "name": {
+            "forceUppercase": true
+          },
+          "id": {
+            "forceUppercase": true
+          }
+        },
+        "exchangeSent": {
+          "type": "customInput"
+        },
+        "mode": "CW"
+      },
+      {
+        "id": "SO_ASSISTED_SSB",
+        "name": "Single Operator Assisted - SSB",
+        "description": "One operator, spotting assistance allowed, SSB mode",
+        "needsInput": true,
+        "inputPrompts": {
+          "name": "Enter your first name",
+          "id": "Enter your state/province/country"
+        },
+        "exchangeFieldMapping": {
+          "name": "NAMEs",
+          "id": "EXCHs"
+        },
+        "inputValidation": {
+          "name": {
+            "forceUppercase": true
+          },
+          "id": {
+            "forceUppercase": true
+          }
+        },
+        "exchangeSent": {
+          "type": "customInput"
+        },
+        "mode": "SSB"
+      },
+      {
+        "id": "SO_ASSISTED_RTTY",
+        "name": "Single Operator Assisted - RTTY",
+        "description": "One operator, spotting assistance allowed, RTTY mode",
+        "needsInput": true,
+        "inputPrompts": {
+          "name": "Enter your first name",
+          "id": "Enter your state/province/country"
+        },
+        "exchangeFieldMapping": {
+          "name": "NAMEs",
+          "id": "EXCHs"
+        },
+        "inputValidation": {
+          "name": {
+            "forceUppercase": true
+          },
+          "id": {
+            "forceUppercase": true
+          }
+        },
+        "exchangeSent": {
+          "type": "customInput"
+        },
+        "mode": "RTTY"
+      },
+      {
+        "id": "MULTI_OP_CW",
+        "name": "Multi-Operator - CW",
+        "description": "Multiple operators, two transmitters maximum, CW mode",
+        "needsInput": true,
+        "inputPrompts": {
+          "name": "Enter team name",
+          "id": "Enter your state/province/country"
+        },
+        "exchangeFieldMapping": {
+          "name": "NAMEs",
+          "id": "EXCHs"
+        },
+        "inputValidation": {
+          "name": {
+            "forceUppercase": true
+          },
+          "id": {
+            "forceUppercase": true
+          }
+        },
+        "exchangeSent": {
+          "type": "customInput"
+        },
+        "mode": "CW"
+      },
+      {
+        "id": "MULTI_OP_SSB",
+        "name": "Multi-Operator - SSB",
+        "description": "Multiple operators, two transmitters maximum, SSB mode",
+        "needsInput": true,
+        "inputPrompts": {
+          "name": "Enter team name",
+          "id": "Enter your state/province/country"
+        },
+        "exchangeFieldMapping": {
+          "name": "NAMEs",
+          "id": "EXCHs"
+        },
+        "inputValidation": {
+          "name": {
+            "forceUppercase": true
+          },
+          "id": {
+            "forceUppercase": true
+          }
+        },
+        "exchangeSent": {
+          "type": "customInput"
+        },
+        "mode": "SSB"
+      },
+      {
+        "id": "MULTI_OP_RTTY",
+        "name": "Multi-Operator - RTTY",
+        "description": "Multiple operators, two transmitters maximum, RTTY mode",
+        "needsInput": true,
+        "inputPrompts": {
+          "name": "Enter team name",
+          "id": "Enter your state/province/country"
+        },
+        "exchangeFieldMapping": {
+          "name": "NAMEs",
+          "id": "EXCHs"
+        },
+        "inputValidation": {
+          "name": {
+            "forceUppercase": true
+          },
+          "id": {
+            "forceUppercase": true
+          }
+        },
+        "exchangeSent": {
+          "type": "customInput"
+        },
+        "mode": "RTTY"
+      }
+    ]
+  },
+  "exchangeFields": {
+    "sent": [
+      {
+        "name": "RST",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report"
+      },
+      {
+        "name": "NAMEs",
+        "type": "string",
+        "required": true,
+        "description": "Operator first name sent"
+      },
+      {
+        "name": "EXCHs",
+        "type": "string",
+        "required": true,
+        "description": "State/Province/Country sent"
+      }
+    ],
+    "received": [
+      {
+        "name": "RST",
+        "type": "rst",
+        "required": false,
+        "validation": "^[1-5][1-9][1-9]?$",
+        "description": "Signal report (optional for export)"
+      },
+      {
+        "name": "NAMEr",
+        "type": "string",
+        "required": true,
+        "description": "Operator first name received"
+      },
+      {
+        "name": "EXCHr",
+        "type": "string",
+        "required": true,
+        "description": "State/Province/Country received (or DX)"
+      }
+    ]
+  },
+  "qsoFields": [
+    {
+      "name": "Date",
+      "column": "DATE",
+      "type": "date",
+      "format": "yyyy-MM-dd",
+      "required": true
+    },
+    {
+      "name": "Time",
+      "column": "TIME",
+      "type": "time",
+      "format": "HH:mm:ss",
+      "required": true
+    },
+    {
+      "name": "Callsign",
+      "column": "CALL",
+      "type": "string",
+      "required": true,
+      "uppercase": true
+    },
+    {
+      "name": "Frequency",
+      "column": "FREQ",
+      "type": "number",
+      "unit": "kHz",
+      "required": true
+    },
+    {
+      "name": "Mode",
+      "column": "MODE",
+      "type": "enum",
+      "values": ["CW", "SSB", "RTTY"],
+      "required": true
+    },
+    {
+      "name": "RST Sent",
+      "column": "RST_SENT",
+      "type": "string",
+      "required": true,
+      "default": "599"
+    },
+    {
+      "name": "RST Received",
+      "column": "RST_RCV",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "Name Sent",
+      "column": "NAMEs",
+      "type": "string",
+      "required": true,
+      "description": "Operator first name sent"
+    },
+    {
+      "name": "Name Received",
+      "column": "NAMEr",
+      "type": "string",
+      "required": true,
+      "description": "Operator first name received"
+    },
+    {
+      "name": "QTH Sent",
+      "column": "EXCHs",
+      "type": "string",
+      "required": true,
+      "description": "State/Province/Country sent"
+    },
+    {
+      "name": "QTH Received",
+      "column": "EXCHr",
+      "type": "string",
+      "required": true,
+      "description": "State/Province/Country received (or DX)"
+    },
+    {
+      "name": "Points",
+      "column": "POINTS",
+      "type": "number",
+      "calculated": true
+    },
+    {
+      "name": "Multiplier",
+      "column": "M",
+      "type": "string",
+      "calculated": true
+    }
+  ],
+  "scoring": {
+    "points": {
+      "sameDxccEntity": {
+        "CW": 1,
+        "SSB": 1,
+        "RTTY": 1
+      },
+      "differentDxccEntity": {
+        "CW": 1,
+        "SSB": 1,
+        "RTTY": 1
+      }
+    },
+    "precedence": [
+      "sameDxccEntity",
+      "differentDxccEntity"
+    ],
+    "multipliers": {
+      "type": "multsPerBand",
+      "description": "US states, DC, Canadian provinces/territories, and other North American DXCC entities",
+      "categories": ["namedMults"],
+      "alaskaAndHawaiiCountDxcc": false,
+      "usAndCanadaCountDxcc": false
+    },
+    "finalScore": "SUM(points) * SUM(multipliers)"
+  },
+  "dupeChecking": {
+    "type": "perBand",
+    "description": "Station may be worked once per band"
+  },
+  "logging": {
+    "requiredFields": ["date", "time", "frequency", "mode", "callsign", "rstSent", "rstReceived", "nameSent", "nameReceived", "exchSent", "exchReceived"],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "NAQP-CW",
+      "contestMapping": {
+        "CW": "NAQP-CW",
+        "SSB": "NAQP-SSB",
+        "RTTY": "NAQP-RTTY"
+      },
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {name_sent} {exch_sent} {call} {name_rcvd} {exch_rcvd}"
+    }
+  },
+  "callHistory": {
+    "fieldsToSave": ["NAMEr", "EXCHr"],
+    "description": "Save operator name and QTH for future lookups"
+  },
+  "validation": {
+    "minimumQSOs": 10,
+    "maxOperatingTime": 12,
+    "offTimesRequired": true,
+    "minimumOffTimeMinutes": 30,
+    "namedMults": [
+      "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY", "DC",
+      "AB", "BC", "MB", "NB", "NL", "NT", "NS", "NU", "ON", "PE", "QC", "SK", "YT",
+      "XE", "C6", "VP9", "J7", "HI", "FG", "OX", "FM", "VP2M", "PJ", "KP4", "J6", "VP5", "KP2", "VP2E", "V3", "TI", "YS", "7G", "HR", "6Y", "YN", "HP", "9Y"
+    ],
+    "exchangeValidation": {
+      "type": "nameAndMultiplier",
+      "description": "Name is any string; QTH should be a valid North American state/province/country or DX"
+    }
+  },
+  "ui": {
+    "logColumns": ["DATE", "TIME", "CALL", "FREQ", "MODE", "RSTs", "RSTr", "NAMEs", "NAMEr", "EXCHs", "EXCHr", "POINTS", "M"],
+    "entryFields": ["CALL", "NAMEr", "EXCHr"],
+    "fieldNavigation": {
+      "keys": "tab"
+    },
+    "bandMap": {
+      "enabled": true,
+      "bands": ["160m", "80m", "40m", "20m", "15m", "10m"]
+    },
+    "multiplierDisplay": {
+      "showStates": true,
+      "showProvinces": true,
+      "showDXCC": false
+    }
+  }
+}

@@ -901,7 +901,7 @@ ContestEngine::QsoMultiplierCredit ContestEngine::getQsoMultiplierCredit(const Q
         }
         
         if (isNew) {
-            if (multInfo.category == "named") {
+            if (multInfo.category == "named" || multInfo.category == "namedMults") {
                 credit.namedMultCount++;
             } else if (multInfo.category == "dxcc") {
                 credit.dxccMultCount++;
@@ -1157,7 +1157,16 @@ QStringList ContestEngine::getAllowedModes() const
 {
     QStringList modes;
     
-    // First, check for modes at the contest level
+    // First, check if a station class with a specific mode is selected
+    QString stationClassMode = getStationClassMode();
+    if (!stationClassMode.isEmpty()) {
+        modes.append(stationClassMode.toUpper());
+        DebugLogger::instance().log("ContestEngine", 
+            QString("getAllowedModes: Restricting to station class mode '%1'").arg(stationClassMode));
+        return modes;
+    }
+    
+    // Check for modes at the contest level
     if (m_contestDef.contains("contest")) {
         QJsonObject contest = m_contestDef["contest"].toObject();
         if (contest.contains("modes")) {
@@ -1329,6 +1338,36 @@ void ContestEngine::resetStationClassState()
     m_stationClassExchangeName = QString();
     m_stationClassExchangeId = QString();
     DebugLogger::instance().log("ContestEngine", "Station class state reset");
+}
+
+QString ContestEngine::getStationClassMode() const
+{
+    // If no station class is selected, return empty string
+    if (m_stationClass.isEmpty()) {
+        return QString();
+    }
+    
+    // Look up the mode from the station class definition
+    if (m_contestDef.contains("stationClasses")) {
+        QJsonObject stationClasses = m_contestDef["stationClasses"].toObject();
+        if (stationClasses.contains("classes")) {
+            QJsonArray classes = stationClasses["classes"].toArray();
+            for (const QJsonValue& classVal : classes) {
+                QJsonObject classObj = classVal.toObject();
+                if (classObj.contains("id") && classObj["id"].toString() == m_stationClass) {
+                    if (classObj.contains("mode")) {
+                        QString mode = classObj["mode"].toString();
+                        DebugLogger::instance().log("ContestEngine", 
+                            QString("getStationClassMode: Found mode '%1' for class '%2'").arg(mode, m_stationClass));
+                        return mode;
+                    }
+                    break;
+                }
+            }
+        }
+    }
+    
+    return QString();
 }
 
 QStringList ContestEngine::getCallHistoryFieldsToSave() const
@@ -1688,7 +1727,7 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
                     isNew = true;
                     uniqueMultipliers.insert(mult);
                 }
-                if (category == "named") {
+                if (category == "named" || category == "namedMults") {
                     if (!namedMultsOnce.contains(mult)) namedMultsOnce.insert(mult);
                 } else if (category == "dxcc") {
                     if (!dxccMultsOnce.contains(mult)) dxccMultsOnce.insert(mult);
@@ -1705,7 +1744,7 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
                     isNew = true;
                     multPerBand.insert(key);
                 }
-                if (category == "named") {
+                if (category == "named" || category == "namedMults") {
                     if (!namedMultsPerBand.contains(key)) namedMultsPerBand.insert(key);
                 } else if (category == "dxcc") {
                     if (!dxccMultsPerBand.contains(key)) dxccMultsPerBand.insert(key);
@@ -1732,7 +1771,7 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
                     }
                 }
                 
-                if (category == "named") {
+                if (category == "named" || category == "namedMults") {
                     if (!namedMultsPerMode.contains(key)) namedMultsPerMode.insert(key);
                 } else if (category == "dxcc") {
                     if (!dxccMultsPerMode.contains(key)) dxccMultsPerMode.insert(key);
@@ -1749,7 +1788,7 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
                     isNew = true;
                     multPerBandAndMode.insert(key);
                 }
-                if (category == "named") {
+                if (category == "named" || category == "namedMults") {
                     if (!namedMultsPerBandAndMode.contains(key)) namedMultsPerBandAndMode.insert(key);
                 } else if (category == "dxcc") {
                     if (!dxccMultsPerBandAndMode.contains(key)) dxccMultsPerBandAndMode.insert(key);
@@ -1764,7 +1803,7 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
             
             // Count this QSO's contribution to named and DXCC mults
             if (isNew) {
-                if (category == "named") {
+                if (category == "named" || category == "namedMults") {
                     qsoNamedMults++;
                 } else if (category == "dxcc") {
                     qsoDxccMults++;
@@ -1901,4 +1940,18 @@ void ContestEngine::resetScore()
 {
     m_runningScore = ContestScore();
     DebugLogger::instance().log("ContestEngine", "Score reset");
+}
+
+void ContestEngine::setRestrictedMode(const QString& mode)
+{
+    m_restrictedMode = mode;
+    if (!mode.isEmpty()) {
+        DebugLogger::instance().log("ContestEngine", 
+            QString("Restricted mode set to: %1").arg(mode));
+    }
+}
+
+QString ContestEngine::getRestrictedMode() const
+{
+    return m_restrictedMode;
 }

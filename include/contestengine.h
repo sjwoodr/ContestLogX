@@ -133,6 +133,9 @@ public:
     QString getStationClassIdPrompt() const;
     QJsonObject getStationClassInputValidation() const;  // Get input validation rules
     void resetStationClassState();  // Reset station class and exchange data
+    QString getStationClassMode() const;  // Get mode from selected station class
+    void setRestrictedMode(const QString& mode);  // Restrict logging to a specific mode
+    QString getRestrictedMode() const;  // Get the restricted mode if any
     
     // Call history field configuration
     QStringList getCallHistoryFieldsToSave() const;
@@ -154,6 +157,7 @@ private:
     QString m_stationClass;
     QString m_stationClassExchangeName;
     QString m_stationClassExchangeId;
+    QString m_restrictedMode;  // Restrict logging to a specific mode when loading from file
     DxccDatabase* m_dxccDatabase;
     ContestScore m_runningScore;
 };

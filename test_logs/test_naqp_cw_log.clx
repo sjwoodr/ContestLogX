@@ -1,0 +1,400 @@
+{
+  "format": "ContestLogX",
+  "format_version": "1.0",
+  "created": "2026-01-10T19:00:00Z",
+  "modified": "2026-01-10T19:31:00Z",
+  "contest": {
+    "name": "North American QSO Party",
+    "abbreviation": "NAQP",
+    "mode": "CW",
+    "contest_file": "naqp.json"
+  },
+  "station": {
+    "callsign": "W5TEST",
+    "stationClass": "SO_ASSISTED_CW",
+    "operator": "STEVE",
+    "location": {
+      "state": "FL"
+    }
+  },
+  "qsos": [
+    {
+      "id": 1,
+      "serial": 1,
+      "timestamp": "2026-01-10T18:00:00Z",
+      "frequency": 7040,
+      "band": "40m",
+      "mode": "CW",
+      "callsign": "W4WOD",
+      "duplicate": false,
+      "rst_sent": "599",
+      "rst_received": "599",
+      "exchange_fields": {
+        "RST": "599",
+        "NAMEs": "STEVE",
+        "EXCHs": "FL",
+        "NAMEr": "SAM",
+        "EXCHr": "NC"
+      },
+      "points": 1,
+      "multiplier_count": 1
+    },
+    {
+      "id": 2,
+      "serial": 2,
+      "timestamp": "2026-01-10T18:05:00Z",
+      "frequency": 7042,
+      "band": "40m",
+      "mode": "CW",
+      "callsign": "W1ABC",
+      "duplicate": false,
+      "rst_sent": "599",
+      "rst_received": "599",
+      "exchange_fields": {
+        "RST": "599",
+        "NAMEs": "STEVE",
+        "EXCHs": "FL",
+        "NAMEr": "JOHN",
+        "EXCHr": "MA"
+      },
+      "points": 1,
+      "multiplier_count": 1
+    },
+    {
+      "id": 3,
+      "serial": 3,
+      "timestamp": "2026-01-10T18:10:00Z",
+      "frequency": 7044,
+      "band": "40m",
+      "mode": "CW",
+      "callsign": "W2DEF",
+      "duplicate": false,
+      "rst_sent": "599",
+      "rst_received": "599",
+      "exchange_fields": {
+        "RST": "599",
+        "NAMEs": "STEVE",
+        "EXCHs": "FL",
+        "NAMEr": "JANE",
+        "EXCHr": "NY"
+      },
+      "points": 1,
+      "multiplier_count": 1
+    },
+    {
+      "id": 4,
+      "serial": 4,
+      "timestamp": "2026-01-10T18:15:00Z",
+      "frequency": 7046,
+      "band": "40m",
+      "mode": "CW",
+      "callsign": "KL7GHI",
+      "duplicate": false,
+      "rst_sent": "599",
+      "rst_received": "599",
+      "exchange_fields": {
+        "RST": "599",
+        "NAMEs": "STEVE",
+        "EXCHs": "FL",
+        "NAMEr": "BOB",
+        "EXCHr": "AK"
+      },
+      "points": 1,
+      "multiplier_count": 1
+    },
+    {
+      "id": 5,
+      "serial": 5,
+      "timestamp": "2026-01-10T18:20:00Z",
+      "frequency": 7048,
+      "band": "40m",
+      "mode": "CW",
+      "callsign": "KH6JKL",
+      "duplicate": false,
+      "rst_sent": "599",
+      "rst_received": "599",
+      "exchange_fields": {
+        "RST": "599",
+        "NAMEs": "STEVE",
+        "EXCHs": "FL",
+        "NAMEr": "CAROL",
+        "EXCHr": "HI"
+      },
+      "points": 1,
+      "multiplier_count": 1
+    },
+    {
+      "id": 6,
+      "serial": 6,
+      "timestamp": "2026-01-10T18:25:00Z",
+      "frequency": 7050,
+      "band": "40m",
+      "mode": "CW",
+      "callsign": "W3MNO",
+      "duplicate": false,
+      "rst_sent": "599",
+      "rst_received": "599",
+      "exchange_fields": {
+        "RST": "599",
+        "NAMEs": "STEVE",
+        "EXCHs": "FL",
+        "NAMEr": "DAVE",
+        "EXCHr": "PA"
+      },
+      "points": 1,
+      "multiplier_count": 1
+    },
+    {
+      "id": 7,
+      "serial": 7,
+      "timestamp": "2026-01-10T18:30:00Z",
+      "frequency": 7052,
+      "band": "40m",
+      "mode": "CW",
+      "callsign": "VE3PQR",
+      "duplicate": false,
+      "rst_sent": "599",
+      "rst_received": "599",
+      "exchange_fields": {
+        "RST": "599",
+        "NAMEs": "STEVE",
+        "EXCHs": "FL",
+        "NAMEr": "MIKE",
+        "EXCHr": "ON"
+      },
+      "points": 1,
+      "multiplier_count": 1
+    },
+    {
+      "id": 8,
+      "serial": 8,
+      "timestamp": "2026-01-10T18:35:00Z",
+      "frequency": 7054,
+      "band": "40m",
+      "mode": "CW",
+      "callsign": "XE2STU",
+      "duplicate": false,
+      "rst_sent": "599",
+      "rst_received": "599",
+      "exchange_fields": {
+        "RST": "599",
+        "NAMEs": "STEVE",
+        "EXCHs": "FL",
+        "NAMEr": "CARLOS",
+        "EXCHr": "XE"
+      },
+      "points": 2,
+      "multiplier_count": 1
+    },
+    {
+      "id": 9,
+      "serial": 9,
+      "timestamp": "2026-01-10T18:40:00Z",
+      "frequency": 7056,
+      "band": "40m",
+      "mode": "CW",
+      "callsign": "YV5VWX",
+      "duplicate": false,
+      "rst_sent": "599",
+      "rst_received": "599",
+      "exchange_fields": {
+        "RST": "599",
+        "NAMEs": "STEVE",
+        "EXCHs": "FL",
+        "NAMEr": "PEDRO",
+        "EXCHr": "DX"
+      },
+      "points": 1,
+      "multiplier_count": 0
+    },
+    {
+      "id": 10,
+      "serial": 10,
+      "timestamp": "2026-01-10T18:45:00Z",
+      "frequency": 7058,
+      "band": "40m",
+      "mode": "CW",
+      "callsign": "PJ2XYZ",
+      "duplicate": false,
+      "rst_sent": "599",
+      "rst_received": "599",
+      "exchange_fields": {
+        "RST": "599",
+        "NAMEs": "STEVE",
+        "EXCHs": "FL",
+        "NAMEr": "JUAN",
+        "EXCHr": "DX"
+      },
+      "points": 1,
+      "multiplier_count": 0
+    },
+    {
+      "id": 11,
+      "serial": 11,
+      "timestamp": "2026-01-10T19:00:00Z",
+      "frequency": 21001,
+      "band": "15m",
+      "mode": "CW",
+      "callsign": "W4WOD",
+      "duplicate": false,
+      "rst_sent": "599",
+      "rst_received": "599",
+      "exchange_fields": {
+        "RST": "599",
+        "NAMEs": "STEVE",
+        "EXCHs": "FL",
+        "NAMEr": "SAM",
+        "EXCHr": "NC"
+      },
+      "points": 1,
+      "multiplier_count": 0
+    },
+    {
+      "id": 12,
+      "serial": 12,
+      "timestamp": "2026-01-10T19:05:00Z",
+      "frequency": 21003,
+      "band": "15m",
+      "mode": "CW",
+      "callsign": "W6ABC",
+      "duplicate": false,
+      "rst_sent": "599",
+      "rst_received": "599",
+      "exchange_fields": {
+        "RST": "599",
+        "NAMEs": "STEVE",
+        "EXCHs": "FL",
+        "NAMEr": "ALICE",
+        "EXCHr": "CA"
+      },
+      "points": 1,
+      "multiplier_count": 1
+    },
+    {
+      "id": 13,
+      "serial": 13,
+      "timestamp": "2026-01-10T19:10:00Z",
+      "frequency": 21005,
+      "band": "15m",
+      "mode": "CW",
+      "callsign": "VE7XYZ",
+      "duplicate": false,
+      "rst_sent": "599",
+      "rst_received": "599",
+      "exchange_fields": {
+        "RST": "599",
+        "NAMEs": "STEVE",
+        "EXCHs": "FL",
+        "NAMEr": "BRIAN",
+        "EXCHr": "BC"
+      },
+      "points": 1,
+      "multiplier_count": 1
+    },
+    {
+      "id": 14,
+      "serial": 14,
+      "timestamp": "2026-01-10T19:15:00Z",
+      "frequency": 21007,
+      "band": "15m",
+      "mode": "CW",
+      "callsign": "EA1ABC",
+      "duplicate": false,
+      "rst_sent": "599",
+      "rst_received": "599",
+      "exchange_fields": {
+        "RST": "599",
+        "NAMEs": "STEVE",
+        "EXCHs": "FL",
+        "NAMEr": "CARLOS",
+        "EXCHr": "DX"
+      },
+      "points": 1,
+      "multiplier_count": 0
+    },
+    {
+      "id": 15,
+      "serial": 15,
+      "timestamp": "2026-01-10T19:20:00Z",
+      "frequency": 28001,
+      "band": "10m",
+      "mode": "CW",
+      "callsign": "W1ABC",
+      "duplicate": false,
+      "rst_sent": "599",
+      "rst_received": "599",
+      "exchange_fields": {
+        "RST": "599",
+        "NAMEs": "STEVE",
+        "EXCHs": "FL",
+        "NAMEr": "JOHN",
+        "EXCHr": "MA"
+      },
+      "points": 1,
+      "multiplier_count": 0
+    },
+    {
+      "id": 16,
+      "serial": 16,
+      "timestamp": "2026-01-10T19:25:00Z",
+      "frequency": 28005,
+      "band": "10m",
+      "mode": "CW",
+      "callsign": "K5DEF",
+      "duplicate": false,
+      "rst_sent": "599",
+      "rst_received": "599",
+      "exchange_fields": {
+        "RST": "599",
+        "NAMEs": "STEVE",
+        "EXCHs": "FL",
+        "NAMEr": "DOUG",
+        "EXCHr": "TX"
+      },
+      "points": 1,
+      "multiplier_count": 1
+    },
+    {
+      "id": 17,
+      "serial": 17,
+      "timestamp": "2026-01-10T19:30:00Z",
+      "frequency": 28010,
+      "band": "10m",
+      "mode": "CW",
+      "callsign": "N7GHI",
+      "duplicate": false,
+      "rst_sent": "599",
+      "rst_received": "599",
+      "exchange_fields": {
+        "RST": "599",
+        "NAMEs": "STEVE",
+        "EXCHs": "FL",
+        "NAMEr": "FRANK",
+        "EXCHr": "AZ"
+      },
+      "points": 1,
+      "multiplier_count": 1
+    },
+    {
+      "id": 18,
+      "serial": 18,
+      "timestamp": "2026-01-10T19:35:00Z",
+      "frequency": 28015,
+      "band": "10m",
+      "mode": "CW",
+      "callsign": "ZS1MNO",
+      "duplicate": false,
+      "rst_sent": "599",
+      "rst_received": "599",
+      "exchange_fields": {
+        "RST": "599",
+        "NAMEs": "STEVE",
+        "EXCHs": "FL",
+        "NAMEr": "CHRIS",
+        "EXCHr": "DX"
+      },
+      "points": 1,
+      "multiplier_count": 0
+    }
+  ]
+}

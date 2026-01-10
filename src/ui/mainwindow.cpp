@@ -17,6 +17,7 @@
 #include "cabrilloexport.h"
 #include "contestengine.h"
 #include "filehandler.h"
+#include "clxfile.h"
 #include "loadingworker.h"
 #include "settings.h"
 #include "callhistory.h"
@@ -1129,6 +1130,33 @@ void MainWindow::onOpenLog()
             QList<QsoRecord> temp;
             fileHandler.loadClxWithContest(fileName, temp, contestFile, stationClass, loadedContestVersion, stationClassExchangeName, stationClassExchangeId);
             
+            // Also load the station info from the CLX file
+            ClxFile clxFile;
+            QString loadedMode;
+            if (clxFile.load(fileName)) {
+                QString loadedCallsign = clxFile.station().callsign();
+                if (!loadedCallsign.isEmpty()) {
+                    Settings::instance().setCallsign(loadedCallsign);
+                    DebugLogger::instance().log("MainWindow", QString("Loaded callsign from CLX: %1").arg(loadedCallsign));
+                }
+                // Also load operator name and state if available
+                QString operatorName = clxFile.station().operatorName();
+                QString operatorState = clxFile.station().state();
+                if (!operatorName.isEmpty()) {
+                    Settings::instance().setOperatorName(operatorName);
+                    DebugLogger::instance().log("MainWindow", QString("Loaded operator name from CLX: %1").arg(operatorName));
+                }
+                if (!operatorState.isEmpty()) {
+                    Settings::instance().setState(operatorState);
+                    DebugLogger::instance().log("MainWindow", QString("Loaded operator state from CLX: %1").arg(operatorState));
+                }
+                // Also load the contest mode
+                loadedMode = clxFile.contest().mode();
+                if (!loadedMode.isEmpty()) {
+                    DebugLogger::instance().log("MainWindow", QString("Loaded contest mode from CLX: %1").arg(loadedMode));
+                }
+            }
+            
             // Load the contest definition if specified
             if (!contestFile.isEmpty()) {
                 QString contestPath = QCoreApplication::applicationDirPath() + "/contests/" + contestFile;
@@ -1136,7 +1164,33 @@ void MainWindow::onOpenLog()
                     contestPath = "contests/" + contestFile;
                 }
                 if (QFile::exists(contestPath)) {
-                    loadContestDefinition(contestPath);
+                    // Set station class BEFORE loading contest definition to prevent dialog
+                    if (!stationClass.isEmpty()) {
+                        if (!m_contestEngine) {
+                            m_contestEngine = new ContestEngine(this);
+                            m_contestEngine->setDxccDatabase(m_dxccDatabase);
+                        }
+                        m_contestEngine->setStationClass(stationClass);
+                        DebugLogger::instance().log("MainWindow", QString("Pre-set station class from CLX: %1").arg(stationClass));
+                    }
+                    
+                    if (!stationClassExchangeName.isEmpty() || !stationClassExchangeId.isEmpty()) {
+                        if (!m_contestEngine) {
+                            m_contestEngine = new ContestEngine(this);
+                            m_contestEngine->setDxccDatabase(m_dxccDatabase);
+                        }
+                        m_contestEngine->setStationClassExchangeName(stationClassExchangeName);
+                        m_contestEngine->setStationClassExchangeId(stationClassExchangeId);
+                        DebugLogger::instance().log("MainWindow", QString("Pre-set station class exchange from CLX - Name:'%1' Id:'%2'").arg(stationClassExchangeName, stationClassExchangeId));
+                    }
+                    
+                    // Pass false to NOT restore/prompt for station class since we already have it
+                    loadContestDefinition(contestPath, false);
+                    
+                    // If we loaded a mode from the CLX file, restrict to that mode
+                    if (!loadedMode.isEmpty()) {
+                        m_contestEngine->setRestrictedMode(loadedMode);
+                    }
                     
                     // Check if contest version has changed
                     if (!loadedContestVersion.isEmpty() && !m_contestDefinition.isEmpty()) {
@@ -1159,15 +1213,6 @@ void MainWindow::onOpenLog()
                             progressDialog->show();
                             QApplication::processEvents();
                         }
-                    }
-                    
-                    if (!stationClass.isEmpty()) {
-                        m_contestEngine->setStationClass(stationClass);
-                    }
-                    
-                    if (!stationClassExchangeName.isEmpty() || !stationClassExchangeId.isEmpty()) {
-                        m_contestEngine->setStationClassExchangeName(stationClassExchangeName);
-                        m_contestEngine->setStationClassExchangeId(stationClassExchangeId);
                     }
                 }
             }
@@ -1338,6 +1383,33 @@ void MainWindow::loadLogFile(const QString& filename)
             QList<QsoRecord> temp;
             fileHandler.loadClxWithContest(filename, temp, contestFile, stationClass, loadedContestVersion, stationClassExchangeName, stationClassExchangeId);
             
+            // Also load the station info from the CLX file
+            ClxFile clxFile;
+            QString loadedMode;
+            if (clxFile.load(filename)) {
+                QString loadedCallsign = clxFile.station().callsign();
+                if (!loadedCallsign.isEmpty()) {
+                    Settings::instance().setCallsign(loadedCallsign);
+                    DebugLogger::instance().log("MainWindow", QString("Loaded callsign from CLX: %1").arg(loadedCallsign));
+                }
+                // Also load operator name and state if available
+                QString operatorName = clxFile.station().operatorName();
+                QString operatorState = clxFile.station().state();
+                if (!operatorName.isEmpty()) {
+                    Settings::instance().setOperatorName(operatorName);
+                    DebugLogger::instance().log("MainWindow", QString("Loaded operator name from CLX: %1").arg(operatorName));
+                }
+                if (!operatorState.isEmpty()) {
+                    Settings::instance().setState(operatorState);
+                    DebugLogger::instance().log("MainWindow", QString("Loaded operator state from CLX: %1").arg(operatorState));
+                }
+                // Also load the contest mode
+                loadedMode = clxFile.contest().mode();
+                if (!loadedMode.isEmpty()) {
+                    DebugLogger::instance().log("MainWindow", QString("Loaded contest mode from CLX: %1").arg(loadedMode));
+                }
+            }
+            
             DebugLogger::instance().log("MainWindow", 
                 QString("Loaded from CLX: contestFile='%1' stationClass='%2' exchangeName='%3' exchangeId='%4'").arg(contestFile, stationClass, stationClassExchangeName, stationClassExchangeId));
             
@@ -1370,7 +1442,13 @@ void MainWindow::loadLogFile(const QString& filename)
                         DebugLogger::instance().log("MainWindow", QString("Set station class exchange in loadLogFile: Name='%1' Id='%2'").arg(stationClassExchangeName, stationClassExchangeId));
                     }
                     
-                    loadContestDefinition(contestPath);
+                    // Pass false to NOT restore/prompt for station class since we already have it
+                    loadContestDefinition(contestPath, false);
+                    
+                    // If we loaded a mode from the CLX file, restrict to that mode
+                    if (!loadedMode.isEmpty()) {
+                        m_contestEngine->setRestrictedMode(loadedMode);
+                    }
                     
                     // Check if contest version has changed
                     if (!loadedContestVersion.isEmpty() && !m_contestDefinition.isEmpty()) {
@@ -1714,6 +1792,26 @@ void MainWindow::onLogQso()
         }
     }
     
+    // If this log was loaded from a file, check if the mode is restricted to the original mode
+    QString restrictedMode = m_contestEngine->getRestrictedMode();
+    if (!restrictedMode.isEmpty()) {
+        bool modeMatches = m_lastMode.toUpper() == restrictedMode.toUpper();
+        
+        // If the restricted mode is SSB, also allow LSB and USB
+        if (!modeMatches && restrictedMode.toUpper() == "SSB") {
+            modeMatches = (m_lastMode == "LSB" || m_lastMode == "USB");
+        }
+        
+        if (!modeMatches) {
+            QString errorMsg = QString("This log file is restricted to %1 mode only. Cannot log %2 contacts.")
+                .arg(restrictedMode)
+                .arg(m_lastMode);
+            m_statusLabel->setText(errorMsg);
+            DebugLogger::instance().log("MainWindow", errorMsg);
+            return;
+        }
+    }
+    
     DebugLogger::instance().log("MainWindow", 
         QString("QSO frequency set to: %1 kHz (m_lastFrequency=%2), band=%3").arg(qso.getFrequency()).arg(m_lastFrequency, 0, 'f', 1).arg(band));
     
@@ -1729,6 +1827,16 @@ void MainWindow::onLogQso()
     // Try to get split NAME and EXCH from contest engine
     QString sentName = m_contestEngine->getSentExchangeName();
     QString sentExch = m_contestEngine->getSentExchangeId();
+    
+    // If name is not set from contest engine, try getting it from Settings
+    if (sentName.isEmpty()) {
+        sentName = Settings::instance().getOperatorName();
+    }
+    
+    // If exchange is not set from contest engine, try getting it from Settings
+    if (sentExch.isEmpty()) {
+        sentExch = Settings::instance().getState();
+    }
     
     // If we have split fields, set them individually
     if (!sentName.isEmpty() || !sentExch.isEmpty()) {
@@ -2084,6 +2192,10 @@ void MainWindow::onEditCWMemories()
 
 void MainWindow::onRecalculateScore()
 {
+    DebugLogger::instance().log("MainWindow", 
+        QString("onRecalculateScore: m_contestEngine=%1, m_contestDefinition.isEmpty()=%2")
+        .arg(m_contestEngine ? "valid" : "null", m_contestDefinition.isEmpty() ? "true" : "false"));
+    
     if (!m_contestEngine || m_contestDefinition.isEmpty()) {
         QMessageBox::warning(this, "No Contest", "No contest is currently loaded");
         return;
@@ -2226,6 +2338,10 @@ void MainWindow::onToggleScpDebug(bool checked)
 
 void MainWindow::onExportCabrillo()
 {
+    DebugLogger::instance().log("MainWindow", 
+        QString("onExportCabrillo: m_contestEngine=%1, m_contestDefinition.isEmpty()=%2")
+        .arg(m_contestEngine ? "valid" : "null", m_contestDefinition.isEmpty() ? "true" : "false"));
+    
     if (!m_contestEngine || m_contestDefinition.isEmpty()) {
         QMessageBox::warning(this, "No Contest", "No contest is currently loaded");
         return;
@@ -2263,7 +2379,8 @@ void MainWindow::onExportCabrillo()
     // Export
     CabrilloExport exporter;
     QString myCallsign = Settings::instance().getCallsign();
-    if (!exporter.exportToFile(fileName, m_qsoModel->getAllQsos(), m_contestDefinition, dialog.getHeaderData(), myCallsign)) {
+    QString selectedMode = m_contestEngine->getStationClassMode();
+    if (!exporter.exportToFile(fileName, m_qsoModel->getAllQsos(), m_contestDefinition, dialog.getHeaderData(), myCallsign, selectedMode)) {
         QMessageBox::critical(this, "Export Failed", "Failed to export Cabrillo log:\n" + exporter.lastError());
         return;
     }
@@ -3273,6 +3390,10 @@ void MainWindow::onDeleteQso()
 
 void MainWindow::onCreateSummarySheet()
 {
+    DebugLogger::instance().log("MainWindow", 
+        QString("onCreateSummarySheet: m_contestDefinition.isEmpty()=%1")
+        .arg(m_contestDefinition.isEmpty() ? "true" : "false"));
+    
     if (m_contestDefinition.isEmpty()) {
         QMessageBox::warning(this, "No Contest", "No contest is currently loaded");
         return;
@@ -3551,7 +3672,7 @@ void MainWindow::onCreateSummarySheet()
             }
             
             if (!workedMults.isEmpty()) {
-                QString categoryDisplay = (category == "namedMults") ? "Named Multipliers" : (category == "dxcc") ? "DXCC Entities" : category;
+                QString categoryDisplay = (category == "named" || category == "namedMults") ? "Named Multipliers" : (category == "dxcc") ? "DXCC Entities" : category;
                 out << categoryDisplay << " (Worked: " << countedMults.size() << ")\n";
                 
                 QStringList sortedMults = QStringList(workedMults.begin(), workedMults.end());
@@ -3591,7 +3712,7 @@ void MainWindow::onCreateSummarySheet()
             
             for (const auto& band : multsPerBand.keys()) {
                 int counted = countedPerBand[band].size();
-                QString categoryDisplay = (category == "namedMults") ? "Named Multipliers" : (category == "dxcc") ? "DXCC Entities" : category;
+                QString categoryDisplay = (category == "named" || category == "namedMults") ? "Named Multipliers" : (category == "dxcc") ? "DXCC Entities" : category;
                 out << categoryDisplay << " - " << band << " (Worked: " << counted << ")\n";
                 
                 QStringList sortedMults = QStringList(multsPerBand[band].begin(), multsPerBand[band].end());

@@ -28,3 +28,7 @@ clx_debug.log
 cty.dat
 master.scp
 clx
+
+# TTS models
+*.onnx.json
+*.onnx

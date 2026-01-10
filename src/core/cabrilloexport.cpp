@@ -13,7 +13,8 @@ bool CabrilloExport::exportToFile(const QString& filename,
                                    const QList<QsoRecord>& qsos,
                                    const QJsonObject& contestDef,
                                    const QJsonObject& headerData,
-                                   const QString& myCall)
+                                   const QString& myCall,
+                                   const QString& selectedMode)
 {
     m_myCall = myCall;
     QFile file(filename);
@@ -25,7 +26,7 @@ bool CabrilloExport::exportToFile(const QString& filename,
     QTextStream stream(&file);
     
     // Write header
-    QString header = generateHeader(contestDef, headerData);
+    QString header = generateHeader(contestDef, headerData, selectedMode);
     stream << header;
     
     // Get QSO template from logging.cabrillo section
@@ -60,7 +61,7 @@ bool CabrilloExport::exportToFile(const QString& filename,
     return true;
 }
 
-QString CabrilloExport::generateHeader(const QJsonObject& contestDef, const QJsonObject& headerData)
+QString CabrilloExport::generateHeader(const QJsonObject& contestDef, const QJsonObject& headerData, const QString& selectedMode)
 {
     QString header;
     header += "START-OF-LOG: 3.0\n";
@@ -76,6 +77,15 @@ QString CabrilloExport::generateHeader(const QJsonObject& contestDef, const QJso
             }
             // Contest
             QString contest = cabrilloObj["contest"].toString();
+            
+            // Check if there's a contest mapping for modes
+            if (!selectedMode.isEmpty() && cabrilloObj.contains("contestMapping")) {
+                QJsonObject contestMapping = cabrilloObj["contestMapping"].toObject();
+                if (contestMapping.contains(selectedMode)) {
+                    contest = contestMapping[selectedMode].toString();
+                }
+            }
+            
             if (!contest.isEmpty() && isHeaderRequired("CONTEST", requiredHeaders)) {
                 header += QString("CONTEST: %1\n").arg(contest);
             }
