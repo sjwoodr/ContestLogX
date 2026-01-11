@@ -11,9 +11,9 @@
       "expected_score": 252
     },
     {
-      "name": "NAQP RTTY Large Contest (1050 QSOs)",
+      "name": "NAQP RTTY Multi-Band Test",
       "log_file": "test_naqp_rtty_log.clx",
-      "expected_score": 312900
+      "expected_score": 59334
     },
     {
       "name": "ARRL 10m Mixed Mode Test",
@@ -29,6 +29,11 @@
       "name": "YB DX Contest (SSB)",
       "log_file": "test_ybdx_ssb_log.clx",
       "expected_score": 189
+    },
+    {
+      "name": "ARRL VHF Contest (Mixed Mode)",
+      "log_file": "test_arrl_vhf_mixed_log.clx",
+      "expected_score": 30
     }
   ]
 }

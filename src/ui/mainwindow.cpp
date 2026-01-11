@@ -3956,7 +3956,11 @@ QString MainWindow::generateSummaryString()
         out << "Call Prefix Multipliers:  " << score.namedCallPrefixCount << "\n";
         multTypes.append("Call Prefix");
     }
-    
+    if (score.gridSquareMultCount > 0) {
+        out << "Grid Square Multipliers:  " << score.gridSquareMultCount << "\n";
+        multTypes.append("Grid Square");
+    }
+
     out << "\n";
     
     // Show the scoring calculation
@@ -3985,21 +3989,117 @@ QString MainWindow::generateSummaryString()
     out << "MULTIPLIER DETAILS\n";
     out << "-" << QString("-").repeated(63) << "-" << "\n";
     out << "\n";
-    
+
     QString multType = m_contestEngine->getMultiplierType();
     QStringList multCategories = m_contestEngine->getMultiplierCategories();
-    
+
+    // Check if callsigns are multipliers (e.g., CWops CWT)
+    bool callsignIsMult = false;
+    if (m_contestDefinition.contains("multipliers")) {
+        QJsonObject multipliers = m_contestDefinition["multipliers"].toObject();
+        if (multipliers.contains("sources")) {
+            QJsonArray sources = multipliers["sources"].toArray();
+            for (const QJsonValue& val : sources) {
+                QJsonObject source = val.toObject();
+                if (source["type"].toString() == "callsign") {
+                    callsignIsMult = true;
+                    break;
+                }
+            }
+        }
+    }
+
+    // Handle callsign multipliers
+    if (callsignIsMult) {
+        QSet<QString> workedCalls;
+        QSet<QString> countedCalls;
+
+        for (int i = 0; i < m_qsoModel->rowCount(); ++i) {
+            QsoRecord qso = m_qsoModel->getQso(i);
+            QString call = qso.getCall().toUpper();
+            workedCalls.insert(call);
+            if (!qso.isDupe()) {
+                countedCalls.insert(call);
+            }
+        }
+
+        if (!workedCalls.isEmpty()) {
+            out << "Callsigns (Worked: " << countedCalls.size() << ")\n";
+
+            QStringList sortedCalls = QStringList(workedCalls.begin(), workedCalls.end());
+            std::sort(sortedCalls.begin(), sortedCalls.end());
+
+            // Format with ~80 chars per line
+            QString line;
+            for (const QString& call : sortedCalls) {
+                QString mark = countedCalls.contains(call) ? "*" : " ";
+                QString entry = QString("%1%2 ").arg(mark).arg(call);
+
+                if ((line + entry).length() > 80 && !line.isEmpty()) {
+                    out << line << "\n";
+                    line.clear();
+                }
+                line += entry;
+            }
+
+            // Write remaining line
+            if (!line.isEmpty()) {
+                out << line << "\n";
+            }
+            out << "\n";
+        }
+    }
+
     // Process each multiplier category
     for (const QString& category : multCategories) {
-        if (multType == "multsPerBand") {
+        if (multType == "multsOnce") {
+            // Simple case: just list all mults for this category
+            QSet<QString> workedMults;
+            QSet<QString> countedMults;
+
+            for (int i = 0; i < m_qsoModel->rowCount(); ++i) {
+                QsoRecord qso = m_qsoModel->getQso(i);
+                QList<ContestEngine::MultiplierInfo> mults = m_contestEngine->getMultipliersWithCategory(qso);
+
+                for (const ContestEngine::MultiplierInfo& mult : mults) {
+                    if (mult.category == category) {
+                        workedMults.insert(mult.value);
+                        if (!qso.isDupe()) {
+                            countedMults.insert(mult.value);
+                        }
+                    }
+                }
+            }
+
+            if (!workedMults.isEmpty()) {
+                QString categoryDisplay = (category == "namedMults") ? "Named Multipliers" : (category == "dxcc") ? "DXCC Entities" : (category == "namedCallPrefixes") ? "Call Prefixes" : (category == "gridSquares") ? "Grid Squares" : category;
+                out << categoryDisplay << " (Worked: " << countedMults.size() << ")\n";
+
+                QStringList sortedMults = QStringList(workedMults.begin(), workedMults.end());
+                std::sort(sortedMults.begin(), sortedMults.end());
+
+                for (int i = 0; i < sortedMults.size(); ++i) {
+                    QString mark = countedMults.contains(sortedMults[i]) ? "*" : " ";
+                    out << QString("%1%2").arg(mark).arg(QString("%1").arg(sortedMults[i], -4));
+
+                    if ((i + 1) % 6 == 0) {
+                        out << "\n";
+                    }
+                }
+                if (sortedMults.size() % 6 != 0) {
+                    out << "\n";
+                }
+                out << "\n";
+            }
+        } else if (multType == "multsPerBand") {
             // Breakdown by band
             QMap<QString, QSet<QString>> multsPerBand, countedPerBand;
-            
+
             for (int i = 0; i < m_qsoModel->rowCount(); ++i) {
                 QsoRecord qso = m_qsoModel->getQso(i);
                 QString band = qso.getBand();
                 QList<ContestEngine::MultiplierInfo> mults = m_contestEngine->getMultipliersWithCategory(qso);
-                
+
                 for (const ContestEngine::MultiplierInfo& mult : mults) {
                     if (mult.category == category) {
                         multsPerBand[band].insert(mult.value);
@@ -4009,19 +4109,101 @@ QString MainWindow::generateSummaryString()
                     }
                 }
             }
-            
+
             for (const auto& band : multsPerBand.keys()) {
                 int counted = countedPerBand[band].size();
-                QString categoryDisplay = (category == "named" || category == "namedMults") ? "Named Multipliers" : (category == "dxcc") ? "DXCC Entities" : (category == "namedCallPrefixes") ? "Call Prefixes" : category;
+                QString categoryDisplay = (category == "named" || category == "namedMults") ? "Named Multipliers" : (category == "dxcc") ? "DXCC Entities" : (category == "namedCallPrefixes") ? "Call Prefixes" : (category == "gridSquares") ? "Grid Squares" : category;
                 out << categoryDisplay << " - " << band << " (Worked: " << counted << ")\n";
-                
+
                 QStringList sortedMults = QStringList(multsPerBand[band].begin(), multsPerBand[band].end());
                 std::sort(sortedMults.begin(), sortedMults.end());
-                
+
                 for (int i = 0; i < sortedMults.size(); ++i) {
                     QString mark = countedPerBand[band].contains(sortedMults[i]) ? "*" : " ";
                     out << QString("%1%2").arg(mark).arg(QString("%1").arg(sortedMults[i], -4));
-                    
+
+                    if ((i + 1) % 6 == 0) {
+                        out << "\n";
+                    }
+                }
+                if (sortedMults.size() % 6 != 0) {
+                    out << "\n";
+                }
+                out << "\n";
+            }
+        } else if (multType == "multsPerMode") {
+            // Breakdown by mode
+            QMap<QString, QSet<QString>> multsPerMode, countedPerMode;
+
+            for (int i = 0; i < m_qsoModel->rowCount(); ++i) {
+                QsoRecord qso = m_qsoModel->getQso(i);
+                QString mode = qso.getMode();
+                QList<ContestEngine::MultiplierInfo> mults = m_contestEngine->getMultipliersWithCategory(qso);
+
+                for (const ContestEngine::MultiplierInfo& mult : mults) {
+                    if (mult.category == category) {
+                        multsPerMode[mode].insert(mult.value);
+                        if (!qso.isDupe()) {
+                            countedPerMode[mode].insert(mult.value);
+                        }
+                    }
+                }
+            }
+
+            for (const auto& mode : multsPerMode.keys()) {
+                int counted = countedPerMode[mode].size();
+                QString categoryDisplay = (category == "namedMults") ? "Named Multipliers" : (category == "dxcc") ? "DXCC Entities" : (category == "namedCallPrefixes") ? "Call Prefixes" : (category == "gridSquares") ? "Grid Squares" : category;
+                out << categoryDisplay << " - " << mode << " (Worked: " << counted << ")\n";
+
+                QStringList sortedMults = QStringList(multsPerMode[mode].begin(), multsPerMode[mode].end());
+                std::sort(sortedMults.begin(), sortedMults.end());
+
+                for (int i = 0; i < sortedMults.size(); ++i) {
+                    QString mark = countedPerMode[mode].contains(sortedMults[i]) ? "*" : " ";
+                    out << QString("%1%2").arg(mark).arg(QString("%1").arg(sortedMults[i], -4));
+
+                    if ((i + 1) % 6 == 0) {
+                        out << "\n";
+                    }
+                }
+                if (sortedMults.size() % 6 != 0) {
+                    out << "\n";
+                }
+                out << "\n";
+            }
+        } else if (multType == "multsPerBandAndMode") {
+            // Breakdown by band and mode
+            QMap<QString, QSet<QString>> multsPerBandMode, countedPerBandMode;
+
+            for (int i = 0; i < m_qsoModel->rowCount(); ++i) {
+                QsoRecord qso = m_qsoModel->getQso(i);
+                QString band = qso.getBand();
+                QString mode = qso.getMode();
+                QString key = band + "/" + mode;
+                QList<ContestEngine::MultiplierInfo> mults = m_contestEngine->getMultipliersWithCategory(qso);
+
+                for (const ContestEngine::MultiplierInfo& mult : mults) {
+                    if (mult.category == category) {
+                        multsPerBandMode[key].insert(mult.value);
+                        if (!qso.isDupe()) {
+                            countedPerBandMode[key].insert(mult.value);
+                        }
+                    }
+                }
+            }
+
+            for (const auto& key : multsPerBandMode.keys()) {
+                int counted = countedPerBandMode[key].size();
+                QString categoryDisplay = (category == "namedMults") ? "Named Multipliers" : (category == "dxcc") ? "DXCC Entities" : (category == "namedCallPrefixes") ? "Call Prefixes" : (category == "gridSquares") ? "Grid Squares" : category;
+                out << categoryDisplay << " - " << key << " (Worked: " << counted << ")\n";
+
+                QStringList sortedMults = QStringList(multsPerBandMode[key].begin(), multsPerBandMode[key].end());
+                std::sort(sortedMults.begin(), sortedMults.end());
+
+                for (int i = 0; i < sortedMults.size(); ++i) {
+                    QString mark = countedPerBandMode[key].contains(sortedMults[i]) ? "*" : " ";
+                    out << QString("%1%2").arg(mark).arg(QString("%1").arg(sortedMults[i], -4));
+
                     if ((i + 1) % 6 == 0) {
                         out << "\n";
                     }
