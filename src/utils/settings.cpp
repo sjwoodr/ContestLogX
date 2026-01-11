@@ -864,11 +864,53 @@ void Settings::setScpEnabled(bool enabled)
 }
 
 
-QString Settings::getDataPath() const
+QString Settings::getDataPath()
 {
-    QString appDir = QCoreApplication::applicationDirPath();
-    QString dataDir = QDir(appDir).filePath("../data");
-    return QDir(dataDir).absolutePath();
+    // Get the invocation path (supports symlinks)
+    // argv[0] contains the path used to invoke the program, before symlink resolution
+    QStringList args = QCoreApplication::arguments();
+    if (args.isEmpty()) {
+        // Fallback to standard method if no arguments
+        QString appDir = QCoreApplication::applicationDirPath();
+        QString dataDir = QDir(appDir).filePath("../data");
+        return QDir(dataDir).absolutePath();
+    }
+
+    QString invocationPath = args[0];
+    QFileInfo invocationInfo(invocationPath);
+
+    // Get the directory where the program was invoked from (symlink location if applicable)
+    QString invokeDir;
+    if (invocationInfo.isAbsolute()) {
+        invokeDir = invocationInfo.absolutePath();
+    } else {
+        // Relative path - resolve relative to current directory at startup
+        QDir currentDir = QDir::current();
+        QString absoluteInvokePath = currentDir.absoluteFilePath(invocationPath);
+        invokeDir = QFileInfo(absoluteInvokePath).absolutePath();
+    }
+
+    // Find data directory relative to invocation directory
+    QDir dir(invokeDir);
+    QString dataPath = dir.filePath("data");
+
+    // If data doesn't exist at invocation location, try going up one level (for build/bin directories)
+    if (!QDir(dataPath).exists()) {
+        dir.cdUp();
+        dataPath = dir.filePath("data");
+    }
+
+    return QDir(dataPath).absolutePath();
+}
+
+QString Settings::getUserDataPath()
+{
+    QString dataDir = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    QDir dir(dataDir);
+    if (!dir.exists()) {
+        dir.mkpath(".");
+    }
+    return dir.absolutePath();
 }
 
 void Settings::scaleDefaultLayout()

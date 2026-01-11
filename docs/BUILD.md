@@ -53,7 +53,27 @@ ContestLogX/
 │   ├── ContestLogX     (executable)
 │   ├── CMakeFiles/
 │   └── ...
-├── contests/           (contest JSON definitions)
-├── data/               (runtime data like cty.dat)
+├── contests/           (contest JSON definitions, read-only)
+├── data/               (static bundled files like default_layout.json, read-only)
 └── src files...
 ```
+
+## Runtime Data Directories
+
+**User Data** (writable, per-user):
+- Linux: `~/.local/share/ContestLogX/`
+- macOS: `~/Library/Application Support/ContestLogX/`
+- Windows: `%APPDATA%\ContestLogX\`
+
+Contains:
+- `cty.dat` - DXCC database (download via File menu)
+- `master.scp` - Super Check Partial database (download via File menu)
+- `history.json` - Call history records (auto-generated)
+
+**Configuration** (writable, per-user):
+- Linux: `~/.config/ContestLogX/`
+- macOS: `~/Library/Preferences/ContestLogX/`
+- Windows: `%APPDATA%\ContestLogX\`
+
+Contains:
+- `ContestLogX.json` - Application settings

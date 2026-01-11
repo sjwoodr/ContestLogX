@@ -179,15 +179,23 @@ public:
     // Super Check Partial (SCP) settings
     bool getScpEnabled() const;
     void setScpEnabled(bool enabled);
-    
+
     void save();
-    
+
+    // Static utility function to get data directory path
+    // Finds data directory relative to program invocation path (supports symlinks)
+    // This is for bundled/static data files like default_layout.json, contest definitions
+    static QString getDataPath();
+
+    // Static utility function to get user data directory path
+    // Returns AppDataLocation for user-writable data files (master.scp, cty.dat, history.json)
+    static QString getUserDataPath();
+
 private:
     Settings();
     void load();
     void scaleDefaultLayout();
-    QString getDataPath() const;
-    
+
     QString settingsFilePath() const;
     
     QJsonObject m_settings;

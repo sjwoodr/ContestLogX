@@ -1,5 +1,6 @@
 #include "DxccDatabase.h"
 #include "debuglogger.h"
+#include "settings.h"
 #include <QFile>
 #include <QTextStream>
 #include <QRegularExpression>
@@ -25,13 +26,8 @@ DxccDatabase::~DxccDatabase()
 
 QString DxccDatabase::getDataPath() const
 {
-    QString appDir = QCoreApplication::applicationDirPath();
-    QString dataDir = QDir(appDir).filePath("../data");
-    QDir dir(dataDir);
-    if (!dir.exists()) {
-        dir.mkpath(".");
-    }
-    return dir.absolutePath();
+    // Use user data path for downloaded cty.dat file
+    return Settings::getUserDataPath();
 }
 
 bool DxccDatabase::loadFromFile(const QString &filename)

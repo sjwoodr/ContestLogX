@@ -5,6 +5,7 @@
 
 #include "supercheckpartial.h"
 #include "debuglogger.h"
+#include "settings.h"
 #include <QFile>
 #include <QStandardPaths>
 #include <QDir>
@@ -75,17 +76,9 @@ QStringList SuperCheckPartial::search(const QString& prefix, int maxResults) con
 
 QString SuperCheckPartial::getDataFilePath() const
 {
-    // Use the data directory in the application directory
-    QDir appDir(QCoreApplication::applicationDirPath());
-    // Go up one level to the project root, then into data folder
-    appDir.cdUp();
-    QString dataPath = appDir.filePath("data");
-    
-    QDir dir(dataPath);
-    if (!dir.exists()) {
-        dir.mkpath(".");
-    }
-    return dir.filePath("master.scp");
+    // Use user data path for downloaded master.scp file
+    QString dataPath = Settings::getUserDataPath();
+    return QDir(dataPath).filePath("master.scp");
 }
 
 bool SuperCheckPartial::downloadLatestDatabase(const QString& targetPath, QString& errorMessage)

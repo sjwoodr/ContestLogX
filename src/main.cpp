@@ -14,7 +14,7 @@
 #include <QTimer>
 
 // Application version
-static const char* APP_VERSION = "0.0.8";
+static const char* APP_VERSION = "0.0.9";
 
 // Global log file
 static QFile *logFile = nullptr;
@@ -78,7 +78,8 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
     app.setApplicationName("ContestLogX");
     app.setApplicationVersion(APP_VERSION);
-    app.setOrganizationName("ContestLogX");
+    // Don't set organization name to avoid double "ContestLogX" in AppDataLocation path
+    // app.setOrganizationName("ContestLogX");
     app.setOrganizationDomain("contestlogx.com");
     
     // Parse command-line arguments FIRST to check for --debug flag

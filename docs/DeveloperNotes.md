@@ -54,8 +54,9 @@ Debug information is written to:
   - `<#/#>` latitude/longitude override
   - `{aa}` continent override
   - `~#~` GMT offset override
-- Automatically loads cty.dat from `./data/cty.dat` on startup
+- Automatically loads cty.dat from `~/.local/share/ContestLogX/cty.dat` on startup
 - File menu option: "Download DXCC Database (cty.dat)" downloads latest from country-files.com
+- Downloaded file is stored in user data directory (AppDataLocation), not project data/ directory
 - Provides accurate country, continent, CQ zone, ITU zone, and lat/long data
 - Smart callsign matching: checks exact matches first, then longest prefix match
 
@@ -109,10 +110,14 @@ Debug information is written to:
 - First matching rule in precedence order is used
 - Mode normalization: SSB/USB/LSB/FM → SSB, RTTY/PSK/FT8/FT4 → DIGITAL
 
-**Data Directory:**
-- Application expects `./data/cty.dat` relative to executable parent directory
-- Create directory if it doesn't exist
-- Can download latest cty.dat via File menu
+**Data Directory Structure:**
+- **Static data** (`./data/` in project): Read-only bundled files (default_layout.json)
+- **User data** (`~/.local/share/ContestLogX/`): Writable files (cty.dat, master.scp, history.json)
+  - Creates directory automatically if it doesn't exist
+  - Downloaded databases stored here for per-user access
+  - Platform-specific via QStandardPaths::AppDataLocation
+- **Configuration** (`~/.config/ContestLogX/`): Settings (ContestLogX.json)
+  - Platform-specific via QStandardPaths::ConfigLocation
 
 ### Previous Updates: Station Class Persistence & Points Calculation ✅
 

@@ -146,9 +146,8 @@ void ScpWidget::updateTitle()
     }
     
     // Check if master.scp file exists
-    QDir appDir(QCoreApplication::applicationDirPath());
-    appDir.cdUp();
-    QString scpPath = appDir.filePath("data/master.scp");
+    QString dataPath = Settings::getUserDataPath();
+    QString scpPath = QDir(dataPath).filePath("master.scp");
     if (!QFile::exists(scpPath)) {
         setWindowTitle(title + " - disabled");
         return;

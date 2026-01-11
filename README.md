@@ -336,11 +336,42 @@ Contests are defined in JSON files in the `contests/` directory:
 - **Purpose**: DXCC entity database
 - **Format**: CT contest software format
 - **Updates**: Menu option to download latest
+- **Storage**: `~/.local/share/ContestLogX/cty.dat` (downloaded automatically to user data directory)
 
-## Configuration Storage
+## Data Storage Locations
 
-Settings stored in JSON: `~/.config/ContestLogX/ContestLogX.json`
+ContestLogX uses platform-specific directories for different types of data:
 
+### User Data Directory
+**Location:**
+- Linux: `~/.local/share/ContestLogX/`
+- macOS: `~/Library/Application Support/ContestLogX/`
+- Windows: `%APPDATA%\ContestLogX\`
+
+**Contents:**
+- `cty.dat` - DXCC database (downloaded)
+- `master.scp` - Super Check Partial database (downloaded)
+- `history.json` - Call history records (auto-generated)
+
+### Configuration Directory
+**Location:**
+- Linux: `~/.config/ContestLogX/`
+- macOS: `~/Library/Preferences/ContestLogX/`
+- Windows: `%APPDATA%\ContestLogX\`
+
+**Contents:**
+- `ContestLogX.json` - Application settings
+
+### Static Bundled Data
+**Location:** `./data/` and `./contests/` in the project directory
+
+**Contents:**
+- `./data/default_layout.json` - Default window layout
+- `./contests/*.json` - Contest definitions (ARRL 10m, CWops CWT, NAQP, etc.)
+
+These are read-only files that ship with the application.
+
+Example `ContestLogX.json`:
 ```json
 {
   "station": {
@@ -463,7 +494,7 @@ Website: contestlogx.com (to be created)
 
 ---
 
-**ContestLogX v0.0.8**  
+**ContestLogX v0.0.9**  
 *Amateur Radio Contest Logging Software*  
 Copyright (c) 2025-2026, by Steve Woodruff, N9OH
 
