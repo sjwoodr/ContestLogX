@@ -59,6 +59,7 @@ public:
         int namedMultCount = 0;  // Count of named multipliers (states/provinces) credited for this QSO
         int dxccMultCount = 0;   // Count of DXCC entities credited for this QSO
         int ituRegionMultCount = 0;  // Count of ITU regions credited for this QSO
+        int gridSquareMultCount = 0;  // Count of grid squares credited for this QSO
     };
     
     QStringList getMultipliers(const QsoRecord& qso) const;
@@ -87,6 +88,7 @@ public:
         int dxccMultCount = 0;    // DXCC multipliers (for category scoring)
         int ituRegionMultCount = 0;   // ITU Region multipliers (for category scoring)
         int namedCallPrefixCount = 0;  // Call prefix multipliers (for category scoring)
+        int gridSquareMultCount = 0;  // Grid square multipliers (for category scoring)
         int dxccCount = 0;        // Total unique DXCC entities worked (for info)
         int bonusPoints = 0;
         int contestScore = 0;
@@ -140,6 +142,11 @@ public:
     
     // Call history field configuration
     QStringList getCallHistoryFieldsToSave() const;
+    
+    // User prompt handling
+    void setUserPromptValue(const QString& promptId, const QString& value);
+    QString getUserPromptValue(const QString& promptId) const;
+    QMap<QString, QString> getUserPromptValues() const;
 
 private:
     bool validateSerialNumber(const QString& value) const;
@@ -161,6 +168,7 @@ private:
     QString m_stationClassExchangeName;
     QString m_stationClassExchangeId;
     QString m_restrictedMode;  // Restrict logging to a specific mode when loading from file
+    QMap<QString, QString> m_userPromptValues;  // Store user prompt responses (e.g., grid square)
     DxccDatabase* m_dxccDatabase;
     ContestScore m_runningScore;
 };

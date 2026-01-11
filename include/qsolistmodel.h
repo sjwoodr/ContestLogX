@@ -36,6 +36,8 @@ public:
     void updateMultiplierCount(int row, int multCount);
     void updateDxccCount(int row, int dxccCount);
     void updateItuRegionCount(int row, int ituRegionCount);
+    void updateGridSquareMultiplier(int row, const QString& gridSquare);
+    void updateGridSquareMultiplierCount(int row, int gridSquareMultCount);
     QsoRecord getQso(int row) const;
     void clear();
     void reverseQsos();

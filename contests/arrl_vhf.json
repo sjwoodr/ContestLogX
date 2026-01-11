@@ -1,0 +1,392 @@
+{
+  "contest": {
+    "name": "ARRL VHF Contest",
+    "abbreviation": "ARRL-VHF",
+    "version": "1.0.0",
+    "sponsor": "ARRL",
+    "description": "ARRL VHF/UHF Contest runs three times per year: January, June, and September",
+    "url": "https://www.arrl.org/vhf-uh-f-contests",
+    "offTimeGapMinutes": 30,
+    "modes": ["CW", "SSB", "FM", "DIGITAL"],
+    "bands": ["6m", "2m", "1.25m", "70cm", "33cm", "23cm", "13cm", "9cm", "6cm", "3cm", "1.25cm", "6mm", "4mm", "2.5mm", "2mm", "1mm"]
+  },
+  "frequencies": {
+    "6m": {
+      "start": 50000,
+      "end": 54000,
+      "cw": {"start": 50000, "end": 50100},
+      "ssb": {"start": 50100, "end": 50300},
+      "fm": {"start": 52525, "end": 52625}
+    },
+    "2m": {
+      "start": 144000,
+      "end": 148000,
+      "cw": {"start": 144000, "end": 144100},
+      "ssb": {"start": 144100, "end": 144300},
+      "fm": {"start": 146520, "end": 147600}
+    },
+    "1.25m": {
+      "start": 222000,
+      "end": 225000
+    },
+    "70cm": {
+      "start": 420000,
+      "end": 450000,
+      "fm": {"start": 445000, "end": 447000}
+    },
+    "33cm": {
+      "start": 902000,
+      "end": 928000
+    },
+    "23cm": {
+      "start": 1240000,
+      "end": 1300000
+    },
+    "13cm": {
+      "start": 2300000,
+      "end": 2450000
+    },
+    "9cm": {
+      "start": 3300000,
+      "end": 3500000
+    },
+    "6cm": {
+      "start": 5650000,
+      "end": 5925000
+    },
+    "3cm": {
+      "start": 10000000,
+      "end": 10500000
+    },
+    "1.25cm": {
+      "start": 24000000,
+      "end": 24250000
+    },
+    "6mm": {
+      "start": 47000000,
+      "end": 47200000
+    },
+    "4mm": {
+      "start": 76000000,
+      "end": 81000000
+    },
+    "2.5mm": {
+      "start": 122250000,
+      "end": 123000000
+    },
+    "2mm": {
+      "start": 134000000,
+      "end": 141000000
+    },
+    "1mm": {
+      "start": 241000000,
+      "end": 250000000
+    }
+  },
+  "stationClasses": {
+    "enabled": true,
+    "prompt": "Station category:",
+    "classes": [
+      {
+        "id": "SOLP",
+        "name": "Single Operator, Low Power",
+        "exchangeSent": {
+          "type": "maidenhead_grid"
+        }
+      },
+      {
+        "id": "SOHP",
+        "name": "Single Operator, High Power",
+        "exchangeSent": {
+          "type": "maidenhead_grid"
+        }
+      },
+      {
+        "id": "SOP",
+        "name": "Single Operator Portable",
+        "exchangeSent": {
+          "type": "maidenhead_grid"
+        }
+      },
+      {
+        "id": "SO3B",
+        "name": "Single Operator, 3-Bands",
+        "exchangeSent": {
+          "type": "maidenhead_grid"
+        }
+      },
+      {
+        "id": "SOFM",
+        "name": "Single Operator, FM-Only",
+        "exchangeSent": {
+          "type": "maidenhead_grid"
+        }
+      },
+      {
+        "id": "R",
+        "name": "Classic Rover",
+        "exchangeSent": {
+          "type": "maidenhead_grid"
+        }
+      },
+      {
+        "id": "RL",
+        "name": "Limited Rover",
+        "exchangeSent": {
+          "type": "maidenhead_grid"
+        }
+      },
+      {
+        "id": "RU",
+        "name": "Unlimited Rover",
+        "exchangeSent": {
+          "type": "maidenhead_grid"
+        }
+      },
+      {
+        "id": "UM",
+        "name": "Unlimited Multioperator",
+        "exchangeSent": {
+          "type": "maidenhead_grid"
+        }
+      },
+      {
+        "id": "LM",
+        "name": "Limited Multioperator",
+        "exchangeSent": {
+          "type": "maidenhead_grid"
+        }
+      }
+    ]
+  },
+  "userPrompts": [
+    {
+      "id": "contestMonth",
+      "question": "Which contest are you entering?",
+      "type": "select",
+      "options": [
+        {"value": "january", "label": "January (High scoring)"},
+        {"value": "june", "label": "June (Standard scoring)"},
+        {"value": "september", "label": "September (Standard scoring)"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "Scoring for 902 MHz and higher varies by month"
+    },
+    {
+      "id": "myGridSquare",
+      "question": "Enter your grid square locator (4-6 characters):",
+      "type": "text",
+      "required": true,
+      "forceUppercase": true,
+      "storeInMeta": true,
+      "validation": "^[A-R]{2}[0-9]{2}([a-x]{2})?$",
+      "description": "Your Maidenhead grid square (e.g., EN92 or EN92mi)"
+    }
+  ],
+  "exchangeFields": {
+    "sent": [
+      {
+        "name": "GRIDs",
+        "type": "string",
+        "required": true,
+        "description": "4-character Maidenhead grid square locator",
+        "validation": "^[A-R]{2}[0-9]{2}[a-x]{2}$"
+      }
+    ],
+    "received": [
+      {
+        "name": "GRIDr",
+        "type": "string",
+        "required": true,
+        "description": "4-character Maidenhead grid square locator",
+        "validation": "^[A-R]{2}[0-9]{2}[a-x]{2}$"
+      }
+    ]
+  },
+  "qsoFields": [
+    {
+      "name": "Date",
+      "column": "DATE",
+      "type": "date",
+      "format": "yyyy-MM-dd",
+      "required": true
+    },
+    {
+      "name": "Time",
+      "column": "TIME",
+      "type": "time",
+      "format": "HH:mm:ss",
+      "required": true
+    },
+    {
+      "name": "Callsign",
+      "column": "CALL",
+      "type": "string",
+      "required": true,
+      "uppercase": true
+    },
+    {
+      "name": "Frequency",
+      "column": "FREQ",
+      "type": "number",
+      "unit": "kHz",
+      "required": true
+    },
+    {
+      "name": "Mode",
+      "column": "MODE",
+      "type": "enum",
+      "values": ["CW", "SSB", "FM", "DIGITAL"],
+      "required": true
+    },
+    {
+      "name": "RST Sent",
+      "column": "RSTs",
+      "type": "string",
+      "required": true,
+      "default": "59",
+      "description": "Signal report sent (for LoTW export)"
+    },
+    {
+      "name": "RST Received",
+      "column": "RSTr",
+      "type": "string",
+      "required": true,
+      "description": "Signal report received (for LoTW export)"
+    },
+    {
+      "name": "Grid Sent",
+      "column": "GRIDs",
+      "type": "string",
+      "required": true,
+      "description": "4-character Maidenhead grid"
+    },
+    {
+      "name": "Grid Received",
+      "column": "GRIDr",
+      "type": "string",
+      "required": true,
+      "description": "4-character Maidenhead grid"
+    },
+    {
+      "name": "Points",
+      "column": "POINTS",
+      "type": "number",
+      "calculated": true,
+      "description": "Points based on band and contest month"
+    },
+    {
+      "name": "Grid Multiplier",
+      "column": "GRID_MULT",
+      "type": "string",
+      "calculated": true,
+      "description": "Grid square worked on this band"
+    }
+  ],
+  "scoring": {
+    "points": {
+      "__comment": "VHF scoring is band-based, not DXCC-based. Points depend on band and contest month.",
+      "byBand": {
+        "january": {
+          "6m": 1,
+          "2m": 1,
+          "1.25m": 2,
+          "70cm": 2,
+          "33cm": 4,
+          "23cm": 4,
+          "13cm": 8,
+          "9cm": 8,
+          "6cm": 8,
+          "3cm": 8,
+          "1.25cm": 8,
+          "6mm": 8,
+          "4mm": 8,
+          "2.5mm": 8,
+          "2mm": 8,
+          "1mm": 8
+        },
+        "june": {
+          "6m": 1,
+          "2m": 1,
+          "1.25m": 2,
+          "70cm": 2,
+          "33cm": 3,
+          "23cm": 3,
+          "13cm": 4,
+          "9cm": 4,
+          "6cm": 4,
+          "3cm": 4,
+          "1.25cm": 4,
+          "6mm": 4,
+          "4mm": 4,
+          "2.5mm": 4,
+          "2mm": 4,
+          "1mm": 4
+        },
+        "september": {
+          "6m": 1,
+          "2m": 1,
+          "1.25m": 2,
+          "70cm": 2,
+          "33cm": 3,
+          "23cm": 3,
+          "13cm": 4,
+          "9cm": 4,
+          "6cm": 4,
+          "3cm": 4,
+          "1.25cm": 4,
+          "6mm": 4,
+          "4mm": 4,
+          "2.5mm": 4,
+          "2mm": 4,
+          "1mm": 4
+        }
+      }
+    },
+    "multipliers": {
+      "__comment": "Multipliers are grid squares worked per band. Each unique grid square on each band counts as one multiplier.",
+      "type": "multsPerBand",
+      "description": "Each unique Maidenhead grid square worked on each band",
+      "categories": ["gridSquares"],
+      "countOncePerBand": true
+    },
+    "finalScore": "SUM(points) * SUM(gridSquareMultipliers)"
+  },
+  "dupeChecking": {
+    "type": "perBandAndGridSquare",
+    "description": "Each grid square may be worked once per band. Exception: rover stations may be contacted from multiple grid squares."
+  },
+  "logging": {
+    "requiredFields": ["date", "time", "frequency", "mode", "callsign", "gridSent", "gridReceived"],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "ARRL-VHF",
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {grids} {call} {gridr}",
+      "requiredHeaders": ["CONTEST", "CALLSIGN", "CATEGORY-OPERATOR", "CATEGORY-TRANSMITTER", "GRID-LOCATOR", "CLAIMED-SCORE", "CREATED-BY", "NAME", "ADDRESS", "ADDRESS-CITY", "ADDRESS-STATE-PROVINCE", "ADDRESS-POSTALCODE", "ADDRESS-COUNTRY", "EMAIL", "SOAPBOX"]
+    }
+  },
+  "callHistory": {
+    "fieldsToSave": ["GRIDr"],
+    "description": "Save grid squares for frequency lookups"
+  },
+  "validation": {
+    "minimumQSOs": 1,
+    "gridSquareFormat": "^[A-R]{2}[0-9]{2}[a-x]{2}$",
+    "exchangeValidation": {
+      "type": "maidenheadGrid",
+      "description": "4-character Maidenhead grid square (e.g., EN92)"
+    }
+  },
+  "ui": {
+    "logColumns": ["DATE", "TIME", "CALL", "FREQ", "MODE", "RSTs", "RSTr", "GRIDs", "GRIDr", "POINTS", "GRID_MULT", "COMMENT"],
+    "entryFields": ["CALL", "RSTr", "GRIDr"],
+    "fieldNavigation": {
+      "keys": "tab"
+    },
+    "bandMap": {
+      "enabled": true,
+      "bands": ["6m", "2m", "1.25m", "70cm", "33cm", "23cm", "13cm", "9cm", "6cm", "3cm", "1.25cm", "6mm", "4mm", "2.5mm", "2mm", "1mm"]
+    }
+  }
+}

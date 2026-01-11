@@ -26,7 +26,9 @@ StationClassDialog::StationClassDialog(const QString& prompt, const QStringList&
             QString name = parts[1];
             QString desc = parts[2];
             
-            QRadioButton *radio = new QRadioButton(QString("%1 - %2").arg(name, desc), this);
+            // Only append description if it's not empty
+            QString displayText = desc.isEmpty() ? name : QString("%1 - %2").arg(name, desc);
+            QRadioButton *radio = new QRadioButton(displayText, this);
             radio->setProperty("classId", id);
             m_buttonGroup->addButton(radio);
             layout->addWidget(radio);

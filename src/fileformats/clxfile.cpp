@@ -136,6 +136,7 @@ bool ClxFile::loadJson(const QJsonObject& json)
             qso.setPoints(qsoJson["points"].toInt());
             qso.setMultiplierCount(qsoJson["multiplier_count"].toInt());
             qso.setDxccCount(qsoJson["dxcc_count"].toInt());
+            qso.setGridSquareMultiplierCount(qsoJson["grid_square_count"].toInt());
             
             // RST fields
             if (qsoJson.contains("rst_sent")) {
@@ -222,6 +223,7 @@ QJsonObject ClxFile::toJson() const
         qsoJson["points"] = qso.getPoints();
         qsoJson["multiplier_count"] = qso.getMultiplierCount();
         qsoJson["dxcc_count"] = qso.getDxccCount();
+        qsoJson["grid_square_count"] = qso.getGridSquareMultiplierCount();
         
         // Comment
         if (!qso.getComment().isEmpty()) {

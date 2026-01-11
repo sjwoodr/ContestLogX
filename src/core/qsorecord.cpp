@@ -7,7 +7,7 @@
 #include <QDebug>
 
 QsoRecord::QsoRecord()
-    : m_serial(0), m_dupe(false), m_multiplierCount(0), m_dxccCount(0), m_points(0)
+    : m_serial(0), m_dupe(false), m_multiplierCount(0), m_dxccCount(0), m_ituRegionCount(0), m_gridSquareMultCount(0), m_points(0)
 {
     m_mode = "USB";  // Default to USB
 }

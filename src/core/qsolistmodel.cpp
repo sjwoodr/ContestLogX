@@ -4,6 +4,7 @@
  */
 
 #include "qsolistmodel.h"
+#include "debuglogger.h"
 #include <QColor>
 
 QsoListModel::QsoListModel(QObject *parent)
@@ -42,6 +43,7 @@ QVariant QsoListModel::data(const QModelIndex &index, int role) const
     
     if (role == Qt::DisplayRole || role == Qt::EditRole) {
         QString header = m_columnHeaders.at(index.column()).toUpper();
+        QString originalHeader = m_columnHeaders.at(index.column());  // Keep original case
         
         // Map header names to data (case-insensitive)
         if (header == "DATE") {
@@ -51,6 +53,12 @@ QVariant QsoListModel::data(const QModelIndex &index, int role) const
         } else if (header == "CALL") {
             return qso.getCall().toUpper();
         } else if (header == "FREQUENCY" || header == "FREQ") {
+            // Format frequency as integer kHz without scientific notation
+            bool ok;
+            double freq = qso.getFrequency().toDouble(&ok);
+            if (ok) {
+                return QString::number((long long)freq);
+            }
             return qso.getFrequency();
         } else if (header == "MODE") {
             return qso.getMode();
@@ -82,9 +90,11 @@ QVariant QsoListModel::data(const QModelIndex &index, int role) const
             return qso.getPoints();
         } else if (header == "COMMENT") {
             return qso.getComment();
+        } else if (header == "GRID_MULT") {
+            return qso.getGridSquareMultiplierCount();
         } else {
-            // Try as exchange field
-            return qso.getExchangeField(header);
+            // Try as exchange field - use original case-sensitive name
+            return qso.getExchangeField(originalHeader);
         }
     }
     else if (role == Qt::ForegroundRole) {
@@ -197,6 +207,36 @@ void QsoListModel::updateItuRegionCount(int row, int ituRegionCount)
     }
     if (ituColIndex >= 0) {
         emit dataChanged(index(row, ituColIndex), index(row, ituColIndex));
+    }
+}
+
+void QsoListModel::updateGridSquareMultiplier(int row, const QString& gridSquare)
+{
+    if (row < 0 || row >= m_qsos.count())
+        return;
+    
+    DebugLogger::instance().log("QsoListModel", QString("updateGridSquareMultiplier: row=%1, gridSquare='%2'").arg(row).arg(gridSquare));
+    m_qsos[row].setGridSquareMultiplier(gridSquare);
+    
+    // Look for GRID_MULT column
+    int gridMultColIndex = m_columnHeaders.indexOf("GRID_MULT");
+    DebugLogger::instance().log("QsoListModel", QString("  GRID_MULT column index: %1").arg(gridMultColIndex));
+    if (gridMultColIndex >= 0) {
+        emit dataChanged(index(row, gridMultColIndex), index(row, gridMultColIndex));
+    }
+}
+
+void QsoListModel::updateGridSquareMultiplierCount(int row, int gridSquareMultCount)
+{
+    if (row < 0 || row >= m_qsos.count())
+        return;
+    
+    m_qsos[row].setGridSquareMultiplierCount(gridSquareMultCount);
+    
+    // Look for GRID_MULT column
+    int gridMultColIndex = m_columnHeaders.indexOf("GRID_MULT");
+    if (gridMultColIndex >= 0) {
+        emit dataChanged(index(row, gridMultColIndex), index(row, gridMultColIndex));
     }
 }
 

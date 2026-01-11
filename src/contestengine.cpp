@@ -578,6 +578,31 @@ int ContestEngine::calculatePoints(const QsoRecord& qso, const QString& myCallsi
                 return pts;
             }
             
+            // Check for band-based scoring (e.g., ARRL VHF Contest)
+            if (points.contains("byBand")) {
+                QJsonObject byBand = points["byBand"].toObject();
+                
+                // Get contest month from user prompt values (e.g., "january", "june", "september")
+                QString contestMonth = m_userPromptValues.value("contestMonth", "january").toLower();
+                DebugLogger::instance().log("ContestEngine", 
+                    QString("  Looking for byBand/%1 for band '%2'").arg(contestMonth, qso.getBand()));
+                
+                // Look up points for this band and month
+                if (byBand.contains(contestMonth)) {
+                    QJsonObject monthPoints = byBand[contestMonth].toObject();
+                    QString band = qso.getBand();
+                    if (monthPoints.contains(band)) {
+                        int pts = monthPoints[band].toInt();
+                        DebugLogger::instance().log("ContestEngine", 
+                            QString("  Points: %1 (byBand/%2)").arg(pts).arg(contestMonth));
+                        return pts;
+                    }
+                } else {
+                    DebugLogger::instance().log("ContestEngine", 
+                        QString("  byBand/%1 not found in points").arg(contestMonth));
+                }
+            }
+            
             QString mode = qso.getMode().toUpper();
             
             // Normalize mode names
@@ -941,18 +966,32 @@ QList<ContestEngine::MultiplierInfo> ContestEngine::getMultipliersWithCategory(c
         }
     }
     
-    // Check if ITU Regions are a multiplier category
-    bool ituRegionIsMult = multCategories.contains("ituRegions");
-    if (ituRegionIsMult && m_dxccDatabase) {
-        int ituZone = m_dxccDatabase->getItuZone(qso.getCall());
-        int ituRegion = m_dxccDatabase->getItuRegion(qso.getCall());
-        DebugLogger::instance().log("ContestEngine", QString("ITU lookup for %1 -> Zone: %2 -> Region: %3")
-            .arg(qso.getCall()).arg(ituZone).arg(ituRegion));
-        if (ituRegion > 0) {
-            result.append({QString::number(ituRegion), "ituRegions"});
+    // Check if Grid Squares are a multiplier category
+    bool gridSquareIsMult = multCategories.contains("gridSquares");
+    if (gridSquareIsMult) {
+        // Extract grid square from exchange fields (typically in "GRID" or "GRID_RCV" field)
+        QString gridSquare;
+        
+        // Try to find grid square in exchange fields
+        if (qso.getExchangeFields().contains("GRID")) {
+            gridSquare = qso.getExchangeField("GRID").toUpper();
+        } else if (qso.getExchangeFields().contains("GRID_RCV")) {
+            gridSquare = qso.getExchangeField("GRID_RCV").toUpper();
+        } else if (qso.getExchangeFields().contains("GRIDr")) {
+            gridSquare = qso.getExchangeField("GRIDr").toUpper();
         }
-    } else if (ituRegionIsMult) {
-        qDebug() << "ContestEngine: ituRegionIsMult=true but m_dxccDatabase is null";
+        
+        if (!gridSquare.isEmpty()) {
+            // Validate grid square format (basic: should be 4-6 characters)
+            if (gridSquare.length() >= 4) {
+                result.append({gridSquare, "gridSquares"});
+                DebugLogger::instance().log("ContestEngine", 
+                    QString("  Found grid square multiplier '%1'").arg(gridSquare));
+            }
+        } else {
+            DebugLogger::instance().log("ContestEngine", 
+                QString("  Grid squares are multipliers but no grid found in exchange for %1").arg(qso.getCall()));
+        }
     }
     
     return result;
@@ -1017,6 +1056,8 @@ ContestEngine::QsoMultiplierCredit ContestEngine::getQsoMultiplierCredit(const Q
                 credit.dxccMultCount++;
             } else if (multInfo.category == "ituRegions") {
                 credit.ituRegionMultCount++;
+            } else if (multInfo.category == "gridSquares") {
+                credit.gridSquareMultCount++;
             }
         }
     }
@@ -1760,11 +1801,11 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
     // For multsPerMode scoring: track multipliers per mode
     QSet<QString> cwMultipliers, ssbMultipliers, digitalMultipliers;
     
-     // Track multipliers by type (named vs DXCC vs ITU Regions vs namedCallPrefixes)
-    QSet<QString> namedMultsOnce, dxccMultsOnce, ituRegionMultsOnce, namedCallPrefixesOnce;
-    QSet<QString> namedMultsPerBand, dxccMultsPerBand, ituRegionMultsPerBand, namedCallPrefixesPerBand;
-    QSet<QString> namedMultsPerMode, dxccMultsPerMode, ituRegionMultsPerMode, namedCallPrefixesPerMode;
-    QSet<QString> namedMultsPerBandAndMode, dxccMultsPerBandAndMode, ituRegionMultsPerBandAndMode, namedCallPrefixesPerBandAndMode;
+     // Track multipliers by type (named vs DXCC vs ITU Regions vs namedCallPrefixes vs gridSquares)
+    QSet<QString> namedMultsOnce, dxccMultsOnce, ituRegionMultsOnce, namedCallPrefixesOnce, gridSquaresOnce;
+    QSet<QString> namedMultsPerBand, dxccMultsPerBand, ituRegionMultsPerBand, namedCallPrefixesPerBand, gridSquaresPerBand;
+    QSet<QString> namedMultsPerMode, dxccMultsPerMode, ituRegionMultsPerMode, namedCallPrefixesPerMode, gridSquaresPerMode;
+    QSet<QString> namedMultsPerBandAndMode, dxccMultsPerBandAndMode, ituRegionMultsPerBandAndMode, namedCallPrefixesPerBandAndMode, gridSquaresPerBandAndMode;
     
     // Track DXCC entities separately (for informational purposes)
     QSet<int> uniqueDxccEntities;
@@ -1806,7 +1847,7 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
         QString modeCategory;
         if (mode == "CW") {
             modeCategory = "CW";
-        } else if (mode == "SSB" || mode == "USB" || mode == "LSB" || mode == "FM") {
+        } else if (mode == "SSB" || mode == "USB" || mode == "LSB" || mode == "FM" || mode == "AM") {
             modeCategory = "SSB";
         } else if (mode == "RTTY" || mode == "PSK" || mode == "FT8" || mode == "FT4" || mode == "DIGITAL") {
             modeCategory = "DIGITAL";
@@ -1821,16 +1862,19 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
         // Initialize multiplier counts for this QSO
         int qsoNamedMults = 0;  // Named multipliers (states/provinces)
         int qsoDxccMults = 0;   // DXCC multipliers
+        int qsoGridSquareMults = 0;  // Grid square multipliers
         
         // Skip multiplier and band stat tracking for out-of-band or duplicate QSOs
         if (qso.isDupe()) {
             qso.setMultiplierCount(qsoNamedMults);
             qso.setDxccCount(qsoDxccMults);
+            qso.setGridSquareMultiplierCount(qsoGridSquareMults);
             continue;
         }
         if (qsoPoints == 0 && !isValidBand(qso.getFrequency().toDouble())) {  // Already in kHz
             qso.setMultiplierCount(qsoNamedMults);
             qso.setDxccCount(qsoDxccMults);
+            qso.setGridSquareMultiplierCount(qsoGridSquareMults);
             continue;
         }
         
@@ -1884,6 +1928,8 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
                     if (!ituRegionMultsOnce.contains(mult)) ituRegionMultsOnce.insert(mult);
                 } else if (category == "namedCallPrefixes") {
                     if (!namedCallPrefixesOnce.contains(mult)) namedCallPrefixesOnce.insert(mult);
+                } else if (category == "gridSquares") {
+                    if (!gridSquaresOnce.contains(mult)) gridSquaresOnce.insert(mult);
                 }
                 if (verbose) {
                     DebugLogger::instance().log("ContestEngine", 
@@ -1903,6 +1949,8 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
                     if (!ituRegionMultsPerBand.contains(key)) ituRegionMultsPerBand.insert(key);
                 } else if (category == "namedCallPrefixes") {
                     if (!namedCallPrefixesPerBand.contains(key)) namedCallPrefixesPerBand.insert(key);
+                } else if (category == "gridSquares") {
+                    if (!gridSquaresPerBand.contains(key)) gridSquaresPerBand.insert(key);
                 }
                 if (verbose) {
                     DebugLogger::instance().log("ContestEngine", 
@@ -1932,6 +1980,8 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
                     if (!ituRegionMultsPerMode.contains(key)) ituRegionMultsPerMode.insert(key);
                 } else if (category == "namedCallPrefixes") {
                     if (!namedCallPrefixesPerMode.contains(key)) namedCallPrefixesPerMode.insert(key);
+                } else if (category == "gridSquares") {
+                    if (!gridSquaresPerMode.contains(key)) gridSquaresPerMode.insert(key);
                 }
                 if (verbose) {
                     DebugLogger::instance().log("ContestEngine", 
@@ -1951,6 +2001,8 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
                     if (!ituRegionMultsPerBandAndMode.contains(key)) ituRegionMultsPerBandAndMode.insert(key);
                 } else if (category == "namedCallPrefixes") {
                     if (!namedCallPrefixesPerBandAndMode.contains(key)) namedCallPrefixesPerBandAndMode.insert(key);
+                } else if (category == "gridSquares") {
+                    if (!gridSquaresPerBandAndMode.contains(key)) gridSquaresPerBandAndMode.insert(key);
                 }
                 if (verbose) {
                     DebugLogger::instance().log("ContestEngine", 
@@ -1964,6 +2016,8 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
                     qsoNamedMults++;
                 } else if (category == "dxcc") {
                     qsoDxccMults++;
+                } else if (category == "gridSquares") {
+                    qsoGridSquareMults++;
                 }
             }
         }
@@ -1971,6 +2025,7 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
         // Set the multiplier counts for this QSO
         qso.setMultiplierCount(qsoNamedMults);
         qso.setDxccCount(qsoDxccMults);
+        qso.setGridSquareMultiplierCount(qsoGridSquareMults);
     }
     
      // Count multipliers based on type
@@ -1979,59 +2034,67 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
         m_runningScore.dxccMultCount = dxccMultsOnce.size();
         m_runningScore.ituRegionMultCount = ituRegionMultsOnce.size();
         m_runningScore.namedCallPrefixCount = namedCallPrefixesOnce.size();
+        m_runningScore.gridSquareMultCount = gridSquaresOnce.size();
         m_runningScore.multipliers = uniqueMultipliers.size();
         if (verbose) {
             DebugLogger::instance().log("ContestEngine", 
-                QString("Unique mults (once): %1 total (named:%2 dxcc:%3 itu:%4 prefixes:%5)")
+                QString("Unique mults (once): %1 total (named:%2 dxcc:%3 itu:%4 prefixes:%5 grid:%6)")
                     .arg(uniqueMultipliers.size())
                     .arg(m_runningScore.namedMultCount)
                     .arg(m_runningScore.dxccMultCount)
                     .arg(m_runningScore.ituRegionMultCount)
-                    .arg(m_runningScore.namedCallPrefixCount));
+                    .arg(m_runningScore.namedCallPrefixCount)
+                    .arg(m_runningScore.gridSquareMultCount));
         }
     } else if (multType == "multsPerBand") {
         m_runningScore.namedMultCount = namedMultsPerBand.size();
         m_runningScore.dxccMultCount = dxccMultsPerBand.size();
         m_runningScore.ituRegionMultCount = ituRegionMultsPerBand.size();
         m_runningScore.namedCallPrefixCount = namedCallPrefixesPerBand.size();
+        m_runningScore.gridSquareMultCount = gridSquaresPerBand.size();
         m_runningScore.multipliers = multPerBand.size();
         if (verbose) {
             DebugLogger::instance().log("ContestEngine", 
-                QString("Mults per band: %1 total (named:%2 dxcc:%3 itu:%4 prefixes:%5)")
+                QString("Mults per band: %1 total (named:%2 dxcc:%3 itu:%4 prefixes:%5 grid:%6)")
                     .arg(multPerBand.size())
                     .arg(m_runningScore.namedMultCount)
                     .arg(m_runningScore.dxccMultCount)
                     .arg(m_runningScore.ituRegionMultCount)
-                    .arg(m_runningScore.namedCallPrefixCount));
+                    .arg(m_runningScore.namedCallPrefixCount)
+                    .arg(m_runningScore.gridSquareMultCount));
         }
     } else if (multType == "multsPerMode") {
         m_runningScore.namedMultCount = namedMultsPerMode.size();
         m_runningScore.dxccMultCount = dxccMultsPerMode.size();
         m_runningScore.ituRegionMultCount = ituRegionMultsPerMode.size();
         m_runningScore.namedCallPrefixCount = namedCallPrefixesPerMode.size();
+        m_runningScore.gridSquareMultCount = gridSquaresPerMode.size();
         m_runningScore.multipliers = multPerMode.size();
         if (verbose) {
             DebugLogger::instance().log("ContestEngine", 
-                QString("Mults per mode: %1 total (named:%2 dxcc:%3 itu:%4 prefixes:%5)")
+                QString("Mults per mode: %1 total (named:%2 dxcc:%3 itu:%4 prefixes:%5 grid:%6)")
                     .arg(multPerMode.size())
                     .arg(m_runningScore.namedMultCount)
                     .arg(m_runningScore.dxccMultCount)
                     .arg(m_runningScore.ituRegionMultCount)
-                    .arg(m_runningScore.namedCallPrefixCount));
+                    .arg(m_runningScore.namedCallPrefixCount)
+                    .arg(m_runningScore.gridSquareMultCount));
         }
     } else if (multType == "multsPerBandAndMode") {
         m_runningScore.namedMultCount = namedMultsPerBandAndMode.size();
         m_runningScore.dxccMultCount = dxccMultsPerBandAndMode.size();
         m_runningScore.ituRegionMultCount = ituRegionMultsPerBandAndMode.size();
         m_runningScore.namedCallPrefixCount = namedCallPrefixesPerBandAndMode.size();
+        m_runningScore.gridSquareMultCount = gridSquaresPerBandAndMode.size();
         m_runningScore.multipliers = multPerBandAndMode.size();
         DebugLogger::instance().log("ContestEngine", 
-            QString("Mults per band/mode: %1 total (named:%2 dxcc:%3 itu:%4 prefixes:%5)")
+            QString("Mults per band/mode: %1 total (named:%2 dxcc:%3 itu:%4 prefixes:%5 grid:%6)")
                 .arg(multPerBandAndMode.size())
                 .arg(m_runningScore.namedMultCount)
                 .arg(m_runningScore.dxccMultCount)
                 .arg(m_runningScore.ituRegionMultCount)
-                .arg(m_runningScore.namedCallPrefixCount));
+                .arg(m_runningScore.namedCallPrefixCount)
+                .arg(m_runningScore.gridSquareMultCount));
     }
     
     // Set DXCC count (for informational purposes)
@@ -2070,7 +2133,7 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
         }
     } else if (!multCategories.isEmpty()) {
         // For multsOnce and multsPerBand: use simple points × mults formula
-        int totalMultipliers = m_runningScore.namedMultCount + m_runningScore.dxccMultCount + m_runningScore.ituRegionMultCount + m_runningScore.namedCallPrefixCount;
+        int totalMultipliers = m_runningScore.namedMultCount + m_runningScore.dxccMultCount + m_runningScore.ituRegionMultCount + m_runningScore.namedCallPrefixCount + m_runningScore.gridSquareMultCount;
         m_runningScore.contestScore = (m_runningScore.contactScore * totalMultipliers) + m_runningScore.bonusPoints;
     } else {
         // Traditional scoring: points * mults
@@ -2120,4 +2183,21 @@ void ContestEngine::setRestrictedMode(const QString& mode)
 QString ContestEngine::getRestrictedMode() const
 {
     return m_restrictedMode;
+}
+
+void ContestEngine::setUserPromptValue(const QString& promptId, const QString& value)
+{
+    m_userPromptValues[promptId] = value;
+    DebugLogger::instance().log("ContestEngine", 
+        QString("User prompt '%1' set to: '%2'").arg(promptId, value));
+}
+
+QString ContestEngine::getUserPromptValue(const QString& promptId) const
+{
+    return m_userPromptValues.value(promptId, QString());
+}
+
+QMap<QString, QString> ContestEngine::getUserPromptValues() const
+{
+    return m_userPromptValues;
 }

@@ -64,7 +64,7 @@ void ScoreWidget::rebuildTable()
     m_scoreTable->setColumnCount(4);
     
     QStringList headers;
-    headers << "Band" << "CW" << "SSB" << "Digi";
+    headers << "Band" << "CW" << "PH" << "DIGI";
     m_scoreTable->setHorizontalHeaderLabels(headers);
     
     // Set band names in first column
@@ -109,7 +109,7 @@ void ScoreWidget::updateScore(const ContestEngine::ContestScore& score)
         QString("updateScore called - bandStats size: %1").arg(score.bandStats.size()));
     for (auto it = score.bandStats.begin(); it != score.bandStats.end(); ++it) {
         DebugLogger::instance().log("ScoreWidget", 
-            QString("  Received %1: CW=%2 SSB=%3 Digi=%4")
+            QString("  Received %1: CW=%2 PHONE=%3 DIGI=%4")
                 .arg(it.key())
                 .arg(it.value().cwQsos)
                 .arg(it.value().ssbQsos)
@@ -140,7 +140,7 @@ void ScoreWidget::updateScore(const ContestEngine::ContestScore& score)
         if (bandRowMap.contains(band)) {
             int row = bandRowMap[band];
             DebugLogger::instance().log("ScoreWidget", 
-                QString("Found band '%1' at row %2, updating with CW=%3 SSB=%4 Digi=%5")
+                QString("Found band '%1' at row %2, updating with CW=%3 PHONE=%4 DIGI=%5")
                     .arg(band).arg(row)
                     .arg(stats.cwQsos).arg(stats.ssbQsos).arg(stats.digitalQsos));
             m_scoreTable->item(row, 1)->setText(QString::number(stats.cwQsos));

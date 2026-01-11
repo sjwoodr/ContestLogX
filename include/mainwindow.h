@@ -56,6 +56,7 @@ private slots:
     void onCWWindow();
     void onEditCWMemories();
     void onRecalculateScore();
+    void onContestSetup();
     void onExportCabrillo();
     void onCreateSummarySheet();
     void onAbout();

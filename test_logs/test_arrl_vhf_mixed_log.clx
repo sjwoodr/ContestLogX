@@ -1,0 +1,134 @@
+{
+    "contest": {
+        "categories": {
+            "userPrompt_contestMonth": "january",
+            "userPrompt_myGridSquare": "EL96"
+        },
+        "contest_file": "arrl_vhf.json",
+        "mode": "",
+        "name": "ARRL VHF Contest",
+        "type": "ARRL VHF Contest",
+        "version": "1.0.0",
+        "year": 2026
+    },
+    "created": "2026-01-11T10:26:58",
+    "exchange_fields": [
+    ],
+    "format": "ContestLogX",
+    "format_version": "1.0",
+    "modified": "2026-01-11T10:26:58",
+    "qsos": [
+        {
+            "band": "2m",
+            "callsign": "W4WOD",
+            "duplicate": false,
+            "dxcc_count": 0,
+            "exchange_fields": {
+                "EXCHs": "FL",
+                "GRIDr": "EM33",
+                "GRIDs": "EL96",
+                "NAMEs": "STEVE",
+                "RSTr": "59",
+                "RSTs": "59",
+                "SNs": "1"
+            },
+            "frequency": 144200,
+            "grid_square_count": 1,
+            "id": 1,
+            "mode": "USB",
+            "multiplier_count": 0,
+            "points": 1,
+            "rst_received": "59",
+            "rst_sent": "59",
+            "serial": 1,
+            "timestamp": "2026-01-11T14:37:21Z"
+        },
+        {
+            "band": "2m",
+            "callsign": "N2BJ",
+            "duplicate": false,
+            "dxcc_count": 0,
+            "exchange_fields": {
+                "EXCHs": "FL",
+                "GRIDr": "EN52",
+                "GRIDs": "EL96",
+                "NAMEs": "STEVE",
+                "RSTr": "59",
+                "RSTs": "59",
+                "SNs": "2"
+            },
+            "frequency": 144200,
+            "grid_square_count": 1,
+            "id": 2,
+            "mode": "USB",
+            "multiplier_count": 0,
+            "points": 1,
+            "rst_received": "59",
+            "rst_sent": "59",
+            "serial": 2,
+            "timestamp": "2026-01-11T14:37:28Z"
+        },
+        {
+            "band": "23cm",
+            "callsign": "W4LT",
+            "duplicate": false,
+            "dxcc_count": 0,
+            "exchange_fields": {
+                "EXCHs": "FL",
+                "GRIDr": "EL95",
+                "GRIDs": "EL96",
+                "NAMEs": "STEVE",
+                "RSTr": "59",
+                "RSTs": "59",
+                "SNs": "3"
+            },
+            "frequency": 1296200,
+            "grid_square_count": 1,
+            "id": 3,
+            "mode": "FM",
+            "multiplier_count": 0,
+            "points": 4,
+            "rst_received": "59",
+            "rst_sent": "59",
+            "serial": 3,
+            "timestamp": "2026-01-11T14:37:51Z"
+        },
+        {
+            "band": "23cm",
+            "callsign": "W4OO",
+            "duplicate": false,
+            "dxcc_count": 0,
+            "exchange_fields": {
+                "EXCHs": "FL",
+                "GRIDr": "EL95",
+                "GRIDs": "EL96",
+                "NAMEs": "STEVE",
+                "RSTr": "59",
+                "RSTs": "59",
+                "SNs": "4"
+            },
+            "frequency": 1296200,
+            "grid_square_count": 0,
+            "id": 4,
+            "mode": "FM",
+            "multiplier_count": 0,
+            "points": 4,
+            "rst_received": "59",
+            "rst_sent": "59",
+            "serial": 4,
+            "timestamp": "2026-01-11T14:38:03Z"
+        }
+    ],
+    "station": {
+        "callsign": "",
+        "equipment": {
+            "power": 100
+        },
+        "operator": ""
+    },
+    "statistics": {
+        "score": 4,
+        "total_points": 4,
+        "total_qsos": 4
+    }
+}

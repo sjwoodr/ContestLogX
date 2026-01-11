@@ -56,6 +56,7 @@
 #include <QCloseEvent>
 #include <QtMath>
 #include <QKeyEvent>
+#include <QSettings>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -617,6 +618,11 @@ void MainWindow::setupMenus()
     
     contestMenu->addSeparator();
     
+    QAction *setupAction = contestMenu->addAction("Contest &Setup...");
+    connect(setupAction, &QAction::triggered, this, &MainWindow::onContestSetup);
+    
+    contestMenu->addSeparator();
+    
     QAction *scpAction = contestMenu->addAction("&Super Check Partial...");
     connect(scpAction, &QAction::triggered, this, &MainWindow::onScpDialog);
     
@@ -1074,6 +1080,104 @@ void MainWindow::onNewLog()
                     }
                 }
                 
+                // Prompt for user prompts (like grid square, month, etc.)
+                if (m_contestEngine) {
+                    QJsonObject contestDef = m_contestEngine->getContestDefinition();
+                    if (contestDef.contains("userPrompts")) {
+                        QJsonArray prompts = contestDef["userPrompts"].toArray();
+                        for (const QJsonValue& promptVal : prompts) {
+                            QJsonObject promptObj = promptVal.toObject();
+                            QString promptId = promptObj["id"].toString();
+                            QString question = promptObj["question"].toString();
+                            QString type = promptObj["type"].toString();
+                            bool required = promptObj["required"].toBool(false);
+                            
+                            if (type == "text") {
+                                QString value;
+                                bool forceUppercase = promptObj.value("forceUppercase").toBool(true);
+                                while (value.isEmpty() && required) {
+                                    QDialog inputDialog(this);
+                                    inputDialog.setWindowTitle("Contest Information");
+                                    QVBoxLayout layout(&inputDialog);
+                                    
+                                    QLabel label(question);
+                                    QLineEdit edit;
+                                    QDialogButtonBox buttonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+                                    
+                                    layout.addWidget(&label);
+                                    layout.addWidget(&edit);
+                                    layout.addWidget(&buttonBox);
+                                    
+                                    connect(&buttonBox, &QDialogButtonBox::accepted, &inputDialog, &QDialog::accept);
+                                    connect(&buttonBox, &QDialogButtonBox::rejected, &inputDialog, &QDialog::reject);
+                                    
+                                    // Apply real-time uppercase conversion
+                                    connect(&edit, &QLineEdit::textChanged, [&edit, forceUppercase](const QString& text) {
+                                        QString filtered;
+                                        for (const QChar& c : text) {
+                                            if (c.isLetter() || c.isDigit() || c == '-' || c == '/') {
+                                                filtered += forceUppercase && c.isLetter() ? c.toUpper() : c;
+                                            }
+                                        }
+                                        if (filtered != text) {
+                                            int cursorPos = edit.cursorPosition();
+                                            edit.blockSignals(true);
+                                            edit.setText(filtered);
+                                            edit.setCursorPosition(cursorPos);
+                                            edit.blockSignals(false);
+                                        }
+                                    });
+                                    
+                                    if (inputDialog.exec() == QDialog::Accepted) {
+                                        value = edit.text();
+                                        if (value.isEmpty() && required) {
+                                            QMessageBox::warning(this, "Input Required", 
+                                                question + " cannot be empty");
+                                            continue;
+                                        }
+                                    } else {
+                                        // User cancelled
+                                        m_contestEngine->resetStationClassState();
+                                        return;
+                                    }
+                                }
+                                if (!value.isEmpty()) {
+                                    m_contestEngine->setUserPromptValue(promptId, value);
+                                    DebugLogger::instance().log("MainWindow", 
+                                        QString("User prompt '%1' set to: '%2'").arg(promptId, value));
+                                }
+                            } else if (type == "select") {
+                                QStringList labels;
+                                QStringList values;
+                                if (promptObj.contains("options")) {
+                                    QJsonArray options = promptObj["options"].toArray();
+                                    for (const QJsonValue& optVal : options) {
+                                        QJsonObject optObj = optVal.toObject();
+                                        labels.append(optObj["label"].toString());
+                                        values.append(optObj["value"].toString());
+                                    }
+                                }
+                                
+                                bool ok;
+                                int index = 0;
+                                QString selectedLabel = QInputDialog::getItem(this,
+                                    "Contest Information", question,
+                                    labels, index, false, &ok);
+                                if (ok && index < values.size()) {
+                                    QString selectedValue = values[index];
+                                    m_contestEngine->setUserPromptValue(promptId, selectedValue);
+                                    DebugLogger::instance().log("MainWindow", 
+                                        QString("User prompt '%1' set to: '%2'").arg(promptId, selectedValue));
+                                } else if (!ok) {
+                                    // User cancelled
+                                    m_contestEngine->resetStationClassState();
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                }
+                
                 m_isModified = false;
                 updateWindowTitle();
                 clearEntryForm();
@@ -1450,10 +1554,11 @@ void MainWindow::loadLogFile(const QString& filename)
             QString loadedContestVersion;
             QString stationClassExchangeName;
             QString stationClassExchangeId;
+            QMap<QString, QString> userPromptValues;
             FileHandler fileHandler;
             
             QList<QsoRecord> temp;
-            fileHandler.loadClxWithContest(filename, temp, contestFile, stationClass, loadedContestVersion, stationClassExchangeName, stationClassExchangeId);
+            fileHandler.loadClxWithContest(filename, temp, contestFile, stationClass, loadedContestVersion, stationClassExchangeName, stationClassExchangeId, userPromptValues);
             
             // Also load the station info from the CLX file
             ClxFile clxFile;
@@ -1516,6 +1621,18 @@ void MainWindow::loadLogFile(const QString& filename)
                     
                     // Pass false to NOT restore/prompt for station class since we already have it
                     loadContestDefinition(contestPath, false);
+                    
+                    // Restore userPromptValues after contest is loaded
+                    if (!userPromptValues.isEmpty() && m_contestEngine) {
+                        for (auto it = userPromptValues.constBegin(); it != userPromptValues.constEnd(); ++it) {
+                            m_contestEngine->setUserPromptValue(it.key(), it.value());
+                        }
+                        // Log the restored values
+                        DebugLogger::instance().log("MainWindow", QString("Restored %1 user prompt values from CLX").arg(userPromptValues.size()));
+                        for (auto it = userPromptValues.constBegin(); it != userPromptValues.constEnd(); ++it) {
+                            DebugLogger::instance().log("MainWindow", QString("  %1 = '%2'").arg(it.key(), it.value()));
+                        }
+                    }
                     
                     // If we loaded a mode from the CLX file, restrict to that mode
                     if (!loadedMode.isEmpty()) {
@@ -1659,7 +1776,8 @@ void MainWindow::onSaveLog()
         QString stationClass = m_contestEngine ? m_contestEngine->getStationClass() : QString();
         QString stationClassExchangeName = m_contestEngine ? m_contestEngine->getStationClassExchangeName() : QString();
         QString stationClassExchangeId = m_contestEngine ? m_contestEngine->getStationClassExchangeId() : QString();
-        success = fileHandler.saveClxWithContest(m_currentFile, m_qsoModel->getQsos(), m_contestFile, m_contestDefinition, stationClass, stationClassExchangeName, stationClassExchangeId);
+        QMap<QString, QString> userPromptValues = m_contestEngine ? m_contestEngine->getUserPromptValues() : QMap<QString, QString>();
+        success = fileHandler.saveClxWithContest(m_currentFile, m_qsoModel->getQsos(), m_contestFile, m_contestDefinition, stationClass, stationClassExchangeName, stationClassExchangeId, userPromptValues);
     } else {
         success = fileHandler.save(m_currentFile, m_qsoModel->getQsos());
     }
@@ -1929,10 +2047,11 @@ void MainWindow::onLogQso()
     // Get band from frequency
     QString band = m_contestEngine->getBandFromFrequency(m_lastFrequency);
     if (!band.isEmpty()) {
-        // Find band index for setBand()
-        const char* bands[] = {"160m", "80m", "40m", "30m", "20m", "17m", "15m", "12m", "10m", "6m", "2m"};
-        for (int i = 0; i < 11; i++) {
-            if (band == bands[i]) {
+        // Get bands from contest definition and find the index
+        QJsonObject contestDef = m_contestEngine->getContestDefinition();
+        QJsonArray bandsArray = contestDef.value("bands").toArray();
+        for (int i = 0; i < bandsArray.size(); i++) {
+            if (bandsArray[i].toString() == band) {
                 qso.setBand(i);
                 break;
             }
@@ -1997,6 +2116,14 @@ void MainWindow::onLogQso()
     qso.setExchangeField("SNs", serialSent);
     DebugLogger::instance().log("MainWindow", 
         QString("Set SNs exchange field to: '%1'").arg(serialSent));
+    
+    // Set our grid square if the contest has a myGridSquare user prompt
+    QString ourGrid = m_contestEngine->getUserPromptValue("myGridSquare");
+    if (!ourGrid.isEmpty()) {
+        qso.setExchangeField("GRIDs", ourGrid);
+        DebugLogger::instance().log("MainWindow", 
+            QString("Set GRIDs exchange field to: '%1'").arg(ourGrid));
+    }
     
     // Get exchange sent from contest class and station settings
     QString stationQth = Settings::instance().getState();
@@ -2193,11 +2320,25 @@ void MainWindow::onLogQso()
         QList<QsoRecord> previousQsos = allQsos.mid(0, allQsos.count() - 1);  // All except the one we just added
         ContestEngine::QsoMultiplierCredit credit = m_contestEngine->getQsoMultiplierCredit(qso, previousQsos);
         
-        // Update the QSO with mult credit
+        // Extract grid square multiplier if present
+        QList<ContestEngine::MultiplierInfo> mults = m_contestEngine->getMultipliersWithCategory(qso);
+        QString gridSquareMult;
+        for (const ContestEngine::MultiplierInfo& mult : mults) {
+            if (mult.category == "gridSquares") {
+                gridSquareMult = mult.value;
+                break;
+            }
+        }
         int lastQsoIndex = m_qsoModel->count() - 1;
+        if (!gridSquareMult.isEmpty()) {
+            m_qsoModel->updateGridSquareMultiplier(lastQsoIndex, gridSquareMult);
+        }
+        
+        // Update the QSO with mult credit
         m_qsoModel->updateMultiplierCount(lastQsoIndex, credit.namedMultCount);
         m_qsoModel->updateDxccCount(lastQsoIndex, credit.dxccMultCount);
         m_qsoModel->updateItuRegionCount(lastQsoIndex, credit.ituRegionMultCount);
+        m_qsoModel->updateGridSquareMultiplierCount(lastQsoIndex, credit.gridSquareMultCount);
         
         // Now update running score with the updated QSO
         allQsos = m_qsoModel->getQsos();
@@ -2520,6 +2661,147 @@ void MainWindow::onToggleScpDebug(bool checked)
     DebugLogger::instance().setScpDebugEnabled(checked);
     Settings::instance().setScpDebugEnabled(checked);
     m_statusLabel->setText(checked ? "Super Check Partial debug logging enabled" : "Super Check Partial debug logging disabled");
+}
+
+void MainWindow::onContestSetup()
+{
+    DebugLogger::instance().log("MainWindow", 
+        QString("onContestSetup: m_contestEngine=%1, m_contestDefinition.isEmpty()=%2")
+        .arg(m_contestEngine ? "valid" : "null", m_contestDefinition.isEmpty() ? "true" : "false"));
+    
+    if (!m_contestEngine || m_contestDefinition.isEmpty()) {
+        QMessageBox::warning(this, "No Contest", "No contest is currently loaded");
+        return;
+    }
+    
+    QJsonArray userPrompts = m_contestDefinition.value("userPrompts").toArray();
+    if (userPrompts.isEmpty()) {
+        QMessageBox::information(this, "Contest Setup", "This contest has no configurable settings.");
+        return;
+    }
+    
+    // Clear saved userPrompt responses from QSettings
+    QString contestFile = m_contestFile;
+    if (contestFile.endsWith(".json")) {
+        contestFile.remove(".json");
+    }
+    
+    QSettings settings(QSettings::UserScope, "ContestLogX", "ContestLogX");
+    settings.beginGroup("contests/" + contestFile);
+    QStringList keys = settings.allKeys();
+    for (const QString& key : keys) {
+        settings.remove(key);
+    }
+    settings.endGroup();
+    
+    DebugLogger::instance().log("MainWindow", 
+        QString("Cleared userPrompt settings for contest: %1").arg(contestFile));
+    
+    // Now re-prompt for each userPrompt
+    for (const QJsonValue& promptVal : userPrompts) {
+        QJsonObject promptObj = promptVal.toObject();
+        QString promptId = promptObj["id"].toString();
+        QString question = promptObj["question"].toString();
+        QString type = promptObj["type"].toString();
+        bool required = promptObj["required"].toBool(false);
+        
+        if (type == "text") {
+            QString value;
+            bool forceUppercase = promptObj.value("forceUppercase").toBool(true);
+            while (value.isEmpty() && required) {
+                QDialog inputDialog(this);
+                inputDialog.setWindowTitle("Contest Setup");
+                QVBoxLayout layout(&inputDialog);
+                
+                QLabel label(question);
+                QLineEdit edit;
+                QDialogButtonBox buttonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+                
+                layout.addWidget(&label);
+                layout.addWidget(&edit);
+                layout.addWidget(&buttonBox);
+                
+                connect(&buttonBox, &QDialogButtonBox::accepted, &inputDialog, &QDialog::accept);
+                connect(&buttonBox, &QDialogButtonBox::rejected, &inputDialog, &QDialog::reject);
+                
+                // Apply real-time uppercase conversion
+                connect(&edit, &QLineEdit::textChanged, [&edit, forceUppercase](const QString& text) {
+                    QString filtered;
+                    for (const QChar& c : text) {
+                        if (c.isLetter() || c.isDigit() || c == '-' || c == '/') {
+                            filtered += forceUppercase && c.isLetter() ? c.toUpper() : c;
+                        }
+                    }
+                    if (filtered != text) {
+                        int cursorPos = edit.cursorPosition();
+                        edit.blockSignals(true);
+                        edit.setText(filtered);
+                        edit.setCursorPosition(cursorPos);
+                        edit.blockSignals(false);
+                    }
+                });
+                
+                if (inputDialog.exec() == QDialog::Accepted) {
+                    value = edit.text();
+                    if (value.isEmpty() && required) {
+                        QMessageBox::warning(this, "Input Required", 
+                            question + " cannot be empty");
+                        continue;
+                    }
+                } else {
+                    return;
+                }
+            }
+            
+            // Store the value
+            if (!value.isEmpty()) {
+                settings.beginGroup("contests/" + contestFile);
+                settings.setValue("userPrompts/" + promptId, value);
+                settings.endGroup();
+                // Also update the contest engine
+                if (m_contestEngine) {
+                    m_contestEngine->setUserPromptValue(promptId, value);
+                }
+                DebugLogger::instance().log("MainWindow", 
+                    QString("Set userPrompt %1 = %2").arg(promptId, value));
+            }
+        } else if (type == "select") {
+            QJsonArray options = promptObj["options"].toArray();
+            QStringList optionLabels;
+            QStringList optionValues;
+            
+            for (const QJsonValue& optVal : options) {
+                QJsonObject opt = optVal.toObject();
+                optionLabels.append(opt["label"].toString());
+                optionValues.append(opt["value"].toString());
+            }
+            
+            bool ok;
+            QString selected = QInputDialog::getItem(this, "Contest Setup", question,
+                optionLabels, 0, false, &ok);
+            
+            if (ok && !selected.isEmpty()) {
+                int idx = optionLabels.indexOf(selected);
+                if (idx >= 0) {
+                    QString selectedValue = optionValues[idx];
+                    settings.beginGroup("contests/" + contestFile);
+                    settings.setValue("userPrompts/" + promptId, selectedValue);
+                    settings.endGroup();
+                    // Also update the contest engine
+                    if (m_contestEngine) {
+                        m_contestEngine->setUserPromptValue(promptId, selectedValue);
+                    }
+                    DebugLogger::instance().log("MainWindow", 
+                        QString("Set userPrompt %1 = %2").arg(promptId, selectedValue));
+                }
+            }
+        }
+    }
+    
+    // Recalculate score with new settings
+    onRecalculateScore();
+    
+    QMessageBox::information(this, "Contest Setup", "Contest setup parameters have been updated.");
 }
 
 void MainWindow::onExportCabrillo()

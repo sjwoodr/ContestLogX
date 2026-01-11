@@ -75,7 +75,7 @@ QString FreqModeDialog::mode() const
 
 void FreqModeDialog::onOkClicked()
 {
-    // Parse frequency - can be in Hz or kHz
+    // Parse frequency in kHz (as labeled on the dialog)
     QString freqText = m_freqEdit->text().trimmed();
     bool ok;
     double freq = freqText.toDouble(&ok);
@@ -86,13 +86,8 @@ void FreqModeDialog::onOkClicked()
         return;
     }
     
-    // If frequency is > 30000, assume it's in Hz, convert to kHz
-    if (freq > 30000.0) {
-        m_frequency = freq / 1000.0;
-    } else {
-        m_frequency = freq;
-    }
-    
+    // User enters frequency in kHz - use as-is
+    m_frequency = freq;
     m_mode = m_modeCombo->currentText();
     
     accept();

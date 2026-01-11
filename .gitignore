@@ -32,3 +32,4 @@ clx
 # TTS models
 *.onnx.json
 *.onnx
+config.json
