@@ -2,7 +2,7 @@ name: Build and Test ContestLogX
 
 on:
   push:
-    branches: [ "main", "sw/*" ]
+    branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
   workflow_dispatch:

@@ -34,12 +34,12 @@ test: build/Makefile
 # Run automated contest log tests
 test-logs: clx
 	@echo "Running automated contest log tests..."
-	@python3 scripts/run_log_tests.py
+	@python3 -u scripts/run_log_tests.py
 
 # Run automated contest log tests in headless mode (no display required)
 test-logs-headless: clx
 	@echo "Running automated contest log tests in headless mode..."
-	@QT_QPA_PLATFORM=offscreen python3 scripts/run_log_tests.py
+	@QT_QPA_PLATFORM=offscreen python3 -u scripts/run_log_tests.py
 
 # Update version number across all files
 version:
