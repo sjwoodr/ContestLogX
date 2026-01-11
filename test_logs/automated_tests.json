@@ -31,9 +31,19 @@
       "expected_score": 189
     },
     {
-      "name": "ARRL VHF Contest (Mixed Mode)",
-      "log_file": "test_arrl_vhf_mixed_log.clx",
-      "expected_score": 30
+      "name": "ARRL VHF Contest (January - Extended)",
+      "log_file": "test_arrl_vhf_mixed_january.clx",
+      "expected_score": 25866
+    },
+    {
+      "name": "ARRL VHF Contest (June - Extended)",
+      "log_file": "test_arrl_vhf_mixed_june.clx",
+      "expected_score": 14040
+    },
+    {
+      "name": "ARRL VHF Contest (September - Extended)",
+      "log_file": "test_arrl_vhf_mixed_september.clx",
+      "expected_score": 14040
     }
   ]
 }

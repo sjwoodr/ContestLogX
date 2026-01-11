@@ -137,18 +137,22 @@ QString CabrilloExport::generateQsoLine(const QsoRecord& qso, const QString& qso
     QDateTime dt = qso.getDateTime();
     
     // Map application modes to Cabrillo modes
+    // Valid Cabrillo modes: CW, PH, FM, RY, DG
     QString modeStr = qso.getMode().toUpper();
     QString cabrilloMode;
     if (modeStr == "CW") {
         cabrilloMode = "CW";
     } else if (modeStr == "USB" || modeStr == "LSB" || modeStr == "SSB") {
         cabrilloMode = "PH";
+    } else if (modeStr == "FM") {
+        cabrilloMode = "FM";
     } else if (modeStr == "RTTY") {
         cabrilloMode = "RY";
-    } else if (modeStr == "FT8" || modeStr == "PSK31" || modeStr == "FT4" || modeStr == "JS8" || modeStr == "DIGI") {
-        cabrilloMode = "RY";  // Digital modes use RY
+    } else if (modeStr == "DIGITAL" || modeStr == "DIGI" || modeStr == "FT8" || modeStr == "PSK31" || modeStr == "FT4" || modeStr == "JS8") {
+        cabrilloMode = "DG";  // Digital modes map to DG
     } else {
-        cabrilloMode = modeStr;  // Use as-is if unknown
+        // Default to first character if unknown (fallback safety)
+        cabrilloMode = modeStr.left(2);
     }
     
     // Replace template variables
@@ -174,6 +178,12 @@ QString CabrilloExport::generateQsoLine(const QsoRecord& qso, const QString& qso
         line.replace("{exch_sent}", qso.getExchangeSent());
         line.replace("{name_sent}", "");
     }
+    
+    // Handle grid square fields (VHF contests)
+    QString gridSent = qso.getExchangeField("GRIDs");
+    QString gridRcvd = qso.getExchangeField("GRIDr");
+    line.replace("{GRIDs}", gridSent);
+    line.replace("{GRIDr}", gridRcvd);
     
     line.replace("{call}", qso.getCall());  // The other station's callsign
     line.replace("{rst_rcvd}", qso.getRstReceived());

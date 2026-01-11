@@ -362,7 +362,7 @@
     "cabrillo": {
       "version": "3.0",
       "contest": "ARRL-VHF",
-      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {grids} {call} {gridr}",
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {GRIDs} {call} {GRIDr}",
       "requiredHeaders": ["CONTEST", "CALLSIGN", "CATEGORY-OPERATOR", "CATEGORY-TRANSMITTER", "GRID-LOCATOR", "CLAIMED-SCORE", "CREATED-BY", "NAME", "ADDRESS", "ADDRESS-CITY", "ADDRESS-STATE-PROVINCE", "ADDRESS-POSTALCODE", "ADDRESS-COUNTRY", "EMAIL", "SOAPBOX"]
     }
   },

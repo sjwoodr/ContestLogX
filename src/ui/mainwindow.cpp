@@ -4080,7 +4080,7 @@ QString MainWindow::generateSummaryString()
 
                 for (int i = 0; i < sortedMults.size(); ++i) {
                     QString mark = countedMults.contains(sortedMults[i]) ? "*" : " ";
-                    out << QString("%1%2").arg(mark).arg(QString("%1").arg(sortedMults[i], -4));
+                    out << QString("%1%2 ").arg(mark).arg(QString("%1").arg(sortedMults[i], -4));
 
                     if ((i + 1) % 6 == 0) {
                         out << "\n";
@@ -4120,7 +4120,7 @@ QString MainWindow::generateSummaryString()
 
                 for (int i = 0; i < sortedMults.size(); ++i) {
                     QString mark = countedPerBand[band].contains(sortedMults[i]) ? "*" : " ";
-                    out << QString("%1%2").arg(mark).arg(QString("%1").arg(sortedMults[i], -4));
+                    out << QString("%1%2 ").arg(mark).arg(QString("%1").arg(sortedMults[i], -4));
 
                     if ((i + 1) % 6 == 0) {
                         out << "\n";
@@ -4160,7 +4160,7 @@ QString MainWindow::generateSummaryString()
 
                 for (int i = 0; i < sortedMults.size(); ++i) {
                     QString mark = countedPerMode[mode].contains(sortedMults[i]) ? "*" : " ";
-                    out << QString("%1%2").arg(mark).arg(QString("%1").arg(sortedMults[i], -4));
+                    out << QString("%1%2 ").arg(mark).arg(QString("%1").arg(sortedMults[i], -4));
 
                     if ((i + 1) % 6 == 0) {
                         out << "\n";
@@ -4202,7 +4202,7 @@ QString MainWindow::generateSummaryString()
 
                 for (int i = 0; i < sortedMults.size(); ++i) {
                     QString mark = countedPerBandMode[key].contains(sortedMults[i]) ? "*" : " ";
-                    out << QString("%1%2").arg(mark).arg(QString("%1").arg(sortedMults[i], -4));
+                    out << QString("%1%2 ").arg(mark).arg(QString("%1").arg(sortedMults[i], -4));
 
                     if ((i + 1) % 6 == 0) {
                         out << "\n";
