@@ -31,8 +31,7 @@ jobs:
       - name: Download DXCC database (cty.dat)
         run: |
           mkdir -p ~/.local/share/ContestLogX
-          curl -s -L https://www.country-files.com/cty/cty.dat.gz -o /tmp/cty.dat.gz
-          gunzip -f /tmp/cty.dat.gz
+          curl -s -L https://www.country-files.com/cty/cty.dat -o /tmp/cty.dat
           mv /tmp/cty.dat ~/.local/share/ContestLogX/cty.dat
           ls -lh ~/.local/share/ContestLogX/cty.dat
 
