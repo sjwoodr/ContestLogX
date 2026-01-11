@@ -51,6 +51,7 @@ set(SOURCES
     src/core/stationinfo.cpp
     src/core/exchangefield.cpp
     src/core/loadingworker.cpp
+    src/core/scoringworker.cpp
     src/core/cabrilloexport.cpp
     src/callhistory.cpp
     src/supercheckpartial.cpp
@@ -90,6 +91,7 @@ set(HEADERS
     include/stationinfo.h
     include/exchangefield.h
     include/loadingworker.h
+    include/scoringworker.h
     include/clxfile.h
     include/flrigclient.h
     include/settings.h

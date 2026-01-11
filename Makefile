@@ -4,6 +4,7 @@
 #   make              - Build with parallel jobs (default: nproc)
 #   make JOBS=4       - Build with 4 parallel jobs
 #   make test         - Run unit tests
+#   make test-logs    - Run automated contest log tests
 #   make clean        - Clean build artifacts
 #   make version      - Update version number
 #   make reset        - Reset application settings
@@ -28,6 +29,11 @@ clean:
 test: build/Makefile
 	@echo "Running unit tests..."
 	cd build && ctest --output-on-failure
+
+# Run automated contest log tests
+test-logs: clx
+	@echo "Running automated contest log tests..."
+	@python3 scripts/run_log_tests.py
 
 # Update version number across all files
 version:
@@ -77,4 +83,4 @@ reset:
 		echo "Reset cancelled."; \
 	fi
 
-.PHONY: all clean test version reset
+.PHONY: all clean test test-logs version reset

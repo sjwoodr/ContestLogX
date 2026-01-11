@@ -19,6 +19,7 @@
 #include "filehandler.h"
 #include "clxfile.h"
 #include "loadingworker.h"
+#include "scoringworker.h"
 #include "settings.h"
 #include "callhistory.h"
 #include "supercheckpartial.h"
@@ -75,6 +76,8 @@ MainWindow::MainWindow(QWidget *parent)
     , m_currentFile("")
     , m_isModified(false)
     , m_showingLogFileNotFoundDialog(false)
+    , m_testMode(false)
+    , m_debugLogMode(false)
     , m_contestEngine(new ContestEngine(this))
     , m_dxccDatabase(new DxccDatabase(this))
     , m_flrigClient(new FlrigClient(this))
@@ -211,9 +214,18 @@ MainWindow::MainWindow(QWidget *parent)
         // Check for --log command-line argument
         QStringList args = QApplication::arguments();
         int logIndex = args.indexOf("--log");
+        int testIndex = args.indexOf("--test-only");
+        
+        if (testIndex != -1) {
+            m_testMode = true;
+            DebugLogger::instance().log("MainWindow", "Test mode enabled");
+        }
+        
         if (logIndex != -1 && logIndex + 1 < args.count()) {
             QString logFilePath = args[logIndex + 1];
+            m_debugLogMode = true;
             DebugLogger::instance().log("MainWindow", QString("Loading log file from command line: %1").arg(logFilePath));
+            DebugLogger::instance().log("MainWindow", "Debug log mode enabled - summary sheet will be written to debug log");
             QTimer::singleShot(100, this, [this, logFilePath]() {
                 loadLogFile(logFilePath);
             });
@@ -1304,17 +1316,77 @@ void MainWindow::onOpenLog()
             }
         }
         
-        // Auto-recalculate score to validate and mark dupes/out-of-band (only if contest loaded)
+        // Auto-recalculate score on background thread (only if contest loaded)
         DebugLogger::instance().log("MainWindow", QString("After ADIF load, m_contestDefinition.isEmpty(): %1").arg(m_contestDefinition.isEmpty() ? "true" : "false"));
         if (!m_contestDefinition.isEmpty()) {
-            DebugLogger::instance().log("MainWindow", "Calling onRecalculateScore");
-            onRecalculateScore();
+            DebugLogger::instance().log("MainWindow", "Creating ScoringWorker for ADIF load");
+            
+            // Get current QSOs from model
+            QList<QsoRecord> currentQsos = m_qsoModel->getAllQsos();
+            QString myCallsign = Settings::instance().getCallsign();
+            
+            // Create NEW progress dialog for scoring phase
+            QProgressDialog *scoringProgressDialog = new QProgressDialog("Scoring QSOs...", QString(), 0, currentQsos.count(), this);
+            scoringProgressDialog->setWindowTitle("Scoring Log");
+            scoringProgressDialog->setWindowModality(Qt::WindowModal);
+            scoringProgressDialog->setAutoClose(false);
+            scoringProgressDialog->setAutoReset(false);
+            scoringProgressDialog->show();
+            QApplication::processEvents();
+            
+            // Create scoring worker and thread
+            QThread *scoringThread = new QThread(this);
+            ScoringWorker *scoringWorker = new ScoringWorker(currentQsos, m_contestEngine, myCallsign, nullptr);
+            scoringWorker->moveToThread(scoringThread);
+            
+            connect(scoringThread, &QThread::started, scoringWorker, &ScoringWorker::doScore);
+            
+            connect(scoringWorker, &ScoringWorker::progressUpdated, this, [this, scoringProgressDialog](int current, int total) {
+                scoringProgressDialog->setMaximum(total);
+                scoringProgressDialog->setValue(current);
+                QApplication::processEvents();
+            });
+            
+            connect(scoringWorker, &ScoringWorker::scoringComplete, this, [this, fileName, scoringProgressDialog, scoringThread, scoringWorker](QList<QsoRecord> scoredQsos, bool success) {
+                if (success) {
+                    // Clear the old model and add scored QSOs
+                    m_qsoModel->clear();
+                    for (const auto& qso : scoredQsos) {
+                        m_qsoModel->addQso(qso);
+                    }
+                    
+                    // Update score display
+                    if (m_scoreWidget) {
+                        m_scoreWidget->resetScore();
+                        auto score = m_contestEngine->getRunningScore();
+                        m_scoreWidget->updateScore(score);
+                    }
+                } else {
+                    QMessageBox::critical(this, "Error", "Failed to score QSOs");
+                }
+                
+                scoringProgressDialog->close();
+                scoringProgressDialog->deleteLater();
+                scoringThread->quit();
+                scoringThread->wait();
+                scoringWorker->deleteLater();
+                scoringThread->deleteLater();
+                
+                // Set focus to call field
+                if (m_callEdit) {
+                    m_callEdit->setFocus();
+                }
+                
+                m_statusLabel->setText("File loaded: " + fileName + " (" + 
+                    QString::number(m_qsoModel->rowCount()) + " QSOs)");
+            });
+            
+            scoringThread->start();
         } else {
             DebugLogger::instance().log("MainWindow", "Contest is still empty, not recalculating score");
+            m_statusLabel->setText("File loaded: " + fileName + " (" + 
+                QString::number(loadedQsos.count()) + " QSOs)");
         }
-        
-        m_statusLabel->setText("File loaded: " + fileName + " (" + 
-            QString::number(loadedQsos.count()) + " QSOs)");
     });
     
     loadThread->start();
@@ -1489,16 +1561,83 @@ void MainWindow::loadLogFile(const QString& filename)
         progressDialog->close();
         progressDialog->deleteLater();
         
-        // Auto-recalculate score to validate and mark dupes/out-of-band
-        onRecalculateScore();
+        // Auto-recalculate score on background thread to avoid blocking UI
+        QString myCallsign = Settings::instance().getCallsign();
         
-        // Set focus to call field
-        if (m_callEdit) {
-            m_callEdit->setFocus();
-        }
+        // Create NEW progress dialog for scoring phase
+        QProgressDialog *scoringProgressDialog = new QProgressDialog("Scoring QSOs...", QString(), 0, loadedQsos.count(), this);
+        scoringProgressDialog->setWindowTitle("Scoring Log");
+        scoringProgressDialog->setWindowModality(Qt::WindowModal);
+        scoringProgressDialog->setAutoClose(false);
+        scoringProgressDialog->setAutoReset(false);
+        scoringProgressDialog->show();
+        QApplication::processEvents();
         
-        m_statusLabel->setText("File loaded: " + filename + " (" + 
-            QString::number(loadedQsos.count()) + " QSOs)");
+        // Create scoring worker and thread
+        QThread *scoringThread = new QThread(this);
+        ScoringWorker *scoringWorker = new ScoringWorker(loadedQsos, m_contestEngine, myCallsign, nullptr);
+        scoringWorker->moveToThread(scoringThread);
+        
+        connect(scoringThread, &QThread::started, scoringWorker, &ScoringWorker::doScore);
+        
+        connect(scoringWorker, &ScoringWorker::progressUpdated, this, [this, scoringProgressDialog](int current, int total) {
+            scoringProgressDialog->setMaximum(total);
+            scoringProgressDialog->setValue(current);
+            QApplication::processEvents();
+        });
+        
+        connect(scoringWorker, &ScoringWorker::scoringComplete, this, [this, loadedQsos, filename, scoringProgressDialog, scoringThread, scoringWorker](QList<QsoRecord> scoredQsos, bool success) {
+            if (success) {
+                // Clear the old model and add scored QSOs
+                m_qsoModel->clear();
+                for (const auto& qso : scoredQsos) {
+                    m_qsoModel->addQso(qso);
+                }
+                
+                // Reset modified flag since we just loaded the file
+                m_isModified = false;
+                
+                // Update score display
+                if (m_scoreWidget) {
+                    m_scoreWidget->resetScore();
+                    auto score = m_contestEngine->getRunningScore();
+                    m_scoreWidget->updateScore(score);
+                }
+                
+                m_statusLabel->setText("File loaded: " + filename + " (" + 
+                    QString::number(scoredQsos.count()) + " QSOs)");
+                
+                // If in debug log mode, generate summary sheet to debug log
+                if (m_debugLogMode) {
+                    generateSummaryToDebugLog();
+                }
+                
+                // If in test mode, log the score and exit
+                if (m_testMode) {
+                    auto score = m_contestEngine->getRunningScore();
+                    DebugLogger::instance().log("MainWindow", 
+                        QString("TEST MODE: Log fully loaded. CLAIMED_SCORE=%1").arg(score.contestScore));
+                    // Exit after a brief delay to ensure log is written
+                    QTimer::singleShot(100, qApp, &QCoreApplication::quit);
+                }
+            } else {
+                QMessageBox::critical(this, "Error", "Failed to score QSOs");
+            }
+            
+            scoringProgressDialog->close();
+            scoringProgressDialog->deleteLater();
+            scoringThread->quit();
+            scoringThread->wait();
+            scoringWorker->deleteLater();
+            scoringThread->deleteLater();
+            
+            // Set focus to call field
+            if (m_callEdit) {
+                m_callEdit->setFocus();
+            }
+        });
+        
+        scoringThread->start();
     });
     
     loadThread->start();
@@ -3825,4 +3964,146 @@ void MainWindow::onCreateSummarySheet()
     
     QMessageBox::information(this, "Success", 
         QString("Summary sheet saved to:\n%1").arg(fileName));
+}
+
+void MainWindow::generateSummaryToDebugLog()
+{
+    if (m_contestDefinition.isEmpty()) {
+        DebugLogger::instance().log("MainWindow", "generateSummaryToDebugLog: No contest is currently loaded");
+        return;
+    }
+    
+    if (m_qsoModel->rowCount() == 0) {
+        DebugLogger::instance().log("MainWindow", "generateSummaryToDebugLog: No QSOs to export");
+        return;
+    }
+    
+    QString summary;
+    QTextStream out(&summary);
+    
+    // Header
+    out << "=" << QString("=").repeated(63) << "=" << "\n";
+    out << "CONTEST SUMMARY SHEET\n";
+    out << "=" << QString("=").repeated(63) << "=" << "\n";
+    out << "\n";
+    
+    out << "Contest: " << m_contestEngine->getContestName() << "\n";
+    out << "Callsign: " << Settings::instance().getCallsign() << "\n";
+    
+    // Calculate operating hours using offTimeGapMinutes from contest definition (default: 30 mins)
+    double operatingHours = 0.0;
+    if (m_qsoModel->rowCount() > 0) {
+        int offTimeGapThreshold = 30; // Default fallback
+        
+        // Try to get offTimeGapMinutes from contest definition
+        if (!m_contestDefinition.isEmpty() && m_contestDefinition.contains("contest")) {
+            QJsonObject contestObj = m_contestDefinition["contest"].toObject();
+            if (contestObj.contains("offTimeGapMinutes")) {
+                offTimeGapThreshold = contestObj["offTimeGapMinutes"].toInt();
+            }
+        }
+        
+        QDateTime firstQsoTime = m_qsoModel->getQso(0).getDateTime();
+        QDateTime lastQsoTime = m_qsoModel->getQso(m_qsoModel->rowCount() - 1).getDateTime();
+        
+        qint64 totalMinutes = firstQsoTime.secsTo(lastQsoTime) / 60;
+        qint64 offTimeMinutes = 0;
+        
+        // Find gaps of offTimeGapThreshold or more minutes
+        for (int i = 0; i < m_qsoModel->rowCount() - 1; ++i) {
+            QDateTime currentQsoTime = m_qsoModel->getQso(i).getDateTime();
+            QDateTime nextQsoTime = m_qsoModel->getQso(i + 1).getDateTime();
+            qint64 gapMinutes = currentQsoTime.secsTo(nextQsoTime) / 60;
+            
+            if (gapMinutes >= offTimeGapThreshold) {
+                offTimeMinutes += gapMinutes;
+            }
+        }
+        
+        qint64 onTimeMinutes = totalMinutes - offTimeMinutes;
+        operatingHours = onTimeMinutes / 60.0;
+    }
+    
+    out << "Operating Hours: " << QString::number(operatingHours, 'f', 1) << "\n";
+    
+    // Add club line if it's set in settings
+    QString club = Settings::instance().getCabrilloClub();
+    if (!club.isEmpty()) {
+        out << "Club: " << club << "\n";
+    }
+    
+    out << "Date: " << QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss") << "\n";
+    out << "\n";
+    
+    // Scoring Summary
+    out << "SCORING SUMMARY\n";
+    out << "-" << QString("-").repeated(63) << "-" << "\n";
+    out << "\n";
+    
+    ContestEngine::ContestScore score = m_contestEngine->getRunningScore();
+    
+    // Get QSO count
+    int totalQsos = m_qsoModel->rowCount();
+    int uniqueQsos = 0;
+    for (int i = 0; i < totalQsos; ++i) {
+        if (!m_qsoModel->getQso(i).isDupe()) {
+            uniqueQsos++;
+        }
+    }
+    
+    out << "Total QSOs logged:        " << totalQsos << "\n";
+    out << "Unique QSOs:              " << uniqueQsos << "\n";
+    out << "Duplicates:               " << (totalQsos - uniqueQsos) << "\n";
+    out << "\n";
+    
+    out << "Contact Points:           " << score.contactScore << "\n";
+    
+    // Determine which multipliers are being counted
+    QStringList multTypes;
+    if (score.namedMultCount > 0) {
+        out << "Named Multipliers:        " << score.namedMultCount << "\n";
+        multTypes.append("Named");
+    }
+    if (score.dxccMultCount > 0) {
+        out << "DXCC Multipliers:         " << score.dxccMultCount << "\n";
+        multTypes.append("DXCC");
+    }
+    if (score.ituRegionMultCount > 0) {
+        out << "ITU Region Multipliers:   " << score.ituRegionMultCount << "\n";
+        multTypes.append("ITU Region");
+    }
+    
+    out << "\n";
+    
+    // Show the scoring calculation
+    if (multTypes.size() == 1) {
+        out << "Score Calculation:\n";
+        out << "  " << score.contactScore << " points × " << score.multipliers << " multipliers";
+        if (score.bonusPoints > 0) {
+            out << " + " << score.bonusPoints << " bonus";
+        }
+        out << " = " << score.contestScore << "\n";
+    } else if (multTypes.size() > 1) {
+        out << "Score Calculation:\n";
+        out << "  " << score.contactScore << " points × " << score.multipliers << " multipliers";
+        out << " (" << multTypes.join(" + ") << ")";
+        if (score.bonusPoints > 0) {
+            out << " + " << score.bonusPoints << " bonus";
+        }
+        out << " = " << score.contestScore << "\n";
+    }
+    
+    out << "\n";
+    out << "CLAIMED SCORE: " << score.contestScore << "\n";
+    out << "\n";
+    out << "=" << QString("=").repeated(63) << "=" << "\n";
+    out << "Generated by: ContestLogX " << QApplication::applicationVersion() << "\n";
+    out << "=" << QString("=").repeated(63) << "=" << "\n";
+    
+    // Log the summary
+    DebugLogger::instance().log("MainWindow", "=== SUMMARY SHEET START ===");
+    for (const QString& line : summary.split('\n')) {
+        DebugLogger::instance().log("MainWindow", line);
+    }
+    DebugLogger::instance().log("MainWindow", "=== SUMMARY SHEET END ===");
 }

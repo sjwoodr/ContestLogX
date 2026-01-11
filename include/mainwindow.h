@@ -30,9 +30,9 @@ public:
     ~MainWindow();
     
     void loadLogFile(const QString& filename);
+    void setTestMode(bool testMode) { m_testMode = testMode; }
     
     // Public method for self-test
-
 
 private slots:
     void onNewLog();
@@ -110,6 +110,7 @@ private:
     void updateQsoEntryFields();
     void updateLogHeaders();
     bool isSemanticVersionEqual(const QString& v1, const QString& v2);
+    void generateSummaryToDebugLog();
     
     // UI Components
     QLineEdit *m_callEdit;
@@ -159,6 +160,8 @@ private:
     QString m_currentFile;
     bool m_isModified;
     bool m_showingLogFileNotFoundDialog;
+    bool m_testMode;  // Set when --test-only argument is provided
+    bool m_debugLogMode;  // Set when --log argument is provided, triggers auto-summary to debug log
     
     // Contest definition
     QJsonObject m_contestDefinition;

@@ -1,0 +1,29 @@
+{
+  "tests": [
+    {
+      "name": "NAQP CW Multi-Band Test",
+      "log_file": "test_naqp_cw_log.clx",
+      "expected_score": 252
+    },
+    {
+      "name": "NAQP SSB Multi-Band Test",
+      "log_file": "test_naqp_ssb_log.clx",
+      "expected_score": 252
+    },
+    {
+      "name": "NAQP RTTY Large Contest (1050 QSOs)",
+      "log_file": "test_naqp_rtty_log.clx",
+      "expected_score": 312900
+    },
+    {
+      "name": "ARRL 10m Mixed Mode Test",
+      "log_file": "test_arrl_10m_mixed_log.clx",
+      "expected_score": 300 
+    },
+    {
+      "name": "CWops CWT Multi-Band Test",
+      "log_file": "test_cwops_cwt_log.clx",
+      "expected_score": 1800
+    }
+  ]
+}

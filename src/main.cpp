@@ -93,6 +93,9 @@ int main(int argc, char *argv[])
     QCommandLineOption logOption("log", "Load log file on startup", "filename");
     parser.addOption(logOption);
     
+    QCommandLineOption testOnlyOption("test-only", "Test mode: load log and exit after calculating score");
+    parser.addOption(testOnlyOption);
+    
     parser.process(app);
     
     // Check if --debug flag is set
@@ -120,12 +123,13 @@ int main(int argc, char *argv[])
     MainWindow window;
     window.show();
     
-    // Load log file if specified via --log option
-    if (parser.isSet(logOption)) {
-        QString logFilename = parser.value(logOption);
-        DebugLogger::instance().log("INFO", QString("Loading log file from command line: %1").arg(logFilename));
-        window.loadLogFile(logFilename);
+    // Set test mode if --test-only flag is set
+    if (parser.isSet(testOnlyOption)) {
+        window.setTestMode(true);
     }
+    
+    // Log file loading is now handled in MainWindow constructor
+    // (it was being called both from main.cpp and from the constructor)
     
     int result = app.exec();
     
