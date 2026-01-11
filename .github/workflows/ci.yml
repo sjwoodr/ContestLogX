@@ -37,7 +37,7 @@ jobs:
           QT_QPA_PLATFORM: offscreen
 
       - name: Run log tests
-        run: make test-log-headless
+        run: make test-logs-headless
         env:
           QT_QPA_PLATFORM: offscreen
 
