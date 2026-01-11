@@ -66,6 +66,10 @@ QVariant QsoListModel::data(const QModelIndex &index, int role) const
             return qso.getExchangeSent();
         } else if (header == "EXCHR") {
             return qso.getExchangeReceived();
+        } else if (header == "SNS") {
+            return qso.getExchangeField("SNs");
+        } else if (header == "SNR") {
+            return qso.getExchangeField("SNr");
         } else if (header == "SERIAL" || header == "NR") {
             return QVariant::fromValue(qso.getSerial());
         } else if (header == "DUPE") {

@@ -86,6 +86,7 @@ public:
         int namedMultCount = 0;   // Named multiplier count (for category scoring)
         int dxccMultCount = 0;    // DXCC multipliers (for category scoring)
         int ituRegionMultCount = 0;   // ITU Region multipliers (for category scoring)
+        int namedCallPrefixCount = 0;  // Call prefix multipliers (for category scoring)
         int dxccCount = 0;        // Total unique DXCC entities worked (for info)
         int bonusPoints = 0;
         int contestScore = 0;
@@ -146,6 +147,7 @@ private:
     bool validateProvince(const QString& value) const;
     bool validateGridSquare(const QString& value) const;
     bool validateRSTReport(const QString& value) const;
+    bool isFieldRequired(const QString& fieldName) const;
     
     QString extractMultiplier(const QsoRecord& qso) const;
     int getPointsForMode(const QString& mode) const;
@@ -154,6 +156,7 @@ private:
     QSet<QString> m_validStates;
     QSet<QString> m_validProvinces;
     QSet<QString> m_validMultipliers;
+    QSet<QString> m_validCallPrefixes;  // Call prefixes like YB0, YB1, 7A, 8B, etc.
     QString m_stationClass;
     QString m_stationClassExchangeName;
     QString m_stationClassExchangeId;

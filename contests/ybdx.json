@@ -1,0 +1,263 @@
+{
+  "contest": {
+    "name": "YB DX Contest",
+    "abbreviation": "YBDX",
+    "version": "1.0.0",
+    "sponsor": "Indonesian Amateur Radio Society",
+    "startDate": "TBD",
+    "duration": 24,
+    "offTimeGapMinutes": 0,
+    "modes": ["SSB"],
+    "bands": ["80m", "40m", "20m", "15m", "10m"],
+    "url": "https://ybdxcontest.com/",
+    "categories": {
+      "stations": ["SINGLE_OP", "MULTI_OP"],
+      "power": ["ANY_POWER"]
+    }
+  },
+  "frequencies": {
+    "80m": {
+      "start": 3500,
+      "end": 3800,
+      "phone": {"start": 3500, "end": 3800}
+    },
+    "40m": {
+      "start": 7000,
+      "end": 7300,
+      "phone": {"start": 7000, "end": 7300}
+    },
+    "20m": {
+      "start": 14000,
+      "end": 14350,
+      "phone": {"start": 14000, "end": 14350}
+    },
+    "15m": {
+      "start": 21000,
+      "end": 21450,
+      "phone": {"start": 21000, "end": 21450}
+    },
+    "10m": {
+      "start": 28000,
+      "end": 29700,
+      "phone": {"start": 28000, "end": 29700}
+    }
+  },
+  "stationClasses": {
+    "enabled": true,
+    "prompt": "Select your entry class",
+    "classes": [
+      {
+        "id": "SO_ANY_POWER",
+        "name": "Single Operator All Band - Any Power",
+        "description": "Single operator, all bands",
+        "needsInput": false,
+        "exchangeSent": {
+          "type": "serial",
+          "startingNumber": 1
+        },
+        "mode": "SSB"
+      },
+      {
+        "id": "MO_ST_ANY_POWER",
+        "name": "Multi Operator Single Transmitter - Any Power",
+        "description": "Multiple operators, single transmitter",
+        "needsInput": false,
+        "exchangeSent": {
+          "type": "serial",
+          "startingNumber": 1
+        },
+        "mode": "SSB"
+      }
+    ]
+  },
+  "exchangeFields": {
+    "sent": [
+      {
+        "name": "RST",
+        "type": "rst",
+        "required": true,
+        "default": "59",
+        "description": "Signal report sent"
+      },
+      {
+        "name": "SNs",
+        "type": "string",
+        "required": false,
+        "description": "Serial number sent (auto-generated)"
+      }
+    ],
+    "received": [
+      {
+        "name": "RST",
+        "type": "rst",
+        "required": true,
+        "validation": "^[1-5][1-9][1-9]?$",
+        "description": "Signal report received"
+      },
+      {
+        "name": "SNr",
+        "type": "string",
+        "required": true,
+        "description": "Serial number received"
+      }
+    ]
+  },
+  "qsoFields": [
+    {
+      "name": "Date",
+      "column": "DATE",
+      "type": "date",
+      "format": "yyyy-MM-dd",
+      "required": true
+    },
+    {
+      "name": "Time",
+      "column": "TIME",
+      "type": "time",
+      "format": "HH:mm:ss",
+      "required": true
+    },
+    {
+      "name": "Callsign",
+      "column": "CALL",
+      "type": "string",
+      "required": true,
+      "uppercase": true
+    },
+    {
+      "name": "Frequency",
+      "column": "FREQ",
+      "type": "number",
+      "unit": "kHz",
+      "required": true
+    },
+    {
+      "name": "Mode",
+      "column": "MODE",
+      "type": "enum",
+      "values": ["SSB"],
+      "required": true
+    },
+    {
+      "name": "RST Sent",
+      "column": "RST_SENT",
+      "type": "string",
+      "required": true,
+      "default": "59"
+    },
+    {
+      "name": "RST Received",
+      "column": "RST_RCV",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "Serial Sent",
+      "column": "SNs",
+      "type": "string",
+      "required": true,
+      "description": "Serial number sent"
+    },
+    {
+      "name": "Serial Received",
+      "column": "SNr",
+      "type": "string",
+      "required": true,
+      "description": "Serial number received"
+    },
+    {
+      "name": "Points",
+      "column": "POINTS",
+      "type": "number",
+      "calculated": true
+    },
+    {
+      "name": "YB Prefix",
+      "column": "YB_PFX",
+      "type": "string",
+      "calculated": true
+    },
+    {
+      "name": "Country Multiplier",
+      "column": "COUNTRY_M",
+      "type": "string",
+      "calculated": true
+    }
+  ],
+  "scoring": {
+    "points": {
+      "namedCallPrefixes": {
+        "SSB": 10
+      },
+      "sameDxccEntity": {
+        "SSB": 1
+      },
+      "sameContinent": {
+        "SSB": 2
+      },
+      "differentContinent": {
+        "SSB": 3
+      }
+    },
+    "precedence": [
+      "namedCallPrefixes",
+      "sameDxccEntity",
+      "sameContinent",
+      "differentContinent"
+    ],
+    "multipliers": {
+      "type": "multsPerBand",
+      "description": "YB prefixes and DXCC countries, each counted once per band",
+      "categories": ["namedCallPrefixes", "dxcc"]
+    },
+    "finalScore": "SUM(points) * (namedCallPrefixes + dxccMultipliers)"
+  },
+  "dupeChecking": {
+    "type": "perBand",
+    "description": "Station may be worked once per band"
+  },
+  "logging": {
+    "requiredFields": ["date", "time", "frequency", "mode", "callsign", "rstSent", "rstReceived", "serialSent", "serialReceived"],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "YBDX",
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {rst_sent} {serial_sent} {call} {rst_rcvd} {serial_rcvd}"
+    }
+  },
+  "callHistory": {
+  },
+  "validation": {
+    "minimumQSOs": 1,
+    "maxOperatingTime": 24,
+    "offTimesRequired": false,
+    "namedCallPrefixes": [
+      "YB0", "YB1", "YB2", "YB3", "YB4", "YB5", "YB6", "YB7", "YB8", "YB9",
+      "YE0", "YE1", "YE2", "YE3", "YE4", "YE5", "YE6", "YE7", "YE8", "YE9",
+      "YC0", "YC1", "YC2", "YC3", "YC4", "YC5", "YC6", "YC7", "YC8", "YC9",
+      "YF0", "YF1", "YF2", "YF3", "YF4", "YF5", "YF6", "YF7", "YF8", "YF9",
+      "YD0", "YD1", "YD2", "YD3", "YD4", "YD5", "YD6", "YD7", "YD8", "YD9",
+      "YG0", "YG1", "YG2", "YG3", "YG4", "YG5", "YG6", "YG7", "YG8", "YG9",
+      "7A", "7B", "7C", "7D", "7E", "7F", "7G", "7H", "7I",
+      "8A", "8B", "8C", "8D", "8E", "8F", "8G", "8H", "8I"
+    ],
+    "exchangeValidation": {
+      "type": "serial",
+      "description": "Serial number format"
+    }
+  },
+  "ui": {
+    "logColumns": ["DATE", "TIME", "CALL", "FREQ", "MODE", "RSTs", "RSTr", "SNs", "SNr", "POINTS", "YB_PFX", "COUNTRY_M"],
+    "entryFields": ["CALL", "RSTr", "SNr"],
+    "fieldNavigation": {
+      "keys": "tab"
+    },
+    "bandMap": {
+      "enabled": true,
+      "bands": ["80m", "40m", "20m", "15m", "10m"]
+    },
+    "multiplierDisplay": {
+      "showYBPrefixes": true,
+      "showDXCC": true
+    }
+  }
+}

@@ -110,6 +110,7 @@ private:
     void updateQsoEntryFields();
     void updateLogHeaders();
     bool isSemanticVersionEqual(const QString& v1, const QString& v2);
+    QString generateSummaryString();  // Helper: generates summary and returns as QString
     void generateSummaryToDebugLog();
     
     // UI Components

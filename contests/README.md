@@ -285,6 +285,34 @@ The `type` field determines how multipliers are counted:
 - `multsPerMode`: Each multiplier counts once per mode (e.g., work OH on CW and SSB = 2 mults)
 - `multsPerBandAndMode`: Each multiplier counts once per band/mode combination (e.g., work OH on 20m CW, 20m SSB, 40m CW = 3 mults)
 
+**Multiplier Categories:**
+The `categories` field specifies what types of multipliers are counted:
+- `namedMults`: Exchange-based multipliers from the `validation.namedMults` array (e.g., US states, Canadian provinces, serial numbers)
+- `namedCallPrefixes`: Call sign prefix-based multipliers from the `validation.namedCallPrefixes` array. These are extracted from the callsign itself based on defined prefixes. For example, in the YBDX contest, YB0-YB9, YE0-YE9, YC0-YC9, YF0-YF9, YD0-YD9, YG0-YG9, 7A-7I, and 8A-8I are valid prefixes. When working YB2ARZ, the prefix "YB2" is extracted as a multiplier.
+- `dxcc`: DXCC country entities (automatically looked up from callsign)
+- `ituRegions`: ITU regions (automatically looked up from callsign)
+
+Example with call prefixes (YBDX contest):
+```json
+"multipliers": {
+  "type": "multsPerBand",
+  "description": "YB call prefixes and DXCC countries",
+  "categories": ["namedCallPrefixes", "dxcc"]
+},
+"validation": {
+  "namedCallPrefixes": [
+    "YB0", "YB1", "YB2", "YB3", "YB4", "YB5", "YB6", "YB7", "YB8", "YB9",
+    "YE0", "YE1", "YE2", "YE3", "YE4", "YE5", "YE6", "YE7", "YE8", "YE9",
+    "YC0", "YC1", "YC2", "YC3", "YC4", "YC5", "YC6", "YC7", "YC8", "YC9",
+    "YF0", "YF1", "YF2", "YF3", "YF4", "YF5", "YF6", "YF7", "YF8", "YF9",
+    "YD0", "YD1", "YD2", "YD3", "YD4", "YD5", "YD6", "YD7", "YD8", "YD9",
+    "YG0", "YG1", "YG2", "YG3", "YG4", "YG5", "YG6", "YG7", "YG8", "YG9",
+    "7A", "7B", "7C", "7D", "7E", "7F", "7G", "7H", "7I",
+    "8A", "8B", "8C", "8D", "8E", "8F", "8G", "8H", "8I"
+  ]
+}
+```
+
 **Scoring Rules:**
 - `sameDxccEntity`: Points for contacts within same DXCC entity (e.g., W1AW to N9OH)
 - `differentDxccEntity`: Points for contacts with different DXCC entity

@@ -1,0 +1,214 @@
+{
+    "contest": {
+        "contest_file": "ybdx.json",
+        "mode": "",
+        "name": "YB DX Contest",
+        "type": "YB DX Contest",
+        "version": "1.0.0",
+        "year": 2026
+    },
+    "created": "2026-01-10T23:06:30",
+    "exchange_fields": [
+    ],
+    "format": "ContestLogX",
+    "format_version": "1.0",
+    "modified": "2026-01-10T23:06:30",
+    "qsos": [
+        {
+            "band": "20m",
+            "callsign": "YC0MAT",
+            "duplicate": false,
+            "dxcc_count": 1,
+            "exchange_fields": {
+                "EXCHs": "TX",
+                "NAMEs": "STEVE",
+                "RSTr": "59",
+                "RSTs": "59",
+                "SNr": "33",
+                "SNs": "1"
+            },
+            "frequency": 14250,
+            "id": 1,
+            "mode": "USB",
+            "multiplier_count": 0,
+            "points": 3,
+            "rst_received": "59",
+            "rst_sent": "59",
+            "serial": 1,
+            "timestamp": "2026-01-11T02:53:28Z"
+        },
+        {
+            "band": "20m",
+            "callsign": "YC2DX",
+            "duplicate": false,
+            "dxcc_count": 0,
+            "exchange_fields": {
+                "EXCHs": "TX",
+                "NAMEs": "STEVE",
+                "RSTr": "59",
+                "RSTs": "59",
+                "SNr": "992",
+                "SNs": "2"
+            },
+            "frequency": 14250,
+            "id": 2,
+            "mode": "USB",
+            "multiplier_count": 0,
+            "points": 3,
+            "rst_received": "59",
+            "rst_sent": "59",
+            "serial": 2,
+            "timestamp": "2026-01-11T02:53:38Z"
+        },
+        {
+            "band": "20m",
+            "callsign": "YB1AR/2",
+            "duplicate": false,
+            "dxcc_count": 0,
+            "exchange_fields": {
+                "EXCHs": "TX",
+                "NAMEs": "STEVE",
+                "RSTr": "59",
+                "RSTs": "59",
+                "SNr": "23",
+                "SNs": "3"
+            },
+            "frequency": 14250,
+            "id": 3,
+            "mode": "USB",
+            "multiplier_count": 0,
+            "points": 3,
+            "rst_received": "59",
+            "rst_sent": "59",
+            "serial": 3,
+            "timestamp": "2026-01-11T02:53:55Z"
+        },
+        {
+            "band": "20m",
+            "callsign": "YC1/N9OH",
+            "duplicate": false,
+            "dxcc_count": 0,
+            "exchange_fields": {
+                "EXCHs": "TX",
+                "NAMEs": "STEVE",
+                "RSTr": "59",
+                "RSTs": "59",
+                "SNr": "39",
+                "SNs": "4"
+            },
+            "frequency": 14250,
+            "id": 4,
+            "mode": "USB",
+            "multiplier_count": 0,
+            "points": 3,
+            "rst_received": "59",
+            "rst_sent": "59",
+            "serial": 4,
+            "timestamp": "2026-01-11T03:28:31Z"
+        },
+        {
+            "band": "20m",
+            "callsign": "W4WOD/2",
+            "duplicate": false,
+            "dxcc_count": 1,
+            "exchange_fields": {
+                "EXCHs": "TX",
+                "NAMEs": "STEVE",
+                "RSTr": "59",
+                "RSTs": "59",
+                "SNr": "93",
+                "SNs": "5"
+            },
+            "frequency": 14250,
+            "id": 5,
+            "mode": "USB",
+            "multiplier_count": 0,
+            "points": 1,
+            "rst_received": "59",
+            "rst_sent": "59",
+            "serial": 5,
+            "timestamp": "2026-01-11T03:46:18Z"
+        },
+        {
+            "band": "20m",
+            "callsign": "YC2DO/3",
+            "duplicate": false,
+            "dxcc_count": 0,
+            "exchange_fields": {
+                "EXCHs": "TX",
+                "NAMEs": "STEVE",
+                "RSTr": "59",
+                "RSTs": "59",
+                "SNr": "234",
+                "SNs": "6"
+            },
+            "frequency": 14250,
+            "id": 6,
+            "mode": "USB",
+            "multiplier_count": 0,
+            "points": 3,
+            "rst_received": "59",
+            "rst_sent": "59",
+            "serial": 6,
+            "timestamp": "2026-01-11T03:46:27Z"
+        },
+        {
+            "band": "20m",
+            "callsign": "KL7AX",
+            "duplicate": false,
+            "dxcc_count": 1,
+            "exchange_fields": {
+                "EXCHs": "FL",
+                "NAMEs": "STEVE",
+                "RSTr": "59",
+                "RSTs": "59",
+                "SNr": "934",
+                "SNs": "7"
+            },
+            "frequency": 14250,
+            "id": 7,
+            "mode": "USB",
+            "multiplier_count": 0,
+            "points": 2,
+            "rst_received": "59",
+            "rst_sent": "59",
+            "serial": 7,
+            "timestamp": "2026-01-11T04:02:33Z"
+        },
+        {
+            "band": "20m",
+            "callsign": "KH6XX",
+            "duplicate": false,
+            "dxcc_count": 1,
+            "exchange_fields": {
+                "EXCHs": "FL",
+                "NAMEs": "STEVE",
+                "RSTr": "59",
+                "RSTs": "59",
+                "SNr": "2332",
+                "SNs": "8"
+            },
+            "frequency": 14250,
+            "id": 8,
+            "mode": "USB",
+            "multiplier_count": 0,
+            "points": 3,
+            "rst_received": "59",
+            "rst_sent": "59",
+            "serial": 8,
+            "timestamp": "2026-01-11T04:06:25Z"
+        }
+    ],
+    "station": {
+        "callsign": "",
+        "equipment": {
+            "power": 100
+        },
+        "operator": ""
+    },
+    "statistics": {
+        "score": 8,
+        "total_points": 8,
+        "total_qsos": 8
+    }
+}

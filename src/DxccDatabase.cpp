@@ -246,7 +246,7 @@ QString DxccDatabase::stripPortableSuffixes(const QString &callsign) const
     
     // Handle portable operation: if there's a slash, check both sides
     // For example: KL7XX/W4 means use W4 (not KL7XX)
-    // But VP2 after slash is a DXCC prefix (British Virgin Islands), not a portable location
+    // But YB1AR/2 means use YB (base call has known prefix, suffix is region)
     
     if (call.contains("/")) {
         int slashPos = call.indexOf("/");
@@ -261,6 +261,17 @@ QString DxccDatabase::stripPortableSuffixes(const QString &callsign) const
             DebugLogger::instance().log("DxccDatabase", 
                 QString("Stripped portable suffix: %1 -> %2").arg(call, beforeSlash));
             return beforeSlash;
+        }
+        
+        // Check if the base call starts with a known DXCC prefix
+        // If it does, the suffix is likely a region number (like /2 in YB1AR/2), not a portable location
+        // So we should use the base call for DXCC lookup
+        for (const QString& prefix : m_prefixMap.keys()) {
+            if (beforeSlash.startsWith(prefix)) {
+                DebugLogger::instance().log("DxccDatabase", 
+                    QString("Base call %1 matches prefix %2, ignoring portable suffix %3").arg(beforeSlash, prefix, afterSlash));
+                return beforeSlash;
+            }
         }
         
         // Check if afterSlash is a valid DXCC prefix in our prefix map

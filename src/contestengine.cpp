@@ -43,6 +43,7 @@ bool ContestEngine::loadContest(const QJsonObject& contestDef)
     m_validMultipliers.clear();
     m_validStates.clear();
     m_validProvinces.clear();
+    m_validCallPrefixes.clear();
     
     // Load from validation.namedMults array (this is the single source of truth)
     if (contestDef.contains("validation")) {
@@ -58,6 +59,18 @@ bool ContestEngine::loadContest(const QJsonObject& contestDef)
             }
         } else {
             DebugLogger::instance().log("ContestEngine", "No namedMults array found in validation");
+        }
+        
+        // Load namedCallPrefixes (e.g., YB0-YB9, 7A-7I, 8A-8I for YBDX)
+        if (validation.contains("namedCallPrefixes")) {
+            QJsonArray prefixList = validation["namedCallPrefixes"].toArray();
+            DebugLogger::instance().log("ContestEngine", 
+                QString("Loading %1 call prefixes").arg(prefixList.size()));
+            
+            for (const QJsonValue& val : prefixList) {
+                QString prefix = val.toString().toUpper();
+                m_validCallPrefixes.insert(prefix);
+            }
         }
     } else {
         DebugLogger::instance().log("ContestEngine", "No validation section found");
@@ -247,9 +260,20 @@ bool ContestEngine::validateExchange(const QString& fieldName, const QString& va
     DebugLogger::instance().log("ContestEngine", 
         QString("validateExchange: field='%1' value='%2'").arg(fieldName).arg(value));
     
+    // Check if field is required before validating empty values
     if (value.isEmpty()) {
-        errorMsg = QString("%1 cannot be empty").arg(getFieldLabel(fieldName));
-        return false;
+        bool isRequired = isFieldRequired(fieldName);
+        DebugLogger::instance().log("ContestEngine", 
+            QString("  Field '%1' is required: %2").arg(fieldName).arg(isRequired ? "true" : "false"));
+        if (isRequired) {
+            errorMsg = QString("%1 cannot be empty").arg(getFieldLabel(fieldName));
+            return false;
+        } else {
+            // Field is optional and empty, so it's valid
+            DebugLogger::instance().log("ContestEngine", 
+                QString("  Field '%1' is optional, allowing empty value").arg(fieldName));
+            return true;
+        }
     }
     
     QString type = getFieldType(fieldName);
@@ -344,22 +368,31 @@ bool ContestEngine::validateQso(const QsoRecord& qso, QString& errorMsg) const
         return false;
     }
     
-    // Validate exchange fields
-    QStringList exchFields = getExchangeFields();
-    for (const QString& field : exchFields) {
-        QString value;
-        if (field == "RST") {
-            value = qso.getRstReceived();
-        } else if (field == "EXCH") {
-            value = qso.getExchangeReceived();
-        } else {
-            value = qso.getExchangeField(field);
-        }
-        
-        QString err;
-        if (!validateExchange(field, value, err)) {
-            errorMsg = err;
-            return false;
+    // Validate RECEIVED exchange fields only (not sent, which are auto-generated)
+    if (m_contestDef.contains("exchangeFields")) {
+        QJsonObject exchangeFields = m_contestDef["exchangeFields"].toObject();
+        if (exchangeFields.contains("received")) {
+            QJsonArray recvFields = exchangeFields["received"].toArray();
+            for (const QJsonValue& val : recvFields) {
+                QJsonObject fieldObj = val.toObject();
+                QString fieldName = fieldObj["name"].toString();
+                
+                // Get the value from the QsoRecord
+                QString value;
+                if (fieldName == "RST") {
+                    value = qso.getRstReceived();
+                } else if (fieldName == "EXCH") {
+                    value = qso.getExchangeReceived();
+                } else {
+                    value = qso.getExchangeField(fieldName);
+                }
+                
+                QString err;
+                if (!validateExchange(fieldName, value, err)) {
+                    errorMsg = err;
+                    return false;
+                }
+            }
         }
     }
     
@@ -831,6 +864,83 @@ QList<ContestEngine::MultiplierInfo> ContestEngine::getMultipliersWithCategory(c
         }
     }
     
+    // Check if namedCallPrefixes are a multiplier category
+    bool namedCallPrefixesMult = multCategories.contains("namedCallPrefixes");
+    if (namedCallPrefixesMult && !m_validCallPrefixes.isEmpty()) {
+        QString call = qso.getCall().toUpper();
+        
+        // Handle portable/slash notation: "YB1AR/2" -> YB2, "YC2DO/3" -> YC3, "YB0/KY1A" -> YB0, "W4WOD/2" -> no credit
+        if (call.contains('/')) {
+            int slashPos = call.indexOf('/');
+            QString beforeSlash = call.left(slashPos);
+            QString afterSlash = call.mid(slashPos + 1).trimmed();
+            
+            DebugLogger::instance().log("ContestEngine", 
+                QString("  Call has slash notation: %1, prefix: '%2', suffix: '%3'").arg(call).arg(beforeSlash).arg(afterSlash));
+            
+            // Try to match the suffix against valid prefixes
+            if (!afterSlash.isEmpty()) {
+                // First, try to find the base call's prefix
+                QString basePrefix;
+                int longestBaseMatch = 0;
+                for (const QString& prefix : m_validCallPrefixes) {
+                    if (beforeSlash.startsWith(prefix) && prefix.length() > longestBaseMatch) {
+                        basePrefix = prefix;
+                        longestBaseMatch = prefix.length();
+                    }
+                }
+                
+                // ONLY process slash notation if the base call has a valid prefix
+                // This ensures we don't accidentally credit wrong prefixes (e.g., W4WOD/3 shouldn't get YC3)
+                if (!basePrefix.isEmpty()) {
+                    // Try to match suffix with same family first
+                    // e.g., if YC2DO and suffix is /3, try YC3
+                    if (basePrefix.length() >= 2 && afterSlash.length() <= 2) {
+                        QString family = basePrefix.left(2);  // e.g., "YC", "YB"
+                        QString candidatePrefix = family + afterSlash;
+                        if (m_validCallPrefixes.contains(candidatePrefix)) {
+                            result.append({candidatePrefix, "namedCallPrefixes"});
+                            DebugLogger::instance().log("ContestEngine", 
+                                QString("  Slash notation matched prefix '%1' (region variant of %2) from %3").arg(candidatePrefix).arg(basePrefix).arg(call));
+                            return result;
+                        }
+                    }
+                    
+                    // If region variant didn't match, use base prefix (e.g., W4WOD/2 -> W4, or YB0/KY1A -> YB0)
+                    result.append({basePrefix, "namedCallPrefixes"});
+                    DebugLogger::instance().log("ContestEngine", 
+                        QString("  Using base prefix '%1' (suffix '%2' is region/call modifier) from %3").arg(basePrefix).arg(afterSlash).arg(call));
+                    return result;
+                }
+                
+                // Base call doesn't have a valid prefix - no multiplier credit for this call
+                DebugLogger::instance().log("ContestEngine", 
+                    QString("  No valid base prefix for %1, suffix '%2' ignored (not crediting unknown prefix)").arg(beforeSlash).arg(afterSlash));
+            }
+        }
+        
+        // No slash or slash didn't match - try normal prefix matching
+        // Match from longest to shortest prefix (e.g., try "YB0", "YB" before "Y")
+        QString matchedPrefix;
+        int longestMatch = 0;
+        
+        for (const QString& prefix : m_validCallPrefixes) {
+            if (call.startsWith(prefix) && prefix.length() > longestMatch) {
+                matchedPrefix = prefix;
+                longestMatch = prefix.length();
+            }
+        }
+        
+        if (!matchedPrefix.isEmpty()) {
+            result.append({matchedPrefix, "namedCallPrefixes"});
+            DebugLogger::instance().log("ContestEngine", 
+                QString("  Found call prefix multiplier '%1' from %2").arg(matchedPrefix).arg(call));
+        } else {
+            DebugLogger::instance().log("ContestEngine", 
+                QString("  No matching call prefix found for %1").arg(call));
+        }
+    }
+    
     // Check if ITU Regions are a multiplier category
     bool ituRegionIsMult = multCategories.contains("ituRegions");
     if (ituRegionIsMult && m_dxccDatabase) {
@@ -1234,6 +1344,45 @@ bool ContestEngine::validateRSTReport(const QString& value) const
     return re.match(value).hasMatch();
 }
 
+bool ContestEngine::isFieldRequired(const QString& fieldName) const
+{
+    // Check exchangeFields in contest definition
+    if (m_contestDef.contains("exchangeFields")) {
+        QJsonObject exchangeFields = m_contestDef["exchangeFields"].toObject();
+        
+        // Check both sent and received fields
+        QJsonArray allFields;
+        if (exchangeFields.contains("sent")) {
+            allFields.append(exchangeFields["sent"].toArray());
+        }
+        if (exchangeFields.contains("received")) {
+            allFields.append(exchangeFields["received"].toArray());
+        }
+        
+        DebugLogger::instance().log("ContestEngine", 
+            QString("isFieldRequired: checking field '%1' against %2 fields").arg(fieldName).arg(allFields.size()));
+        
+        for (const QJsonValue& val : allFields) {
+            QJsonObject fieldObj = val.toObject();
+            QString name = fieldObj["name"].toString();
+            if (name == fieldName) {
+                bool required = fieldObj.contains("required") ? fieldObj["required"].toBool() : true;
+                DebugLogger::instance().log("ContestEngine", 
+                    QString("  Found field '%1': required=%2").arg(name).arg(required ? "true" : "false"));
+                return required;
+            }
+        }
+        DebugLogger::instance().log("ContestEngine", 
+            QString("  Field '%1' not found in exchangeFields, defaulting to required=true").arg(fieldName));
+    } else {
+        DebugLogger::instance().log("ContestEngine", 
+            QString("isFieldRequired: no exchangeFields found in contest definition"));
+    }
+    
+    // If not found in exchangeFields, default to required
+    return true;
+}
+
 QString ContestEngine::extractMultiplier(const QsoRecord& qso) const
 {
     // Parse exchange to find multiplier
@@ -1611,11 +1760,11 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
     // For multsPerMode scoring: track multipliers per mode
     QSet<QString> cwMultipliers, ssbMultipliers, digitalMultipliers;
     
-    // Track multipliers by type (named vs DXCC vs ITU Regions)
-    QSet<QString> namedMultsOnce, dxccMultsOnce, ituRegionMultsOnce;
-    QSet<QString> namedMultsPerBand, dxccMultsPerBand, ituRegionMultsPerBand;
-    QSet<QString> namedMultsPerMode, dxccMultsPerMode, ituRegionMultsPerMode;
-    QSet<QString> namedMultsPerBandAndMode, dxccMultsPerBandAndMode, ituRegionMultsPerBandAndMode;
+     // Track multipliers by type (named vs DXCC vs ITU Regions vs namedCallPrefixes)
+    QSet<QString> namedMultsOnce, dxccMultsOnce, ituRegionMultsOnce, namedCallPrefixesOnce;
+    QSet<QString> namedMultsPerBand, dxccMultsPerBand, ituRegionMultsPerBand, namedCallPrefixesPerBand;
+    QSet<QString> namedMultsPerMode, dxccMultsPerMode, ituRegionMultsPerMode, namedCallPrefixesPerMode;
+    QSet<QString> namedMultsPerBandAndMode, dxccMultsPerBandAndMode, ituRegionMultsPerBandAndMode, namedCallPrefixesPerBandAndMode;
     
     // Track DXCC entities separately (for informational purposes)
     QSet<int> uniqueDxccEntities;
@@ -1733,6 +1882,8 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
                     if (!dxccMultsOnce.contains(mult)) dxccMultsOnce.insert(mult);
                 } else if (category == "ituRegions") {
                     if (!ituRegionMultsOnce.contains(mult)) ituRegionMultsOnce.insert(mult);
+                } else if (category == "namedCallPrefixes") {
+                    if (!namedCallPrefixesOnce.contains(mult)) namedCallPrefixesOnce.insert(mult);
                 }
                 if (verbose) {
                     DebugLogger::instance().log("ContestEngine", 
@@ -1750,6 +1901,8 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
                     if (!dxccMultsPerBand.contains(key)) dxccMultsPerBand.insert(key);
                 } else if (category == "ituRegions") {
                     if (!ituRegionMultsPerBand.contains(key)) ituRegionMultsPerBand.insert(key);
+                } else if (category == "namedCallPrefixes") {
+                    if (!namedCallPrefixesPerBand.contains(key)) namedCallPrefixesPerBand.insert(key);
                 }
                 if (verbose) {
                     DebugLogger::instance().log("ContestEngine", 
@@ -1777,6 +1930,8 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
                     if (!dxccMultsPerMode.contains(key)) dxccMultsPerMode.insert(key);
                 } else if (category == "ituRegions") {
                     if (!ituRegionMultsPerMode.contains(key)) ituRegionMultsPerMode.insert(key);
+                } else if (category == "namedCallPrefixes") {
+                    if (!namedCallPrefixesPerMode.contains(key)) namedCallPrefixesPerMode.insert(key);
                 }
                 if (verbose) {
                     DebugLogger::instance().log("ContestEngine", 
@@ -1794,6 +1949,8 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
                     if (!dxccMultsPerBandAndMode.contains(key)) dxccMultsPerBandAndMode.insert(key);
                 } else if (category == "ituRegions") {
                     if (!ituRegionMultsPerBandAndMode.contains(key)) ituRegionMultsPerBandAndMode.insert(key);
+                } else if (category == "namedCallPrefixes") {
+                    if (!namedCallPrefixesPerBandAndMode.contains(key)) namedCallPrefixesPerBandAndMode.insert(key);
                 }
                 if (verbose) {
                     DebugLogger::instance().log("ContestEngine", 
@@ -1816,57 +1973,65 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
         qso.setDxccCount(qsoDxccMults);
     }
     
-    // Count multipliers based on type
+     // Count multipliers based on type
     if (multType == "multsOnce") {
         m_runningScore.namedMultCount = namedMultsOnce.size();
         m_runningScore.dxccMultCount = dxccMultsOnce.size();
         m_runningScore.ituRegionMultCount = ituRegionMultsOnce.size();
+        m_runningScore.namedCallPrefixCount = namedCallPrefixesOnce.size();
         m_runningScore.multipliers = uniqueMultipliers.size();
         if (verbose) {
             DebugLogger::instance().log("ContestEngine", 
-                QString("Unique mults (once): %1 total (named:%2 dxcc:%3 itu:%4)")
+                QString("Unique mults (once): %1 total (named:%2 dxcc:%3 itu:%4 prefixes:%5)")
                     .arg(uniqueMultipliers.size())
                     .arg(m_runningScore.namedMultCount)
                     .arg(m_runningScore.dxccMultCount)
-                    .arg(m_runningScore.ituRegionMultCount));
+                    .arg(m_runningScore.ituRegionMultCount)
+                    .arg(m_runningScore.namedCallPrefixCount));
         }
     } else if (multType == "multsPerBand") {
         m_runningScore.namedMultCount = namedMultsPerBand.size();
         m_runningScore.dxccMultCount = dxccMultsPerBand.size();
         m_runningScore.ituRegionMultCount = ituRegionMultsPerBand.size();
+        m_runningScore.namedCallPrefixCount = namedCallPrefixesPerBand.size();
         m_runningScore.multipliers = multPerBand.size();
         if (verbose) {
             DebugLogger::instance().log("ContestEngine", 
-                QString("Mults per band: %1 total (named:%2 dxcc:%3 itu:%4)")
+                QString("Mults per band: %1 total (named:%2 dxcc:%3 itu:%4 prefixes:%5)")
                     .arg(multPerBand.size())
                     .arg(m_runningScore.namedMultCount)
                     .arg(m_runningScore.dxccMultCount)
-                    .arg(m_runningScore.ituRegionMultCount));
+                    .arg(m_runningScore.ituRegionMultCount)
+                    .arg(m_runningScore.namedCallPrefixCount));
         }
     } else if (multType == "multsPerMode") {
         m_runningScore.namedMultCount = namedMultsPerMode.size();
         m_runningScore.dxccMultCount = dxccMultsPerMode.size();
         m_runningScore.ituRegionMultCount = ituRegionMultsPerMode.size();
+        m_runningScore.namedCallPrefixCount = namedCallPrefixesPerMode.size();
         m_runningScore.multipliers = multPerMode.size();
         if (verbose) {
             DebugLogger::instance().log("ContestEngine", 
-                QString("Mults per mode: %1 total (named:%2 dxcc:%3 itu:%4)")
+                QString("Mults per mode: %1 total (named:%2 dxcc:%3 itu:%4 prefixes:%5)")
                     .arg(multPerMode.size())
                     .arg(m_runningScore.namedMultCount)
                     .arg(m_runningScore.dxccMultCount)
-                    .arg(m_runningScore.ituRegionMultCount));
+                    .arg(m_runningScore.ituRegionMultCount)
+                    .arg(m_runningScore.namedCallPrefixCount));
         }
     } else if (multType == "multsPerBandAndMode") {
         m_runningScore.namedMultCount = namedMultsPerBandAndMode.size();
         m_runningScore.dxccMultCount = dxccMultsPerBandAndMode.size();
         m_runningScore.ituRegionMultCount = ituRegionMultsPerBandAndMode.size();
+        m_runningScore.namedCallPrefixCount = namedCallPrefixesPerBandAndMode.size();
         m_runningScore.multipliers = multPerBandAndMode.size();
         DebugLogger::instance().log("ContestEngine", 
-            QString("Mults per band/mode: %1 total (named:%2 dxcc:%3 itu:%4)")
+            QString("Mults per band/mode: %1 total (named:%2 dxcc:%3 itu:%4 prefixes:%5)")
                 .arg(multPerBandAndMode.size())
                 .arg(m_runningScore.namedMultCount)
                 .arg(m_runningScore.dxccMultCount)
-                .arg(m_runningScore.ituRegionMultCount));
+                .arg(m_runningScore.ituRegionMultCount)
+                .arg(m_runningScore.namedCallPrefixCount));
     }
     
     // Set DXCC count (for informational purposes)
@@ -1905,7 +2070,7 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
         }
     } else if (!multCategories.isEmpty()) {
         // For multsOnce and multsPerBand: use simple points × mults formula
-        int totalMultipliers = m_runningScore.namedMultCount + m_runningScore.dxccMultCount + m_runningScore.ituRegionMultCount;
+        int totalMultipliers = m_runningScore.namedMultCount + m_runningScore.dxccMultCount + m_runningScore.ituRegionMultCount + m_runningScore.namedCallPrefixCount;
         m_runningScore.contestScore = (m_runningScore.contactScore * totalMultipliers) + m_runningScore.bonusPoints;
     } else {
         // Traditional scoring: points * mults
@@ -1913,13 +2078,14 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
     }
     
     DebugLogger::instance().log("ContestEngine", 
-        QString("Running score updated: %1 QSOs, %2 points, %3 mults (%4 named+%5 dxcc+%6 itu) = %7 score")
+        QString("Running score updated: %1 QSOs, %2 points, %3 mults (%4 named+%5 dxcc+%6 itu+%7 prefixes) = %8 score")
             .arg(validQsoCount)
             .arg(m_runningScore.contactScore)
             .arg(m_runningScore.multipliers)
             .arg(m_runningScore.namedMultCount)
             .arg(m_runningScore.dxccMultCount)
             .arg(m_runningScore.ituRegionMultCount)
+            .arg(m_runningScore.namedCallPrefixCount)
             .arg(m_runningScore.contestScore));
     
     // Debug: Log band stats

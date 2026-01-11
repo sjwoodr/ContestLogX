@@ -1890,6 +1890,38 @@ void MainWindow::onLogQso()
         return;
     }
     
+    // Check for non-standard call suffix format (home-call/suffix instead of location/home-call)
+    if (callsign.contains('/')) {
+        int slashPos = callsign.indexOf('/');
+        QString beforeSlash = callsign.left(slashPos);
+        QString afterSlash = callsign.mid(slashPos + 1);
+        
+        // Non-standard pattern: home-call/location (e.g., N9OH/PJ2, VK2ABC/PJ2)
+        // Standard pattern: location/home-call (e.g., PJ2/N9OH, YB1AR/2)
+        
+        bool looksLikeNonStandard = false;
+        
+        // If afterSlash is 2-3 characters and looks like a DXCC prefix
+        if (afterSlash.length() >= 2 && afterSlash.length() <= 3) {
+            // Check if it starts with a letter (typical for DXCC prefixes like PJ, VK, YB, etc.)
+            if (afterSlash[0].isLetter()) {
+                // Check if beforeSlash looks like a full home callsign (typically contains both letters and digits)
+                bool hasLetters = beforeSlash.contains(QRegularExpression("[A-Z]"));
+                bool hasDigits = beforeSlash.contains(QRegularExpression("\\d"));
+                
+                if (hasLetters && hasDigits && beforeSlash.length() >= 4) {
+                    looksLikeNonStandard = true;
+                }
+            }
+        }
+        
+        if (looksLikeNonStandard) {
+            QString warning = QString("Note: Call format '%1' may be non-standard. Standard format is location/home-call (e.g., PJ2/N9OH)").arg(callsign);
+            m_statusLabel->setText(warning);
+            DebugLogger::instance().log("MainWindow", warning);
+        }
+    }
+    
     qso.setCall(callsign);
     // Use frequency from rig (stored in m_lastFrequency)
     qso.setFrequency(QString::number(m_lastFrequency, 'f', 1));
@@ -1959,9 +1991,15 @@ void MainWindow::onLogQso()
                       (m_lastMode.contains("DIGI")) ? "+0" : "59";
     qso.setRstSent(rstSent);
     
+    // Set serial number sent if contest uses SNs field
+    int nextSerial = m_qsoModel->count() + 1;
+    QString serialSent = QString::number(nextSerial);
+    qso.setExchangeField("SNs", serialSent);
+    DebugLogger::instance().log("MainWindow", 
+        QString("Set SNs exchange field to: '%1'").arg(serialSent));
+    
     // Get exchange sent from contest class and station settings
     QString stationQth = Settings::instance().getState();
-    int nextSerial = m_qsoModel->count() + 1;
     
     // Try to get split NAME and EXCH from contest engine
     QString sentName = m_contestEngine->getSentExchangeName();
@@ -2024,6 +2062,15 @@ void MainWindow::onLogQso()
                     QString("Setting RST Received: '%1'").arg(value));
                 if (!value.isEmpty()) {
                     qso.setRstReceived(value);
+                }
+            } else if (fieldName == "SNr") {
+                // Serial number received
+                DebugLogger::instance().log("MainWindow", 
+                    QString("Setting Serial Received: '%1'").arg(value));
+                if (!value.isEmpty()) {
+                    qso.setExchangeField("SNr", value);
+                    DebugLogger::instance().log("MainWindow", 
+                        QString("SNr exchange field set to: '%1'").arg(value));
                 }
             } else if (fieldName.startsWith("EXCH")) {
                 // Legacy exchange field name
@@ -3527,457 +3574,8 @@ void MainWindow::onDeleteQso()
     }
 }
 
-void MainWindow::onCreateSummarySheet()
+QString MainWindow::generateSummaryString()
 {
-    DebugLogger::instance().log("MainWindow", 
-        QString("onCreateSummarySheet: m_contestDefinition.isEmpty()=%1")
-        .arg(m_contestDefinition.isEmpty() ? "true" : "false"));
-    
-    if (m_contestDefinition.isEmpty()) {
-        QMessageBox::warning(this, "No Contest", "No contest is currently loaded");
-        return;
-    }
-    
-    if (m_qsoModel->rowCount() == 0) {
-        QMessageBox::warning(this, "No QSOs", "No QSOs to export");
-        return;
-    }
-    
-    // Get save file location with default filename
-    QString callsign = Settings::instance().getCallsign();
-    QString contestName = m_contestEngine->getContestName();
-    QString year = QString::number(QDate::currentDate().year());
-    
-    // Sanitize filenames - replace spaces and special chars with underscores
-    QString sanitizedContest = contestName.toLower().replace(QRegularExpression("[^a-z0-9]+"), "_").remove(QRegularExpression("^_|_$"));
-    QString sanitizedCall = callsign.toLower().replace(QRegularExpression("[^a-z0-9]+"), "_");
-    
-    QString defaultFilename = QString("%1_%2_%3.txt").arg(sanitizedCall, sanitizedContest, year);
-    
-    QString fileName = QFileDialog::getSaveFileName(this,
-        "Save Summary Sheet", defaultFilename,
-        "Text Files (*.txt);;All Files (*)");
-    
-    if (fileName.isEmpty()) {
-        return;
-    }
-    
-    QFile file(fileName);
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        QMessageBox::critical(this, "Error", "Cannot create file: " + file.errorString());
-        return;
-    }
-    
-    QTextStream out(&file);
-    
-    // Header
-    out << "=" << QString("=").repeated(63) << "=" << "\n";
-    out << "CONTEST SUMMARY SHEET\n";
-    out << "=" << QString("=").repeated(63) << "=" << "\n";
-    out << "\n";
-    
-    out << "Contest: " << contestName << "\n";
-    out << "Callsign: " << Settings::instance().getCallsign() << "\n";
-    
-    // Calculate operating hours using offTimeGapMinutes from contest definition (default: 30 mins)
-    double operatingHours = 0.0;
-    if (m_qsoModel->rowCount() > 0) {
-        int offTimeGapThreshold = 30; // Default fallback
-        
-        // Try to get offTimeGapMinutes from contest definition
-        if (!m_contestDefinition.isEmpty() && m_contestDefinition.contains("contest")) {
-            QJsonObject contestObj = m_contestDefinition["contest"].toObject();
-            if (contestObj.contains("offTimeGapMinutes")) {
-                offTimeGapThreshold = contestObj["offTimeGapMinutes"].toInt();
-            }
-        }
-        
-        QDateTime firstQsoTime = m_qsoModel->getQso(0).getDateTime();
-        QDateTime lastQsoTime = m_qsoModel->getQso(m_qsoModel->rowCount() - 1).getDateTime();
-        
-        qint64 totalMinutes = firstQsoTime.secsTo(lastQsoTime) / 60;
-        qint64 offTimeMinutes = 0;
-        
-        // Find gaps of offTimeGapThreshold or more minutes
-        for (int i = 0; i < m_qsoModel->rowCount() - 1; ++i) {
-            QDateTime currentQsoTime = m_qsoModel->getQso(i).getDateTime();
-            QDateTime nextQsoTime = m_qsoModel->getQso(i + 1).getDateTime();
-            qint64 gapMinutes = currentQsoTime.secsTo(nextQsoTime) / 60;
-            
-            if (gapMinutes >= offTimeGapThreshold) {
-                offTimeMinutes += gapMinutes;
-            }
-        }
-        
-        qint64 onTimeMinutes = totalMinutes - offTimeMinutes;
-        operatingHours = onTimeMinutes / 60.0;
-    }
-    
-    out << "Operating Hours: " << QString::number(operatingHours, 'f', 1) << "\n";
-    
-    // Add club line if it's set in settings
-    QString club = Settings::instance().getCabrilloClub();
-    if (!club.isEmpty()) {
-        out << "Club: " << club << "\n";
-    }
-    
-    out << "Date: " << QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss") << "\n";
-    out << "\n";
-    
-    // Score Summary from Score Widget
-    if (m_scoreWidget) {
-        out << "SCORING SUMMARY\n";
-        out << "-" << QString("-").repeated(63) << "-" << "\n";
-        
-        // Get the score table data
-        QTableWidget* scoreTable = nullptr;
-        for (QObject* child : m_scoreWidget->children()) {
-            if (QTableWidget* table = qobject_cast<QTableWidget*>(child)) {
-                scoreTable = table;
-                break;
-            }
-        }
-        
-        if (scoreTable) {
-            // Print table header
-            for (int col = 0; col < scoreTable->columnCount(); ++col) {
-                QString header = scoreTable->horizontalHeaderItem(col)->text();
-                out << QString("%1").arg(header, 12);
-            }
-            out << "\n";
-            out << "-" << QString("-").repeated(63) << "-" << "\n";
-            
-            // Print table data
-            for (int row = 0; row < scoreTable->rowCount(); ++row) {
-                for (int col = 0; col < scoreTable->columnCount(); ++col) {
-                    QTableWidgetItem* item = scoreTable->item(row, col);
-                    QString text = item ? item->text() : "";
-                    out << QString("%1").arg(text, 12);
-                }
-                out << "\n";
-            }
-        }
-        
-        out << "\n";
-    }
-    
-    // Scoring Summary
-    out << "SCORING SUMMARY\n";
-    out << "-" << QString("-").repeated(63) << "-" << "\n";
-    out << "\n";
-    
-    ContestEngine::ContestScore score = m_contestEngine->getRunningScore();
-    
-    // Get QSO count
-    int totalQsos = m_qsoModel->rowCount();
-    int uniqueQsos = 0;
-    for (int i = 0; i < totalQsos; ++i) {
-        if (!m_qsoModel->getQso(i).isDupe()) {
-            uniqueQsos++;
-        }
-    }
-    
-    out << "Total QSOs logged:        " << totalQsos << "\n";
-    out << "Unique QSOs:              " << uniqueQsos << "\n";
-    out << "Duplicates:               " << (totalQsos - uniqueQsos) << "\n";
-    out << "\n";
-    
-    out << "Contact Points:           " << score.contactScore << "\n";
-    
-    // Determine which multipliers are being counted
-    QStringList multTypes;
-    if (score.namedMultCount > 0) {
-        out << "Named Multipliers:        " << score.namedMultCount << "\n";
-        multTypes.append("Named");
-    }
-    if (score.dxccMultCount > 0) {
-        out << "DXCC Multipliers:         " << score.dxccMultCount << "\n";
-        multTypes.append("DXCC");
-    }
-    if (score.ituRegionMultCount > 0) {
-        out << "ITU Region Multipliers:   " << score.ituRegionMultCount << "\n";
-        multTypes.append("ITU Region");
-    }
-    
-    out << "\n";
-    
-    // Show the scoring calculation
-    if (multTypes.size() == 1) {
-        out << "Score Calculation:\n";
-        out << "  " << score.contactScore << " points × " << score.multipliers << " multipliers";
-        if (score.bonusPoints > 0) {
-            out << " + " << score.bonusPoints << " bonus";
-        }
-        out << " = " << score.contestScore << "\n";
-    } else if (multTypes.size() > 1) {
-        out << "Score Calculation:\n";
-        out << "  " << score.contactScore << " points × " << score.multipliers << " multipliers";
-        out << " (" << multTypes.join(" + ") << ")";
-        if (score.bonusPoints > 0) {
-            out << " + " << score.bonusPoints << " bonus";
-        }
-        out << " = " << score.contestScore << "\n";
-    }
-    
-    out << "\n";
-    out << "CLAIMED SCORE: " << score.contestScore << "\n";
-    out << "\n";
-    
-    // Multiplier Details
-    out << "MULTIPLIER DETAILS\n";
-    out << "-" << QString("-").repeated(63) << "-" << "\n";
-    out << "\n";
-    
-    QString multType = m_contestEngine->getMultiplierType();
-    QStringList multCategories = m_contestEngine->getMultiplierCategories();
-    
-    // Check if callsigns are multipliers
-    bool callsignIsMult = false;
-    if (m_contestDefinition.contains("multipliers")) {
-        QJsonObject multipliers = m_contestDefinition["multipliers"].toObject();
-        if (multipliers.contains("sources")) {
-            QJsonArray sources = multipliers["sources"].toArray();
-            for (const QJsonValue& val : sources) {
-                QJsonObject source = val.toObject();
-                if (source["type"].toString() == "callsign") {
-                    callsignIsMult = true;
-                    break;
-                }
-            }
-        }
-    }
-    
-    // Handle callsign multipliers (e.g., CWops CWT)
-    if (callsignIsMult) {
-        QSet<QString> workedCalls;
-        QSet<QString> countedCalls;
-        
-        for (int i = 0; i < m_qsoModel->rowCount(); ++i) {
-            QsoRecord qso = m_qsoModel->getQso(i);
-            QString call = qso.getCall().toUpper();
-            workedCalls.insert(call);
-            if (!qso.isDupe()) {
-                countedCalls.insert(call);
-            }
-        }
-        
-        if (!workedCalls.isEmpty()) {
-            out << "Callsigns (Worked: " << countedCalls.size() << ")\n";
-            
-            QStringList sortedCalls = QStringList(workedCalls.begin(), workedCalls.end());
-            std::sort(sortedCalls.begin(), sortedCalls.end());
-            
-            // Format with ~80 chars per line
-            QString line;
-            for (const QString& call : sortedCalls) {
-                QString mark = countedCalls.contains(call) ? "*" : " ";
-                QString entry = QString("%1%2 ").arg(mark).arg(call);
-                
-                if ((line + entry).length() > 80 && !line.isEmpty()) {
-                    out << line << "\n";
-                    line.clear();
-                }
-                line += entry;
-            }
-            
-            // Write remaining line
-            if (!line.isEmpty()) {
-                out << line << "\n";
-            }
-            out << "\n";
-        }
-    }
-    
-    // Process each multiplier category using a unified approach
-    for (const QString& category : multCategories) {
-        
-        if (multType == "multsOnce") {
-            // Simple case: just list all mults for this category
-            QSet<QString> workedMults;
-            QSet<QString> countedMults;
-            
-            for (int i = 0; i < m_qsoModel->rowCount(); ++i) {
-                QsoRecord qso = m_qsoModel->getQso(i);
-                QList<ContestEngine::MultiplierInfo> mults = m_contestEngine->getMultipliersWithCategory(qso);
-                
-                for (const ContestEngine::MultiplierInfo& mult : mults) {
-                    if (mult.category == category) {
-                        workedMults.insert(mult.value);
-                        if (!qso.isDupe()) {
-                            countedMults.insert(mult.value);
-                        }
-                    }
-                }
-            }
-            
-            if (!workedMults.isEmpty()) {
-                QString categoryDisplay = (category == "named" || category == "namedMults") ? "Named Multipliers" : (category == "dxcc") ? "DXCC Entities" : category;
-                out << categoryDisplay << " (Worked: " << countedMults.size() << ")\n";
-                
-                QStringList sortedMults = QStringList(workedMults.begin(), workedMults.end());
-                std::sort(sortedMults.begin(), sortedMults.end());
-                
-                for (int i = 0; i < sortedMults.size(); ++i) {
-                    QString mark = countedMults.contains(sortedMults[i]) ? "*" : " ";
-                    out << QString("%1%2").arg(mark).arg(QString("%1").arg(sortedMults[i], -4));
-                    
-                    if ((i + 1) % 6 == 0) {
-                        out << "\n";
-                    }
-                }
-                if (sortedMults.size() % 6 != 0) {
-                    out << "\n";
-                }
-                out << "\n";
-            }
-        } else if (multType == "multsPerBand") {
-            // Breakdown by band
-            QMap<QString, QSet<QString>> multsPerBand, countedPerBand;
-            
-            for (int i = 0; i < m_qsoModel->rowCount(); ++i) {
-                QsoRecord qso = m_qsoModel->getQso(i);
-                QString band = qso.getBand();
-                QList<ContestEngine::MultiplierInfo> mults = m_contestEngine->getMultipliersWithCategory(qso);
-                
-                for (const ContestEngine::MultiplierInfo& mult : mults) {
-                    if (mult.category == category) {
-                        multsPerBand[band].insert(mult.value);
-                        if (!qso.isDupe()) {
-                            countedPerBand[band].insert(mult.value);
-                        }
-                    }
-                }
-            }
-            
-            for (const auto& band : multsPerBand.keys()) {
-                int counted = countedPerBand[band].size();
-                QString categoryDisplay = (category == "named" || category == "namedMults") ? "Named Multipliers" : (category == "dxcc") ? "DXCC Entities" : category;
-                out << categoryDisplay << " - " << band << " (Worked: " << counted << ")\n";
-                
-                QStringList sortedMults = QStringList(multsPerBand[band].begin(), multsPerBand[band].end());
-                std::sort(sortedMults.begin(), sortedMults.end());
-                
-                for (int i = 0; i < sortedMults.size(); ++i) {
-                    QString mark = countedPerBand[band].contains(sortedMults[i]) ? "*" : " ";
-                    out << QString("%1%2").arg(mark).arg(QString("%1").arg(sortedMults[i], -4));
-                    
-                    if ((i + 1) % 6 == 0) {
-                        out << "\n";
-                    }
-                }
-                if (sortedMults.size() % 6 != 0) {
-                    out << "\n";
-                }
-                out << "\n";
-            }
-        } else if (multType == "multsPerMode") {
-            // Breakdown by mode
-            QMap<QString, QSet<QString>> multsPerMode, countedPerMode;
-            
-            for (int i = 0; i < m_qsoModel->rowCount(); ++i) {
-                QsoRecord qso = m_qsoModel->getQso(i);
-                QString mode = qso.getMode();
-                QList<ContestEngine::MultiplierInfo> mults = m_contestEngine->getMultipliersWithCategory(qso);
-                
-                for (const ContestEngine::MultiplierInfo& mult : mults) {
-                    if (mult.category == category) {
-                        multsPerMode[mode].insert(mult.value);
-                        if (!qso.isDupe()) {
-                            countedPerMode[mode].insert(mult.value);
-                        }
-                    }
-                }
-            }
-            
-            for (const auto& mode : multsPerMode.keys()) {
-                int counted = countedPerMode[mode].size();
-                QString categoryDisplay = (category == "namedMults") ? "Named Multipliers" : (category == "dxcc") ? "DXCC Entities" : category;
-                out << categoryDisplay << " - " << mode << " (Worked: " << counted << ")\n";
-                
-                QStringList sortedMults = QStringList(multsPerMode[mode].begin(), multsPerMode[mode].end());
-                std::sort(sortedMults.begin(), sortedMults.end());
-                
-                for (int i = 0; i < sortedMults.size(); ++i) {
-                    QString mark = countedPerMode[mode].contains(sortedMults[i]) ? "*" : " ";
-                    out << QString("%1%2").arg(mark).arg(QString("%1").arg(sortedMults[i], -4));
-                    
-                    if ((i + 1) % 6 == 0) {
-                        out << "\n";
-                    }
-                }
-                if (sortedMults.size() % 6 != 0) {
-                    out << "\n";
-                }
-                out << "\n";
-            }
-        } else if (multType == "multsPerBandAndMode") {
-            // Breakdown by band and mode
-            QMap<QString, QSet<QString>> multsPerBandMode, countedPerBandMode;
-            
-            for (int i = 0; i < m_qsoModel->rowCount(); ++i) {
-                QsoRecord qso = m_qsoModel->getQso(i);
-                QString band = qso.getBand();
-                QString mode = qso.getMode();
-                QString key = band + "/" + mode;
-                QList<ContestEngine::MultiplierInfo> mults = m_contestEngine->getMultipliersWithCategory(qso);
-                
-                for (const ContestEngine::MultiplierInfo& mult : mults) {
-                    if (mult.category == category) {
-                        multsPerBandMode[key].insert(mult.value);
-                        if (!qso.isDupe()) {
-                            countedPerBandMode[key].insert(mult.value);
-                        }
-                    }
-                }
-            }
-            
-            for (const auto& key : multsPerBandMode.keys()) {
-                int counted = countedPerBandMode[key].size();
-                QString categoryDisplay = (category == "namedMults") ? "Named Multipliers" : (category == "dxcc") ? "DXCC Entities" : category;
-                out << categoryDisplay << " - " << key << " (Worked: " << counted << ")\n";
-                
-                QStringList sortedMults = QStringList(multsPerBandMode[key].begin(), multsPerBandMode[key].end());
-                std::sort(sortedMults.begin(), sortedMults.end());
-                
-                for (int i = 0; i < sortedMults.size(); ++i) {
-                    QString mark = countedPerBandMode[key].contains(sortedMults[i]) ? "*" : " ";
-                    out << QString("%1%2").arg(mark).arg(QString("%1").arg(sortedMults[i], -4));
-                    
-                    if ((i + 1) % 6 == 0) {
-                        out << "\n";
-                    }
-                }
-                if (sortedMults.size() % 6 != 0) {
-                    out << "\n";
-                }
-                out << "\n";
-            }
-        }
-    }
-    
-    out << "\n";
-    out << "=" << QString("=").repeated(63) << "=" << "\n";
-    out << "Generated by: ContestLogX " << QApplication::applicationVersion() << "\n";
-    out << "=" << QString("=").repeated(63) << "=" << "\n";
-    
-    file.close();
-    
-    QMessageBox::information(this, "Success", 
-        QString("Summary sheet saved to:\n%1").arg(fileName));
-}
-
-void MainWindow::generateSummaryToDebugLog()
-{
-    if (m_contestDefinition.isEmpty()) {
-        DebugLogger::instance().log("MainWindow", "generateSummaryToDebugLog: No contest is currently loaded");
-        return;
-    }
-    
-    if (m_qsoModel->rowCount() == 0) {
-        DebugLogger::instance().log("MainWindow", "generateSummaryToDebugLog: No QSOs to export");
-        return;
-    }
-    
     QString summary;
     QTextStream out(&summary);
     
@@ -4072,6 +3670,10 @@ void MainWindow::generateSummaryToDebugLog()
         out << "ITU Region Multipliers:   " << score.ituRegionMultCount << "\n";
         multTypes.append("ITU Region");
     }
+    if (score.namedCallPrefixCount > 0) {
+        out << "Call Prefix Multipliers:  " << score.namedCallPrefixCount << "\n";
+        multTypes.append("Call Prefix");
+    }
     
     out << "\n";
     
@@ -4096,9 +3698,134 @@ void MainWindow::generateSummaryToDebugLog()
     out << "\n";
     out << "CLAIMED SCORE: " << score.contestScore << "\n";
     out << "\n";
+    
+    // Multiplier Details
+    out << "MULTIPLIER DETAILS\n";
+    out << "-" << QString("-").repeated(63) << "-" << "\n";
+    out << "\n";
+    
+    QString multType = m_contestEngine->getMultiplierType();
+    QStringList multCategories = m_contestEngine->getMultiplierCategories();
+    
+    // Process each multiplier category
+    for (const QString& category : multCategories) {
+        if (multType == "multsPerBand") {
+            // Breakdown by band
+            QMap<QString, QSet<QString>> multsPerBand, countedPerBand;
+            
+            for (int i = 0; i < m_qsoModel->rowCount(); ++i) {
+                QsoRecord qso = m_qsoModel->getQso(i);
+                QString band = qso.getBand();
+                QList<ContestEngine::MultiplierInfo> mults = m_contestEngine->getMultipliersWithCategory(qso);
+                
+                for (const ContestEngine::MultiplierInfo& mult : mults) {
+                    if (mult.category == category) {
+                        multsPerBand[band].insert(mult.value);
+                        if (!qso.isDupe()) {
+                            countedPerBand[band].insert(mult.value);
+                        }
+                    }
+                }
+            }
+            
+            for (const auto& band : multsPerBand.keys()) {
+                int counted = countedPerBand[band].size();
+                QString categoryDisplay = (category == "named" || category == "namedMults") ? "Named Multipliers" : (category == "dxcc") ? "DXCC Entities" : (category == "namedCallPrefixes") ? "Call Prefixes" : category;
+                out << categoryDisplay << " - " << band << " (Worked: " << counted << ")\n";
+                
+                QStringList sortedMults = QStringList(multsPerBand[band].begin(), multsPerBand[band].end());
+                std::sort(sortedMults.begin(), sortedMults.end());
+                
+                for (int i = 0; i < sortedMults.size(); ++i) {
+                    QString mark = countedPerBand[band].contains(sortedMults[i]) ? "*" : " ";
+                    out << QString("%1%2").arg(mark).arg(QString("%1").arg(sortedMults[i], -4));
+                    
+                    if ((i + 1) % 6 == 0) {
+                        out << "\n";
+                    }
+                }
+                if (sortedMults.size() % 6 != 0) {
+                    out << "\n";
+                }
+                out << "\n";
+            }
+        }
+    }
+    
     out << "=" << QString("=").repeated(63) << "=" << "\n";
     out << "Generated by: ContestLogX " << QApplication::applicationVersion() << "\n";
     out << "=" << QString("=").repeated(63) << "=" << "\n";
+    
+    return summary;
+}
+
+void MainWindow::onCreateSummarySheet()
+{
+    DebugLogger::instance().log("MainWindow", 
+        QString("onCreateSummarySheet: m_contestDefinition.isEmpty()=%1")
+        .arg(m_contestDefinition.isEmpty() ? "true" : "false"));
+    
+    if (m_contestDefinition.isEmpty()) {
+        QMessageBox::warning(this, "No Contest", "No contest is currently loaded");
+        return;
+    }
+    
+    if (m_qsoModel->rowCount() == 0) {
+        QMessageBox::warning(this, "No QSOs", "No QSOs to export");
+        return;
+    }
+    
+    // Get save file location with default filename
+    QString callsign = Settings::instance().getCallsign();
+    QString contestName = m_contestEngine->getContestName();
+    QString year = QString::number(QDate::currentDate().year());
+    
+    // Sanitize filenames - replace spaces and special chars with underscores
+    QString sanitizedContest = contestName.toLower().replace(QRegularExpression("[^a-z0-9]+"), "_").remove(QRegularExpression("^_|_$"));
+    QString sanitizedCall = callsign.toLower().replace(QRegularExpression("[^a-z0-9]+"), "_");
+    
+    QString defaultFilename = QString("%1_%2_%3.txt").arg(sanitizedCall, sanitizedContest, year);
+    
+    QString fileName = QFileDialog::getSaveFileName(this,
+        "Save Summary Sheet", defaultFilename,
+        "Text Files (*.txt);;All Files (*)");
+    
+    if (fileName.isEmpty()) {
+        return;
+    }
+    
+    QFile file(fileName);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        QMessageBox::critical(this, "Error", "Cannot create file: " + file.errorString());
+        return;
+    }
+    
+    // Generate summary and write to file
+    QString summaryText = generateSummaryString();
+    QTextStream out(&file);
+    out << summaryText;
+    out << "=" << QString("=").repeated(63) << "=" << "\n";
+    
+    file.close();
+    
+    QMessageBox::information(this, "Success", 
+        QString("Summary sheet saved to:\n%1").arg(fileName));
+}
+
+void MainWindow::generateSummaryToDebugLog()
+{
+    if (m_contestDefinition.isEmpty()) {
+        DebugLogger::instance().log("MainWindow", "generateSummaryToDebugLog: No contest is currently loaded");
+        return;
+    }
+    
+    if (m_qsoModel->rowCount() == 0) {
+        DebugLogger::instance().log("MainWindow", "generateSummaryToDebugLog: No QSOs to export");
+        return;
+    }
+    
+    // Generate summary using the helper function
+    QString summary = generateSummaryString();
     
     // Log the summary
     DebugLogger::instance().log("MainWindow", "=== SUMMARY SHEET START ===");
@@ -4107,3 +3834,4 @@ void MainWindow::generateSummaryToDebugLog()
     }
     DebugLogger::instance().log("MainWindow", "=== SUMMARY SHEET END ===");
 }
+    

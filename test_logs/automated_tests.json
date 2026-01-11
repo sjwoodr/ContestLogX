@@ -24,6 +24,11 @@
       "name": "CWops CWT Multi-Band Test",
       "log_file": "test_cwops_cwt_log.clx",
       "expected_score": 1800
+    },
+    {
+      "name": "YB DX Contest (SSB)",
+      "log_file": "test_ybdx_ssb_log.clx",
+      "expected_score": 189
     }
   ]
 }
