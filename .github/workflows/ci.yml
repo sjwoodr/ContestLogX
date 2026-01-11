@@ -36,6 +36,11 @@ jobs:
         env:
           QT_QPA_PLATFORM: offscreen
 
+      - name: Run log tests
+        run: make test-log-headless
+        env:
+          QT_QPA_PLATFORM: offscreen
+
       - name: Verify clx binary exists
         run: |
           ls -la clx
