@@ -14,7 +14,7 @@
 #include <QTimer>
 
 // Application version
-static const char* APP_VERSION = "0.1.0";
+static const char* APP_VERSION = "0.1.1";
 
 // Global log file
 static QFile *logFile = nullptr;

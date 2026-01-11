@@ -60,8 +60,18 @@ version:
 	echo "  - src/main.cpp"; \
 	echo "  - src/ui/mainwindow.cpp"; \
 	echo ""; \
+	echo "Regenerating CMake cache..."; \
+	rm -rf build/CMakeCache.txt build/CMakeFiles; \
+	cd build && cmake .. > /dev/null 2>&1; \
+	echo "CMake cache regenerated"; \
+	echo ""; \
 	echo "Updating copyright year..."; \
-	./scripts/update_copyright.sh
+	cd - && ./scripts/update_copyright.sh; \
+	echo ""; \
+	echo "Rebuilding with new version..."; \
+	$(MAKE) -j$(JOBS); \
+	echo ""; \
+	echo "✓ Version update and rebuild complete!"
 
 # Reset application settings to initial state
 reset:
