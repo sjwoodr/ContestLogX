@@ -28,6 +28,14 @@ jobs:
       - name: Install additional dependencies
         run: sudo apt-get install -y libxml2-dev
 
+      - name: Download DXCC database (cty.dat)
+        run: |
+          mkdir -p ~/.local/share/ContestLogX
+          curl -s -L https://www.country-files.com/cty/cty.dat.gz -o /tmp/cty.dat.gz
+          gunzip -f /tmp/cty.dat.gz
+          mv /tmp/cty.dat ~/.local/share/ContestLogX/cty.dat
+          ls -lh ~/.local/share/ContestLogX/cty.dat
+
       - name: Build with make
         run: make
 
