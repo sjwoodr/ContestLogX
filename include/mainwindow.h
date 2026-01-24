@@ -101,6 +101,7 @@ private:
     void clearEntryForm();
     void preSaveCall();
     QMap<QString, QString> getExchangeFieldsForQso();
+    QString getDupeQsoDetails(const QString& callsign, const QList<QsoRecord>& allQsos);
     void updateWindowTitle();
     bool maybeSave();
     void updateCallHistory();

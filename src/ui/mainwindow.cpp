@@ -2059,7 +2059,12 @@ void MainWindow::onCallChanged(const QString& text)
             QList<QsoRecord> allQsos = m_qsoModel->getQsos();
             
             if (m_contestEngine && m_contestEngine->isDupe(tempQso, allQsos)) {
-                m_statusLabel->setText("<span style='color: red;'>⚠</span> DUPE: " + callsign);
+                QString dupeDetails = getDupeQsoDetails(callsign, allQsos);
+                QString message = "<span style='color: red;'>⚠</span> DUPE: " + callsign;
+                if (!dupeDetails.isEmpty()) {
+                    message += " (" + dupeDetails + ")";
+                }
+                m_statusLabel->setText(message);
                 flashDupeWarning();
             } else {
                 m_statusLabel->setText("Ready");
@@ -2121,7 +2126,12 @@ void MainWindow::onCallChanged(const QString& text)
     
     
     if (m_contestEngine && m_contestEngine->isDupe(tempQso, allQsos)) {
-        m_statusLabel->setText("<span style='color: red;'>⚠</span> DUPE: " + callsign);
+        QString dupeDetails = getDupeQsoDetails(callsign, allQsos);
+        QString message = "<span style='color: red;'>⚠</span> DUPE: " + callsign;
+        if (!dupeDetails.isEmpty()) {
+            message += " (" + dupeDetails + ")";
+        }
+        m_statusLabel->setText(message);
         flashDupeWarning();
     } else {
         m_statusLabel->setText("Ready");
@@ -3146,6 +3156,32 @@ QMap<QString, QString> MainWindow::getExchangeFieldsForQso()
     return result;
 }
 
+QString MainWindow::getDupeQsoDetails(const QString& callsign, const QList<QsoRecord>& allQsos)
+{
+    // Find the QSO with this callsign and return its details
+    for (int i = allQsos.count() - 1; i >= 0; --i) {
+        if (allQsos[i].getCall().toUpper() == callsign.toUpper()) {
+            const QsoRecord& qso = allQsos[i];
+            
+            // Get the serial number (QSO #)
+            int qsoNumber = i + 1;  // 1-based index
+            
+            // Get time in HHmm format from the QDateTime
+            QDateTime dateTime = qso.getDateTime();
+            QString time = dateTime.toString("hhmm");
+            
+            // Get frequency
+            QString freq = qso.getFrequency();
+            
+            // Get mode
+            QString mode = qso.getMode();
+            
+            return QString("QSO #%1 @ %2 %3 %4").arg(qsoNumber).arg(time).arg(freq).arg(mode);
+        }
+    }
+    
+    return "";
+}
 
 
 void MainWindow::updateWindowTitle()
@@ -3309,7 +3345,12 @@ void MainWindow::onDxSpotClicked(const QString& callsign, double frequency, cons
     
      QList<QsoRecord> allQsos = m_qsoModel->getQsos();
     if (m_contestEngine && m_contestEngine->isDupe(tempQso, allQsos)) {
-        m_statusLabel->setText("<span style='color: red;'>⚠</span> DUPE: " + callsign.toUpper());
+        QString dupeDetails = getDupeQsoDetails(callsign.toUpper(), allQsos);
+        QString message = "<span style='color: red;'>⚠</span> DUPE: " + callsign.toUpper();
+        if (!dupeDetails.isEmpty()) {
+            message += " (" + dupeDetails + ")";
+        }
+        m_statusLabel->setText(message);
         DebugLogger::instance().log("MainWindow", QString("DUPE DETECTED for %1 from DX spot").arg(callsign));
         flashDupeWarning();
     } else {
