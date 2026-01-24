@@ -14,7 +14,8 @@
 #include <QMessageBox>
 
 const QList<ShortcutsDialog::DefaultShortcut> ShortcutsDialog::DEFAULT_SHORTCUTS = {
-    {"clearQsoEntry", "Clear QSO Entry Panel", "Ctrl+W"}
+    {"clearQsoEntry", "Clear QSO Entry Panel", "Ctrl+W"},
+    {"preSaveCall", "Save QSO Fields to Call History (without logging)", "Ctrl+S"}
 };
 
 ShortcutsDialog::ShortcutsDialog(QWidget* parent)

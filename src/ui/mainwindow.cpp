@@ -63,6 +63,7 @@
 #include <QSettings>
 #include <QColor>
 #include <QPalette>
+#include <QKeySequence>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -1966,10 +1967,24 @@ void MainWindow::onManageCallHistory()
 
 void MainWindow::keyPressEvent(QKeyEvent *event)
 {
-    if (event->key() == Qt::Key_W && (event->modifiers() & Qt::ControlModifier)) {
-        clearEntryForm();
-        return;
+    // Get the key sequence as a string
+    QString keySeq = QKeySequence(event->key() | event->modifiers()).toString();
+    
+    // Check against registered shortcuts
+    QMap<QString, QString> shortcuts = Settings::instance().getShortcuts();
+    
+    for (auto it = shortcuts.begin(); it != shortcuts.end(); ++it) {
+        if (QKeySequence(it.value()).matches(QKeySequence(event->key() | event->modifiers())) == QKeySequence::ExactMatch) {
+            if (it.key() == "clearQsoEntry") {
+                clearEntryForm();
+                return;
+            } else if (it.key() == "preSaveCall") {
+                preSaveCall();
+                return;
+            }
+        }
     }
+    
     QMainWindow::keyPressEvent(event);
 }
 
@@ -3056,6 +3071,75 @@ void MainWindow::clearEntryForm()
     
     m_callEdit->setFocus();
 }
+
+void MainWindow::preSaveCall()
+{
+    QString callsign = m_callEdit->text().trimmed().toUpper();
+    
+    if (callsign.isEmpty()) {
+        m_statusLabel->setText("No callsign entered");
+        return;
+    }
+    
+    if (!CallHistory::instance().isEnabled()) {
+        m_statusLabel->setText("Call history is disabled");
+        return;
+    }
+    
+    // Get fields to save from contest definition
+    QStringList fieldsToSave;
+    if (m_contestEngine) {
+        fieldsToSave = m_contestEngine->getCallHistoryFieldsToSave();
+    } else {
+        fieldsToSave << "CALL" << "EXCHr";
+    }
+    
+    // Build a map of exchange fields to save
+    QMap<QString, QString> historyFields;
+    QMap<QString, QString> exchangeFields = getExchangeFieldsForQso();
+    
+    // Only save fields specified in contest definition
+    for (const QString& fieldName : fieldsToSave) {
+        if (fieldName == "CALL") {
+            historyFields["CALL"] = callsign;
+        } else {
+            QString value = exchangeFields.value(fieldName);
+            if (!value.isEmpty()) {
+                historyFields[fieldName] = value;
+            }
+        }
+    }
+    
+    // Add or update the record in call history
+    if (!historyFields.isEmpty()) {
+        CallHistory::instance().addOrUpdateRecord(callsign, historyFields);
+        CallHistory::instance().save();
+        
+        m_statusLabel->setText(QString("Saved %1 to call history (will continue working on refresh)").arg(callsign));
+        DebugLogger::instance().log("MainWindow", 
+            QString("Pre-saved %1 to call history with fields: %2").arg(callsign).arg(fieldsToSave.join(", ")));
+    } else {
+        m_statusLabel->setText(QString("No exchange fields to save for %1").arg(callsign));
+    }
+}
+
+QMap<QString, QString> MainWindow::getExchangeFieldsForQso()
+{
+    QMap<QString, QString> result;
+    
+    // Collect all exchange field values from the UI
+    for (auto it = m_exchangeFields.begin(); it != m_exchangeFields.end(); ++it) {
+        QString fieldName = it.key();
+        QString value = it.value()->text().trimmed().toUpper();
+        if (!value.isEmpty()) {
+            result[fieldName] = value;
+        }
+    }
+    
+    return result;
+}
+
+
 
 void MainWindow::updateWindowTitle()
 {

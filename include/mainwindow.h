@@ -99,6 +99,8 @@ private:
     void flashDupeWarning();
     
     void clearEntryForm();
+    void preSaveCall();
+    QMap<QString, QString> getExchangeFieldsForQso();
     void updateWindowTitle();
     bool maybeSave();
     void updateCallHistory();
