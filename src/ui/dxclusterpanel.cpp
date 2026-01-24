@@ -521,6 +521,8 @@ void DxClusterPanel::onExpireSpots()
     QTime currentTime = QTime::currentTime();
     const int EXPIRATION_MINUTES = 15;
     
+    int expiredCount = 0;
+    
     // Iterate backwards to avoid index issues when removing rows
     for (int row = m_spotTable->rowCount() - 1; row >= 0; --row) {
         QTableWidgetItem *timeItem = m_spotTable->item(row, 0);
@@ -529,15 +531,27 @@ void DxClusterPanel::onExpireSpots()
             QTime spotTime = QTime::fromString(timeStr, "HH:mm:ss");
             
             if (spotTime.isValid()) {
+                // Calculate minutes old, handling day wrap (if spot time is later than current time, it's from yesterday)
                 int minutesOld = spotTime.msecsTo(currentTime) / 60000;
+                if (minutesOld < 0) {
+                    // Day wrap occurred - spot is from yesterday
+                    minutesOld = (24 * 60 * 60 * 1000 + spotTime.msecsTo(currentTime)) / 60000;
+                }
+                
                 if (minutesOld > EXPIRATION_MINUTES) {
                     QTableWidgetItem *callItem = m_spotTable->item(row, 1);
                     QString callsign = callItem ? callItem->text() : "unknown";
                     m_spotTable->removeRow(row);
+                    expiredCount++;
                     DebugLogger::instance().log("DxCluster", 
                         QString("Expired spot for %1 (%2 minutes old)").arg(callsign).arg(minutesOld));
                 }
             }
         }
+    }
+    
+    if (expiredCount > 0) {
+        DebugLogger::instance().log("DxCluster", 
+            QString("DX Cluster spot expiration: removed %1 spots older than %2 minutes").arg(expiredCount).arg(EXPIRATION_MINUTES));
     }
 }

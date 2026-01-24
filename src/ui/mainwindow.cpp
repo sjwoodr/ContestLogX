@@ -1967,14 +1967,20 @@ void MainWindow::onManageCallHistory()
 
 void MainWindow::keyPressEvent(QKeyEvent *event)
 {
-    // Get the key sequence as a string
-    QString keySeq = QKeySequence(event->key() | event->modifiers()).toString();
+    // Build the key sequence from the event
+    int keyWithModifiers = event->key() | (event->modifiers() & (Qt::ShiftModifier | Qt::ControlModifier | Qt::AltModifier | Qt::MetaModifier));
+    QKeySequence eventSeq(keyWithModifiers);
+    QString eventSeqStr = eventSeq.toString();
     
     // Check against registered shortcuts
     QMap<QString, QString> shortcuts = Settings::instance().getShortcuts();
     
     for (auto it = shortcuts.begin(); it != shortcuts.end(); ++it) {
-        if (QKeySequence(it.value()).matches(QKeySequence(event->key() | event->modifiers())) == QKeySequence::ExactMatch) {
+        QKeySequence storedSeq(it.value());
+        QString storedSeqStr = storedSeq.toString();
+        
+        // Compare the key sequences as strings
+        if (eventSeqStr == storedSeqStr) {
             if (it.key() == "clearQsoEntry") {
                 clearEntryForm();
                 return;
@@ -1987,6 +1993,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
     
     QMainWindow::keyPressEvent(event);
 }
+
 
 void MainWindow::resizeEvent(QResizeEvent *event)
 {
