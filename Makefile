@@ -3,6 +3,7 @@
 # Usage:
 #   make              - Build with parallel jobs (default: nproc)
 #   make JOBS=4       - Build with 4 parallel jobs
+#   make info         - Display project statistics
 #   make test         - Run unit tests
 #   make test-logs    - Run automated contest log tests
 #   make test-logs-headless - Run automated contest log tests in headless mode (no display required)
@@ -25,6 +26,10 @@ build/Makefile:
 # Clean build artifacts
 clean:
 	rm -rf build clx
+
+# Display project information and statistics
+info:
+	@scripts/project_info.sh
 
 # Run unit tests
 test: build/Makefile
