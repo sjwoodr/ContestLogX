@@ -89,9 +89,11 @@ public:
         int ituRegionMultCount = 0;   // ITU Region multipliers (for category scoring)
         int namedCallPrefixCount = 0;  // Call prefix multipliers (for category scoring)
         int gridSquareMultCount = 0;  // Grid square multipliers (for category scoring)
+        int objectiveMultiplierCount = 0;  // Objective Multiplier count for WFD-style contests
         int dxccCount = 0;        // Total unique DXCC entities worked (for info)
         int bonusPoints = 0;
         int contestScore = 0;
+        QMap<QString, int> objectiveMultiplierDetails;  // Maps OM code to point value (e.g., "ALT_POWER" -> 1)
     };
     
     void updateRunningScore(QList<QsoRecord>& qsos, const QString& myCallsign, bool verbose = false);
@@ -147,6 +149,11 @@ public:
     void setUserPromptValue(const QString& promptId, const QString& value);
     QString getUserPromptValue(const QString& promptId) const;
     QMap<QString, QString> getUserPromptValues() const;
+    
+    // Objective Multiplier handling (for WFD and similar contests)
+    QMap<QString, int> getObjectiveMultiplierOptions() const;  // Get all OM options with point values
+    QStringList getSelectedObjectiveMultipliers() const;  // Get list of selected OM codes
+    int calculateObjectiveMultiplierCount() const;  // Sum point values of selected OMs
 
 private:
     bool validateSerialNumber(const QString& value) const;

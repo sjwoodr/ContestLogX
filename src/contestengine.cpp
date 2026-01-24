@@ -1,6 +1,7 @@
 #include "contestengine.h"
 #include "debuglogger.h"
 #include <QJsonArray>
+#include <QJsonDocument>
 #include <QRegularExpression>
 #include <QtMath>
 
@@ -1168,7 +1169,24 @@ int ContestEngine::calculateTotalScore(const QList<QsoRecord>& qsos, int& totalQ
     
     totalQsos = qsos.size();
     
-    // Build multiplier tracking structure based on type
+    // Handle Objective Multipliers (WFD-style contests)
+    if (multType == "objectiveMultipliers") {
+        // Points come from QSOs, multiplier is OM count + 1
+        for (const QsoRecord& qso : qsos) {
+            totalPoints += calculatePoints(qso, "");
+        }
+        
+        int omCount = calculateObjectiveMultiplierCount();
+        totalMults = omCount + 1;  // Always add 1 even if no OMs claimed
+        
+        DebugLogger::instance().log("ContestEngine", 
+            QString("Total score (objectiveMultipliers): %1 points × (%2 OM + 1) = %3")
+                .arg(totalPoints).arg(omCount).arg(totalPoints * totalMults));
+        
+        return totalPoints * totalMults;
+    }
+    
+    // Build multiplier tracking structure based on type (traditional multipliers)
     QSet<QString> uniqueMultipliers;                          // multsOnce
     QSet<QString> multPerBand;                                 // multsPerBand: mult_band
     QSet<QString> multPerMode;                                 // multsPerMode: mult_mode
@@ -1906,6 +1924,14 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
             }
         }
         
+        // For objectiveMultipliers, skip QSO-based multiplier extraction (no mults per QSO)
+        if (multType == "objectiveMultipliers") {
+            qso.setMultiplierCount(0);
+            qso.setDxccCount(0);
+            qso.setGridSquareMultiplierCount(0);
+            continue;
+        }
+        
         // Track multipliers with categories
         QList<MultiplierInfo> multsWithCategory = getMultipliersWithCategory(qso);
         for (const MultiplierInfo& multInfo : multsWithCategory) {
@@ -2029,7 +2055,32 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
     }
     
      // Count multipliers based on type
-    if (multType == "multsOnce") {
+    if (multType == "objectiveMultipliers") {
+        // For objective multipliers (WFD): no multipliers to extract from QSOs
+        // Instead, get the count from user-selected OMs
+        int omCount = calculateObjectiveMultiplierCount();
+        m_runningScore.objectiveMultiplierCount = omCount;
+        
+        // Build the details map
+        QMap<QString, int> omOptions = getObjectiveMultiplierOptions();
+        QStringList selected = getSelectedObjectiveMultipliers();
+        for (const QString& omCode : selected) {
+            if (omOptions.contains(omCode)) {
+                m_runningScore.objectiveMultiplierDetails[omCode] = omOptions[omCode];
+            }
+        }
+        
+        m_runningScore.multipliers = omCount + 1;  // Always add 1
+        m_runningScore.contestScore = (m_runningScore.contactScore * m_runningScore.multipliers) + m_runningScore.bonusPoints;
+        
+        if (verbose) {
+            DebugLogger::instance().log("ContestEngine", 
+                QString("Objective Multipliers: %1 points (from %2 OMs) = %3 score")
+                    .arg(m_runningScore.contactScore)
+                    .arg(omCount)
+                    .arg(m_runningScore.contestScore));
+        }
+    } else if (multType == "multsOnce") {
         m_runningScore.namedMultCount = namedMultsOnce.size();
         m_runningScore.dxccMultCount = dxccMultsOnce.size();
         m_runningScore.ituRegionMultCount = ituRegionMultsOnce.size();
@@ -2106,7 +2157,14 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
     
     QStringList multCategories = getMultiplierCategories();
     
-    if (multType == "multsPerMode") {
+    // Skip score calculation if already handled by objectiveMultipliers
+    if (multType == "objectiveMultipliers") {
+        // Score already calculated at line 2074
+        if (verbose) {
+            DebugLogger::instance().log("ContestEngine", 
+                QString("Objective Multipliers scoring already complete"));
+        }
+    } else if (multType == "multsPerMode") {
         // For multsPerMode: multipliers are counted per mode, but final score is points × total_mults
         // Total points = sum of all points
         // Total mults = sum of unique mults across all modes
@@ -2200,4 +2258,67 @@ QString ContestEngine::getUserPromptValue(const QString& promptId) const
 QMap<QString, QString> ContestEngine::getUserPromptValues() const
 {
     return m_userPromptValues;
+}
+
+QMap<QString, int> ContestEngine::getObjectiveMultiplierOptions() const
+{
+    QMap<QString, int> omOptions;
+    
+    // Look for objectiveMultipliers prompt in userPrompts array
+    if (m_contestDef.contains("userPrompts")) {
+        QJsonArray prompts = m_contestDef["userPrompts"].toArray();
+        for (const QJsonValue& promptVal : prompts) {
+            QJsonObject prompt = promptVal.toObject();
+            if (prompt["id"].toString() == "objectiveMultipliers") {
+                QJsonArray options = prompt["options"].toArray();
+                for (const QJsonValue& optVal : options) {
+                    QJsonObject opt = optVal.toObject();
+                    QString value = opt["value"].toString();
+                    int points = opt["points"].toInt();
+                    if (!value.isEmpty()) {
+                        omOptions[value] = points;
+                    }
+                }
+                break;
+            }
+        }
+    }
+    
+    return omOptions;
+}
+
+QStringList ContestEngine::getSelectedObjectiveMultipliers() const
+{
+    QString selectedJson = m_userPromptValues.value("objectiveMultipliers", "[]");
+    QStringList selected;
+    
+    // Parse JSON array from stored value
+    QJsonDocument doc = QJsonDocument::fromJson(selectedJson.toUtf8());
+    if (doc.isArray()) {
+        QJsonArray arr = doc.array();
+        for (const QJsonValue& val : arr) {
+            selected.append(val.toString());
+        }
+    }
+    
+    return selected;
+}
+
+int ContestEngine::calculateObjectiveMultiplierCount() const
+{
+    int totalPoints = 0;
+    QMap<QString, int> omOptions = getObjectiveMultiplierOptions();
+    QStringList selected = getSelectedObjectiveMultipliers();
+    
+    for (const QString& omCode : selected) {
+        if (omOptions.contains(omCode)) {
+            totalPoints += omOptions[omCode];
+        }
+    }
+    
+    DebugLogger::instance().log("ContestEngine", 
+        QString("Objective Multiplier Count: %1 (from %2 selected OMs)")
+            .arg(totalPoints).arg(selected.size()));
+    
+    return totalPoints;
 }

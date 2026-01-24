@@ -44,6 +44,11 @@
       "name": "ARRL VHF Contest (September - Extended)",
       "log_file": "test_arrl_vhf_mixed_september.clx",
       "expected_score": 14040
+    },
+    {
+      "name": "Winter Field Day",
+      "log_file": "test_wfd_mixed_log.clx",
+      "expected_score": 644
     }
   ]
 }

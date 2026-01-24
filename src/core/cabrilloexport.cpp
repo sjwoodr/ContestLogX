@@ -179,6 +179,12 @@ QString CabrilloExport::generateQsoLine(const QsoRecord& qso, const QString& qso
         line.replace("{name_sent}", "");
     }
     
+    // Handle category/class and location fields (WFD contests)
+    QString catsSent = qso.getExchangeField("CATs");
+    QString locsSent = qso.getExchangeField("LOCs");
+    line.replace("{CATs}", catsSent);
+    line.replace("{LOCs}", locsSent);
+    
     // Handle grid square fields (VHF contests)
     QString gridSent = qso.getExchangeField("GRIDs");
     QString gridRcvd = qso.getExchangeField("GRIDr");
@@ -203,6 +209,12 @@ QString CabrilloExport::generateQsoLine(const QsoRecord& qso, const QString& qso
         line.replace("{exch_rcvd}", qso.getExchangeReceived());
         line.replace("{name_rcvd}", "");
     }
+    
+    // Handle received category/class and location fields (WFD contests)
+    QString catsRcvd = qso.getExchangeField("CATr");
+    QString locsRcvd = qso.getExchangeField("LOCr");
+    line.replace("{CATr}", catsRcvd);
+    line.replace("{LOCr}", locsRcvd);
     
     return line;
 }

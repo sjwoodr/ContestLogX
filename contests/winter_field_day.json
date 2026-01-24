@@ -1,0 +1,305 @@
+{
+  "contest": {
+    "name": "Winter Field Day",
+    "abbreviation": "WFD",
+    "version": "1.0.0",
+    "sponsor": "Winter Field Day Association",
+    "description": "Emergency communications exercise held the last full weekend in January",
+    "startDate": "Last full weekend in January (2026: January 24-25)",
+    "duration": 30,
+    "offTimeGapMinutes": 0,
+    "modes": ["CW", "SSB", "FM", "DIGITAL"],
+    "bands": ["160m", "80m", "40m", "20m", "15m", "10m", "6m", "2m", "1.25m", "70cm", "33cm", "23cm", "13cm", "9cm", "6cm", "3cm", "1.25cm", "6mm"],
+    "url": "https://winterfieldday.org",
+    "categories": {
+      "transmitters": ["1", "2", "3", "4", "5+"],
+      "class": ["H", "I", "O", "M"],
+      "location": ["State/Province", "MX", "DX"]
+    }
+  },
+  "frequencies": {
+    "160m": {
+      "start": 1800,
+      "end": 2000
+    },
+    "80m": {
+      "start": 3500,
+      "end": 4000
+    },
+    "40m": {
+      "start": 7000,
+      "end": 7300
+    },
+    "20m": {
+      "start": 14000,
+      "end": 14350
+    },
+    "15m": {
+      "start": 21000,
+      "end": 21450
+    },
+    "10m": {
+      "start": 28000,
+      "end": 29700
+    },
+    "6m": {
+      "start": 50000,
+      "end": 54000
+    },
+    "2m": {
+      "start": 144000,
+      "end": 148000
+    },
+    "1.25m": {
+      "start": 222000,
+      "end": 225000
+    },
+    "70cm": {
+      "start": 420000,
+      "end": 450000
+    },
+    "33cm": {
+      "start": 902000,
+      "end": 928000
+    },
+    "23cm": {
+      "start": 1240000,
+      "end": 1300000
+    },
+    "13cm": {
+      "start": 2300000,
+      "end": 2450000
+    },
+    "9cm": {
+      "start": 3300000,
+      "end": 3500000
+    },
+    "6cm": {
+      "start": 5650000,
+      "end": 5925000
+    },
+    "3cm": {
+      "start": 10000000,
+      "end": 10500000
+    },
+    "1.25cm": {
+      "start": 24000000,
+      "end": 24250000
+    },
+    "6mm": {
+      "start": 47000000,
+      "end": 47200000
+    }
+  },
+  "stationClasses": {
+    "enabled": false
+  },
+  "userPrompts": [
+    {
+      "id": "categoryClass",
+      "question": "Enter your category and class (e.g., 3O, 1H, 2I, 4M). Format: number (1-9) + letter (H/I/O/M)",
+      "type": "text",
+      "required": true,
+      "forceUppercase": true,
+      "storeInMeta": true,
+      "description": "Category (number of transmitters) and Class (H=Home, I=Indoor, O=Outdoor, M=Mobile)",
+      "exchangeFieldMapping": {
+        "categoryClass": "CATs"
+      }
+    },
+    {
+      "id": "location",
+      "question": "Enter your location identifier (US/Canada: State/Province abbreviation, Mexico: MX, Other: DX)",
+      "type": "text",
+      "required": true,
+      "forceUppercase": true,
+      "storeInMeta": true,
+      "description": "ARRL/RAC section, MX, or DX",
+      "exchangeFieldMapping": {
+        "location": "LOCs"
+      }
+    },
+    {
+      "id": "objectiveMultipliers",
+      "question": "Select Objective Multipliers you are claiming:",
+      "type": "checkboxes",
+      "options": [
+        {"value": "ALT_POWER", "label": "Alternative Power (x1)", "points": 1},
+        {"value": "AWAY_FROM_HOME", "label": "Operate away from home (x3)", "points": 3},
+        {"value": "MULTIPLE_ANTENNAS", "label": "Multiple new antennas deployed (x1)", "points": 1},
+        {"value": "FM_SAT", "label": "FM satellite contact (x2)", "points": 2},
+        {"value": "SSB_CW_SAT", "label": "SSB or CW satellite contact (x3)", "points": 3},
+        {"value": "WINLINK", "label": "Winlink email send/receive (x1)", "points": 1},
+        {"value": "SPECIAL_BULLETIN", "label": "Copy WFD Special Bulletin (x1)", "points": 1},
+        {"value": "SIX_BANDS", "label": "3+ contacts on 6+ different bands (x6)", "points": 6},
+        {"value": "TWELVE_BANDS", "label": "3+ contacts on 12+ different bands (x6)", "points": 6},
+        {"value": "MULTIPLE_MODES", "label": "Use multiple modes (Phone, CW, Digital) (x2)", "points": 2},
+        {"value": "QRP", "label": "QRP operation (10W phone, 5W CW/digital) (x4)", "points": 4},
+        {"value": "SIX_HOURS", "label": "Operate 6 continuous hours (x2)", "points": 2}
+      ],
+      "required": false,
+      "storeInMeta": true,
+      "description": "Objective Multipliers completed for score calculation"
+    }
+  ],
+  "exchangeFields": {
+    "sent": [
+      {
+        "name": "CALL",
+        "type": "string",
+        "required": true,
+        "description": "Your callsign"
+      },
+      {
+        "name": "CATs",
+        "type": "string",
+        "required": true,
+        "description": "Category and Class sent (e.g., '3O' for 3 transmitters, Outdoor)"
+      },
+      {
+        "name": "LOCs",
+        "type": "string",
+        "required": true,
+        "description": "Location identifier sent (State/Province, MX, or DX)"
+      }
+    ],
+    "received": [
+      {
+        "name": "CALL",
+        "type": "string",
+        "required": true,
+        "description": "Callsign received"
+      },
+      {
+        "name": "CATr",
+        "type": "string",
+        "required": true,
+        "description": "Category and Class received (e.g., '1H')"
+      },
+      {
+        "name": "LOCr",
+        "type": "string",
+        "required": true,
+        "description": "Location identifier received"
+      }
+    ]
+  },
+  "qsoFields": [
+    {
+      "name": "Date",
+      "column": "DATE",
+      "type": "date",
+      "format": "yyyy-MM-dd",
+      "required": true
+    },
+    {
+      "name": "Time",
+      "column": "TIME",
+      "type": "time",
+      "format": "HH:mm:ss",
+      "required": true
+    },
+    {
+      "name": "Callsign",
+      "column": "CALL",
+      "type": "string",
+      "required": true,
+      "uppercase": true
+    },
+    {
+      "name": "Frequency",
+      "column": "FREQ",
+      "type": "number",
+      "unit": "kHz or band",
+      "required": true
+    },
+    {
+      "name": "Mode",
+      "column": "MODE",
+      "type": "enum",
+      "values": ["CW", "PH", "FM", "RY", "DG"],
+      "required": true
+    },
+    {
+      "name": "Category/Class Sent",
+      "column": "CATs",
+      "type": "string",
+      "required": true,
+      "description": "Numeric category + class letter (e.g., 3O)"
+    },
+    {
+      "name": "Location Sent",
+      "column": "LOCs",
+      "type": "string",
+      "required": true,
+      "description": "State/Province, MX, or DX"
+    },
+    {
+      "name": "Category/Class Received",
+      "column": "CATr",
+      "type": "string",
+      "required": true,
+      "description": "Numeric category + class letter (e.g., 1H)"
+    },
+    {
+      "name": "Location Received",
+      "column": "LOCr",
+      "type": "string",
+      "required": true,
+      "description": "State/Province, MX, or DX"
+    },
+    {
+      "name": "Points",
+      "column": "POINTS",
+      "type": "number",
+      "calculated": true,
+      "description": "Points based on mode (CW/Digital=2, Phone=1)"
+    }
+  ],
+  "scoring": {
+    "points": {
+      "phone": 1,
+      "cw": 2,
+      "digital": 2
+    },
+    "multipliers": {
+      "type": "objectiveMultipliers",
+      "description": "Objective Multiplier scoring based on user-selected completed objectives",
+      "categories": ["objectiveMultipliers"]
+    },
+    "finalScore": "(SUM(points)) * (objectiveMultiplierCount + 1)"
+  },
+  "dupeChecking": {
+    "type": "perBandMode",
+    "description": "Station may be contacted once per band-mode combination (max 3 times per band: CW, Phone, Digital)"
+  },
+  "logging": {
+    "requiredFields": ["date", "time", "callsign", "frequency", "mode", "categoryClassSent", "locationSent", "categoryClassReceived", "locationReceived"],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "WFD",
+      "notes": "Frequencies: HF in kHz (rounded to nearest), VHF+ as band (50, 70, 144, 222, 432, 902, 1.2G, 2.3G, 3.4G, 5.7G, 10G, 24G, etc.)",
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {CATs} {LOCs} {call} {CATr} {LOCr}"
+    }
+  },
+  "validation": {
+    "minimumQSOs": 1,
+    "maxOperatingTime": 30,
+    "offTimesRequired": false,
+    "exchangeValidation": {
+      "type": "freeForm",
+      "description": "Category/Class and Location are collected but not validated - user responsible for correct entry"
+    }
+  },
+  "ui": {
+    "logColumns": ["DATE", "TIME", "CALL", "FREQ", "MODE", "CATs", "LOCs", "CATr", "LOCr", "POINTS", "COMMENT"],
+    "entryFields": ["CALL", "CATr", "LOCr"],
+    "fieldNavigation": {
+      "keys": "tab"
+    },
+    "bandMap": {
+      "enabled": true,
+      "bands": ["160m", "80m", "40m", "30m", "20m", "17m", "15m", "12m", "10m", "6m", "2m", "1.25m", "70cm", "33cm", "23cm", "13cm", "9cm", "6cm", "3cm", "1.25cm", "6mm"]
+    }
+  }
+}

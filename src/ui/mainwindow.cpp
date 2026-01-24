@@ -41,12 +41,16 @@
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QLabel>
+#include <QCheckBox>
 #include <QComboBox>
 #include <QMessageBox>
+#include <QDialog>
+#include <QDialogButtonBox>
 #include <QInputDialog>
 #include <QRegularExpressionValidator>
 #include <QFileDialog>
 #include <QFileInfo>
+#include <QDesktopServices>
 #include <QDir>
 #include <QDateTime>
 #include <QHeaderView>
@@ -1173,6 +1177,69 @@ void MainWindow::onNewLog()
                                     m_contestEngine->resetStationClassState();
                                     return;
                                 }
+                            } else if (type == "checkboxes") {
+                                // For checkboxes, collect selected options
+                                QStringList selectedOptions;
+                                if (promptObj.contains("options")) {
+                                    QJsonArray options = promptObj["options"].toArray();
+                                    
+                                    // Create a dialog with checkboxes
+                                    QDialog checkboxDialog(this);
+                                    checkboxDialog.setWindowTitle("Contest Information");
+                                    checkboxDialog.setMinimumWidth(500);
+                                    
+                                    QVBoxLayout dialogLayout(&checkboxDialog);
+                                    
+                                    QLabel questionLabel(question);
+                                    dialogLayout.addWidget(&questionLabel);
+                                    dialogLayout.addSpacing(10);
+                                    
+                                    QMap<QString, QCheckBox*> checkboxes;
+                                    
+                                    for (const QJsonValue& optVal : options) {
+                                        QJsonObject optObj = optVal.toObject();
+                                        QString optValue = optObj["value"].toString();
+                                        QString optLabel = optObj["label"].toString();
+                                        
+                                        QCheckBox* checkbox = new QCheckBox(optLabel, &checkboxDialog);
+                                        checkboxes[optValue] = checkbox;
+                                        dialogLayout.addWidget(checkbox);
+                                    }
+                                    
+                                    dialogLayout.addSpacing(10);
+                                    QDialogButtonBox buttonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+                                    dialogLayout.addWidget(&buttonBox);
+                                    
+                                    connect(&buttonBox, &QDialogButtonBox::accepted, &checkboxDialog, &QDialog::accept);
+                                    connect(&buttonBox, &QDialogButtonBox::rejected, &checkboxDialog, &QDialog::reject);
+                                    
+                                    if (checkboxDialog.exec() == QDialog::Accepted) {
+                                        // Collect selected checkboxes
+                                        for (auto it = checkboxes.begin(); it != checkboxes.end(); ++it) {
+                                            if (it.value()->isChecked()) {
+                                                selectedOptions.append(it.key());
+                                            }
+                                        }
+                                        
+                                        // Convert to JSON array for storage
+                                        QJsonArray selectedArray;
+                                        for (const QString& opt : selectedOptions) {
+                                            selectedArray.append(opt);
+                                        }
+                                        
+                                        // Store as JSON string
+                                        QJsonDocument doc(selectedArray);
+                                        QString jsonString = QString::fromUtf8(doc.toJson(QJsonDocument::Compact));
+                                        m_contestEngine->setUserPromptValue(promptId, jsonString);
+                                        
+                                        DebugLogger::instance().log("MainWindow", 
+                                            QString("User prompt '%1' (checkboxes) set to: %2 options").arg(promptId).arg(selectedOptions.size()));
+                                    } else {
+                                        // User cancelled
+                                        m_contestEngine->resetStationClassState();
+                                        return;
+                                    }
+                                }
                             }
                         }
                     }
@@ -2159,6 +2226,28 @@ void MainWindow::onLogQso()
             QString("Exchange sent (legacy): '%1'").arg(exchSent));
     }
     
+    // Apply exchangeFieldMapping from userPrompts
+    if (m_contestDefinition.contains("userPrompts")) {
+        QJsonArray prompts = m_contestDefinition["userPrompts"].toArray();
+        for (const QJsonValue& promptVal : prompts) {
+            QJsonObject promptObj = promptVal.toObject();
+            if (promptObj.contains("exchangeFieldMapping")) {
+                QJsonObject mapping = promptObj["exchangeFieldMapping"].toObject();
+                for (auto it = mapping.begin(); it != mapping.end(); ++it) {
+                    QString promptId = it.key();
+                    QString exchangeFieldName = it.value().toString();
+                    QString promptValue = m_contestEngine->getUserPromptValue(promptId);
+                    if (!promptValue.isEmpty()) {
+                        qso.setExchangeField(exchangeFieldName, promptValue);
+                        DebugLogger::instance().log("MainWindow", 
+                            QString("Exchange sent - %1: '%2' (from userPrompt %3)")
+                            .arg(exchangeFieldName, promptValue, promptId));
+                    }
+                }
+            }
+        }
+    }
+    
     // Set exchange fields from dynamic inputs (received exchange)
     if (!m_exchangeFields.isEmpty()) {
         DebugLogger::instance().log("MainWindow", 
@@ -2175,8 +2264,10 @@ void MainWindow::onLogQso()
                 QString("Field: %1 = '%2'").arg(fieldName).arg(value));
             
             if (fieldName == "CALL") {
-                // Already handled above
-                continue;
+                // CALL field should also be stored as an exchange field for validation
+                qso.setExchangeField("CALL", value);
+                DebugLogger::instance().log("MainWindow", 
+                    QString("CALL exchange field set to: '%1'").arg(value));
             } else if (fieldName == "NAMEr") {
                 // Received name field
                 receivedName = value;
@@ -2853,7 +2944,33 @@ void MainWindow::onExportCabrillo()
         return;
     }
     
-    QMessageBox::information(this, "Export Successful", QString("Cabrillo log exported to:\n%1").arg(fileName));
+    // Create a custom dialog with checkbox
+    QDialog resultDialog(this);
+    resultDialog.setWindowTitle("Export Successful");
+    resultDialog.setMinimumWidth(400);
+    
+    QVBoxLayout layout(&resultDialog);
+    
+    QLabel messageLabel(QString("Cabrillo log exported to:\n%1").arg(fileName));
+    layout.addWidget(&messageLabel);
+    
+    layout.addSpacing(10);
+    
+    QCheckBox viewCheckbox("View log file now");
+    viewCheckbox.setChecked(true);  // Default to checked
+    layout.addWidget(&viewCheckbox);
+    
+    QDialogButtonBox buttonBox(QDialogButtonBox::Ok);
+    layout.addWidget(&buttonBox);
+    
+    connect(&buttonBox, &QDialogButtonBox::accepted, &resultDialog, &QDialog::accept);
+    
+    resultDialog.exec();
+    
+    // If user checked the box, open the file with default text editor
+    if (viewCheckbox.isChecked()) {
+        QDesktopServices::openUrl(QUrl::fromLocalFile(fileName));
+    }
 }
 
 void MainWindow::onAbout()
@@ -3940,31 +4057,93 @@ QString MainWindow::generateSummaryString()
     
     // Determine which multipliers are being counted
     QStringList multTypes;
-    if (score.namedMultCount > 0) {
-        out << "Named Multipliers:        " << score.namedMultCount << "\n";
-        multTypes.append("Named");
-    }
-    if (score.dxccMultCount > 0) {
-        out << "DXCC Multipliers:         " << score.dxccMultCount << "\n";
-        multTypes.append("DXCC");
-    }
-    if (score.ituRegionMultCount > 0) {
-        out << "ITU Region Multipliers:   " << score.ituRegionMultCount << "\n";
-        multTypes.append("ITU Region");
-    }
-    if (score.namedCallPrefixCount > 0) {
-        out << "Call Prefix Multipliers:  " << score.namedCallPrefixCount << "\n";
-        multTypes.append("Call Prefix");
-    }
-    if (score.gridSquareMultCount > 0) {
-        out << "Grid Square Multipliers:  " << score.gridSquareMultCount << "\n";
-        multTypes.append("Grid Square");
-    }
+    
+    // Handle Objective Multipliers (WFD-style)
+    QString multType = m_contestEngine->getMultiplierType();
+    if (multType == "objectiveMultipliers") {
+        out << "\n";
+        out << "OBJECTIVE MULTIPLIERS CLAIMED\n";
+        out << "-" << QString("-").repeated(63) << "-" << "\n";
+        
+        // Get the OM options and selected ones
+        QMap<QString, int> omOptions = m_contestEngine->getObjectiveMultiplierOptions();
+        QStringList selected = m_contestEngine->getSelectedObjectiveMultipliers();
+        
+        int totalOMPoints = 0;
+        if (!selected.isEmpty()) {
+            for (const QString& omCode : selected) {
+                if (omOptions.contains(omCode)) {
+                    int points = omOptions[omCode];
+                    totalOMPoints += points;
+                    
+                    // Find the label from the prompt definition
+                    QString label = omCode;
+                    if (m_contestDefinition.contains("userPrompts")) {
+                        QJsonArray prompts = m_contestDefinition["userPrompts"].toArray();
+                        for (const QJsonValue& promptVal : prompts) {
+                            QJsonObject prompt = promptVal.toObject();
+                            if (prompt["id"].toString() == "objectiveMultipliers") {
+                                QJsonArray options = prompt["options"].toArray();
+                                for (const QJsonValue& optVal : options) {
+                                    QJsonObject opt = optVal.toObject();
+                                    if (opt["value"].toString() == omCode) {
+                                        label = opt["label"].toString();
+                                        break;
+                                    }
+                                }
+                                break;
+                            }
+                        }
+                    }
+                    
+                    out << "  " << label << "\n";
+                }
+            }
+            out << "\n";
+            out << "Total Objective Multiplier Points: " << totalOMPoints << "\n";
+            out << "Objective Multiplier: " << totalOMPoints << " + 1 = " << (totalOMPoints + 1) << "\n";
+        } else {
+            out << "  (No objectives completed)\n";
+            out << "\n";
+            out << "Objective Multiplier: 0 + 1 = 1\n";
+        }
+        out << "\n";
+    } else {
+        // Traditional multiplier display
+        if (score.namedMultCount > 0) {
+            out << "Named Multipliers:        " << score.namedMultCount << "\n";
+            multTypes.append("Named");
+        }
+        if (score.dxccMultCount > 0) {
+            out << "DXCC Multipliers:         " << score.dxccMultCount << "\n";
+            multTypes.append("DXCC");
+        }
+        if (score.ituRegionMultCount > 0) {
+            out << "ITU Region Multipliers:   " << score.ituRegionMultCount << "\n";
+            multTypes.append("ITU Region");
+        }
+        if (score.namedCallPrefixCount > 0) {
+            out << "Call Prefix Multipliers:  " << score.namedCallPrefixCount << "\n";
+            multTypes.append("Call Prefix");
+        }
+        if (score.gridSquareMultCount > 0) {
+            out << "Grid Square Multipliers:  " << score.gridSquareMultCount << "\n";
+            multTypes.append("Grid Square");
+        }
 
-    out << "\n";
+        out << "\n";
+    }
     
     // Show the scoring calculation
-    if (multTypes.size() == 1) {
+    if (multType == "objectiveMultipliers") {
+        int omTotal = score.objectiveMultiplierCount;
+        out << "Score Calculation:\n";
+        out << "  " << score.contactScore << " points × (" << omTotal << " OM + 1)";
+        if (score.bonusPoints > 0) {
+            out << " + " << score.bonusPoints << " bonus";
+        }
+        out << " = " << score.contestScore << "\n";
+    } else if (multTypes.size() == 1) {
         out << "Score Calculation:\n";
         out << "  " << score.contactScore << " points × " << score.multipliers << " multipliers";
         if (score.bonusPoints > 0) {
@@ -3985,73 +4164,73 @@ QString MainWindow::generateSummaryString()
     out << "CLAIMED SCORE: " << score.contestScore << "\n";
     out << "\n";
     
-    // Multiplier Details
-    out << "MULTIPLIER DETAILS\n";
-    out << "-" << QString("-").repeated(63) << "-" << "\n";
-    out << "\n";
+    // Multiplier Details (skip for objectiveMultipliers - already shown above)
+    if (multType != "objectiveMultipliers") {
+        out << "MULTIPLIER DETAILS\n";
+        out << "-" << QString("-").repeated(63) << "-" << "\n";
+        out << "\n";
 
-    QString multType = m_contestEngine->getMultiplierType();
-    QStringList multCategories = m_contestEngine->getMultiplierCategories();
+        QStringList multCategories = m_contestEngine->getMultiplierCategories();
 
-    // Check if callsigns are multipliers (e.g., CWops CWT)
-    bool callsignIsMult = false;
-    if (m_contestDefinition.contains("multipliers")) {
-        QJsonObject multipliers = m_contestDefinition["multipliers"].toObject();
-        if (multipliers.contains("sources")) {
-            QJsonArray sources = multipliers["sources"].toArray();
-            for (const QJsonValue& val : sources) {
-                QJsonObject source = val.toObject();
-                if (source["type"].toString() == "callsign") {
-                    callsignIsMult = true;
-                    break;
+        // Check if callsigns are multipliers (e.g., CWops CWT)
+        bool callsignIsMult = false;
+        if (m_contestDefinition.contains("multipliers")) {
+            QJsonObject multipliers = m_contestDefinition["multipliers"].toObject();
+            if (multipliers.contains("sources")) {
+                QJsonArray sources = multipliers["sources"].toArray();
+                for (const QJsonValue& val : sources) {
+                    QJsonObject source = val.toObject();
+                    if (source["type"].toString() == "callsign") {
+                        callsignIsMult = true;
+                        break;
+                    }
                 }
             }
         }
-    }
 
-    // Handle callsign multipliers
-    if (callsignIsMult) {
-        QSet<QString> workedCalls;
-        QSet<QString> countedCalls;
+        // Handle callsign multipliers
+        if (callsignIsMult) {
+            QSet<QString> workedCalls;
+            QSet<QString> countedCalls;
 
-        for (int i = 0; i < m_qsoModel->rowCount(); ++i) {
-            QsoRecord qso = m_qsoModel->getQso(i);
-            QString call = qso.getCall().toUpper();
-            workedCalls.insert(call);
-            if (!qso.isDupe()) {
-                countedCalls.insert(call);
+            for (int i = 0; i < m_qsoModel->rowCount(); ++i) {
+                QsoRecord qso = m_qsoModel->getQso(i);
+                QString call = qso.getCall().toUpper();
+                workedCalls.insert(call);
+                if (!qso.isDupe()) {
+                    countedCalls.insert(call);
+                }
             }
-        }
 
-        if (!workedCalls.isEmpty()) {
-            out << "Callsigns (Worked: " << countedCalls.size() << ")\n";
+            if (!workedCalls.isEmpty()) {
+                out << "Callsigns (Worked: " << countedCalls.size() << ")\n";
 
-            QStringList sortedCalls = QStringList(workedCalls.begin(), workedCalls.end());
-            std::sort(sortedCalls.begin(), sortedCalls.end());
+                QStringList sortedCalls = QStringList(workedCalls.begin(), workedCalls.end());
+                std::sort(sortedCalls.begin(), sortedCalls.end());
 
-            // Format with ~80 chars per line
-            QString line;
-            for (const QString& call : sortedCalls) {
-                QString mark = countedCalls.contains(call) ? "*" : " ";
-                QString entry = QString("%1%2 ").arg(mark).arg(call);
+                // Format with ~80 chars per line
+                QString line;
+                for (const QString& call : sortedCalls) {
+                    QString mark = countedCalls.contains(call) ? "*" : " ";
+                    QString entry = QString("%1%2 ").arg(mark).arg(call);
 
-                if ((line + entry).length() > 80 && !line.isEmpty()) {
+                    if ((line + entry).length() > 80 && !line.isEmpty()) {
+                        out << line << "\n";
+                        line.clear();
+                    }
+                    line += entry;
+                }
+
+                // Write remaining line
+                if (!line.isEmpty()) {
                     out << line << "\n";
-                    line.clear();
                 }
-                line += entry;
+                out << "\n";
             }
-
-            // Write remaining line
-            if (!line.isEmpty()) {
-                out << line << "\n";
-            }
-            out << "\n";
         }
-    }
 
-    // Process each multiplier category
-    for (const QString& category : multCategories) {
+        // Process each multiplier category
+        for (const QString& category : multCategories) {
         if (multType == "multsOnce") {
             // Simple case: just list all mults for this category
             QSet<QString> workedMults;
@@ -4214,7 +4393,8 @@ QString MainWindow::generateSummaryString()
                 out << "\n";
             }
         }
-    }
+        }  // Close for loop over categories
+    }  // Close if (multType != "objectiveMultipliers")
     
     out << "=" << QString("=").repeated(63) << "=" << "\n";
     out << "Generated by: ContestLogX " << QApplication::applicationVersion() << "\n";
@@ -4272,8 +4452,33 @@ void MainWindow::onCreateSummarySheet()
     
     file.close();
     
-    QMessageBox::information(this, "Success", 
-        QString("Summary sheet saved to:\n%1").arg(fileName));
+    // Create a custom dialog with checkbox
+    QDialog resultDialog(this);
+    resultDialog.setWindowTitle("Summary Sheet Saved");
+    resultDialog.setMinimumWidth(400);
+    
+    QVBoxLayout layout(&resultDialog);
+    
+    QLabel messageLabel(QString("Summary sheet saved to:\n%1").arg(fileName));
+    layout.addWidget(&messageLabel);
+    
+    layout.addSpacing(10);
+    
+    QCheckBox viewCheckbox("View summary sheet now");
+    viewCheckbox.setChecked(true);  // Default to checked
+    layout.addWidget(&viewCheckbox);
+    
+    QDialogButtonBox buttonBox(QDialogButtonBox::Ok);
+    layout.addWidget(&buttonBox);
+    
+    connect(&buttonBox, &QDialogButtonBox::accepted, &resultDialog, &QDialog::accept);
+    
+    resultDialog.exec();
+    
+    // If user checked the box, open the file with default text editor
+    if (viewCheckbox.isChecked()) {
+        QDesktopServices::openUrl(QUrl::fromLocalFile(fileName));
+    }
 }
 
 void MainWindow::generateSummaryToDebugLog()
