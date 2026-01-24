@@ -83,6 +83,7 @@ private slots:
     void onQsoContextMenuRequested(const QPoint& pos);
     void onEditQso();
     void onDeleteQso();
+    void onDupeFlashTimeout();
 
 protected:
     bool eventFilter(QObject *obj, QEvent *event) override;
@@ -95,6 +96,7 @@ private:
     void setupMenus();
     void createConnections();
     void loadCWMemories();
+    void flashDupeWarning();
     
     void clearEntryForm();
     void updateWindowTitle();
@@ -177,6 +179,7 @@ private:
     // Rig control
     FlrigClient *m_flrigClient;
     QTimer *m_rigPollTimer;
+    QTimer *m_dupeFlashTimer;
     double m_lastFrequency;
     QString m_lastMode;
     int m_lastWpm;

@@ -29,7 +29,7 @@ int QsoListModel::columnCount(const QModelIndex &parent) const
 
 QStringList QsoListModel::defaultHeaders() const
 {
-    return QStringList() << "DATE" << "TIME" << "CALL" << "FREQ" << "MODE" 
+    return QStringList() << "#" << "DATE" << "TIME" << "CALL" << "FREQ" << "MODE" 
                          << "RSTs" << "RSTr" << "EXCHs" << "EXCHr" 
                          << "Nr" << "Dupe" << "M" << "C" << "P" << "COMMENT";
 }
@@ -45,8 +45,12 @@ QVariant QsoListModel::data(const QModelIndex &index, int role) const
         QString header = m_columnHeaders.at(index.column()).toUpper();
         QString originalHeader = m_columnHeaders.at(index.column());  // Keep original case
         
+        // QSO number column - always first column
+        if (header == "#") {
+            return index.row() + 1;
+        }
         // Map header names to data (case-insensitive)
-        if (header == "DATE") {
+        else if (header == "DATE") {
             return qso.getDateTime().toUTC().toString("yyyy-MM-dd");
         } else if (header == "TIME") {
             return qso.getDateTime().toUTC().toString("HH:mm:ss");

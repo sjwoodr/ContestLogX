@@ -61,6 +61,8 @@
 #include <QtMath>
 #include <QKeyEvent>
 #include <QSettings>
+#include <QColor>
+#include <QPalette>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -87,6 +89,7 @@ MainWindow::MainWindow(QWidget *parent)
     , m_dxccDatabase(new DxccDatabase(this))
     , m_flrigClient(new FlrigClient(this))
     , m_rigPollTimer(new QTimer(this))
+    , m_dupeFlashTimer(new QTimer(this))
     , m_lastFrequency(14250.0)
     , m_lastMode("USB")
     , m_lastWpm(28)
@@ -361,6 +364,9 @@ void MainWindow::setupUi()
     m_qsoTable->horizontalHeader()->setStretchLastSection(true);
     m_qsoTable->verticalHeader()->setVisible(false);
     m_qsoTable->setMinimumHeight(400);
+    
+    // Freeze the first column (QSO number)
+    m_qsoTable->setColumnWidth(0, 50);  // Set width for # column
     
     // Add double-click handling for QSO editing
     connect(m_qsoTable, &QTableView::doubleClicked, this, &MainWindow::onQsoDoubleClicked);
@@ -730,6 +736,10 @@ void MainWindow::createConnections()
         m_qsoCountLabel->setText(QString("QSOs: %1").arg(m_qsoModel->count()));
         m_isModified = true;
         updateWindowTitle();
+        // Auto-scroll to the bottom when a new QSO is added
+        if (m_qsoTable) {
+            m_qsoTable->scrollToBottom();
+        }
     });
     
     // Rig connections
@@ -780,6 +790,9 @@ void MainWindow::createConnections()
             updateScpWidgetMenuText();
         });
     }
+    
+    // Dupe flash timer
+    connect(m_dupeFlashTimer, &QTimer::timeout, this, &MainWindow::onDupeFlashTimeout);
 }
 
 void MainWindow::onNewLog()
@@ -1778,6 +1791,11 @@ void MainWindow::loadLogFile(const QString& filename)
                     m_qsoModel->addQso(qso);
                 }
                 
+                // Scroll to the bottom to show the most recent QSO
+                if (m_qsoTable) {
+                    m_qsoTable->scrollToBottom();
+                }
+                
                 // Reset modified flag since we just loaded the file
                 m_isModified = false;
                 
@@ -1974,6 +1992,7 @@ void MainWindow::onCallChanged(const QString& text)
     // Look up previous QSO with this callsign and pre-fill exchange
     QString callsign = text.trimmed().toUpper();
     if (callsign.isEmpty()) {
+        m_statusLabel->setText("Ready");
         return;
     }
     
@@ -2005,6 +2024,24 @@ void MainWindow::onCallChanged(const QString& text)
             if (found) {
                 DebugLogger::instance().log("MainWindow", 
                     QString("Pre-filled exchange from call history for %1").arg(callsign));
+                // Check for dupe
+                QsoRecord tempQso;
+                tempQso.setCall(callsign);
+                tempQso.setFrequency(QString::number(m_lastFrequency, 'f', 1));
+                tempQso.setMode(m_lastMode);
+                // Set band from current frequency - use same method as logged QSO
+                QString band = m_contestEngine->getBandFromFrequency(m_lastFrequency);
+                if (!band.isEmpty()) {
+                    tempQso.setBandName(band);
+                }
+                QList<QsoRecord> allQsos = m_qsoModel->getQsos();
+                
+                if (m_contestEngine && m_contestEngine->isDupe(tempQso, allQsos)) {
+                    m_statusLabel->setText("<span style='color: red;'>⚠</span> DUPE: " + callsign);
+                    flashDupeWarning();
+                } else {
+                    m_statusLabel->setText("Ready");
+                }
                 return;
             }
         }
@@ -2022,6 +2059,9 @@ void MainWindow::onCallChanged(const QString& text)
             break;
         }
     }
+    
+    DebugLogger::instance().log("MainWindow", 
+        QString("After fallback search: found=%1, allQsos.count()=%2").arg(found).arg(allQsos.count()));
     
     if (found) {
         // Pre-fill exchange fields with values from last QSO
@@ -2045,6 +2085,25 @@ void MainWindow::onCallChanged(const QString& text)
         
         DebugLogger::instance().log("MainWindow", 
             QString("Pre-filled exchange from last QSO with %1").arg(callsign));
+    }
+    
+    // Check for dupe regardless of pre-fill success
+    QsoRecord tempQso;
+    tempQso.setCall(callsign);
+    tempQso.setFrequency(QString::number(m_lastFrequency, 'f', 1));
+    tempQso.setMode(m_lastMode);
+    // Set band from current frequency
+    QString band = m_contestEngine->getBandFromFrequency(m_lastFrequency);
+    if (!band.isEmpty()) {
+        tempQso.setBandName(band);
+    }
+    
+    
+    if (m_contestEngine && m_contestEngine->isDupe(tempQso, allQsos)) {
+        m_statusLabel->setText("<span style='color: red;'>⚠</span> DUPE: " + callsign);
+        flashDupeWarning();
+    } else {
+        m_statusLabel->setText("Ready");
     }
 }
 
@@ -2114,15 +2173,7 @@ void MainWindow::onLogQso()
     // Get band from frequency
     QString band = m_contestEngine->getBandFromFrequency(m_lastFrequency);
     if (!band.isEmpty()) {
-        // Get bands from contest definition and find the index
-        QJsonObject contestDef = m_contestEngine->getContestDefinition();
-        QJsonArray bandsArray = contestDef.value("bands").toArray();
-        for (int i = 0; i < bandsArray.size(); i++) {
-            if (bandsArray[i].toString() == band) {
-                qso.setBand(i);
-                break;
-            }
-        }
+        qso.setBandName(band);
     }
     
     qso.setMode(m_lastMode);
@@ -2400,6 +2451,11 @@ void MainWindow::onLogQso()
     
      // Add the QSO first so it's included in score calculations
     m_qsoModel->addQso(qso);
+    
+    // Remove the spot from DX cluster if it's there
+    if (m_dxClusterPanel) {
+        m_dxClusterPanel->removeSpot(qso.getCall());
+    }
     
     // Update running score and get total multiplier count
     if (m_contestEngine && m_scoreWidget) {
@@ -3141,6 +3197,35 @@ void MainWindow::onDxSpotClicked(const QString& callsign, double frequency, cons
     
     // Set callsign in QSO entry field
     m_callEdit->setText(callsign.toUpper());
+    
+    // Clear all exchange fields EXCEPT CALL
+    for (auto it = m_exchangeFields.begin(); it != m_exchangeFields.end(); ++it) {
+        if (it.key() != "CALL") {
+            it.value()->clear();
+        }
+    }
+    
+    // Check for dupe with the clicked spot's frequency and mode
+    QsoRecord tempQso;
+    tempQso.setCall(callsign.toUpper());
+    tempQso.setFrequency(QString::number(frequency, 'f', 1));
+    tempQso.setMode(mode);
+    
+    // Set band from the clicked spot's frequency
+    QString band = m_contestEngine->getBandFromFrequency(frequency);
+    if (!band.isEmpty()) {
+        tempQso.setBandName(band);
+    }
+    
+     QList<QsoRecord> allQsos = m_qsoModel->getQsos();
+    if (m_contestEngine && m_contestEngine->isDupe(tempQso, allQsos)) {
+        m_statusLabel->setText("<span style='color: red;'>⚠</span> DUPE: " + callsign.toUpper());
+        DebugLogger::instance().log("MainWindow", QString("DUPE DETECTED for %1 from DX spot").arg(callsign));
+        flashDupeWarning();
+    } else {
+        m_statusLabel->setText("Ready");
+    }
+    
     m_callEdit->setFocus();
     
     // Change rig frequency and mode via flrig
@@ -3148,6 +3233,28 @@ void MainWindow::onDxSpotClicked(const QString& callsign, double frequency, cons
         m_flrigClient->setFrequency(static_cast<long>(frequency * 1000)); // Convert kHz to Hz
         m_flrigClient->setMode(mode);
     }
+}
+
+void MainWindow::flashDupeWarning()
+{
+    // Flash the QSO entry widget red for dupe warning
+    if (m_qsoEntryGroup) {
+        QPalette palette = m_qsoEntryGroup->palette();
+        palette.setColor(QPalette::Window, QColor(255, 0, 0));
+        m_qsoEntryGroup->setPalette(palette);
+        m_qsoEntryGroup->setAutoFillBackground(true);
+        m_dupeFlashTimer->start(500);  // Flash for 500ms
+    }
+}
+
+void MainWindow::onDupeFlashTimeout()
+{
+    // Restore normal background
+    if (m_qsoEntryGroup) {
+        m_qsoEntryGroup->setPalette(style()->standardPalette());
+        m_qsoEntryGroup->setAutoFillBackground(false);
+    }
+    m_dupeFlashTimer->stop();
 }
 
 void MainWindow::onToggleDxCluster(bool checked)
@@ -3569,6 +3676,11 @@ void MainWindow::updateLogHeaders()
         
         DebugLogger::instance().log("MainWindow", 
             QString("Using default log columns: %1").arg(fullHeaders.join(", ")));
+    }
+    
+    // Always prepend "#" (QSO number) as the first column if not already present
+    if (!fullHeaders.isEmpty() && fullHeaders.first() != "#") {
+        fullHeaders.prepend("#");
     }
     
     // Update the model

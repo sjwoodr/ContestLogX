@@ -17,6 +17,7 @@
 #include <QRegularExpression>
 #include <QInputDialog>
 #include <QJsonObject>
+#include <QCheckBox>
 
 DxClusterPanel::DxClusterPanel(QWidget *parent)
     : QWidget(parent)
@@ -25,6 +26,7 @@ DxClusterPanel::DxClusterPanel(QWidget *parent)
     , m_connectButton(nullptr)
     , m_socket(new QTcpSocket(this))
     , m_propagationTimer(new QTimer(this))
+    , m_expirationTimer(new QTimer(this))
     , m_isConnected(false)
     , m_loginSent(false)
 {
@@ -40,12 +42,18 @@ DxClusterPanel::DxClusterPanel(QWidget *parent)
     // Setup propagation timer - check every 15 minutes
     m_propagationTimer->setInterval(15 * 60 * 1000); // 15 minutes in milliseconds
     connect(m_propagationTimer, &QTimer::timeout, this, &DxClusterPanel::onPropagationTimerTimeout);
+    
+    // Setup expiration timer - check every minute for expired spots
+    m_expirationTimer->setInterval(60 * 1000); // 1 minute in milliseconds
+    connect(m_expirationTimer, &QTimer::timeout, this, &DxClusterPanel::onExpireSpots);
+    m_expirationTimer->start();
 }
 
 DxClusterPanel::~DxClusterPanel()
 {
     saveSettings();
     m_propagationTimer->stop();
+    m_expirationTimer->stop();
     if (m_socket->state() == QAbstractSocket::ConnectedState) {
         m_socket->disconnectFromHost();
     }
@@ -80,6 +88,11 @@ void DxClusterPanel::setupUi()
     connect(m_viewCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), 
             this, &DxClusterPanel::onViewChanged);
     headerLayout->addWidget(m_viewCombo);
+    
+    m_autoScrollCheckBox = new QCheckBox("Auto-scroll", this);
+    m_autoScrollCheckBox->setChecked(true);
+    m_autoScrollCheckBox->setMaximumWidth(100);
+    headerLayout->addWidget(m_autoScrollCheckBox);
     
     headerLayout->addStretch();
     mainLayout->addLayout(headerLayout);
@@ -310,7 +323,7 @@ void DxClusterPanel::addSpot(const QString& callsign, double frequency, const QS
     m_spotTable->insertRow(row);
     
     auto createItem = [](const QString& text) {
-        QTableWidgetItem* item = new QTableWidgetItem(text.trimmed());  // Trim any leading/trailing spaces
+        QTableWidgetItem* item = new QTableWidgetItem(text.trimmed());
         item->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
         return item;
     };
@@ -335,7 +348,10 @@ void DxClusterPanel::addSpot(const QString& callsign, double frequency, const QS
         m_spotTable->removeRow(0);
     }
     
-    m_spotTable->scrollToBottom();
+    // Only scroll if auto-scroll is enabled
+    if (m_autoScrollCheckBox && m_autoScrollCheckBox->isChecked()) {
+        m_spotTable->scrollToBottom();
+    }
 }
 
 void DxClusterPanel::showLoginDialog()
@@ -464,5 +480,44 @@ void DxClusterPanel::onSpotClicked(int row, int column)
         
         DebugLogger::instance().log("DxCluster", QString("Spot clicked: call=%1 freq=%2 mode=%3").arg(callsign).arg(frequency).arg(mode));
         emit spotClicked(callsign, frequency, mode);
+    }
+}
+
+void DxClusterPanel::removeSpot(const QString& callsign)
+{
+    for (int row = 0; row < m_spotTable->rowCount(); ++row) {
+        QTableWidgetItem *callItem = m_spotTable->item(row, 1);
+        if (callItem && callItem->text().toUpper() == callsign.toUpper()) {
+            m_spotTable->removeRow(row);
+            DebugLogger::instance().log("DxCluster", QString("Removed spot for %1").arg(callsign));
+            return;
+        }
+    }
+}
+
+void DxClusterPanel::onExpireSpots()
+{
+    // Check for spots older than 15 minutes and remove them
+    QTime currentTime = QTime::currentTime();
+    const int EXPIRATION_MINUTES = 15;
+    
+    // Iterate backwards to avoid index issues when removing rows
+    for (int row = m_spotTable->rowCount() - 1; row >= 0; --row) {
+        QTableWidgetItem *timeItem = m_spotTable->item(row, 0);
+        if (timeItem) {
+            QString timeStr = timeItem->text();
+            QTime spotTime = QTime::fromString(timeStr, "HH:mm:ss");
+            
+            if (spotTime.isValid()) {
+                int minutesOld = spotTime.msecsTo(currentTime) / 60000;
+                if (minutesOld > EXPIRATION_MINUTES) {
+                    QTableWidgetItem *callItem = m_spotTable->item(row, 1);
+                    QString callsign = callItem ? callItem->text() : "unknown";
+                    m_spotTable->removeRow(row);
+                    DebugLogger::instance().log("DxCluster", 
+                        QString("Expired spot for %1 (%2 minutes old)").arg(callsign).arg(minutesOld));
+                }
+            }
+        }
     }
 }

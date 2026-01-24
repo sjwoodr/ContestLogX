@@ -419,9 +419,11 @@ bool ContestEngine::isDupe(const QsoRecord& qso, const QList<QsoRecord>& existin
         }
     }
     
-    for (const QsoRecord& existing : existingQsos) {
-        // Skip invalid QSOs (out of band or already marked as dupe)
-        if (existing.isOutOfBand() || existing.isDupe()) {
+    for (int i = 0; i < existingQsos.count(); ++i) {
+        const QsoRecord& existing = existingQsos[i];
+        // Skip only out-of-band QSOs, but NOT dupes - we want to detect dupes even if they're already marked as dupes
+        // Also skip QSOs with invalid band data (empty band string)
+        if (existing.isOutOfBand() || existing.getBand().isEmpty()) {
             continue;
         }
         
@@ -467,8 +469,8 @@ QString ContestEngine::getDupeReason(const QsoRecord& qso, const QList<QsoRecord
     }
     
     for (const QsoRecord& existing : existingQsos) {
-        // Skip invalid QSOs (out of band or already marked as dupe)
-        if (existing.isOutOfBand() || existing.isDupe()) {
+        // Skip only out-of-band QSOs, but NOT dupes - we want to detect dupes even if they're already marked as dupes
+        if (existing.isOutOfBand()) {
             continue;
         }
         
