@@ -121,6 +121,10 @@ void DxClusterPanel::setupUi()
         "} "
         "QTableWidget::item:alternate { "
         "  background-color: #1a1a1a; "
+        "} "
+        "QTableWidget::item:selected { "
+        "  background-color: #0066cc; "
+        "  color: white; "
         "}"
     );
     connect(m_spotTable, &QTableWidget::cellClicked, this, &DxClusterPanel::onSpotClicked);
@@ -319,6 +323,13 @@ void DxClusterPanel::onSendCommand()
 
 void DxClusterPanel::addSpot(const QString& callsign, double frequency, const QString& spotter, const QString& comment)
 {
+    // Save the currently selected row before adding a new spot
+    int selectedRow = -1;
+    QList<QTableWidgetSelectionRange> selections = m_spotTable->selectedRanges();
+    if (!selections.isEmpty()) {
+        selectedRow = selections.first().topRow();
+    }
+    
     int row = m_spotTable->rowCount();
     m_spotTable->insertRow(row);
     
@@ -346,6 +357,15 @@ void DxClusterPanel::addSpot(const QString& callsign, double frequency, const QS
     // Keep only last 100 spots
     if (m_spotTable->rowCount() > 100) {
         m_spotTable->removeRow(0);
+        // If we removed row 0 and had a selection, adjust the selected row index
+        if (selectedRow > 0) {
+            selectedRow--;
+        }
+    }
+    
+    // Restore the selection if there was one
+    if (selectedRow >= 0 && selectedRow < m_spotTable->rowCount()) {
+        m_spotTable->selectRow(selectedRow);
     }
     
     // Only scroll if auto-scroll is enabled
