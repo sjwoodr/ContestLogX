@@ -48,7 +48,7 @@
     {
       "name": "Winter Field Day",
       "log_file": "test_wfd_mixed_log.clx",
-      "expected_score": 644
+      "expected_score": 658
     }
   ]
 }
