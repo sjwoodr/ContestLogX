@@ -273,6 +273,10 @@
     "type": "perBandAndMode",
     "description": "Station may be contacted once per band-mode combination (max 3 times per band: CW, Phone, Digital)"
   },
+  "callHistory": {
+    "fieldsToSave": ["CATr", "LOCr"],
+    "description": "Save category/class and location for future lookups"
+  },
   "logging": {
     "requiredFields": ["date", "time", "callsign", "frequency", "mode", "categoryClassSent", "locationSent", "categoryClassReceived", "locationReceived"],
     "cabrillo": {

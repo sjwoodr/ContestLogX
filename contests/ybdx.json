@@ -225,6 +225,8 @@
     }
   },
   "callHistory": {
+    "fieldsToSave": [],
+    "description": "No specific exchange fields to save for YBDX"
   },
   "validation": {
     "minimumQSOs": 1,

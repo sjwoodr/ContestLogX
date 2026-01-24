@@ -2021,29 +2021,28 @@ void MainWindow::onCallChanged(const QString& text)
                 }
             }
             
-            if (found) {
-                DebugLogger::instance().log("MainWindow", 
-                    QString("Pre-filled exchange from call history for %1").arg(callsign));
-                // Check for dupe
-                QsoRecord tempQso;
-                tempQso.setCall(callsign);
-                tempQso.setFrequency(QString::number(m_lastFrequency, 'f', 1));
-                tempQso.setMode(m_lastMode);
-                // Set band from current frequency - use same method as logged QSO
-                QString band = m_contestEngine->getBandFromFrequency(m_lastFrequency);
-                if (!band.isEmpty()) {
-                    tempQso.setBandName(band);
-                }
-                QList<QsoRecord> allQsos = m_qsoModel->getQsos();
-                
-                if (m_contestEngine && m_contestEngine->isDupe(tempQso, allQsos)) {
-                    m_statusLabel->setText("<span style='color: red;'>⚠</span> DUPE: " + callsign);
-                    flashDupeWarning();
-                } else {
-                    m_statusLabel->setText("Ready");
-                }
-                return;
+            // Log regardless of whether we found fields (the call might be in history even without exchange data)
+            DebugLogger::instance().log("MainWindow", 
+                QString("Pre-filled exchange from call history for %1").arg(callsign));
+            // Check for dupe
+            QsoRecord tempQso;
+            tempQso.setCall(callsign);
+            tempQso.setFrequency(QString::number(m_lastFrequency, 'f', 1));
+            tempQso.setMode(m_lastMode);
+            // Set band from current frequency - use same method as logged QSO
+            QString band = m_contestEngine->getBandFromFrequency(m_lastFrequency);
+            if (!band.isEmpty()) {
+                tempQso.setBandName(band);
             }
+            QList<QsoRecord> allQsos = m_qsoModel->getQsos();
+            
+            if (m_contestEngine && m_contestEngine->isDupe(tempQso, allQsos)) {
+                m_statusLabel->setText("<span style='color: red;'>⚠</span> DUPE: " + callsign);
+                flashDupeWarning();
+            } else {
+                m_statusLabel->setText("Ready");
+            }
+            return;
         }
     }
     
