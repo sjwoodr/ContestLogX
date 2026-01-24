@@ -27,6 +27,7 @@ private:
     QString generateHeader(const QJsonObject& contestDef, const QJsonObject& headerData, const QString& selectedMode = QString());
     QString generateQsoLine(const QsoRecord& qso, const QString& qsoTemplate);
     QString formatFrequency(double freqKhz);
+    QString formatFrequency(const QString& freq);
     bool isHeaderRequired(const QString& headerName, const QJsonArray& requiredHeaders);
 };
 

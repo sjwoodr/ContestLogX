@@ -270,7 +270,7 @@
     "finalScore": "(SUM(points)) * (objectiveMultiplierCount + 1)"
   },
   "dupeChecking": {
-    "type": "perBandMode",
+    "type": "perBandAndMode",
     "description": "Station may be contacted once per band-mode combination (max 3 times per band: CW, Phone, Digital)"
   },
   "logging": {

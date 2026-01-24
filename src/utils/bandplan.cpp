@@ -102,6 +102,58 @@ QString BandPlan::freq2Band(double freqKhz)
     if (freqMHz >= 902.0 && freqMHz < 928.0) return "33cm";
     // 23cm (1240-1300 MHz)
     if (freqMHz >= 1240.0 && freqMHz < 1300.0) return "23cm";
+    // 13cm (2300-2450 MHz)
+    if (freqMHz >= 2300.0 && freqMHz < 2450.0) return "13cm";
+    // 9cm (3300-3500 MHz)
+    if (freqMHz >= 3300.0 && freqMHz < 3500.0) return "9cm";
+    // 6cm (5650-5925 MHz)
+    if (freqMHz >= 5650.0 && freqMHz < 5925.0) return "6cm";
+    // 3cm (10000-10500 MHz)
+    if (freqMHz >= 10000.0 && freqMHz < 10500.0) return "3cm";
+    // 1.25cm (24000-24250 MHz)
+    if (freqMHz >= 24000.0 && freqMHz < 24250.0) return "1.25cm";
+    // 6mm (47000-47200 MHz)
+    if (freqMHz >= 47000.0 && freqMHz < 47200.0) return "6mm";
+    
+    return "";  // Unknown band
+}
+
+QString BandPlan::freq2CabrilloBand(double freqKhz)
+{
+    double freqMHz = freqKhz / 1000.0;
+    
+    // For HF bands (below 50 MHz), return frequency in kHz as a string
+    if (freqMHz < 50.0) {
+        return QString::number(static_cast<int>(freqKhz));
+    }
+    
+    // For VHF and UHF bands (50 MHz and above), return band shorthand
+    // 6m (50-54 MHz)
+    if (freqMHz >= 50.0 && freqMHz < 54.0) return "50";
+    // 4m (70-71 MHz)
+    if (freqMHz >= 70.0 && freqMHz < 71.0) return "70";
+    // 2m (144-148 MHz)
+    if (freqMHz >= 144.0 && freqMHz < 148.0) return "144";
+    // 1.25m (222-225 MHz)
+    if (freqMHz >= 222.0 && freqMHz < 225.0) return "222";
+    // 70cm (420-450 MHz)
+    if (freqMHz >= 420.0 && freqMHz < 450.0) return "432";
+    // 33cm (902-928 MHz)
+    if (freqMHz >= 902.0 && freqMHz < 928.0) return "902";
+    // 23cm (1240-1300 MHz)
+    if (freqMHz >= 1240.0 && freqMHz < 1300.0) return "1.2G";
+    // 13cm (2300-2450 MHz)
+    if (freqMHz >= 2300.0 && freqMHz < 2450.0) return "2.3G";
+    // 9cm (3300-3500 MHz)
+    if (freqMHz >= 3300.0 && freqMHz < 3500.0) return "3.4G";
+    // 6cm (5650-5925 MHz)
+    if (freqMHz >= 5650.0 && freqMHz < 5925.0) return "5.7G";
+    // 3cm (10000-10500 MHz)
+    if (freqMHz >= 10000.0 && freqMHz < 10500.0) return "10G";
+    // 1.25cm (24000-24250 MHz)
+    if (freqMHz >= 24000.0 && freqMHz < 24250.0) return "24G";
+    // 6mm (47000-47200 MHz)
+    if (freqMHz >= 47000.0 && freqMHz < 47200.0) return "47G";
     
     return "";  // Unknown band
 }

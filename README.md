@@ -494,7 +494,7 @@ Website: contestlogx.com (to be created)
 
 ---
 
-**ContestLogX v0.1.2**  
+**ContestLogX v0.1.3**  
 *Amateur Radio Contest Logging Software*  
 Copyright (c) 2025-2026, by Steve Woodruff, N9OH
 

@@ -32,6 +32,14 @@ add_clx_test(test_settings test_settings.cpp
 add_clx_test(test_callsignutils test_callsignutils.cpp
     ${CMAKE_SOURCE_DIR}/src/utils/callsignutils.cpp)
 
+# BandPlan tests
+add_clx_test(test_bandplan test_bandplan.cpp
+    ${CMAKE_SOURCE_DIR}/src/utils/bandplan.cpp)
+
+# Dupe Checking tests
+add_clx_test(test_dupecheck test_dupecheck.cpp
+    ${CMAKE_SOURCE_DIR}/src/core/qsorecord.cpp)
+
 # TODO: Portable Callsigns tests
 # test_portable_callsigns.cpp provides comprehensive unit tests for:
 #   - US portable operation (/P, /MM, /AE, /AG, /M suffixes)

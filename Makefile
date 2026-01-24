@@ -30,6 +30,8 @@ clean:
 test: build/Makefile
 	@echo "Running unit tests..."
 	cd build && ctest --output-on-failure
+	@echo "Cleaning up test artifacts..."
+	rm -rf build/Testing/
 
 # Run automated contest log tests
 test-logs: clx

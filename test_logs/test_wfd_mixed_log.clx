@@ -12,12 +12,12 @@
         "version": "1.0.0",
         "year": 2026
     },
-    "created": "2026-01-23T21:16:38",
+    "created": "2026-01-23T21:42:02",
     "exchange_fields": [
     ],
     "format": "ContestLogX",
     "format_version": "1.0",
-    "modified": "2026-01-23T21:16:38",
+    "modified": "2026-01-23T21:42:02",
     "qsos": [
         {
             "band": "20m",
@@ -2188,6 +2188,35 @@
             "rst_sent": "59",
             "serial": 77,
             "timestamp": "2026-01-24T05:39:08Z"
+        },
+        {
+            "band": "",
+            "callsign": "W4WOD",
+            "comment": "Duplicate contact for contest",
+            "duplicate": true,
+            "dxcc_count": 0,
+            "exchange_fields": {
+                "CALL": "W4WOD",
+                "CATr": "1H",
+                "CATs": "1H",
+                "EXCHs": "FL",
+                "LOCr": "NC",
+                "LOCs": "FL",
+                "NAMEs": "STEVE",
+                "RSTr": "599",
+                "RSTs": "599",
+                "SNs": "78"
+            },
+            "frequency": 10100000,
+            "grid_square_count": 0,
+            "id": 78,
+            "mode": "CW",
+            "multiplier_count": 0,
+            "points": 0,
+            "rst_received": "599",
+            "rst_sent": "599",
+            "serial": 78,
+            "timestamp": "2026-01-24T02:40:35Z"
         }
     ],
     "station": {
@@ -2198,8 +2227,8 @@
         "operator": ""
     },
     "statistics": {
-        "score": 77,
-        "total_points": 77,
-        "total_qsos": 77
+        "score": 78,
+        "total_points": 78,
+        "total_qsos": 78
     }
 }

@@ -1,4 +1,5 @@
 #include "cabrilloexport.h"
+#include "../utils/bandplan.h"
 #include <QFile>
 #include <QTextStream>
 #include <QDateTime>
@@ -156,7 +157,8 @@ QString CabrilloExport::generateQsoLine(const QsoRecord& qso, const QString& qso
     }
     
     // Replace template variables
-    line.replace("{freq}", formatFrequency(qso.getFrequency().toDouble()));
+    QString cabrilloFreq = BandPlan::freq2CabrilloBand(qso.getFrequency().toDouble());
+    line.replace("{freq}", formatFrequency(cabrilloFreq));
     line.replace("{mode}", cabrilloMode);
     line.replace("{date}", dt.toString("yyyy-MM-dd"));
     line.replace("{time}", dt.toString("HHmm"));
@@ -223,6 +225,13 @@ QString CabrilloExport::formatFrequency(double freqKhz)
 {
     // Cabrillo format is "kHz" as integer, right-aligned in 5 chars
     return QString("%1").arg(static_cast<int>(freqKhz), 5, 10, QChar(' '));
+}
+
+QString CabrilloExport::formatFrequency(const QString& freq)
+{
+    // For band shorthand (like "10G", "144", etc.), right-align in 5 chars
+    // For numeric frequencies, pad with spaces to 5 chars
+    return QString("%1").arg(freq, 5);
 }
 
 bool CabrilloExport::isHeaderRequired(const QString& headerName, const QJsonArray& requiredHeaders)
