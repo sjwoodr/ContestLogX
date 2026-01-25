@@ -62,6 +62,7 @@ set(SOURCES
     src/utils/bandplan.cpp
     src/utils/callsignutils.cpp
     src/DxccDatabase.cpp
+    src/qrzcqapi.cpp
 )
 
 set(HEADERS
@@ -91,16 +92,17 @@ set(HEADERS
     include/stationinfo.h
     include/exchangefield.h
     include/loadingworker.h
-    include/scoringworker.h
-    include/clxfile.h
-    include/flrigclient.h
-    include/settings.h
-    include/callhistory.h
-    include/supercheckpartial.h
-    include/debuglogger.h
-    src/utils/bandplan.h
-    src/utils/callsignutils.h
-    include/DxccDatabase.h
+     include/scoringworker.h
+     include/clxfile.h
+     include/flrigclient.h
+     include/settings.h
+     include/callhistory.h
+     include/supercheckpartial.h
+     include/debuglogger.h
+     src/utils/bandplan.h
+     src/utils/callsignutils.h
+     include/DxccDatabase.h
+     include/qrzcqapi.h
 )
 
 # UI files

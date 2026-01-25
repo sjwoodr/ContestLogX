@@ -36,6 +36,7 @@
 #include <QAction>
 #include <QToolBar>
 #include <QStatusBar>
+#include <QStyle>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QGridLayout>
@@ -52,6 +53,7 @@
 #include <QFileInfo>
 #include <QDesktopServices>
 #include <QDir>
+#include <QUrl>
 #include <QDateTime>
 #include <QHeaderView>
 #include <QSplitter>
@@ -70,6 +72,7 @@ MainWindow::MainWindow(QWidget *parent)
     , m_callEdit(nullptr)
     , m_exchangeEdit(nullptr)
     , m_logButton(nullptr)
+    , m_qrzButton(nullptr)
     , m_qsoTable(nullptr)
     , m_statusLabel(nullptr)
     , m_freqModeButton(nullptr)
@@ -429,13 +432,27 @@ void MainWindow::setupUi()
     });
     m_qsoEntryLayout->addWidget(m_exchangeEdit);
     
+    // Create horizontal layout for buttons
+    QHBoxLayout* buttonLayout = new QHBoxLayout;
+    
+    // QRZ lookup button with magnifying glass icon
+    m_qrzButton = new QPushButton;
+    m_qrzButton->setIcon(style()->standardIcon(QStyle::SP_FileDialogDetailedView));  // Using a standard icon, can be replaced with custom magnifying glass
+    m_qrzButton->setFixedSize(32, 32);
+    m_qrzButton->setToolTip("Look up callsign on QRZCQ");
+    buttonLayout->addWidget(m_qrzButton);
+    
+    // Log QSO button
     m_logButton = new QPushButton("Log QSO");
-    m_qsoEntryLayout->addWidget(m_logButton);
-    m_qsoEntryLayout->addStretch();
+    buttonLayout->addWidget(m_logButton);
+    buttonLayout->addStretch();
+    
+    m_qsoEntryLayout->addLayout(buttonLayout);
     
     // Set proper tab order
     setTabOrder(m_callEdit, m_exchangeEdit);
-    setTabOrder(m_exchangeEdit, m_logButton);
+    setTabOrder(m_exchangeEdit, m_qrzButton);
+    setTabOrder(m_qrzButton, m_logButton);
     
     // Install event filters for Enter key handling
     m_callEdit->installEventFilter(this);
@@ -730,6 +747,7 @@ void MainWindow::setupMenus()
 void MainWindow::createConnections()
 {
     connect(m_logButton, &QPushButton::clicked, this, &MainWindow::onLogQso);
+    connect(m_qrzButton, &QPushButton::clicked, this, &MainWindow::onQrzLookup);
     connect(m_callEdit, &QLineEdit::textChanged, this, &MainWindow::onCallChanged);
     connect(m_exchangeEdit, &QLineEdit::textChanged, this, &MainWindow::onExchangeChanged);
     
@@ -2543,6 +2561,29 @@ void MainWindow::onLogQso()
     m_qsoCountLabel->setText(QString("QSOs: %1").arg(m_qsoModel->count()));
 }
 
+void MainWindow::onQrzLookup()
+{
+    // Get callsign from the entry field
+    QString callsign = m_callEdit->text().trimmed().toUpper();
+    
+    // If empty, use the last QSO's callsign
+    if (callsign.isEmpty()) {
+        QList<QsoRecord> qsos = m_qsoModel->getQsos();
+        if (!qsos.isEmpty()) {
+            callsign = qsos.last().getCall();
+        } else {
+            m_statusLabel->setText("No callsign to look up");
+            return;
+        }
+    }
+    
+    // Open QRZCQ webpage in default browser
+    QString url = QString("https://www.qrzcq.com/call/%1").arg(callsign);
+    QDesktopServices::openUrl(QUrl(url));
+    
+    DebugLogger::instance().log("MainWindow", QString("Opening QRZCQ lookup for %1").arg(callsign));
+}
+
 void MainWindow::onRigControl()
 {
     RigControlDialog dialog(m_flrigClient, this);
@@ -3984,9 +4025,32 @@ void MainWindow::updateQsoEntryFields()
     
     // Show the log button at the end
     m_logButton->show();
-    m_qsoEntryLayout->addWidget(m_logButton);
+    m_qrzButton->show();
     
-    // Set proper tab order: fields in order -> Log button
+    // Create horizontal layout for buttons (only if not already created)
+    // Find if button layout already exists
+    QHBoxLayout* existingButtonLayout = nullptr;
+    for (int i = m_qsoEntryLayout->count() - 1; i >= 0; --i) {
+        QLayoutItem* item = m_qsoEntryLayout->itemAt(i);
+        if (item && item->layout() && dynamic_cast<QHBoxLayout*>(item->layout())) {
+            // Check if this layout contains the buttons
+            if (item->layout()->indexOf(m_logButton) >= 0) {
+                existingButtonLayout = dynamic_cast<QHBoxLayout*>(item->layout());
+                break;
+            }
+        }
+    }
+    
+    // If button layout doesn't exist, create it
+    if (!existingButtonLayout) {
+        QHBoxLayout* buttonLayout = new QHBoxLayout;
+        buttonLayout->addWidget(m_qrzButton);
+        buttonLayout->addWidget(m_logButton);
+        buttonLayout->addStretch();
+        m_qsoEntryLayout->addLayout(buttonLayout);
+    }
+    
+    // Set proper tab order: fields in order -> QRZ button -> Log button
     QWidget* lastWidget = nullptr;
     for (const QString& fieldName : entryFieldsList) {
         if (m_exchangeFields.contains(fieldName)) {
@@ -3998,7 +4062,8 @@ void MainWindow::updateQsoEntryFields()
         }
     }
     if (lastWidget) {
-        setTabOrder(lastWidget, m_logButton);
+        setTabOrder(lastWidget, m_qrzButton);
+        setTabOrder(m_qrzButton, m_logButton);
     }
 }
 

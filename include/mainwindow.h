@@ -51,6 +51,7 @@ private slots:
     void onModeChanged(int index);
     void onExchangeChanged(const QString& text);
     void onLogQso();
+    void onQrzLookup();
     
     void onFreqModeButtonClicked();
     void onCWWindow();
@@ -123,6 +124,7 @@ private:
     QLineEdit *m_callEdit;
     QLineEdit *m_exchangeEdit;
     QPushButton *m_logButton;
+    QPushButton *m_qrzButton;
     QTableView *m_qsoTable;
     
     QLabel *m_statusLabel;
