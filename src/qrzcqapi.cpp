@@ -7,6 +7,8 @@
 #include <QXmlStreamReader>
 #include <QDebug>
 
+// https://www.qrzcq.com/docs/api/xml/
+
 QrzcqCallsignData::QrzcqCallsignData()
     : latitude(0.0)
     , longitude(0.0)

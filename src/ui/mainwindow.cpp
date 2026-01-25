@@ -97,6 +97,7 @@ MainWindow::MainWindow(QWidget *parent)
     , m_lastFrequency(14250.0)
     , m_lastMode("USB")
     , m_lastWpm(28)
+    , m_qrzcqApi(new QrzcqApi(this))
     , m_contextMenuRow(-1)
 {
     // Validate startup requirements
@@ -308,6 +309,16 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
             // Check if this field is in our entry field list
             int currentIndex = m_entryFieldOrder.indexOf(lineEdit);
             if (currentIndex >= 0) {
+                // If leaving the call field, trigger QRZCQ lookup
+                if (lineEdit == m_callEdit && !m_callEdit->text().isEmpty()) {
+                    QString callsign = m_callEdit->text().trimmed().toUpper();
+                    // Check if it's a reasonable callsign length (at least 2 chars)
+                    if (callsign.length() >= 2) {
+                        m_pendingQrzcqCall = callsign;
+                        m_qrzcqApi->lookupCallsign(callsign);
+                    }
+                }
+                
                 // Move to next field, wrapping to first field if at the end
                 int nextIndex = (currentIndex + 1) % m_entryFieldOrder.size();
                 m_entryFieldOrder[nextIndex]->setFocus();
@@ -812,6 +823,13 @@ void MainWindow::createConnections()
     
     // Dupe flash timer
     connect(m_dupeFlashTimer, &QTimer::timeout, this, &MainWindow::onDupeFlashTimeout);
+    
+    // QRZCQ API connections
+    connect(m_qrzcqApi, &QrzcqApi::sessionObtained, this, &MainWindow::onQrzcqSessionObtained);
+    connect(m_qrzcqApi, &QrzcqApi::sessionError, this, &MainWindow::onQrzcqSessionError);
+    connect(m_qrzcqApi, &QrzcqApi::callsignFound, this, &MainWindow::onQrzcqCallsignFound);
+    connect(m_qrzcqApi, &QrzcqApi::callsignNotFound, this, &MainWindow::onQrzcqCallsignNotFound);
+    connect(m_qrzcqApi, &QrzcqApi::lookupError, this, &MainWindow::onQrzcqLookupError);
 }
 
 void MainWindow::onNewLog()
@@ -3427,6 +3445,54 @@ void MainWindow::onDupeFlashTimeout()
         m_qsoEntryGroup->setAutoFillBackground(false);
     }
     m_dupeFlashTimer->stop();
+}
+
+void MainWindow::onQrzcqSessionObtained(const QString& token)
+{
+    DebugLogger::instance().log("MainWindow", 
+        QString("QRZCQ session obtained: %1...").arg(token.left(10)));
+}
+
+void MainWindow::onQrzcqSessionError(const QString& error)
+{
+    DebugLogger::instance().log("MainWindow", 
+        QString("QRZCQ session error: %1").arg(error));
+}
+
+void MainWindow::onQrzcqCallsignFound(const QrzcqCallsignData& data)
+{
+    // Format the status bar message: <call> <name> <city> <qth> <country>
+    QString statusMessage = data.call;
+    if (!data.name.isEmpty()) {
+        statusMessage += " " + data.name;
+    }
+    if (!data.city.isEmpty()) {
+        statusMessage += " " + data.city;
+    }
+    if (!data.qth.isEmpty()) {
+        statusMessage += " " + data.qth;
+    }
+    if (!data.country.isEmpty()) {
+        statusMessage += " " + data.country;
+    }
+    
+    m_statusLabel->setText(statusMessage);
+    DebugLogger::instance().log("MainWindow", 
+        QString("QRZCQ lookup found: %1").arg(statusMessage));
+}
+
+void MainWindow::onQrzcqCallsignNotFound(const QString& callsign)
+{
+    m_statusLabel->setText(QString("Callsign %1 not found in QRZCQ").arg(callsign));
+    DebugLogger::instance().log("MainWindow", 
+        QString("QRZCQ lookup: %1 not found").arg(callsign));
+}
+
+void MainWindow::onQrzcqLookupError(const QString& error)
+{
+    // Only show brief error, don't break the workflow
+    DebugLogger::instance().log("MainWindow", 
+        QString("QRZCQ lookup error: %1").arg(error));
 }
 
 void MainWindow::onToggleDxCluster(bool checked)

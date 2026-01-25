@@ -20,6 +20,7 @@
 #include "qsorecord.h"
 #include "flrigclient.h"
 #include "qsoeditdialog.h"
+#include "qrzcqapi.h"
 
 class MainWindow : public QMainWindow
 {
@@ -52,6 +53,11 @@ private slots:
     void onExchangeChanged(const QString& text);
     void onLogQso();
     void onQrzLookup();
+    void onQrzcqSessionObtained(const QString& token);
+    void onQrzcqSessionError(const QString& error);
+    void onQrzcqCallsignFound(const QrzcqCallsignData& data);
+    void onQrzcqCallsignNotFound(const QString& callsign);
+    void onQrzcqLookupError(const QString& error);
     
     void onFreqModeButtonClicked();
     void onCWWindow();
@@ -188,6 +194,10 @@ private:
     double m_lastFrequency;
     QString m_lastMode;
     int m_lastWpm;
+    
+    // QRZCQ API
+    QrzcqApi *m_qrzcqApi;
+    QString m_pendingQrzcqCall;
     
     // UI state saving
 
