@@ -90,6 +90,7 @@ MainWindow::MainWindow(QWidget *parent)
     , m_showingLogFileNotFoundDialog(false)
     , m_testMode(false)
     , m_debugLogMode(false)
+    , m_sessionStationInfo(new StationInfo())
     , m_contestEngine(new ContestEngine(this))
     , m_dxccDatabase(new DxccDatabase(this))
     , m_flrigClient(new FlrigClient(this))
@@ -200,6 +201,12 @@ MainWindow::MainWindow(QWidget *parent)
     int pollInterval = settings.getFlrigPollInterval();
     m_rigPollTimer->setInterval(pollInterval);
     connect(m_rigPollTimer, &QTimer::timeout, this, &MainWindow::onUpdateRigDisplay);
+
+    // Initialize session station info from Settings (will be overridden if loading a log file)
+    m_sessionStationInfo->setCallsign(settings.getCallsign());
+    m_sessionStationInfo->setOperatorName(settings.getOperatorName());
+    m_sessionStationInfo->setGrid(settings.getGridSquare());
+    m_sessionStationInfo->setState(settings.getState());
     
     // Load CW memories
     loadCWMemories();
@@ -1380,25 +1387,25 @@ void MainWindow::onOpenLog()
             QList<QsoRecord> temp;
             fileHandler.loadClxWithContest(fileName, temp, contestFile, stationClass, loadedContestVersion, stationClassExchangeName, stationClassExchangeId);
             
-            // Also load the station info from the CLX file
+            // Also load the station info from the CLX file (for session use only - don't persist to Settings)
             ClxFile clxFile;
             QString loadedMode;
             if (clxFile.load(fileName)) {
+                // Update session station info from loaded file (NOT Settings)
+                *m_sessionStationInfo = clxFile.station();
+
                 QString loadedCallsign = clxFile.station().callsign();
                 if (!loadedCallsign.isEmpty()) {
-                    Settings::instance().setCallsign(loadedCallsign);
-                    DebugLogger::instance().log("MainWindow", QString("Loaded callsign from CLX: %1").arg(loadedCallsign));
+                    DebugLogger::instance().log("MainWindow", QString("Loaded callsign from CLX (session only): %1").arg(loadedCallsign));
                 }
-                // Also load operator name and state if available
+                // Also log operator name and state if available
                 QString operatorName = clxFile.station().operatorName();
                 QString operatorState = clxFile.station().state();
                 if (!operatorName.isEmpty()) {
-                    Settings::instance().setOperatorName(operatorName);
-                    DebugLogger::instance().log("MainWindow", QString("Loaded operator name from CLX: %1").arg(operatorName));
+                    DebugLogger::instance().log("MainWindow", QString("Loaded operator name from CLX (session only): %1").arg(operatorName));
                 }
                 if (!operatorState.isEmpty()) {
-                    Settings::instance().setState(operatorState);
-                    DebugLogger::instance().log("MainWindow", QString("Loaded operator state from CLX: %1").arg(operatorState));
+                    DebugLogger::instance().log("MainWindow", QString("Loaded operator state from CLX (session only): %1").arg(operatorState));
                 }
                 // Also load the contest mode
                 loadedMode = clxFile.contest().mode();
@@ -1561,7 +1568,7 @@ void MainWindow::onOpenLog()
             
             // Get current QSOs from model
             QList<QsoRecord> currentQsos = m_qsoModel->getAllQsos();
-            QString myCallsign = Settings::instance().getCallsign();
+            QString myCallsign = getSessionCallsign();
             
             // Create NEW progress dialog for scoring phase
             QProgressDialog *scoringProgressDialog = new QProgressDialog("Scoring QSOs...", QString(), 0, currentQsos.count(), this);
@@ -1694,25 +1701,25 @@ void MainWindow::loadLogFile(const QString& filename)
             QList<QsoRecord> temp;
             fileHandler.loadClxWithContest(filename, temp, contestFile, stationClass, loadedContestVersion, stationClassExchangeName, stationClassExchangeId, userPromptValues);
             
-            // Also load the station info from the CLX file
+            // Also load the station info from the CLX file (for session use only - don't persist to Settings)
             ClxFile clxFile;
             QString loadedMode;
             if (clxFile.load(filename)) {
+                // Update session station info from loaded file (NOT Settings)
+                *m_sessionStationInfo = clxFile.station();
+
                 QString loadedCallsign = clxFile.station().callsign();
                 if (!loadedCallsign.isEmpty()) {
-                    Settings::instance().setCallsign(loadedCallsign);
-                    DebugLogger::instance().log("MainWindow", QString("Loaded callsign from CLX: %1").arg(loadedCallsign));
+                    DebugLogger::instance().log("MainWindow", QString("Loaded callsign from CLX (session only): %1").arg(loadedCallsign));
                 }
-                // Also load operator name and state if available
+                // Also log operator name and state if available
                 QString operatorName = clxFile.station().operatorName();
                 QString operatorState = clxFile.station().state();
                 if (!operatorName.isEmpty()) {
-                    Settings::instance().setOperatorName(operatorName);
-                    DebugLogger::instance().log("MainWindow", QString("Loaded operator name from CLX: %1").arg(operatorName));
+                    DebugLogger::instance().log("MainWindow", QString("Loaded operator name from CLX (session only): %1").arg(operatorName));
                 }
                 if (!operatorState.isEmpty()) {
-                    Settings::instance().setState(operatorState);
-                    DebugLogger::instance().log("MainWindow", QString("Loaded operator state from CLX: %1").arg(operatorState));
+                    DebugLogger::instance().log("MainWindow", QString("Loaded operator state from CLX (session only): %1").arg(operatorState));
                 }
                 // Also load the contest mode
                 loadedMode = clxFile.contest().mode();
@@ -1813,7 +1820,7 @@ void MainWindow::loadLogFile(const QString& filename)
         progressDialog->deleteLater();
         
         // Auto-recalculate score on background thread to avoid blocking UI
-        QString myCallsign = Settings::instance().getCallsign();
+        QString myCallsign = getSessionCallsign();
         
         // Create NEW progress dialog for scoring phase
         QProgressDialog *scoringProgressDialog = new QProgressDialog("Scoring QSOs...", QString(), 0, loadedQsos.count(), this);
@@ -1909,14 +1916,14 @@ void MainWindow::onSaveLog()
     // Save file
     FileHandler fileHandler;
     bool success = false;
-    
+
     // Use contest-aware save for .clx files
     if (m_currentFile.endsWith(".clx", Qt::CaseInsensitive) && !m_contestDefinition.isEmpty()) {
         QString stationClass = m_contestEngine ? m_contestEngine->getStationClass() : QString();
         QString stationClassExchangeName = m_contestEngine ? m_contestEngine->getStationClassExchangeName() : QString();
         QString stationClassExchangeId = m_contestEngine ? m_contestEngine->getStationClassExchangeId() : QString();
         QMap<QString, QString> userPromptValues = m_contestEngine ? m_contestEngine->getUserPromptValues() : QMap<QString, QString>();
-        success = fileHandler.saveClxWithContest(m_currentFile, m_qsoModel->getQsos(), m_contestFile, m_contestDefinition, stationClass, stationClassExchangeName, stationClassExchangeId, userPromptValues);
+        success = fileHandler.saveClxWithContest(m_currentFile, m_qsoModel->getQsos(), m_contestFile, m_contestDefinition, stationClass, stationClassExchangeName, stationClassExchangeId, userPromptValues, *m_sessionStationInfo);
     } else {
         success = fileHandler.save(m_currentFile, m_qsoModel->getQsos());
     }
@@ -2539,7 +2546,7 @@ void MainWindow::onLogQso()
                      QString("Dupe QSO logged: %1 with 0 points").arg(qso.getCall()));
              } else {
                  // Calculate points (pass station callsign)
-                 QString myCallsign = Settings::instance().getCallsign();
+                 QString myCallsign = getSessionCallsign();
                  int points = m_contestEngine->calculatePoints(qso, myCallsign);
                  qso.setPoints(points);
                  m_statusLabel->setText("QSO logged");
@@ -2559,7 +2566,7 @@ void MainWindow::onLogQso()
     
     // Update running score and get total multiplier count
     if (m_contestEngine && m_scoreWidget) {
-        QString myCallsign = Settings::instance().getCallsign();
+        QString myCallsign = getSessionCallsign();
         QList<QsoRecord> allQsos = m_qsoModel->getQsos();
         
         // Get the multiplier credit BEFORE updating running score
@@ -2808,9 +2815,9 @@ void MainWindow::onRecalculateScore()
     
     // Reset contest engine
     m_contestEngine->resetScore();
-    
+
     // Re-score each QSO without popups
-    QString myCallsign = Settings::instance().getCallsign();
+    QString myCallsign = getSessionCallsign();
     
     for (int i = 0; i < allQsos.count(); ++i) {
         QsoRecord qso = allQsos[i];
@@ -3092,7 +3099,7 @@ void MainWindow::onExportCabrillo()
     
     // Show Cabrillo header dialog
     CabrilloDialog dialog(this);
-    dialog.setCallsign(Settings::instance().getCallsign());
+    dialog.setCallsign(getSessionCallsign());
     
     // Get the final contest score from the score widget (which is the only accurate representation)
     int totalScore = m_scoreWidget ? m_scoreWidget->getFinalScore() : 0;
@@ -3104,7 +3111,7 @@ void MainWindow::onExportCabrillo()
     
     // Ask where to save - use callsign as default filename
     QString defaultDir = QDir::homePath();
-    QString callsign = Settings::instance().getCallsign();
+    QString callsign = getSessionCallsign();
     QString defaultFileName = callsign.isEmpty() ? "cabrillo.log" : callsign.toLower() + ".log";
     
     QString fileName = QFileDialog::getSaveFileName(this, "Export Cabrillo Log",
@@ -3116,7 +3123,7 @@ void MainWindow::onExportCabrillo()
     
     // Export
     CabrilloExport exporter;
-    QString myCallsign = Settings::instance().getCallsign();
+    QString myCallsign = getSessionCallsign();
     QString selectedMode = m_contestEngine->getStationClassMode();
     if (!exporter.exportToFile(fileName, m_qsoModel->getAllQsos(), m_contestDefinition, dialog.getHeaderData(), myCallsign, selectedMode)) {
         QMessageBox::critical(this, "Export Failed", "Failed to export Cabrillo log:\n" + exporter.lastError());
@@ -4390,9 +4397,9 @@ QString MainWindow::generateSummaryString()
     out << "CONTEST SUMMARY SHEET\n";
     out << "=" << QString("=").repeated(63) << "=" << "\n";
     out << "\n";
-    
+
     out << "Contest: " << m_contestEngine->getContestName() << "\n";
-    out << "Callsign: " << Settings::instance().getCallsign() << "\n";
+    out << "Callsign: " << getSessionCallsign() << "\n";
     
     // Calculate operating hours using offTimeGapMinutes from contest definition (default: 30 mins)
     double operatingHours = 0.0;
@@ -4827,7 +4834,7 @@ void MainWindow::onCreateSummarySheet()
     }
     
     // Get save file location with default filename
-    QString callsign = Settings::instance().getCallsign();
+    QString callsign = getSessionCallsign();
     QString contestName = m_contestEngine->getContestName();
     QString year = QString::number(QDate::currentDate().year());
     
@@ -4909,5 +4916,14 @@ void MainWindow::generateSummaryToDebugLog()
         DebugLogger::instance().log("MainWindow", line);
     }
     DebugLogger::instance().log("MainWindow", "=== SUMMARY SHEET END ===");
+}
+
+QString MainWindow::getSessionCallsign() const
+{
+    if (m_sessionStationInfo && !m_sessionStationInfo->callsign().isEmpty()) {
+        return m_sessionStationInfo->callsign();
+    }
+    // Fallback to Settings if session info not set
+    return Settings::instance().getCallsign();
 }
     

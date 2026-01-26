@@ -5,6 +5,7 @@
 
 #include "filehandler.h"
 #include "clxfile.h"
+#include "stationinfo.h"
 #include "debuglogger.h"
 #include <QFile>
 #include <QTextStream>
@@ -592,6 +593,83 @@ bool FileHandler::saveClxWithContest(const QString& filename, const QList<QsoRec
         return false;
     }
     
+    return true;
+}
+
+bool FileHandler::saveClxWithContest(const QString& filename, const QList<QsoRecord>& qsos, const QString& contestFile, const QJsonObject& contestDef, const QString& stationClass, const QString& stationClassExchangeName, const QString& stationClassExchangeId, const QMap<QString, QString>& userPromptValues, const StationInfo& stationInfo)
+{
+    ClxFile clxFile;
+
+    // Set station info from parameter
+    clxFile.station() = stationInfo;
+
+    // Set contest info
+    if (!contestDef.isEmpty()) {
+        QString contestName = "General DXCC Logging";
+
+        // Try to get contest name from nested contest object
+        if (contestDef.contains("contest")) {
+            QJsonObject contestObj = contestDef["contest"].toObject();
+            if (contestObj.contains("name")) {
+                contestName = contestObj["name"].toString();
+            }
+            // Save contest version if available
+            if (contestObj.contains("version")) {
+                clxFile.contest().setContestVersion(contestObj["version"].toString());
+            }
+        }
+
+        // Fall back to top-level name if nested one not found
+        if (contestName == "General DXCC Logging" && contestDef.contains("name")) {
+            QString topLevelName = contestDef["name"].toString();
+            if (!topLevelName.isEmpty()) {
+                contestName = topLevelName;
+            }
+        }
+
+        clxFile.contest().setName(contestName);
+        clxFile.contest().setType(contestName);
+        clxFile.contest().setContestFile(contestFile);
+
+        // Add station class if provided
+        if (!stationClass.isEmpty()) {
+            clxFile.contest().setCategory("station_class", stationClass);
+        }
+
+        // Add station class exchange data - name and ID separately
+        if (!stationClassExchangeName.isEmpty()) {
+            clxFile.contest().setCategory("station_class_exchange_name", stationClassExchangeName);
+        }
+        if (!stationClassExchangeId.isEmpty()) {
+            clxFile.contest().setCategory("station_class_exchange_id", stationClassExchangeId);
+        }
+
+        // Add user prompt values (e.g., contestMonth, gridSquare, etc.)
+        if (userPromptValues.isEmpty()) {
+            DebugLogger::instance().log("FileHandler", "No userPromptValues to save");
+        } else {
+            DebugLogger::instance().log("FileHandler",
+                QString("Saving %1 userPromptValues to CLX file").arg(userPromptValues.size()));
+            for (auto it = userPromptValues.constBegin(); it != userPromptValues.constEnd(); ++it) {
+                if (!it.value().isEmpty()) {
+                    DebugLogger::instance().log("FileHandler",
+                        QString("  Saving userPrompt %1 = '%2'").arg(it.key(), it.value()));
+                    clxFile.contest().setCategory("userPrompt_" + it.key(), it.value());
+                }
+            }
+        }
+    }
+
+    // Add QSOs
+    for (const QsoRecord& qso : qsos) {
+        clxFile.addQso(qso);
+    }
+
+    if (!clxFile.save(filename)) {
+        m_lastError = clxFile.lastError();
+        return false;
+    }
+
     return true;
 }
 

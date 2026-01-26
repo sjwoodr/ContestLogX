@@ -21,6 +21,7 @@
 #include "flrigclient.h"
 #include "qsoeditdialog.h"
 #include "qrzcqapi.h"
+#include "stationinfo.h"
 
 class MainWindow : public QMainWindow
 {
@@ -32,7 +33,10 @@ public:
     
     void loadLogFile(const QString& filename);
     void setTestMode(bool testMode) { m_testMode = testMode; }
-    
+
+    // Get session station callsign (from loaded log or Settings)
+    QString getSessionCallsign() const;
+
     // Public method for self-test
 
 private slots:
@@ -178,6 +182,9 @@ private:
     bool m_showingLogFileNotFoundDialog;
     bool m_testMode;  // Set when --test-only argument is provided
     bool m_debugLogMode;  // Set when --log argument is provided, triggers auto-summary to debug log
+
+    // Session station info - loaded from file or defaults to Settings, NOT saved to Settings
+    class StationInfo *m_sessionStationInfo;
     
     // Contest definition
     QJsonObject m_contestDefinition;

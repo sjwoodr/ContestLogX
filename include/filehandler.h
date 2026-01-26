@@ -10,6 +10,8 @@
 #include <QList>
 #include "qsorecord.h"
 
+class StationInfo;  // Forward declaration
+
 /**
  * @brief Handles reading/writing ContestLogX file formats
  * 
@@ -50,7 +52,9 @@ public:
     bool saveClxWithContest(const QString& filename, const QList<QsoRecord>& qsos, const QString& contestFile, const QJsonObject& contestDef, const QString& stationClass, const QString& stationClassExchangeName, const QString& stationClassExchangeId);
     // Overload with userPromptValues
     bool saveClxWithContest(const QString& filename, const QList<QsoRecord>& qsos, const QString& contestFile, const QJsonObject& contestDef, const QString& stationClass, const QString& stationClassExchangeName, const QString& stationClassExchangeId, const QMap<QString, QString>& userPromptValues);
-    
+    // Overload with userPromptValues and StationInfo
+    bool saveClxWithContest(const QString& filename, const QList<QsoRecord>& qsos, const QString& contestFile, const QJsonObject& contestDef, const QString& stationClass, const QString& stationClassExchangeName, const QString& stationClassExchangeId, const QMap<QString, QString>& userPromptValues, const StationInfo& stationInfo);
+
     QString lastError() const { return m_lastError; }
 
 private:
