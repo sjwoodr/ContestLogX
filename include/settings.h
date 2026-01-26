@@ -199,6 +199,15 @@ public:
     QString getQrzcqPassword() const;
     void setQrzcqCredentials(const QString& username, const QString& password);
 
+    // Contest user prompts
+    QString getContestUserPrompt(const QString& contestFile, const QString& promptId) const;
+    void setContestUserPrompt(const QString& contestFile, const QString& promptId, const QString& value);
+    void clearContestUserPrompts(const QString& contestFile);
+
+    // Dialog geometries
+    QByteArray getCabrilloDialogGeometry() const;
+    void setCabrilloDialogGeometry(const QByteArray& geometry);
+
     void save();
 
     // Static utility function to get data directory path

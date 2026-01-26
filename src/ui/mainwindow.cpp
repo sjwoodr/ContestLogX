@@ -3109,21 +3109,16 @@ void MainWindow::onContestSetup()
         return;
     }
     
-    // Clear saved userPrompt responses from QSettings
+    // Clear saved userPrompt responses from Settings
     QString contestFile = m_contestFile;
     if (contestFile.endsWith(".json")) {
         contestFile.remove(".json");
     }
-    
-    QSettings settings(QSettings::UserScope, "ContestLogX", "ContestLogX");
-    settings.beginGroup("contests/" + contestFile);
-    QStringList keys = settings.allKeys();
-    for (const QString& key : keys) {
-        settings.remove(key);
-    }
-    settings.endGroup();
-    
-    DebugLogger::instance().log("MainWindow", 
+
+    Settings::instance().clearContestUserPrompts(contestFile);
+    Settings::instance().save();
+
+    DebugLogger::instance().log("MainWindow",
         QString("Cleared userPrompt settings for contest: %1").arg(contestFile));
     
     // Now re-prompt for each userPrompt
@@ -3184,14 +3179,13 @@ void MainWindow::onContestSetup()
             
             // Store the value
             if (!value.isEmpty()) {
-                settings.beginGroup("contests/" + contestFile);
-                settings.setValue("userPrompts/" + promptId, value);
-                settings.endGroup();
+                Settings::instance().setContestUserPrompt(contestFile, promptId, value);
+                Settings::instance().save();
                 // Also update the contest engine
                 if (m_contestEngine) {
                     m_contestEngine->setUserPromptValue(promptId, value);
                 }
-                DebugLogger::instance().log("MainWindow", 
+                DebugLogger::instance().log("MainWindow",
                     QString("Set userPrompt %1 = %2").arg(promptId, value));
             }
         } else if (type == "select") {
@@ -3213,14 +3207,13 @@ void MainWindow::onContestSetup()
                 int idx = optionLabels.indexOf(selected);
                 if (idx >= 0) {
                     QString selectedValue = optionValues[idx];
-                    settings.beginGroup("contests/" + contestFile);
-                    settings.setValue("userPrompts/" + promptId, selectedValue);
-                    settings.endGroup();
+                    Settings::instance().setContestUserPrompt(contestFile, promptId, selectedValue);
+                    Settings::instance().save();
                     // Also update the contest engine
                     if (m_contestEngine) {
                         m_contestEngine->setUserPromptValue(promptId, selectedValue);
                     }
-                    DebugLogger::instance().log("MainWindow", 
+                    DebugLogger::instance().log("MainWindow",
                         QString("Set userPrompt %1 = %2").arg(promptId, selectedValue));
                 }
             }

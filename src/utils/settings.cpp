@@ -1003,7 +1003,50 @@ void Settings::setQrzcqCredentials(const QString& username, const QString& passw
     m_modified = true;
 }
 
+QString Settings::getContestUserPrompt(const QString& contestFile, const QString& promptId) const
+{
+    QJsonObject contests = m_settings["contests"].toObject();
+    QJsonObject contest = contests[contestFile].toObject();
+    QJsonObject userPrompts = contest["userPrompts"].toObject();
+    return userPrompts[promptId].toString();
+}
 
+void Settings::setContestUserPrompt(const QString& contestFile, const QString& promptId, const QString& value)
+{
+    QJsonObject contests = m_settings["contests"].toObject();
+    QJsonObject contest = contests[contestFile].toObject();
+    QJsonObject userPrompts = contest["userPrompts"].toObject();
+
+    userPrompts[promptId] = value;
+    contest["userPrompts"] = userPrompts;
+    contests[contestFile] = contest;
+    m_settings["contests"] = contests;
+    m_modified = true;
+}
+
+void Settings::clearContestUserPrompts(const QString& contestFile)
+{
+    QJsonObject contests = m_settings["contests"].toObject();
+    QJsonObject contest = contests[contestFile].toObject();
+    contest["userPrompts"] = QJsonObject();  // Empty object
+    contests[contestFile] = contest;
+    m_settings["contests"] = contests;
+    m_modified = true;
+}
+
+QByteArray Settings::getCabrilloDialogGeometry() const
+{
+    QString base64 = m_settings["dialogs"].toObject()["cabrilloGeometry"].toString();
+    return QByteArray::fromBase64(base64.toLatin1());
+}
+
+void Settings::setCabrilloDialogGeometry(const QByteArray& geometry)
+{
+    QJsonObject dialogs = m_settings["dialogs"].toObject();
+    dialogs["cabrilloGeometry"] = QString::fromLatin1(geometry.toBase64());
+    m_settings["dialogs"] = dialogs;
+    m_modified = true;
+}
 
 QString Settings::getDataPath()
 {

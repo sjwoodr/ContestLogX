@@ -9,7 +9,6 @@
 #include <QPushButton>
 #include <QJsonObject>
 #include <QScrollArea>
-#include <QSettings>
 #include <QCloseEvent>
 
 CabrilloDialog::CabrilloDialog(QWidget *parent)
@@ -336,9 +335,9 @@ void CabrilloDialog::loadFromSettings()
     m_categoryOverlayCombo->setCurrentText(settings.getCabrilloOverlay());
     
     // Restore dialog geometry
-    QSettings qSettings("ContestLogX", "ContestLogX");
-    if (qSettings.contains("cabrillodialog/geometry")) {
-        restoreGeometry(qSettings.value("cabrillodialog/geometry").toByteArray());
+    QByteArray savedGeometry = settings.getCabrilloDialogGeometry();
+    if (!savedGeometry.isEmpty()) {
+        restoreGeometry(savedGeometry);
     }
 }
 
@@ -360,10 +359,10 @@ void CabrilloDialog::saveToSettings() const
     settings.setCabrilloTransmitter(m_categoryTransmitterCombo->currentText());
     settings.setCabrilloAssisted(m_categoryAssistedCombo->currentText());
     settings.setCabrilloOverlay(m_categoryOverlayCombo->currentText());
-    
+
     // Save dialog geometry
-    QSettings qSettings("ContestLogX", "ContestLogX");
-    qSettings.setValue("cabrillodialog/geometry", saveGeometry());
+    settings.setCabrilloDialogGeometry(saveGeometry());
+    settings.save();
 }
 
 void CabrilloDialog::closeEvent(QCloseEvent *event)
