@@ -7,6 +7,7 @@
 #include "dxclusterpanel.h"
 #include "scorewidget.h"
 #include "scpwidget.h"
+#include "ssbmemorieswidget.h"
 #include "scplineedit.h"
 #include "stationsetupdialog.h"
 #include "stationclassdialog.h"
@@ -62,6 +63,7 @@
 #include <QThread>
 #include <QDockWidget>
 #include <QCloseEvent>
+#include <QShowEvent>
 #include <QtMath>
 #include <QKeyEvent>
 #include <QSettings>
@@ -91,12 +93,15 @@ MainWindow::MainWindow(QWidget *parent)
     , m_showingLogFileNotFoundDialog(false)
     , m_testMode(false)
     , m_debugLogMode(false)
+    , m_firstShow(true)
+    , m_restoringState(false)
     , m_sessionStationInfo(new StationInfo())
     , m_contestEngine(new ContestEngine(this))
     , m_dxccDatabase(new DxccDatabase(this))
     , m_flrigClient(new FlrigClient(this))
     , m_rigPollTimer(new QTimer(this))
     , m_dupeFlashTimer(new QTimer(this))
+    , m_dockStateSaveTimer(new QTimer(this))
     , m_lastFrequency(14250.0)
     , m_lastMode("USB")
     , m_lastWpm(28)
@@ -256,11 +261,11 @@ MainWindow::MainWindow(QWidget *parent)
             QTimer::singleShot(100, this, &MainWindow::onNewLog);
         }
     }
-    
-    // Restore window geometry or use defaults
-    restoreWindowGeometry();
-    restorePanelState();
-    
+
+    // Restore window geometry in showEvent (after window is visible)
+    // restoreWindowGeometry() will be called in showEvent() on first show
+    // DON'T restore panel state here - it will be restored AFTER window geometry in showEvent()
+
     // Load saved CW WPM
     int savedWpm = settings.getCwWpm();
     m_lastWpm = savedWpm;
@@ -270,6 +275,42 @@ MainWindow::MainWindow(QWidget *parent)
 MainWindow::~MainWindow()
 {
     // Cleanup happens in closeEvent
+}
+
+void MainWindow::showEvent(QShowEvent *event)
+{
+    QMainWindow::showEvent(event);
+
+    // On first show, restore window geometry after window is visible
+    // This is necessary because many Linux window managers ignore position
+    // requests until the window is actually shown
+    if (m_firstShow) {
+        m_firstShow = false;
+
+        // Use a small delay to ensure window manager has processed the show event
+        QTimer::singleShot(0, this, [this]() {
+            // Restore window geometry FIRST
+            restoreWindowGeometry();
+            DebugLogger::instance().log("MainWindow",
+                QString("Window geometry restored in showEvent, current pos=(%1,%2)")
+                .arg(pos().x()).arg(pos().y()));
+
+            // Then restore panel/dock state AFTER window geometry
+            // This is critical - if dock state is restored before window geometry,
+            // the window resize will override the restored dock sizes
+            QTimer::singleShot(100, this, [this]() {
+                restorePanelState();
+                DebugLogger::instance().log("MainWindow", "Panel state restored after window geometry");
+            });
+        });
+
+        // Log position after a longer delay to see if window manager moves it
+        QTimer::singleShot(500, this, [this]() {
+            DebugLogger::instance().log("MainWindow",
+                QString("Window position 500ms after show: pos=(%1,%2)")
+                .arg(pos().x()).arg(pos().y()));
+        });
+    }
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
@@ -533,7 +574,7 @@ void MainWindow::setupUi()
     // SCP Widget as QDockWidget
     m_scpWidget = new ScpWidget(this);
     m_scpWidget->setMinimumHeight(100);
-    m_scpWidget->setMaximumHeight(200);
+    // No maximum height - allow user to resize as needed
     m_scpWidget->setAllowedAreas(Qt::AllDockWidgetAreas);
     m_scpWidget->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable | QDockWidget::DockWidgetClosable);
     addDockWidget(Qt::RightDockWidgetArea, m_scpWidget);
@@ -543,10 +584,32 @@ void MainWindow::setupUi()
     splitDockWidget(m_dxClusterDock, m_scpWidget, Qt::Vertical);
     
     m_scpWidget->hide();  // Hidden by default, user can show via Window menu
-    
+
     // Store as m_scpDock for consistency with other docks
     m_scpDock = m_scpWidget;
-    
+
+    // SSB Memories Widget (also a QDockWidget)
+    m_ssbMemoriesWidget = new SsbMemoriesWidget(this);
+    m_ssbMemoriesWidget->setObjectName("ssbMemoriesWidget");  // Required for saveState/restoreState
+    m_ssbMemoriesWidget->setMinimumHeight(120);
+    // No maximum height - allow user to resize as needed
+    m_ssbMemoriesWidget->setAllowedAreas(Qt::AllDockWidgetAreas);
+    m_ssbMemoriesWidget->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable | QDockWidget::DockWidgetClosable);
+    addDockWidget(Qt::RightDockWidgetArea, m_ssbMemoriesWidget);
+    m_ssbMemoriesWidget->hide();  // Hidden by default, user can show via Window menu
+
+    // Load SSB memories from settings
+    m_ssbMemoriesWidget->setMemories(Settings::instance().getSsbMemories());
+
+    // Connect memory triggered signal (for future TTS integration)
+    connect(m_ssbMemoriesWidget, &SsbMemoriesWidget::memoryTriggered,
+            this, [this](int memoryNumber, const QString& text) {
+        DebugLogger::instance().log("MainWindow",
+            QString("SSB Memory F%1 triggered: %2").arg(memoryNumber).arg(text));
+        // TODO: Implement TTS playback with piper + paplay
+        m_statusLabel->setText(QString("SSB F%1: %2").arg(memoryNumber).arg(text));
+    });
+
     // Enable nested docking and animated docks
     setDockNestingEnabled(true);
     setDockOptions(QMainWindow::AnimatedDocks | QMainWindow::AllowNestedDocks | QMainWindow::AllowTabbedDocks);
@@ -584,18 +647,25 @@ void MainWindow::setupUi()
     });
     
     // Save dock state when dock widgets are moved or resized
+    // Use a debounce timer to avoid excessive saves during drag operations
+    // Don't trigger during state restoration to avoid overwriting the restored state
     connect(m_dxClusterDock, &QDockWidget::dockLocationChanged, this, [this]() {
-        savePanelState();
+        if (!m_restoringState) m_dockStateSaveTimer->start();  // Restart timer (debounce)
     });
     connect(m_cwConsoleDock, &QDockWidget::dockLocationChanged, this, [this]() {
-        savePanelState();
+        if (!m_restoringState) m_dockStateSaveTimer->start();
     });
     connect(m_scoreDock, &QDockWidget::dockLocationChanged, this, [this]() {
-        savePanelState();
+        if (!m_restoringState) m_dockStateSaveTimer->start();
     });
     if (m_scpWidget) {
         connect(m_scpWidget, &QDockWidget::dockLocationChanged, this, [this]() {
-            savePanelState();
+            if (!m_restoringState) m_dockStateSaveTimer->start();
+        });
+    }
+    if (m_ssbMemoriesWidget) {
+        connect(m_ssbMemoriesWidget, &QDockWidget::dockLocationChanged, this, [this]() {
+            if (!m_restoringState) m_dockStateSaveTimer->start();
         });
     }
     
@@ -717,6 +787,11 @@ void MainWindow::setupMenus()
     m_scpWidgetAction->setCheckable(true);
     m_scpWidgetAction->setChecked(false);  // Hidden by default
     connect(m_scpWidgetAction, &QAction::triggered, this, &MainWindow::onToggleScpWidget);
+
+    m_ssbMemoriesWidgetAction = windowMenu->addAction("SS&B Memories");
+    m_ssbMemoriesWidgetAction->setCheckable(true);
+    m_ssbMemoriesWidgetAction->setChecked(false);  // Hidden by default
+    connect(m_ssbMemoriesWidgetAction, &QAction::triggered, this, &MainWindow::onToggleSsbMemoriesWidget);
     
     // Debug menu
     QMenu *debugMenu = menuBar()->addMenu("&Debug");
@@ -852,7 +927,12 @@ void MainWindow::createConnections()
     
     // Dupe flash timer
     connect(m_dupeFlashTimer, &QTimer::timeout, this, &MainWindow::onDupeFlashTimeout);
-    
+
+    // Dock state save timer - debounces frequent resize/move events
+    m_dockStateSaveTimer->setSingleShot(true);
+    m_dockStateSaveTimer->setInterval(500);  // 500ms delay after last change
+    connect(m_dockStateSaveTimer, &QTimer::timeout, this, &MainWindow::savePanelState);
+
     // QRZCQ API connections
     connect(m_qrzcqApi, &QrzcqApi::sessionObtained, this, &MainWindow::onQrzcqSessionObtained);
     connect(m_qrzcqApi, &QrzcqApi::sessionError, this, &MainWindow::onQrzcqSessionError);
@@ -2089,6 +2169,12 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
 void MainWindow::resizeEvent(QResizeEvent *event)
 {
     QMainWindow::resizeEvent(event);
+
+    // Trigger dock state save when window is resized (includes dock widget resizing)
+    // Don't trigger during state restoration to avoid overwriting the restored state
+    if (m_dockStateSaveTimer && !m_restoringState) {
+        m_dockStateSaveTimer->start();
+    }
 }
 
 
@@ -2820,10 +2906,10 @@ void MainWindow::onEditSsbMemories()
         QList<SsbMemory> memories = dialog.getMemories();
         settings.setSsbMemories(memories);
 
-        // TODO: Update SSB console/player when implemented
-        // if (m_ssbConsole) {
-        //     m_ssbConsole->setMemories(memories);
-        // }
+        // Update SSB Memories widget if open
+        if (m_ssbMemoriesWidget) {
+            m_ssbMemoriesWidget->setMemories(memories);
+        }
 
         m_statusLabel->setText("SSB memories updated");
     }
@@ -2923,6 +3009,30 @@ void MainWindow::onCWWindow()
     // This slot can just set focus to it
     if (m_cwConsole) {
         m_cwConsole->setFocus();
+    }
+}
+
+void MainWindow::onToggleSsbMemoriesWidget(bool checked)
+{
+    if (m_ssbMemoriesWidget) {
+        if (checked) {
+            // Show the widget
+            m_ssbMemoriesWidget->setVisible(true);
+
+            // If it's floating, dock it back to the right panel
+            if (m_ssbMemoriesWidget->isFloating()) {
+                m_ssbMemoriesWidget->setFloating(false);
+                addDockWidget(Qt::RightDockWidgetArea, m_ssbMemoriesWidget);
+                DebugLogger::instance().log("MainWindow", "SSB Memories widget docked to right panel");
+            } else {
+                DebugLogger::instance().log("MainWindow", "SSB Memories widget shown (already docked)");
+            }
+        } else {
+            // Hide the widget
+            m_ssbMemoriesWidget->setVisible(false);
+            DebugLogger::instance().log("MainWindow", "SSB Memories widget hidden");
+        }
+        savePanelState();
     }
 }
 
@@ -3413,17 +3523,64 @@ bool MainWindow::maybeSave()
 void MainWindow::saveWindowGeometry()
 {
     Settings& settings = Settings::instance();
-    settings.setWindowGeometry(geometry());
+
+    // Log current window state before saving
+    DebugLogger::instance().log("MainWindow",
+        QString("Before saveGeometry: pos()=(%1,%2) framePos=(%3,%4) geometry=(%5,%6,%7x%8) frameGeometry=(%9,%10,%11x%12)")
+        .arg(pos().x()).arg(pos().y())
+        .arg(frameGeometry().x()).arg(frameGeometry().y())
+        .arg(geometry().x()).arg(geometry().y()).arg(geometry().width()).arg(geometry().height())
+        .arg(frameGeometry().x()).arg(frameGeometry().y()).arg(frameGeometry().width()).arg(frameGeometry().height()));
+
+    // Use Qt's built-in saveGeometry() which properly handles window manager interactions
+    QByteArray geomState = QWidget::saveGeometry();
+    settings.setWindowGeometryState(geomState);
     settings.setWindowMaximized(isMaximized());
+
+    DebugLogger::instance().log("MainWindow",
+        QString("Saved window geometry state (size=%1 bytes), maximized=%2")
+        .arg(geomState.size()).arg(isMaximized()));
+
+    // Write to disk
+    settings.save();
 }
 
 void MainWindow::restoreWindowGeometry()
 {
     Settings& settings = Settings::instance();
-    QRect geom = settings.getWindowGeometry();
-    
-    setGeometry(geom);
-    
+
+    // Try Qt's built-in geometry restore first (handles window managers better)
+    QByteArray savedGeometry = settings.getWindowGeometryState();
+    if (!savedGeometry.isEmpty()) {
+        DebugLogger::instance().log("MainWindow",
+            QString("Restoring window geometry from saved state (size=%1 bytes)")
+            .arg(savedGeometry.size()));
+        bool restored = QWidget::restoreGeometry(savedGeometry);
+        DebugLogger::instance().log("MainWindow",
+            QString("restoreGeometry() returned: %1, pos after restore=(%2,%3)")
+            .arg(restored ? "true" : "false").arg(pos().x()).arg(pos().y()));
+
+        if (!restored) {
+            DebugLogger::instance().log("MainWindow", "restoreGeometry() failed, trying fallback method");
+            // Fallback if restoreGeometry fails
+            QRect geom = settings.getWindowGeometry();
+            resize(geom.width(), geom.height());
+            move(geom.topLeft());
+        }
+    } else {
+        // Fallback to old method if no saved state
+        QRect geom = settings.getWindowGeometry();
+        DebugLogger::instance().log("MainWindow",
+            QString("No saved geometry state, using fallback: pos=(%1,%2) size=(%3x%4)")
+            .arg(geom.x()).arg(geom.y()).arg(geom.width()).arg(geom.height()));
+        resize(geom.width(), geom.height());
+
+        // Delay move to after window is shown
+        QTimer::singleShot(100, this, [this, geom]() {
+            move(geom.topLeft());
+        });
+    }
+
     if (settings.getWindowMaximized()) {
         showMaximized();
     }
@@ -3677,21 +3834,33 @@ void MainWindow::updateScpWidgetMenuText()
 void MainWindow::savePanelState()
 {
     Settings& settings = Settings::instance();
-    
+
     // Save dock widget visibility
     settings.setDxClusterVisible(m_dxClusterDock && m_dxClusterDock->isVisible());
     settings.setCwConsoleVisible(m_cwConsoleDock && m_cwConsoleDock->isVisible());
-    
+
     // Save splitter state
     if (m_mainSplitter) {
         settings.setMainSplitterState(m_mainSplitter->saveState());
     }
-    
+
+    // Log dock widget sizes before saving
+    DebugLogger::instance().log("MainWindow",
+        QString("Before save - DX Cluster height=%1, CW Console height=%2, Score height=%3, SCP height=%4, SSB height=%5")
+        .arg(m_dxClusterDock ? m_dxClusterDock->height() : -1)
+        .arg(m_cwConsoleDock ? m_cwConsoleDock->height() : -1)
+        .arg(m_scoreDock ? m_scoreDock->height() : -1)
+        .arg(m_scpWidget ? m_scpWidget->height() : -1)
+        .arg(m_ssbMemoriesWidget ? m_ssbMemoriesWidget->height() : -1));
+
     // Save dock widget state (positions, sizes, floating state)
     QByteArray dockState = saveState();
     settings.setDockWidgetState(dockState);
-    DebugLogger::instance().log("MainWindow", 
+    DebugLogger::instance().log("MainWindow",
         QString("Saved dock widget state (%1 bytes)").arg(dockState.size()));
+
+    // Write to disk
+    settings.save();
 }
 
 void MainWindow::restorePanelState()
@@ -3727,27 +3896,61 @@ void MainWindow::restorePanelState()
     
     // Restore dock widget state (positions, sizes, floating state)
     QByteArray dockState = settings.getDockWidgetState();
+    DebugLogger::instance().log("MainWindow",
+        QString("getDockWidgetState() returned %1 bytes").arg(dockState.size()));
     if (!dockState.isEmpty()) {
-        DebugLogger::instance().log("MainWindow", 
+        DebugLogger::instance().log("MainWindow",
             QString("Restoring dock widget state (%1 bytes)").arg(dockState.size()));
+
+        // Block save timer during restore to prevent overwriting restored state
+        m_restoringState = true;
+
         // Use version 0 for compatibility
         bool success = restoreState(dockState, 0);
-        DebugLogger::instance().log("MainWindow", 
-            QString("Dock state restore %1").arg(success ? "succeeded" : "failed"));
+
+        // Keep blocking for 2 seconds to allow Qt's layout system to finish applying sizes
+        // Unblock after layout has settled
+        QTimer::singleShot(2000, this, [this]() {
+            m_restoringState = false;
+            DebugLogger::instance().log("MainWindow", "State restoration complete, save timer unblocked");
+        });
+
+        DebugLogger::instance().log("MainWindow",
+            QString("Dock state restore %1, blocking saves for 2s").arg(success ? "succeeded" : "failed"));
         
         // Log dock widget positions after restore
         DebugLogger::instance().log("MainWindow", 
             QString("DX Cluster area: %1, floating: %2")
                 .arg(dockWidgetArea(m_dxClusterDock))
                 .arg(m_dxClusterDock->isFloating()));
-        DebugLogger::instance().log("MainWindow", 
+        DebugLogger::instance().log("MainWindow",
             QString("CW Console area: %1, floating: %2")
                 .arg(dockWidgetArea(m_cwConsoleDock))
                 .arg(m_cwConsoleDock->isFloating()));
-        DebugLogger::instance().log("MainWindow", 
+        DebugLogger::instance().log("MainWindow",
             QString("Score area: %1, floating: %2")
                 .arg(dockWidgetArea(m_scoreDock))
                 .arg(m_scoreDock->isFloating()));
+
+        // Log dock widget sizes after restore
+        DebugLogger::instance().log("MainWindow",
+            QString("After restore - DX Cluster height=%1, CW Console height=%2, Score height=%3, SCP height=%4, SSB height=%5")
+            .arg(m_dxClusterDock ? m_dxClusterDock->height() : -1)
+            .arg(m_cwConsoleDock ? m_cwConsoleDock->height() : -1)
+            .arg(m_scoreDock ? m_scoreDock->height() : -1)
+            .arg(m_scpWidget ? m_scpWidget->height() : -1)
+            .arg(m_ssbMemoriesWidget ? m_ssbMemoriesWidget->height() : -1));
+
+        // Log again after layout has settled
+        QTimer::singleShot(1000, this, [this]() {
+            DebugLogger::instance().log("MainWindow",
+                QString("After layout (1s) - DX Cluster height=%1, CW Console height=%2, Score height=%3, SCP height=%4, SSB height=%5")
+                .arg(m_dxClusterDock ? m_dxClusterDock->height() : -1)
+                .arg(m_cwConsoleDock ? m_cwConsoleDock->height() : -1)
+                .arg(m_scoreDock ? m_scoreDock->height() : -1)
+                .arg(m_scpWidget ? m_scpWidget->height() : -1)
+                .arg(m_ssbMemoriesWidget ? m_ssbMemoriesWidget->height() : -1));
+        });
     } else {
         DebugLogger::instance().log("MainWindow", "No saved dock widget state found");
     }

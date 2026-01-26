@@ -280,6 +280,20 @@ void Settings::setWindowGeometry(const QRect& geometry)
     save();
 }
 
+QByteArray Settings::getWindowGeometryState() const
+{
+    QString base64 = m_settings["window"].toObject()["geometryState"].toString();
+    return QByteArray::fromBase64(base64.toUtf8());
+}
+
+void Settings::setWindowGeometryState(const QByteArray& state)
+{
+    QJsonObject window = m_settings["window"].toObject();
+    window["geometryState"] = QString::fromUtf8(state.toBase64());
+    m_settings["window"] = window;
+    save();
+}
+
 bool Settings::getWindowMaximized() const
 {
     return m_settings["window"].toObject()["maximized"].toBool(false);

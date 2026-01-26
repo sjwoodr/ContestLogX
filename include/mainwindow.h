@@ -80,6 +80,7 @@ private slots:
     void onToggleCwConsole(bool checked);
     void onToggleScoreWidget(bool checked);
     void onToggleScpWidget(bool checked);
+    void onToggleSsbMemoriesWidget(bool checked);
     void onToggleFlrigDebug(bool checked);
     void onToggleMainWindowDebug(bool checked);
     void onToggleContestEngineDebug(bool checked);
@@ -105,6 +106,7 @@ protected:
     void closeEvent(QCloseEvent *event) override;
     void keyPressEvent(QKeyEvent *event) override;
     void resizeEvent(QResizeEvent *event) override;
+    void showEvent(QShowEvent *event) override;
 
 private:
     void setupUi();
@@ -158,14 +160,16 @@ private:
     class QDockWidget *m_scoreDock;
     class ScpWidget *m_scpWidget;  // ScpWidget IS a QDockWidget
     class QDockWidget *m_scpDock;   // Pointer to m_scpWidget for consistency
+    class SsbMemoriesWidget *m_ssbMemoriesWidget;  // SsbMemoriesWidget IS a QDockWidget
     class QSplitter *m_mainSplitter;
     class QSplitter *m_rightPanelSplitter;
-    
+
     // Menu actions for toggleable panels
     QAction *m_dxClusterAction;
     QAction *m_cwConsoleAction;
     QAction *m_scoreWidgetAction;
     QAction *m_scpWidgetAction;
+    QAction *m_ssbMemoriesWidgetAction;
     QAction *m_flrigDebugAction;
     QAction *m_mainWindowDebugAction;
     QAction *m_contestEngineDebugAction;
@@ -186,6 +190,8 @@ private:
     bool m_showingLogFileNotFoundDialog;
     bool m_testMode;  // Set when --test-only argument is provided
     bool m_debugLogMode;  // Set when --log argument is provided, triggers auto-summary to debug log
+    bool m_firstShow;  // Track first show event for geometry restoration
+    bool m_restoringState;  // Block save timer during state restoration
 
     // Session station info - loaded from file or defaults to Settings, NOT saved to Settings
     class StationInfo *m_sessionStationInfo;
@@ -203,6 +209,7 @@ private:
     FlrigClient *m_flrigClient;
     QTimer *m_rigPollTimer;
     QTimer *m_dupeFlashTimer;
+    QTimer *m_dockStateSaveTimer;  // Debounce timer for saving dock state
     double m_lastFrequency;
     QString m_lastMode;
     int m_lastWpm;

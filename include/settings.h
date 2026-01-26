@@ -110,7 +110,10 @@ public:
     // Window geometry
     QRect getWindowGeometry() const;
     void setWindowGeometry(const QRect& geometry);
-    
+
+    QByteArray getWindowGeometryState() const;
+    void setWindowGeometryState(const QByteArray& state);
+
     bool getWindowMaximized() const;
     void setWindowMaximized(bool maximized);
     
