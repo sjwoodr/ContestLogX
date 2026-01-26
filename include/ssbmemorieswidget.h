@@ -21,6 +21,9 @@ public:
     // Set the memories to display on buttons
     void setMemories(const QList<SsbMemory>& memories);
 
+    // Trigger a specific memory (0-7 for F1-F8)
+    void triggerMemory(int memoryNumber);
+
 signals:
     // Emitted when a memory button is clicked
     void memoryTriggered(int memoryNumber, const QString& text);

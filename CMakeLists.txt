@@ -32,6 +32,7 @@ set(SOURCES
     src/ui/cwwindow.cpp
     src/ui/cwmemoriesdialog.cpp
     src/ui/ssbmemoriesdialog.cpp
+    src/ui/ssbkeyingsetupdialog.cpp
     src/ui/ssbmemorieswidget.cpp
     src/ui/dxclusterpanel.cpp
     src/ui/scorewidget.cpp
@@ -63,6 +64,8 @@ set(SOURCES
     src/utils/debuglogger.cpp
     src/utils/bandplan.cpp
     src/utils/callsignutils.cpp
+    src/utils/ttsmanager.cpp
+    src/utils/pipermanager.cpp
     src/DxccDatabase.cpp
     src/qrzcqapi.cpp
     src/ui/qrzcqsettingsdialog.cpp
@@ -88,6 +91,7 @@ set(HEADERS
     src/ui/cwwindow.h
     src/ui/cwmemoriesdialog.h
     src/ui/ssbmemoriesdialog.h
+    src/ui/ssbkeyingsetupdialog.h
     include/ssbmemorieswidget.h
     src/ui/dxclusterpanel.h
     include/qsorecord.h
@@ -104,6 +108,8 @@ set(HEADERS
      include/callhistory.h
      include/supercheckpartial.h
      include/debuglogger.h
+     include/ttsmanager.h
+     include/pipermanager.h
      src/utils/bandplan.h
      src/utils/callsignutils.h
      include/DxccDatabase.h

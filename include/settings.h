@@ -208,6 +208,18 @@ public:
     QByteArray getCabrilloDialogGeometry() const;
     void setCabrilloDialogGeometry(const QByteArray& geometry);
 
+    // SSB voice keying settings
+    bool getSsbKeyingEnabled() const;
+    void setSsbKeyingEnabled(bool enabled);
+    QString getTtsCommand() const;
+    void setTtsCommand(const QString& command);
+    QString getTtsArgs() const;
+    void setTtsArgs(const QString& args);
+    QString getAudioPlayCommand() const;
+    void setAudioPlayCommand(const QString& command);
+    QString getAudioPlayArgs() const;
+    void setAudioPlayArgs(const QString& args);
+
     void save();
 
     // Static utility function to get data directory path

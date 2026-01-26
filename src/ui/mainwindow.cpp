@@ -4,6 +4,7 @@
 #include "cwwindow.h"
 #include "cwmemoriesdialog.h"
 #include "ssbmemoriesdialog.h"
+#include "ssbkeyingsetupdialog.h"
 #include "dxclusterpanel.h"
 #include "scorewidget.h"
 #include "scpwidget.h"
@@ -26,6 +27,7 @@
 #include "settings.h"
 #include "callhistory.h"
 #include "supercheckpartial.h"
+#include "ttsmanager.h"
 #include "../utils/bandplan.h"
 #include "debuglogger.h"
 #include "DxccDatabase.h"
@@ -106,6 +108,7 @@ MainWindow::MainWindow(QWidget *parent)
     , m_lastMode("USB")
     , m_lastWpm(28)
     , m_qrzcqApi(new QrzcqApi(this))
+    , m_ttsManager(new TtsManager(this))
     , m_contextMenuRow(-1)
 {
     // Validate startup requirements
@@ -601,14 +604,9 @@ void MainWindow::setupUi()
     // Load SSB memories from settings
     m_ssbMemoriesWidget->setMemories(Settings::instance().getSsbMemories());
 
-    // Connect memory triggered signal (for future TTS integration)
+    // Connect memory triggered signal to TTS manager
     connect(m_ssbMemoriesWidget, &SsbMemoriesWidget::memoryTriggered,
-            this, [this](int memoryNumber, const QString& text) {
-        DebugLogger::instance().log("MainWindow",
-            QString("SSB Memory F%1 triggered: %2").arg(memoryNumber).arg(text));
-        // TODO: Implement TTS playback with piper + paplay
-        m_statusLabel->setText(QString("SSB F%1: %2").arg(memoryNumber).arg(text));
-    });
+            this, &MainWindow::onSsbMemoryTriggered);
 
     // Enable nested docking and animated docks
     setDockNestingEnabled(true);
@@ -740,6 +738,9 @@ void MainWindow::setupMenus()
 
     QAction *editSSBMemAction = rigMenu->addAction("Edit &SSB Memories...");
     connect(editSSBMemAction, &QAction::triggered, this, &MainWindow::onEditSsbMemories);
+
+    QAction *ssbKeyingAction = rigMenu->addAction("SSB &Keying Setup...");
+    connect(ssbKeyingAction, &QAction::triggered, this, &MainWindow::onSsbKeyingSetup);
 
     // Contest menu
     QMenu *contestMenu = menuBar()->addMenu("&Contest");
@@ -939,7 +940,11 @@ void MainWindow::createConnections()
     connect(m_qrzcqApi, &QrzcqApi::callsignFound, this, &MainWindow::onQrzcqCallsignFound);
     connect(m_qrzcqApi, &QrzcqApi::callsignNotFound, this, &MainWindow::onQrzcqCallsignNotFound);
     connect(m_qrzcqApi, &QrzcqApi::lookupError, this, &MainWindow::onQrzcqLookupError);
-    
+
+    // TTS Manager connections
+    connect(m_ttsManager, &TtsManager::finished, this, &MainWindow::onTtsFinished);
+    connect(m_ttsManager, &TtsManager::error, this, &MainWindow::onTtsError);
+
     // Initialize QRZCQ session if credentials are saved
     Settings& settings = Settings::instance();
     QString username = settings.getQrzcqUsername();
@@ -2138,18 +2143,67 @@ void MainWindow::onManageQrzcqLookups()
 
 void MainWindow::keyPressEvent(QKeyEvent *event)
 {
+    // Handle F1-F8 function keys for CW/SSB memories (without modifiers)
+    if (event->modifiers() == Qt::NoModifier) {
+        int fKeyIndex = -1;
+
+        switch (event->key()) {
+            case Qt::Key_F1: fKeyIndex = 0; break;
+            case Qt::Key_F2: fKeyIndex = 1; break;
+            case Qt::Key_F3: fKeyIndex = 2; break;
+            case Qt::Key_F4: fKeyIndex = 3; break;
+            case Qt::Key_F5: fKeyIndex = 4; break;
+            case Qt::Key_F6: fKeyIndex = 5; break;
+            case Qt::Key_F7: fKeyIndex = 6; break;
+            case Qt::Key_F8: fKeyIndex = 7; break;
+        }
+
+        if (fKeyIndex >= 0) {
+            QString mode = m_lastMode.toUpper();
+            DebugLogger::instance().log("MainWindow",
+                QString("Function key F%1 pressed, current mode: %2").arg(fKeyIndex + 1).arg(mode));
+
+            if (mode == "CW" || mode == "CWR") {
+                // Trigger CW memory
+                if (m_cwConsole) {
+                    DebugLogger::instance().log("MainWindow",
+                        QString("Triggering CW memory F%1").arg(fKeyIndex + 1));
+                    m_cwConsole->onMemoryButton(fKeyIndex);
+                    return;
+                } else {
+                    DebugLogger::instance().log("MainWindow", "CW console not available");
+                }
+            } else if (mode == "USB" || mode == "LSB") {
+                // Trigger SSB memory
+                if (m_ssbMemoriesWidget) {
+                    DebugLogger::instance().log("MainWindow",
+                        QString("Triggering SSB memory F%1").arg(fKeyIndex + 1));
+                    m_ssbMemoriesWidget->triggerMemory(fKeyIndex);
+                    return;
+                } else {
+                    DebugLogger::instance().log("MainWindow", "SSB memories widget not available");
+                }
+            } else {
+                DebugLogger::instance().log("MainWindow",
+                    QString("Function key F%1 ignored - mode %2 not supported for memories")
+                    .arg(fKeyIndex + 1).arg(mode));
+            }
+            return;
+        }
+    }
+
     // Build the key sequence from the event
     int keyWithModifiers = event->key() | (event->modifiers() & (Qt::ShiftModifier | Qt::ControlModifier | Qt::AltModifier | Qt::MetaModifier));
     QKeySequence eventSeq(keyWithModifiers);
     QString eventSeqStr = eventSeq.toString();
-    
+
     // Check against registered shortcuts
     QMap<QString, QString> shortcuts = Settings::instance().getShortcuts();
-    
+
     for (auto it = shortcuts.begin(); it != shortcuts.end(); ++it) {
         QKeySequence storedSeq(it.value());
         QString storedSeqStr = storedSeq.toString();
-        
+
         // Compare the key sequences as strings
         if (eventSeqStr == storedSeqStr) {
             if (it.key() == "clearQsoEntry") {
@@ -2161,7 +2215,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
             }
         }
     }
-    
+
     QMainWindow::keyPressEvent(event);
 }
 
@@ -2913,6 +2967,47 @@ void MainWindow::onEditSsbMemories()
 
         m_statusLabel->setText("SSB memories updated");
     }
+}
+
+void MainWindow::onSsbKeyingSetup()
+{
+    SsbKeyingSetupDialog dialog(this);
+    if (dialog.exec() == QDialog::Accepted) {
+        DebugLogger::instance().log("MainWindow", "SSB keying setup updated");
+        m_statusLabel->setText("SSB keying setup updated");
+    }
+}
+
+void MainWindow::onSsbMemoryTriggered(int memoryNumber, const QString& text)
+{
+    DebugLogger::instance().log("MainWindow",
+        QString("SSB Memory F%1 triggered: %2").arg(memoryNumber).arg(text));
+
+    // Update status bar
+    m_statusLabel->setText(QString("SSB F%1: %2").arg(memoryNumber).arg(text));
+
+    // Trigger TTS if enabled
+    Settings& settings = Settings::instance();
+    if (settings.getSsbKeyingEnabled()) {
+        DebugLogger::instance().log("MainWindow", "Starting TTS playback");
+        m_ttsManager->speak(text);
+    } else {
+        DebugLogger::instance().log("MainWindow", "SSB keying disabled, skipping TTS");
+    }
+}
+
+void MainWindow::onTtsFinished()
+{
+    DebugLogger::instance().log("MainWindow", "TTS playback finished");
+    m_statusLabel->setText("TTS playback completed");
+}
+
+void MainWindow::onTtsError(const QString& error)
+{
+    DebugLogger::instance().log("MainWindow", QString("TTS error: %1").arg(error));
+    m_statusLabel->setText(QString("TTS error: %1").arg(error));
+    QMessageBox::warning(this, "TTS Error",
+        QString("Voice keying failed:\n%1\n\nCheck your SSB Keying Setup (Rig menu).").arg(error));
 }
 
 void MainWindow::onRecalculateScore()

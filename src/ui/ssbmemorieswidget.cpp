@@ -87,6 +87,17 @@ void SsbMemoriesWidget::updateButtonLabels()
     }
 }
 
+void SsbMemoriesWidget::triggerMemory(int memoryNumber)
+{
+    // memoryNumber is 0-7 (for F1-F8)
+    if (memoryNumber >= 0 && memoryNumber < 8 && memoryNumber < m_memories.size()) {
+        QString text = m_memories[memoryNumber].text;
+        if (!text.isEmpty()) {
+            emit memoryTriggered(memoryNumber + 1, text);  // +1 to match F-key numbering
+        }
+    }
+}
+
 void SsbMemoriesWidget::onMemoryButtonClicked()
 {
     QPushButton *button = qobject_cast<QPushButton*>(sender());

@@ -52,6 +52,7 @@ private slots:
     void onRigDisconnected();
     void onUpdateRigDisplay();
     void onEditSsbMemories();
+    void onSsbKeyingSetup();
     
     void onCallChanged(const QString& text);
     void onModeChanged(int index);
@@ -100,6 +101,9 @@ private slots:
     void onEditQso();
     void onDeleteQso();
     void onDupeFlashTimeout();
+    void onSsbMemoryTriggered(int memoryNumber, const QString& text);
+    void onTtsFinished();
+    void onTtsError(const QString& error);
 
 protected:
     bool eventFilter(QObject *obj, QEvent *event) override;
@@ -217,10 +221,13 @@ private:
     // QRZCQ API
     QrzcqApi *m_qrzcqApi;
     QString m_pendingQrzcqCall;
-    
+
+    // SSB Voice Keying
+    class TtsManager *m_ttsManager;
+
     // UI state saving
 
-    
+
     // Context menu
     int m_contextMenuRow;
 };

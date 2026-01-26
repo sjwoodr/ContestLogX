@@ -1048,6 +1048,99 @@ void Settings::setCabrilloDialogGeometry(const QByteArray& geometry)
     m_modified = true;
 }
 
+bool Settings::getSsbKeyingEnabled() const
+{
+    return m_settings["ssbKeying"].toObject()["enabled"].toBool(false);
+}
+
+void Settings::setSsbKeyingEnabled(bool enabled)
+{
+    QJsonObject ssbKeying = m_settings["ssbKeying"].toObject();
+    ssbKeying["enabled"] = enabled;
+    m_settings["ssbKeying"] = ssbKeying;
+    m_modified = true;
+}
+
+QString Settings::getTtsCommand() const
+{
+    QString cmd = m_settings["ssbKeying"].toObject()["ttsCommand"].toString();
+    if (cmd.isEmpty()) {
+#ifdef Q_OS_MACOS
+        return "say";
+#else
+        return "piper";
+#endif
+    }
+    return cmd;
+}
+
+void Settings::setTtsCommand(const QString& command)
+{
+    QJsonObject ssbKeying = m_settings["ssbKeying"].toObject();
+    ssbKeying["ttsCommand"] = command;
+    m_settings["ssbKeying"] = ssbKeying;
+    m_modified = true;
+}
+
+QString Settings::getTtsArgs() const
+{
+    QString args = m_settings["ssbKeying"].toObject()["ttsArgs"].toString();
+    if (args.isEmpty()) {
+#ifdef Q_OS_MACOS
+        return "";  // say doesn't need args, takes text directly
+#else
+        return "--model en_US-hfc_male-medium --output_file {OUTPUT}";
+#endif
+    }
+    return args;
+}
+
+void Settings::setTtsArgs(const QString& args)
+{
+    QJsonObject ssbKeying = m_settings["ssbKeying"].toObject();
+    ssbKeying["ttsArgs"] = args;
+    m_settings["ssbKeying"] = ssbKeying;
+    m_modified = true;
+}
+
+QString Settings::getAudioPlayCommand() const
+{
+    QString cmd = m_settings["ssbKeying"].toObject()["audioPlayCommand"].toString();
+    if (cmd.isEmpty()) {
+#ifdef Q_OS_MACOS
+        return "afplay";
+#else
+        return "paplay";
+#endif
+    }
+    return cmd;
+}
+
+void Settings::setAudioPlayCommand(const QString& command)
+{
+    QJsonObject ssbKeying = m_settings["ssbKeying"].toObject();
+    ssbKeying["audioPlayCommand"] = command;
+    m_settings["ssbKeying"] = ssbKeying;
+    m_modified = true;
+}
+
+QString Settings::getAudioPlayArgs() const
+{
+    QString args = m_settings["ssbKeying"].toObject()["audioPlayArgs"].toString();
+    if (args.isEmpty()) {
+        return "{FILE}";  // Default for both platforms
+    }
+    return args;
+}
+
+void Settings::setAudioPlayArgs(const QString& args)
+{
+    QJsonObject ssbKeying = m_settings["ssbKeying"].toObject();
+    ssbKeying["audioPlayArgs"] = args;
+    m_settings["ssbKeying"] = ssbKeying;
+    m_modified = true;
+}
+
 QString Settings::getDataPath()
 {
     // Get the invocation path (supports symlinks)
