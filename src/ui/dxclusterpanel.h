@@ -23,9 +23,13 @@ public:
     void saveSettings();
     void removeSpot(const QString& callsign);
 
+public slots:
+    void setSpotCommand(const QString& callsign, double freqKhz);
+
 signals:
     void propagationDataReceived(int sfi, int aIndex, int kIndex);
     void spotClicked(const QString& callsign, double frequency, const QString& mode);
+    void spotLastQsoRequested();
 
 private slots:
     void onSpotClicked(int row, int column);
@@ -39,6 +43,7 @@ private slots:
     void onSendCommand();
     void onPropagationTimerTimeout();
     void onExpireSpots();
+    void onSpotLastQso();
 
 private:
     void setupUi();

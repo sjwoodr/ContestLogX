@@ -504,6 +504,10 @@ void MainWindow::setupUi()
     // Connect spot clicked signal to change rig frequency/mode
     connect(m_dxClusterPanel, &DxClusterPanel::spotClicked,
             this, &MainWindow::onDxSpotClicked);
+
+    // Connect spot last QSO signal
+    connect(m_dxClusterPanel, &DxClusterPanel::spotLastQsoRequested,
+            this, &MainWindow::onSpotLastQso);
     
     // CW Console as QDockWidget
     m_cwConsoleDock = new QDockWidget("CW Console", this);
@@ -3416,20 +3420,44 @@ void MainWindow::onPropagationDataReceived(int sfi, int aIndex, int kIndex)
     m_propagationLabel->setText(propText);
 }
 
+void MainWindow::onSpotLastQso()
+{
+    // Get the last logged QSO
+    if (m_qsoModel->count() == 0) {
+        DebugLogger::instance().log("MainWindow", "Spot Last QSO: No QSOs logged yet");
+        QMessageBox::information(this, "Spot Last QSO", "No QSOs have been logged yet.");
+        return;
+    }
+
+    // Get last QSO (most recent is at the end)
+    int lastIndex = m_qsoModel->count() - 1;
+    QsoRecord lastQso = m_qsoModel->getQso(lastIndex);
+
+    QString callsign = lastQso.getCall();
+    double freqKhz = lastQso.getFrequency().toDouble();
+
+    DebugLogger::instance().log("MainWindow", QString("Spot Last QSO: call=%1 freq=%2 kHz").arg(callsign).arg(freqKhz));
+
+    // Populate the DX cluster command field
+    if (m_dxClusterPanel) {
+        m_dxClusterPanel->setSpotCommand(callsign, freqKhz);
+    }
+}
+
 void MainWindow::onDxSpotClicked(const QString& callsign, double frequency, const QString& mode)
 {
     DebugLogger::instance().log("MainWindow", QString("DX spot clicked: call=%1, changing rig to %2 kHz, mode %3").arg(callsign).arg(frequency).arg(mode));
-    
+
     // Set callsign in QSO entry field
     m_callEdit->setText(callsign.toUpper());
-    
+
     // Clear all exchange fields EXCEPT CALL
     for (auto it = m_exchangeFields.begin(); it != m_exchangeFields.end(); ++it) {
         if (it.key() != "CALL") {
             it.value()->clear();
         }
     }
-    
+
     // Check for dupe with the clicked spot's frequency and mode
     QsoRecord tempQso;
     tempQso.setCall(callsign.toUpper());

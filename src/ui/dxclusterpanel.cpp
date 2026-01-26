@@ -149,8 +149,9 @@ void DxClusterPanel::setupUi()
     
     QPushButton *spotBtn = new QPushButton("Spot Last QSO", this);
     spotBtn->setMaximumWidth(120);
+    connect(spotBtn, &QPushButton::clicked, this, &DxClusterPanel::onSpotLastQso);
     cmdLayout->addWidget(spotBtn);
-    
+
     mainLayout->addLayout(cmdLayout);
 }
 
@@ -520,16 +521,16 @@ void DxClusterPanel::onExpireSpots()
     // Check for spots older than 15 minutes and remove them
     QTime currentTime = QTime::currentTime();
     const int EXPIRATION_MINUTES = 15;
-    
+
     int expiredCount = 0;
-    
+
     // Iterate backwards to avoid index issues when removing rows
     for (int row = m_spotTable->rowCount() - 1; row >= 0; --row) {
         QTableWidgetItem *timeItem = m_spotTable->item(row, 0);
         if (timeItem) {
             QString timeStr = timeItem->text();
             QTime spotTime = QTime::fromString(timeStr, "HH:mm:ss");
-            
+
             if (spotTime.isValid()) {
                 // Calculate minutes old, handling day wrap (if spot time is later than current time, it's from yesterday)
                 int minutesOld = spotTime.msecsTo(currentTime) / 60000;
@@ -537,21 +538,37 @@ void DxClusterPanel::onExpireSpots()
                     // Day wrap occurred - spot is from yesterday
                     minutesOld = (24 * 60 * 60 * 1000 + spotTime.msecsTo(currentTime)) / 60000;
                 }
-                
+
                 if (minutesOld > EXPIRATION_MINUTES) {
                     QTableWidgetItem *callItem = m_spotTable->item(row, 1);
                     QString callsign = callItem ? callItem->text() : "unknown";
                     m_spotTable->removeRow(row);
                     expiredCount++;
-                    DebugLogger::instance().log("DxCluster", 
+                    DebugLogger::instance().log("DxCluster",
                         QString("Expired spot for %1 (%2 minutes old)").arg(callsign).arg(minutesOld));
                 }
             }
         }
     }
-    
+
     if (expiredCount > 0) {
-        DebugLogger::instance().log("DxCluster", 
+        DebugLogger::instance().log("DxCluster",
             QString("DX Cluster spot expiration: removed %1 spots older than %2 minutes").arg(expiredCount).arg(EXPIRATION_MINUTES));
     }
+}
+
+void DxClusterPanel::onSpotLastQso()
+{
+    // Request last QSO info from MainWindow via signal
+    emit spotLastQsoRequested();
+}
+
+void DxClusterPanel::setSpotCommand(const QString& callsign, double freqKhz)
+{
+    // Format: dx <freq_in_khz> <callsign>
+    QString command = QString("dx %1 %2").arg(freqKhz, 0, 'f', 1).arg(callsign);
+    m_commandEdit->setText(command);
+    m_commandEdit->setFocus();
+
+    DebugLogger::instance().log("DxCluster", QString("Spot command prepared: %1").arg(command));
 }

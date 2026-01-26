@@ -74,6 +74,7 @@ private slots:
     void onColumnResized(int logicalIndex, int oldSize, int newSize);
     void onPropagationDataReceived(int sfi, int aIndex, int kIndex);
     void onDxSpotClicked(const QString& callsign, double frequency, const QString& mode);
+    void onSpotLastQso();
     void onToggleDxCluster(bool checked);
     void onToggleCwConsole(bool checked);
     void onToggleScoreWidget(bool checked);
