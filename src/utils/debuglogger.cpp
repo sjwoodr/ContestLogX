@@ -110,6 +110,17 @@ bool DebugLogger::isDxccDatabaseDebugEnabled() const
     return m_dxccDatabaseDebugEnabled;
 }
 
+void DebugLogger::setDxClusterDebugEnabled(bool enabled)
+{
+    m_dxClusterDebugEnabled = enabled;
+    log("INFO", enabled ? "DX Cluster debug logging enabled" : "DX Cluster debug logging disabled");
+}
+
+bool DebugLogger::isDxClusterDebugEnabled() const
+{
+    return m_dxClusterDebugEnabled;
+}
+
 void DebugLogger::setScpDebugEnabled(bool enabled)
 {
     m_scpDebugEnabled = enabled;
@@ -145,6 +156,9 @@ void DebugLogger::log(const QString& component, const QString& message)
         return;
     }
     if (!m_dxccDatabaseDebugEnabled && component == "DxccDatabase") {
+        return;
+    }
+    if (!m_dxClusterDebugEnabled && component == "DxCluster") {
         return;
     }
     if (!m_scpDebugEnabled && (component == "ScpDialog" || component == "ScpLineEdit")) {

@@ -31,6 +31,7 @@ set(SOURCES
     src/ui/freqmodedialog.cpp
     src/ui/cwwindow.cpp
     src/ui/cwmemoriesdialog.cpp
+    src/ui/ssbmemoriesdialog.cpp
     src/ui/dxclusterpanel.cpp
     src/ui/scorewidget.cpp
     src/ui/stationsetupdialog.cpp
@@ -85,6 +86,7 @@ set(HEADERS
     src/ui/freqmodedialog.h
     src/ui/cwwindow.h
     src/ui/cwmemoriesdialog.h
+    src/ui/ssbmemoriesdialog.h
     src/ui/dxclusterpanel.h
     include/qsorecord.h
     include/qsolistmodel.h

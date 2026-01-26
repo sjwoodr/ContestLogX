@@ -13,6 +13,7 @@
 #include <QMap>
 #include <QList>
 #include "cwmemory.h"
+#include "ssbmemory.h"
 
 /**
  * @brief Application settings manager
@@ -98,9 +99,13 @@ public:
     // CW settings
     int getCwWpm() const;
     void setCwWpm(int wpm);
-    
+
     QList<CwMemory> getCwMemories() const;
     void setCwMemories(const QList<CwMemory>& memories);
+
+    // SSB settings
+    QList<SsbMemory> getSsbMemories() const;
+    void setSsbMemories(const QList<SsbMemory>& memories);
     
     // Window geometry
     QRect getWindowGeometry() const;
@@ -153,6 +158,9 @@ public:
     bool getDxccDatabaseDebugEnabled() const;
     void setDxccDatabaseDebugEnabled(bool enabled);
     
+    bool getDxClusterDebugEnabled() const;
+    void setDxClusterDebugEnabled(bool enabled);
+
     bool getScpDebugEnabled() const;
     void setScpDebugEnabled(bool enabled);
     

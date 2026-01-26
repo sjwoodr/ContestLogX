@@ -347,10 +347,47 @@ void Settings::setCwMemories(const QList<CwMemory>& memories)
         obj["text"] = mem.text;
         memArray.append(obj);
     }
-    
+
     QJsonObject cw = m_settings["cw"].toObject();
     cw["memories"] = memArray;
     m_settings["cw"] = cw;
+    save();
+}
+
+QList<SsbMemory> Settings::getSsbMemories() const
+{
+    QList<SsbMemory> memories;
+    QJsonArray memArray = m_settings["ssb"].toObject()["memories"].toArray();
+
+    for (const QJsonValue& val : memArray) {
+        QJsonObject obj = val.toObject();
+        SsbMemory mem;
+        mem.abbreviation = obj["abbreviation"].toString();
+        mem.text = obj["text"].toString();
+        memories.append(mem);
+    }
+
+    // Ensure we always have 8 memories (even if empty)
+    while (memories.size() < 8) {
+        memories.append(SsbMemory{"", ""});
+    }
+
+    return memories;
+}
+
+void Settings::setSsbMemories(const QList<SsbMemory>& memories)
+{
+    QJsonArray memArray;
+    for (const SsbMemory& mem : memories) {
+        QJsonObject obj;
+        obj["abbreviation"] = mem.abbreviation;
+        obj["text"] = mem.text;
+        memArray.append(obj);
+    }
+
+    QJsonObject ssb = m_settings["ssb"].toObject();
+    ssb["memories"] = memArray;
+    m_settings["ssb"] = ssb;
     save();
 }
 
@@ -581,6 +618,19 @@ void Settings::setScpDebugEnabled(bool enabled)
 {
     QJsonObject debug = m_settings["debug"].toObject();
     debug["scpDebugEnabled"] = enabled;
+    m_settings["debug"] = debug;
+    save();
+}
+
+bool Settings::getDxClusterDebugEnabled() const
+{
+    return m_settings["debug"].toObject()["dxClusterDebugEnabled"].toBool(false);
+}
+
+void Settings::setDxClusterDebugEnabled(bool enabled)
+{
+    QJsonObject debug = m_settings["debug"].toObject();
+    debug["dxClusterDebugEnabled"] = enabled;
     m_settings["debug"] = debug;
     save();
 }

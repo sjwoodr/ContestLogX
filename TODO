@@ -1,6 +1,5 @@
-1. spot last qso button does nothing
-2. LOC vs EXCH field in WFD module
-3. [2026-01-24 16:35:31.730] DxCluster: Expired spot for KE2EYY (16 minutes old) -- is not filterable / toggle off on
-4. Check last time we updated master.scp and cty.dat - if more than 30 days, prompt if they want to refresh those.
+1. LOC vs EXCH field in WFD module
+2. [2026-01-24 16:35:31.730] DxCluster: Expired spot for KE2EYY (16 minutes old) -- is not filterable / toggle off on
+3. Check last time we updated master.scp and cty.dat - if more than 30 days, prompt if they want to refresh those.
 
 

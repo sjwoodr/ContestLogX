@@ -3,6 +3,7 @@
 #include "freqmodedialog.h"
 #include "cwwindow.h"
 #include "cwmemoriesdialog.h"
+#include "ssbmemoriesdialog.h"
 #include "dxclusterpanel.h"
 #include "scorewidget.h"
 #include "scpwidget.h"
@@ -666,7 +667,10 @@ void MainWindow::setupMenus()
     
     QAction *editCWMemAction = rigMenu->addAction("Edit CW &Memories...");
     connect(editCWMemAction, &QAction::triggered, this, &MainWindow::onEditCWMemories);
-    
+
+    QAction *editSSBMemAction = rigMenu->addAction("Edit &SSB Memories...");
+    connect(editSSBMemAction, &QAction::triggered, this, &MainWindow::onEditSsbMemories);
+
     // Contest menu
     QMenu *contestMenu = menuBar()->addMenu("&Contest");
     
@@ -758,7 +762,14 @@ void MainWindow::setupMenus()
     m_dxccDatabaseDebugAction->setChecked(dxccDatabaseDebugEnabled);
     DebugLogger::instance().setDxccDatabaseDebugEnabled(dxccDatabaseDebugEnabled);
     connect(m_dxccDatabaseDebugAction, &QAction::triggered, this, &MainWindow::onToggleDxccDatabaseDebug);
-    
+
+    m_dxClusterDebugAction = debugMenu->addAction("Enable DX C&luster Debug Logging");
+    m_dxClusterDebugAction->setCheckable(true);
+    bool dxClusterDebugEnabled = Settings::instance().getDxClusterDebugEnabled();
+    m_dxClusterDebugAction->setChecked(dxClusterDebugEnabled);
+    DebugLogger::instance().setDxClusterDebugEnabled(dxClusterDebugEnabled);
+    connect(m_dxClusterDebugAction, &QAction::triggered, this, &MainWindow::onToggleDxClusterDebug);
+
     m_scpDebugAction = debugMenu->addAction("Enable &Super Check Partial Debug Logging");
     m_scpDebugAction->setCheckable(true);
     bool scpDebugEnabled = Settings::instance().getScpDebugEnabled();
@@ -2798,6 +2809,26 @@ void MainWindow::onEditCWMemories()
     }
 }
 
+void MainWindow::onEditSsbMemories()
+{
+    Settings& settings = Settings::instance();
+
+    SsbMemoriesDialog dialog(this);
+    dialog.setMemories(settings.getSsbMemories());
+
+    if (dialog.exec() == QDialog::Accepted) {
+        QList<SsbMemory> memories = dialog.getMemories();
+        settings.setSsbMemories(memories);
+
+        // TODO: Update SSB console/player when implemented
+        // if (m_ssbConsole) {
+        //     m_ssbConsole->setMemories(memories);
+        // }
+
+        m_statusLabel->setText("SSB memories updated");
+    }
+}
+
 void MainWindow::onRecalculateScore()
 {
     DebugLogger::instance().log("MainWindow", 
@@ -2935,6 +2966,13 @@ void MainWindow::onToggleDxccDatabaseDebug(bool checked)
     DebugLogger::instance().setDxccDatabaseDebugEnabled(checked);
     Settings::instance().setDxccDatabaseDebugEnabled(checked);
     m_statusLabel->setText(checked ? "DxccDatabase debug logging enabled" : "DxccDatabase debug logging disabled");
+}
+
+void MainWindow::onToggleDxClusterDebug(bool checked)
+{
+    DebugLogger::instance().setDxClusterDebugEnabled(checked);
+    Settings::instance().setDxClusterDebugEnabled(checked);
+    m_statusLabel->setText(checked ? "DX Cluster debug logging enabled" : "DX Cluster debug logging disabled");
 }
 
 void MainWindow::onToggleScpDebug(bool checked)

@@ -51,6 +51,7 @@ private slots:
     void onRigConnected();
     void onRigDisconnected();
     void onUpdateRigDisplay();
+    void onEditSsbMemories();
     
     void onCallChanged(const QString& text);
     void onModeChanged(int index);
@@ -85,6 +86,7 @@ private slots:
     void onToggleContestSelectDialogDebug(bool checked);
     void onToggleCWWindowDebug(bool checked);
     void onToggleDxccDatabaseDebug(bool checked);
+    void onToggleDxClusterDebug(bool checked);
     void onToggleScpDebug(bool checked);
     void onDownloadCtyDat();
     void onDownloadScp();
@@ -170,6 +172,7 @@ private:
     QAction *m_contestSelectDialogDebugAction;
     QAction *m_cwWindowDebugAction;
     QAction *m_dxccDatabaseDebugAction;
+    QAction *m_dxClusterDebugAction;
     QAction *m_scpDebugAction;
     
     // QSO Entry widgets
