@@ -64,6 +64,9 @@ public:
     
     // Get the current session token
     QString getSessionToken() const;
+    
+    // Check if credentials are configured
+    bool hasCredentials() const;
 
 signals:
     // Emitted when session is obtained
@@ -78,12 +81,16 @@ signals:
 private slots:
     void onSessionReply();
     void onCallsignReply();
+    void onWebScrapingReply();
 
 private:
     // Parse XML response
     QrzcqCallsignData parseCallsignXml(const QString &xmlData);
     QString parseSessionXml(const QString &xmlData);
     QString extractXmlValue(const QString &xmlData, const QString &tag);
+    
+    // Web scraping fallback
+    QrzcqCallsignData scrapeCallsignFromHtml(const QString &htmlData);
 
     QNetworkAccessManager *m_networkManager;
     QString m_username;
@@ -94,6 +101,7 @@ private:
     // Track pending requests
     QNetworkReply *m_sessionReply;
     QNetworkReply *m_callsignReply;
+    QNetworkReply *m_scrapingReply;
 };
 
 #endif // QRZCQAPI_H

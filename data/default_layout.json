@@ -14,5 +14,10 @@
             "y": 205
         },
         "maximized": false
+    },
+    "qrzcq": {
+        "autoLookupEnabled": false,
+        "username": "",
+        "password": ""
     }
 }

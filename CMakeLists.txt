@@ -63,6 +63,7 @@ set(SOURCES
     src/utils/callsignutils.cpp
     src/DxccDatabase.cpp
     src/qrzcqapi.cpp
+    src/ui/qrzcqsettingsdialog.cpp
 )
 
 set(HEADERS
@@ -103,6 +104,7 @@ set(HEADERS
      src/utils/callsignutils.h
      include/DxccDatabase.h
      include/qrzcqapi.h
+     include/qrzcqsettingsdialog.h
 )
 
 # UI files

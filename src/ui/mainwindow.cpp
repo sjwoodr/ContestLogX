@@ -13,6 +13,7 @@
 #include "shortcutsdialog.h"
 #include "cabrillodialog.h"
 #include "callhistorydialog.h"
+#include "qrzcqsettingsdialog.h"
 #include "scpdialog.h"
 #include "cabrilloexport.h"
 #include "contestengine.h"
@@ -313,7 +314,10 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
                 if (lineEdit == m_callEdit && !m_callEdit->text().isEmpty()) {
                     QString callsign = m_callEdit->text().trimmed().toUpper();
                     // Check if it's a reasonable callsign length (at least 2 chars)
-                    if (callsign.length() >= 2) {
+                    // Try lookup if we have a valid session OR have credentials for fallback scraping
+                    if (callsign.length() >= 2 && m_qrzcqApi && 
+                        (m_qrzcqApi->hasValidSession() || 
+                         Settings::instance().getQrzcqAutoLookupEnabled())) {
                         m_pendingQrzcqCall = callsign;
                         m_qrzcqApi->lookupCallsign(callsign);
                     }
@@ -627,6 +631,9 @@ void MainWindow::setupMenus()
     QAction *callHistoryAction = fileMenu->addAction("Manage &Call History...");
     connect(callHistoryAction, &QAction::triggered, this, &MainWindow::onManageCallHistory);
     
+    QAction *qrzcqAction = fileMenu->addAction("Manage &QRZCQ Lookups...");
+    connect(qrzcqAction, &QAction::triggered, this, &MainWindow::onManageQrzcqLookups);
+    
     fileMenu->addSeparator();
     
     QAction *shortcutsAction = fileMenu->addAction("&Shortcuts...");
@@ -830,6 +837,16 @@ void MainWindow::createConnections()
     connect(m_qrzcqApi, &QrzcqApi::callsignFound, this, &MainWindow::onQrzcqCallsignFound);
     connect(m_qrzcqApi, &QrzcqApi::callsignNotFound, this, &MainWindow::onQrzcqCallsignNotFound);
     connect(m_qrzcqApi, &QrzcqApi::lookupError, this, &MainWindow::onQrzcqLookupError);
+    
+    // Initialize QRZCQ session if credentials are saved
+    Settings& settings = Settings::instance();
+    QString username = settings.getQrzcqUsername();
+    QString password = settings.getQrzcqPassword();
+    
+    if (!username.isEmpty() && !password.isEmpty()) {
+        m_qrzcqApi->setCredentials(username, password);
+        m_qrzcqApi->getSession();
+    }
 }
 
 void MainWindow::onNewLog()
@@ -1999,6 +2016,22 @@ void MainWindow::onManageCallHistory()
 {
     CallHistoryDialog dialog(this);
     dialog.exec();
+}
+
+void MainWindow::onManageQrzcqLookups()
+{
+    QrzcqSettingsDialog dialog(this);
+    if (dialog.exec() == QDialog::Accepted) {
+        // Reinitialize QRZCQ API with new credentials
+        Settings& settings = Settings::instance();
+        QString username = settings.getQrzcqUsername();
+        QString password = settings.getQrzcqPassword();
+        
+        if (!username.isEmpty() && !password.isEmpty()) {
+            m_qrzcqApi->setCredentials(username, password);
+            m_qrzcqApi->getSession();
+        }
+    }
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *event)

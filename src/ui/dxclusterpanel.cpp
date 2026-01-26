@@ -44,7 +44,7 @@ DxClusterPanel::DxClusterPanel(QWidget *parent)
     connect(m_propagationTimer, &QTimer::timeout, this, &DxClusterPanel::onPropagationTimerTimeout);
     
     // Setup expiration timer - check every minute for expired spots
-    m_expirationTimer->setInterval(60 * 1000); // 1 minute in milliseconds
+    m_expirationTimer->setInterval(120 * 1000); // 2 minutes in milliseconds
     connect(m_expirationTimer, &QTimer::timeout, this, &DxClusterPanel::onExpireSpots);
     m_expirationTimer->start();
 }

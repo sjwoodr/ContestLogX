@@ -84,6 +84,7 @@ private slots:
     void onDownloadCtyDat();
     void onDownloadScp();
     void onManageCallHistory();
+    void onManageQrzcqLookups();
     void onScpDialog();
     void onShortcuts();
     void onQsoDoubleClicked(const QModelIndex& index);

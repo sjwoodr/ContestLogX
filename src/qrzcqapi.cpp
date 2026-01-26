@@ -6,6 +6,7 @@
 #include <QUrlQuery>
 #include <QXmlStreamReader>
 #include <QDebug>
+#include <QRegularExpression>
 
 // https://www.qrzcq.com/docs/api/xml/
 
@@ -28,6 +29,7 @@ QrzcqApi::QrzcqApi(QObject *parent)
     , m_networkManager(new QNetworkAccessManager(this))
     , m_sessionReply(nullptr)
     , m_callsignReply(nullptr)
+    , m_scrapingReply(nullptr)
 {
     m_userAgent = "ContestLogX";
 }
@@ -39,6 +41,9 @@ QrzcqApi::~QrzcqApi()
     }
     if (m_callsignReply) {
         m_callsignReply->abort();
+    }
+    if (m_scrapingReply) {
+        m_scrapingReply->abort();
     }
 }
 
@@ -81,28 +86,39 @@ void QrzcqApi::getSession()
 
 void QrzcqApi::lookupCallsign(const QString &callsign)
 {
-    if (m_sessionToken.isEmpty()) {
-        emit lookupError("No valid session token. Call getSession() first.");
-        return;
+    // Try API lookup first if we have a valid session
+    if (!m_sessionToken.isEmpty()) {
+        // Create request for callsign lookup
+        QUrl url("https://ssl.qrzcq.com/xml");
+        QUrlQuery query;
+        query.addQueryItem("s", m_sessionToken);
+        query.addQueryItem("callsign", callsign.toUpper());
+        query.addQueryItem("agent", m_userAgent);
+        url.setQuery(query);
+
+        QNetworkRequest request(url);
+
+        // Abort previous callsign request if any
+        if (m_callsignReply) {
+            m_callsignReply->abort();
+        }
+
+        m_callsignReply = m_networkManager->get(request);
+        connect(m_callsignReply, &QNetworkReply::finished, this, &QrzcqApi::onCallsignReply);
+    } else {
+        // Fallback to web scraping if no valid session
+        QUrl url(QString("https://www.qrzcq.com/call/%1").arg(callsign.toUpper()));
+        QNetworkRequest request(url);
+        request.setHeader(QNetworkRequest::UserAgentHeader, m_userAgent);
+
+        // Abort previous scraping request if any
+        if (m_scrapingReply) {
+            m_scrapingReply->abort();
+        }
+
+        m_scrapingReply = m_networkManager->get(request);
+        connect(m_scrapingReply, &QNetworkReply::finished, this, &QrzcqApi::onWebScrapingReply);
     }
-
-    // Create request for callsign lookup
-    QUrl url("https://ssl.qrzcq.com/xml");
-    QUrlQuery query;
-    query.addQueryItem("s", m_sessionToken);
-    query.addQueryItem("callsign", callsign.toUpper());
-    query.addQueryItem("agent", m_userAgent);
-    url.setQuery(query);
-
-    QNetworkRequest request(url);
-
-    // Abort previous callsign request if any
-    if (m_callsignReply) {
-        m_callsignReply->abort();
-    }
-
-    m_callsignReply = m_networkManager->get(request);
-    connect(m_callsignReply, &QNetworkReply::finished, this, &QrzcqApi::onCallsignReply);
 }
 
 bool QrzcqApi::hasValidSession() const
@@ -113,6 +129,11 @@ bool QrzcqApi::hasValidSession() const
 QString QrzcqApi::getSessionToken() const
 {
     return m_sessionToken;
+}
+
+bool QrzcqApi::hasCredentials() const
+{
+    return !m_username.isEmpty() && !m_password.isEmpty();
 }
 
 void QrzcqApi::onSessionReply()
@@ -277,4 +298,98 @@ QString QrzcqApi::extractXmlValue(const QString &xmlData, const QString &tag)
     }
 
     return xmlData.mid(startIdx, endIdx - startIdx);
+}
+
+void QrzcqApi::onWebScrapingReply()
+{
+    if (!m_scrapingReply) {
+        return;
+    }
+
+    if (m_scrapingReply->error() != QNetworkReply::NoError) {
+        emit lookupError(QString("Network error: %1").arg(m_scrapingReply->errorString()));
+        m_scrapingReply->deleteLater();
+        m_scrapingReply = nullptr;
+        return;
+    }
+
+    QString htmlData = QString::fromUtf8(m_scrapingReply->readAll());
+    m_scrapingReply->deleteLater();
+    m_scrapingReply = nullptr;
+
+    // Check if callsign was not found (404 or specific message)
+    if (htmlData.contains("does not exist", Qt::CaseInsensitive) || 
+        htmlData.contains("not found", Qt::CaseInsensitive)) {
+        // Try to extract callsign from URL or use a generic message
+        emit callsignNotFound("Unknown");
+        return;
+    }
+
+    // Parse HTML and extract callsign data
+    QrzcqCallsignData data = scrapeCallsignFromHtml(htmlData);
+    if (!data.call.isEmpty()) {
+        emit callsignFound(data);
+    } else {
+        emit lookupError("Failed to parse callsign data from webpage");
+    }
+}
+
+QrzcqCallsignData QrzcqApi::scrapeCallsignFromHtml(const QString &htmlData)
+{
+    QrzcqCallsignData data;
+
+    // Extract call from title like "K0BF Callsign on QRZCQ"
+    QRegularExpression titleRegex(R"(<title[^>]*>([A-Z0-9/]+)\s+Callsign)", QRegularExpression::CaseInsensitiveOption);
+    QRegularExpressionMatch titleMatch = titleRegex.match(htmlData);
+    if (titleMatch.hasMatch()) {
+        data.call = titleMatch.captured(1).trimmed();
+    }
+
+    // Extract name from <p class="haminfoaddress"><b>Name</b>
+    QRegularExpression nameRegex(R"(<p\s+class="haminfoaddress"><b[^>]*>([^<]+)</b>)", QRegularExpression::CaseInsensitiveOption);
+    QRegularExpressionMatch nameMatch = nameRegex.match(htmlData);
+    if (nameMatch.hasMatch()) {
+        data.name = nameMatch.captured(1).trimmed();
+    }
+
+    // Extract city and state from <p class="haminfoaddress"> content
+    // Format: <b>Name</b><br /><br />City ZIP<br />Country, State</td>
+    // Note: QRZCQ HTML closes with </td> instead of </p>
+    QRegularExpression addressRegex(R"(<p\s+class="haminfoaddress">.*?<br\s*/><br\s*/>([^<]+)<br\s*/>\s*([^<,]+),\s*([^<]+)<)",
+                                    QRegularExpression::CaseInsensitiveOption | QRegularExpression::DotMatchesEverythingOption);
+    QRegularExpressionMatch addressMatch = addressRegex.match(htmlData);
+    if (addressMatch.hasMatch()) {
+        // First captured group is "City ZIP"
+        QString cityLine = addressMatch.captured(1).trimmed();
+        // Remove any trailing digits (ZIP code)
+        cityLine = cityLine.remove(QRegularExpression(R"(\s+\d+$)"));
+        data.city = cityLine.trimmed();
+
+        // Second captured group is "Country"
+        data.country = addressMatch.captured(2).trimmed();
+
+        // Third captured group is "State"
+        data.state = addressMatch.captured(3).trimmed();
+    }
+
+    // Extract Federal state from table
+    QRegularExpression stateRegex(R"(<b>Federal\s+state:</b></td>\s*<td[^>]*>([^<]+)</td>)", QRegularExpression::CaseInsensitiveOption);
+    QRegularExpressionMatch stateMatch = stateRegex.match(htmlData);
+    if (stateMatch.hasMatch() && data.state.isEmpty()) {
+        data.state = stateMatch.captured(1).trimmed();
+    }
+
+    // Extract Locator (grid square)
+    QRegularExpression locatorRegex(R"(<b>Locator:</b></td>\s*<td[^>]*>([^<]+)</td>)", QRegularExpression::CaseInsensitiveOption);
+    QRegularExpressionMatch locatorMatch = locatorRegex.match(htmlData);
+    if (locatorMatch.hasMatch()) {
+        data.locator = locatorMatch.captured(1).trimmed();
+    }
+
+    // Set QTH to state only (city is displayed separately in the status bar)
+    if (!data.state.isEmpty()) {
+        data.qth = data.state;
+    }
+
+    return data;
 }

@@ -863,6 +863,83 @@ void Settings::setScpEnabled(bool enabled)
     m_modified = true;
 }
 
+bool Settings::getQrzcqAutoLookupEnabled() const
+{
+    return m_settings["qrzcq"].toObject()["autoLookupEnabled"].toBool(false);
+}
+
+void Settings::setQrzcqAutoLookupEnabled(bool enabled)
+{
+    QJsonObject qrzcq = m_settings["qrzcq"].toObject();
+    qrzcq["autoLookupEnabled"] = enabled;
+    m_settings["qrzcq"] = qrzcq;
+    m_modified = true;
+}
+
+QString Settings::getQrzcqUsername() const
+{
+    QString encrypted = m_settings["qrzcq"].toObject()["username"].toString();
+    if (encrypted.isEmpty()) return "";
+    
+    // Simple XOR decryption with base64
+    QByteArray decoded = QByteArray::fromBase64(encrypted.toLatin1());
+    const char key[] = "ContestLogX";
+    QByteArray result;
+    for (int i = 0; i < decoded.length(); ++i) {
+        result.append(decoded[i] ^ key[i % strlen(key)]);
+    }
+    return QString::fromLatin1(result);
+}
+
+QString Settings::getQrzcqPassword() const
+{
+    QString encrypted = m_settings["qrzcq"].toObject()["password"].toString();
+    if (encrypted.isEmpty()) return "";
+    
+    // Simple XOR decryption with base64
+    QByteArray decoded = QByteArray::fromBase64(encrypted.toLatin1());
+    const char key[] = "ContestLogX";
+    QByteArray result;
+    for (int i = 0; i < decoded.length(); ++i) {
+        result.append(decoded[i] ^ key[i % strlen(key)]);
+    }
+    return QString::fromLatin1(result);
+}
+
+void Settings::setQrzcqCredentials(const QString& username, const QString& password)
+{
+    QJsonObject qrzcq = m_settings["qrzcq"].toObject();
+    
+    // Simple XOR encryption with base64
+    const char key[] = "ContestLogX";
+    
+    if (!username.isEmpty()) {
+        QByteArray userBytes = username.toLatin1();
+        QByteArray encrypted;
+        for (int i = 0; i < userBytes.length(); ++i) {
+            encrypted.append(userBytes[i] ^ key[i % strlen(key)]);
+        }
+        qrzcq["username"] = QString::fromLatin1(encrypted.toBase64());
+    } else {
+        qrzcq["username"] = "";
+    }
+    
+    if (!password.isEmpty()) {
+        QByteArray passBytes = password.toLatin1();
+        QByteArray encrypted;
+        for (int i = 0; i < passBytes.length(); ++i) {
+            encrypted.append(passBytes[i] ^ key[i % strlen(key)]);
+        }
+        qrzcq["password"] = QString::fromLatin1(encrypted.toBase64());
+    } else {
+        qrzcq["password"] = "";
+    }
+    
+    m_settings["qrzcq"] = qrzcq;
+    m_modified = true;
+}
+
+
 
 QString Settings::getDataPath()
 {

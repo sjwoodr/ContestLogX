@@ -179,6 +179,14 @@ public:
     // Super Check Partial (SCP) settings
     bool getScpEnabled() const;
     void setScpEnabled(bool enabled);
+    
+    // QRZCQ API settings
+    bool getQrzcqAutoLookupEnabled() const;
+    void setQrzcqAutoLookupEnabled(bool enabled);
+    
+    QString getQrzcqUsername() const;
+    QString getQrzcqPassword() const;
+    void setQrzcqCredentials(const QString& username, const QString& password);
 
     void save();
 
