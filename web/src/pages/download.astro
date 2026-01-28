@@ -1,0 +1,76 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Download – ContestLogX">
+  <div class="flex flex-col items-center px-5 py-10">
+
+    <div class="max-w-4xl w-full text-center">
+      <h1 class="text-4xl font-bold mb-6">Download ContestLogX</h1>
+
+      <p class="text-lg opacity-80 mb-12">
+        ContestLogX is currently in beta. Download the latest version for your platform below.
+      </p>
+
+      <!-- Download sections -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+        <div class="rounded-lg border p-8" style="background-color: #161b22; border-color: #30363d;">
+          <h2 class="text-2xl font-semibold mb-4">Linux</h2>
+          <p class="mb-6 opacity-80">Beta available now</p>
+          <a
+            href="mailto:beta@contestlogx.com"
+            class="inline-block px-6 py-3 rounded-md font-semibold transition-colors download-btn"
+          >
+            Request Beta Access
+          </a>
+          <style>
+            .download-btn {
+              background-color: #238636;
+              color: #ffffff;
+            }
+            .download-btn:hover {
+              background-color: #2ea043;
+            }
+          </style>
+        </div>
+
+        <div class="rounded-lg border p-8" style="background-color: #161b22; border-color: #30363d;">
+          <h2 class="text-2xl font-semibold mb-4">macOS</h2>
+          <p class="mb-6 opacity-80">Coming soon</p>
+          <button
+            disabled
+            class="inline-block px-6 py-3 rounded-md font-semibold opacity-50 cursor-not-allowed"
+            style="background-color: #3f3f46; color: #e6edf3;"
+          >
+            Not Available Yet
+          </button>
+        </div>
+
+        <div class="rounded-lg border p-8" style="background-color: #161b22; border-color: #30363d;">
+          <h2 class="text-2xl font-semibold mb-4">Windows</h2>
+          <p class="mb-6 opacity-80">Coming soon</p>
+          <button
+            disabled
+            class="inline-block px-6 py-3 rounded-md font-semibold opacity-50 cursor-not-allowed"
+            style="background-color: #3f3f46; color: #e6edf3;"
+          >
+            Not Available Yet
+          </button>
+        </div>
+      </div>
+
+      <!-- System Requirements -->
+      <div class="bg-[--color-gh-card] rounded-lg border border-[--color-gh-border] p-8 text-left">
+        <h2 class="text-2xl font-semibold mb-4">System Requirements</h2>
+        <ul class="space-y-2 opacity-80">
+          <li><strong>Operating System:</strong> Linux (Ubuntu 20.04+, Fedora 35+, or equivalent)</li>
+          <li><strong>Memory:</strong> 512 MB RAM minimum, 1 GB recommended</li>
+          <li><strong>Storage:</strong> 100 MB available space</li>
+          <li><strong>Display:</strong> 1024x768 minimum resolution</li>
+          <li><strong>Optional:</strong> flrig for rig control</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+</Layout>

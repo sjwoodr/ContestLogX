@@ -1,0 +1,60 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="ContestLogX – Cross-Platform Ham Radio Contest Logging">
+  <div class="flex flex-col items-center px-5 py-10 text-center">
+
+    <!-- Header -->
+    <header class="max-w-4xl mb-0">
+      <!-- Logo section with images and text side by side -->
+      <div class="flex items-center justify-center gap-8 mb-6">
+        <!-- Left: Images side by side -->
+        <div class="flex gap-4 items-center">
+          <img src="/radio.png" alt="Radio" style="height: 120px; width: auto;" />
+          <img src="/antenna.png" alt="Antenna" style="height: 120px; width: auto;" />
+        </div>
+
+        <!-- Right: Text -->
+        <div class="text-left">
+          <h1 class="text-5xl font-bold mb-2" style="letter-spacing: -0.02em;">ContestLogX</h1>
+          <h2 class="text-xl font-semibold opacity-70" style="letter-spacing: 0.1em;">HAM RADIO CONTEST LOGGER</h2>
+        </div>
+      </div>
+
+      <p class="text-lg opacity-80 mb-0">
+        Cross-Platform, fast, clean, modern contest logging for serious operators.
+      </p>
+    </header>
+
+    <!-- Features -->
+    <section class="max-w-3xl mt-10 text-left leading-relaxed">
+      <ul class="space-y-2">
+        <li>Cross-Platform: Linux, OS X, Windows</li>
+        <li>Full rig control via flrig</li>
+        <li>User-defined contest modules in JSON format</li>
+        <li>Lightning‑fast logging optimized for contest workflow</li>
+        <li>Clean, modern UI with dark‑theme focus</li>
+        <li>Callsign lookup and exchange autofill</li>
+        <li>CW and SSB Memories utilizing TTS (text-to-speech)</li>
+        <li>Export to Cabrillo and ADIF formats</li>
+        <li>Designed by an active contester for real‑world use</li>
+      </ul>
+    </section>
+
+    <br />
+
+    <!-- Beta Invite -->
+    <section class="max-w-3xl mt-0 px-5 py-8 rounded-lg border" style="background-color: #161b22; border-color: #30363d;">
+      <h2 class="text-2xl mb-0">Linux Beta Program</h2>
+      <p>
+        We're looking for experienced operators to help test ContestLogX on Linux.
+        If you're interested in joining the beta, reach out to
+        <a href="mailto:beta@contestlogx.com" class="underline" style="color: #58a6ff;">
+          beta@contestlogx.com
+        </a>.
+      </p>
+    </section>
+
+  </div>
+</Layout>

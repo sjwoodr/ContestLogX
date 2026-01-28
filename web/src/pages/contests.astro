@@ -1,0 +1,36 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Supported Contests – ContestLogX">
+  <div class="flex flex-col items-center px-5 py-10">
+
+    <div class="max-w-4xl w-full">
+      <h1 class="text-4xl font-bold mb-6">Supported Contests</h1>
+
+      <p class="text-lg opacity-80 mb-12">
+        ContestLogX supports a wide variety of amateur radio contests through user-defined JSON modules.
+      </p>
+
+      <div class="rounded-lg border p-8" style="background-color: #161b22; border-color: #30363d;">
+        <h2 class="text-2xl font-semibold mb-6">Built-in Contest Modules</h2>
+        <ul class="space-y-2 mb-12">
+          <li>ARRL 10 Meter Contest</li>
+          <li>ARRL VHF Contest</li>
+          <li>CWops Tests (CWT)</li>
+          <li>North American QSO Party (NAQP)</li>
+          <li>Winter Field Day</li>
+          <li>YBDX</li>
+        </ul>
+
+        <h2 class="text-2xl font-semibold mb-6">Custom Contest Support</h2>
+        <p class="leading-relaxed">
+          ContestLogX allows you to define your own contest modules using a simple JSON format.
+          This means you can create support for any contest, customizing exchange fields,
+          scoring rules, multipliers, and more.
+        </p>
+      </div>
+    </div>
+
+  </div>
+</Layout>

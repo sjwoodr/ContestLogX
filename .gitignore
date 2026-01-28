@@ -28,6 +28,10 @@ clx_debug.log
 cty.dat
 master.scp
 clx
+web-backup/
+web/node_modules/
+web/dist/
+web/.astro/
 
 # TTS models
 *.onnx.json
