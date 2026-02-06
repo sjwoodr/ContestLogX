@@ -1,0 +1,66 @@
+{
+    "contest": {
+        "categories": {
+            "userPrompt_myExchange": "FL",
+            "userPrompt_operatingClass": "WVE_SO_LP",
+            "userPrompt_operatorName": "STEVE",
+            "userPrompt_stationType": "WVE"
+        },
+        "contest_file": "mnqp.json",
+        "mode": "",
+        "name": "Minnesota QSO Party",
+        "type": "Minnesota QSO Party",
+        "version": "1.0.0",
+        "year": 2026
+    },
+    "created": "2026-02-06T10:12:06",
+    "exchange_fields": [
+    ],
+    "format": "ContestLogX",
+    "format_version": "1.0",
+    "modified": "2026-02-06T10:12:06",
+    "qsos": [
+        {
+            "band": "10m",
+            "callsign": "W0AAA",
+            "duplicate": false,
+            "dxcc_count": 0,
+            "exchange_fields": {
+                "CALL": "W0AAA",
+                "EXCHr": "BEN",
+                "EXCHs": "FL",
+                "NAMEr": "ANDREW",
+                "NAMEs": "STEVE",
+                "RSTr": "59",
+                "RSTs": "59",
+                "SNs": "1"
+            },
+            "frequency": 28445,
+            "grid_square_count": 0,
+            "id": 1,
+            "mode": "USB",
+            "multiplier_count": 1,
+            "points": 2,
+            "rst_received": "59",
+            "rst_sent": "59",
+            "serial": 1,
+            "timestamp": "2026-02-06T15:11:48Z"
+        }
+    ],
+    "station": {
+        "callsign": "N9OH",
+        "equipment": {
+            "power": 100
+        },
+        "location": {
+            "grid": "EN52",
+            "state": "FL"
+        },
+        "operator": "Test Operator"
+    },
+    "statistics": {
+        "score": 1,
+        "total_points": 1,
+        "total_qsos": 1
+    }
+}

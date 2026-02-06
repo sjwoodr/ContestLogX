@@ -45,6 +45,7 @@ bool ContestEngine::loadContest(const QJsonObject& contestDef)
     m_validStates.clear();
     m_validProvinces.clear();
     m_validCallPrefixes.clear();
+    m_inStateMults.clear();
     
     // Load from validation.namedMults array (this is the single source of truth)
     if (contestDef.contains("validation")) {
@@ -65,12 +66,23 @@ bool ContestEngine::loadContest(const QJsonObject& contestDef)
         // Load namedCallPrefixes (e.g., YB0-YB9, 7A-7I, 8A-8I for YBDX)
         if (validation.contains("namedCallPrefixes")) {
             QJsonArray prefixList = validation["namedCallPrefixes"].toArray();
-            DebugLogger::instance().log("ContestEngine", 
+            DebugLogger::instance().log("ContestEngine",
                 QString("Loading %1 call prefixes").arg(prefixList.size()));
-            
+
             for (const QJsonValue& val : prefixList) {
                 QString prefix = val.toString().toUpper();
                 m_validCallPrefixes.insert(prefix);
+            }
+        }
+
+        // Load inStateMults (subset of namedMults for filtered exchange validation)
+        if (validation.contains("inStateMults")) {
+            QJsonArray inStateList = validation["inStateMults"].toArray();
+            DebugLogger::instance().log("ContestEngine",
+                QString("Loading %1 in-state multipliers").arg(inStateList.size()));
+
+            for (const QJsonValue& val : inStateList) {
+                m_inStateMults.insert(val.toString().toUpper());
             }
         }
     } else {
@@ -300,48 +312,62 @@ bool ContestEngine::validateExchange(const QString& fieldName, const QString& va
             errorMsg = QString("Invalid multiplier: %1").arg(value);
             return false;
         }
-    } else if (type == "string" && fieldName == "EXCH") {
+    } else if (type == "string" && (fieldName == "EXCH" || fieldName == "EXCHr" || fieldName == "EXCHs")) {
         // For EXCH fields, check validation section for special logic
         if (m_contestDef.contains("validation")) {
             QJsonObject validation = m_contestDef["validation"].toObject();
             if (validation.contains("exchangeValidation")) {
                 QJsonObject exchVal = validation["exchangeValidation"].toObject();
                 QString validationType = exchVal["type"].toString();
-                
-                DebugLogger::instance().log("ContestEngine", 
+
+                DebugLogger::instance().log("ContestEngine",
                     QString("  Exchange validation type: %1").arg(validationType));
-                
+
                 if (validationType == "namedMultOrSerial") {
                     // Check if value is a valid multiplier OR a valid serial number
                     QString upper = value.toUpper();
-                    
+
                     // First check if it's a valid multiplier
                     if (m_validMultipliers.contains(upper)) {
-                        DebugLogger::instance().log("ContestEngine", 
+                        DebugLogger::instance().log("ContestEngine",
                             QString("  '%1' is a valid multiplier").arg(upper));
                         return true;
                     }
-                    
+
                     // Otherwise check if it matches serial number format
                     QString serialFormat = exchVal["serialNumberFormat"].toString();
                     if (!serialFormat.isEmpty()) {
                         QRegularExpression serialRe(serialFormat);
                         if (serialRe.match(value).hasMatch()) {
-                            DebugLogger::instance().log("ContestEngine", 
+                            DebugLogger::instance().log("ContestEngine",
                                 QString("  '%1' matches serial format").arg(value));
                             return true;
                         }
                     }
-                    
+
                     // Neither matched
-                    DebugLogger::instance().log("ContestEngine", 
+                    DebugLogger::instance().log("ContestEngine",
                         QString("  '%1' is neither a valid mult nor serial").arg(upper));
                     errorMsg = QString("Invalid mult: %1").arg(value);
                     return false;
+                } else if (validationType == "nameAndMultiplier" && fieldName == "EXCHr") {
+                    // Validate received exchange against effective mults (filtered by station type)
+                    QString upper = value.toUpper();
+                    QSet<QString> effectiveMults = getEffectiveValidMults();
+                    if (!effectiveMults.contains(upper)) {
+                        errorMsg = QString("Invalid exchange: %1").arg(value);
+                        DebugLogger::instance().log("ContestEngine",
+                            QString("  '%1' not in effective mults (%2 entries)")
+                                .arg(upper).arg(effectiveMults.size()));
+                        return false;
+                    }
+                    DebugLogger::instance().log("ContestEngine",
+                        QString("  '%1' is a valid exchange").arg(upper));
+                    return true;
                 }
             }
         }
-        
+
         // For other string types, just check if non-empty (already done above)
         return true;
     }
@@ -1123,6 +1149,71 @@ bool ContestEngine::getUsAndCanadaCountDxcc() const
     return true; // Default: US/Canada stations count as both state/province and DXCC
 }
 
+QStringList ContestEngine::getNamedMultiplierList() const
+{
+    QStringList result;
+    if (m_contestDef.contains("validation")) {
+        QJsonObject validation = m_contestDef["validation"].toObject();
+        if (validation.contains("namedMults")) {
+            QJsonArray multList = validation["namedMults"].toArray();
+            for (const QJsonValue& val : multList) {
+                result.append(val.toString().toUpper());
+            }
+        }
+    }
+    return result;
+}
+
+QSet<QString> ContestEngine::getEffectiveValidMults() const
+{
+    if (!m_inStateMults.isEmpty() && m_contestDef.contains("validation")) {
+        QJsonObject validation = m_contestDef["validation"].toObject();
+        if (validation.contains("receivedExchangeFilter")) {
+            QJsonObject filter = validation["receivedExchangeFilter"].toObject();
+            QString promptId = filter["promptId"].toString();
+            QString promptValue = getUserPromptValue(promptId);
+            QJsonObject rules = filter["rules"].toObject();
+            DebugLogger::instance().log("MultiplierWidget",
+                QString("getEffectiveValidMults: promptId='%1', promptValue='%2', hasRule=%3, inStateMults=%4, validMults=%5")
+                    .arg(promptId, promptValue)
+                    .arg(rules.contains(promptValue) ? "true" : "false")
+                    .arg(m_inStateMults.size())
+                    .arg(m_validMultipliers.size()));
+            if (rules.contains(promptValue)) {
+                QString target = rules[promptValue].toString();
+                if (target == "inStateMults") {
+                    DebugLogger::instance().log("MultiplierWidget",
+                        QString("  -> returning inStateMults (%1 entries)").arg(m_inStateMults.size()));
+                    return m_inStateMults;
+                }
+            }
+        }
+    }
+    DebugLogger::instance().log("MultiplierWidget",
+        QString("  -> returning full validMultipliers (%1 entries)").arg(m_validMultipliers.size()));
+    return m_validMultipliers;
+}
+
+QStringList ContestEngine::getEffectiveNamedMultiplierList() const
+{
+    QSet<QString> effective = getEffectiveValidMults();
+    if (effective == m_validMultipliers) {
+        return getNamedMultiplierList();
+    }
+    // Return inStateMults in order from the JSON array
+    QStringList result;
+    if (m_contestDef.contains("validation")) {
+        QJsonObject validation = m_contestDef["validation"].toObject();
+        if (validation.contains("inStateMults")) {
+            QJsonArray inStateList = validation["inStateMults"].toArray();
+            for (const QJsonValue& val : inStateList) {
+                result.append(val.toString().toUpper());
+            }
+        }
+    }
+    return result;
+}
+
 bool ContestEngine::isNewMultiplier(const QString& mult, const QString& band, const QString& mode, const QList<QsoRecord>& existingQsos) const
 {
     QString multType = getMultiplierType();
@@ -1809,7 +1900,13 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
     
     // Reset running score
     m_runningScore = ContestScore();
-    
+
+    // Clear worked named mult tracking sets
+    m_workedNamedMults.clear();
+    m_workedNamedMultsPerBand.clear();
+    m_workedNamedMultsPerMode.clear();
+    m_workedNamedMultsPerBandAndMode.clear();
+
     QString multType = getMultiplierType();
     
     // Track multipliers based on type
@@ -1950,6 +2047,7 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
                 }
                 if (category == "named" || category == "namedMults") {
                     if (!namedMultsOnce.contains(mult)) namedMultsOnce.insert(mult);
+                    m_workedNamedMults.insert(mult);
                 } else if (category == "dxcc") {
                     if (!dxccMultsOnce.contains(mult)) dxccMultsOnce.insert(mult);
                 } else if (category == "ituRegions") {
@@ -1960,7 +2058,7 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
                     if (!gridSquaresOnce.contains(mult)) gridSquaresOnce.insert(mult);
                 }
                 if (verbose) {
-                    DebugLogger::instance().log("ContestEngine", 
+                    DebugLogger::instance().log("ContestEngine",
                         QString("  Mult tracking (once): %1 [%2] %3").arg(mult).arg(category).arg(isNew ? "NEW" : "DUPE"));
                 }
             } else if (multType == "multsPerBand") {
@@ -1971,6 +2069,7 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
                 }
                 if (category == "named" || category == "namedMults") {
                     if (!namedMultsPerBand.contains(key)) namedMultsPerBand.insert(key);
+                    m_workedNamedMultsPerBand.insert(key);
                 } else if (category == "dxcc") {
                     if (!dxccMultsPerBand.contains(key)) dxccMultsPerBand.insert(key);
                 } else if (category == "ituRegions") {
@@ -1981,7 +2080,7 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
                     if (!gridSquaresPerBand.contains(key)) gridSquaresPerBand.insert(key);
                 }
                 if (verbose) {
-                    DebugLogger::instance().log("ContestEngine", 
+                    DebugLogger::instance().log("ContestEngine",
                         QString("  Mult tracking (per band): %1 [%2] %3").arg(key).arg(category).arg(isNew ? "NEW" : "DUPE"));
                 }
             } else if (multType == "multsPerMode") {
@@ -2002,6 +2101,7 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
                 
                 if (category == "named" || category == "namedMults") {
                     if (!namedMultsPerMode.contains(key)) namedMultsPerMode.insert(key);
+                    m_workedNamedMultsPerMode.insert(key);
                 } else if (category == "dxcc") {
                     if (!dxccMultsPerMode.contains(key)) dxccMultsPerMode.insert(key);
                 } else if (category == "ituRegions") {
@@ -2012,7 +2112,7 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
                     if (!gridSquaresPerMode.contains(key)) gridSquaresPerMode.insert(key);
                 }
                 if (verbose) {
-                    DebugLogger::instance().log("ContestEngine", 
+                    DebugLogger::instance().log("ContestEngine",
                         QString("  Mult tracking (per mode): %1 [%2] %3").arg(key).arg(category).arg(isNew ? "NEW" : "DUPE"));
                 }
             } else if (multType == "multsPerBandAndMode") {
@@ -2023,6 +2123,7 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
                 }
                 if (category == "named" || category == "namedMults") {
                     if (!namedMultsPerBandAndMode.contains(key)) namedMultsPerBandAndMode.insert(key);
+                    m_workedNamedMultsPerBandAndMode.insert(key);
                 } else if (category == "dxcc") {
                     if (!dxccMultsPerBandAndMode.contains(key)) dxccMultsPerBandAndMode.insert(key);
                 } else if (category == "ituRegions") {
@@ -2033,7 +2134,7 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
                     if (!gridSquaresPerBandAndMode.contains(key)) gridSquaresPerBandAndMode.insert(key);
                 }
                 if (verbose) {
-                    DebugLogger::instance().log("ContestEngine", 
+                    DebugLogger::instance().log("ContestEngine",
                         QString("  Mult tracking (per band/mode): %1 [%2] %3").arg(key).arg(category).arg(isNew ? "NEW" : "DUPE"));
                 }
             }

@@ -1,0 +1,343 @@
+{
+  "contest": {
+    "name": "Minnesota QSO Party",
+    "abbreviation": "MNQP",
+    "version": "1.0.0",
+    "sponsor": "Minnesota Wireless Association (W0AA)",
+    "description": "Annual Minnesota state QSO party held the first Saturday in February",
+    "startDate": "First Saturday in February (2026: February 7)",
+    "duration": 10,
+    "offTimeGapMinutes": 0,
+    "modes": ["CW", "SSB"],
+    "bands": ["160m", "80m", "40m", "20m", "15m", "10m"],
+    "url": "https://www.w0aa.org/mn-qso-party/",
+    "categories": {
+      "stations": ["SINGLE_OP", "MULTI_OP", "MOBILE", "ROVER"],
+      "power": ["LOW_POWER", "QRP", "HIGH_POWER"],
+      "modes": ["MIXED", "CW", "PHONE"]
+    }
+  },
+  "frequencies": {
+    "160m": {
+      "start": 1800,
+      "end": 2000,
+      "cw": {"start": 1800, "end": 1850},
+      "phone": {"start": 1850, "end": 2000}
+    },
+    "80m": {
+      "start": 3500,
+      "end": 4000,
+      "cw": {"start": 3500, "end": 3600},
+      "phone": {"start": 3600, "end": 4000}
+    },
+    "40m": {
+      "start": 7000,
+      "end": 7300,
+      "cw": {"start": 7000, "end": 7125},
+      "phone": {"start": 7125, "end": 7300}
+    },
+    "20m": {
+      "start": 14000,
+      "end": 14350,
+      "cw": {"start": 14000, "end": 14150},
+      "phone": {"start": 14150, "end": 14350}
+    },
+    "15m": {
+      "start": 21000,
+      "end": 21450,
+      "cw": {"start": 21000, "end": 21200},
+      "phone": {"start": 21200, "end": 21450}
+    },
+    "10m": {
+      "start": 28000,
+      "end": 29700,
+      "cw": {"start": 28000, "end": 28300},
+      "phone": {"start": 28300, "end": 29700}
+    }
+  },
+  "stationClasses": {
+    "enabled": false
+  },
+  "userPrompts": [
+    {
+      "id": "operatorName",
+      "question": "Enter your first name (used in exchange). Use only one name throughout the contest.",
+      "type": "text",
+      "required": true,
+      "forceUppercase": true,
+      "storeInMeta": true,
+      "description": "First name sent as part of exchange",
+      "exchangeFieldMapping": {
+        "operatorName": "NAMEs"
+      }
+    },
+    {
+      "id": "stationType",
+      "question": "Select your station location",
+      "type": "select",
+      "options": [
+        {"value": "MN", "label": "Minnesota (In-State)"},
+        {"value": "WVE", "label": "W/VE (Outside Minnesota)"},
+        {"value": "DX", "label": "DX (Outside W/VE)"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "MN stations work everyone. W/VE and DX work MN stations only."
+    },
+    {
+      "id": "operatingClass",
+      "question": "Select your operating class",
+      "type": "select",
+      "options": [
+        {"value": "MN_SO_MIXED", "label": "MN: Single Op Mixed (100W)"},
+        {"value": "MN_SO_QRP", "label": "MN: Single Op Mixed QRP (5W)"},
+        {"value": "MN_SO_PHONE", "label": "MN: Single Op Phone Only (100W)"},
+        {"value": "MN_SO_CW", "label": "MN: Single Op CW Only (100W)"},
+        {"value": "MN_MULTI_OP", "label": "MN: Multi-Op (100W)"},
+        {"value": "MN_MOBILE", "label": "MN: Mobile (100W)"},
+        {"value": "MN_ROVER", "label": "MN: Rover (100W)"},
+        {"value": "WVE_SO_LP", "label": "W/VE: Single Op Mixed Low Power (100W)"},
+        {"value": "WVE_SO_HP", "label": "W/VE: Single Op Mixed High Power (1500W)"},
+        {"value": "WVE_SO_QRP", "label": "W/VE: Single Op Mixed QRP (5W)"},
+        {"value": "WVE_SO_PHONE", "label": "W/VE: Single Op Phone Only (1500W)"},
+        {"value": "WVE_SO_CW", "label": "W/VE: Single Op CW Only (1500W)"},
+        {"value": "WVE_MULTI_OP", "label": "W/VE: Multi-Op (1500W)"},
+        {"value": "DX_UNLIMITED", "label": "DX: Unlimited"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "MN: all classes 100W max (QRP 5W). W/VE: HP 1500W, LP 100W, QRP 5W."
+    },
+    {
+      "id": "myExchange",
+      "question": "Enter your exchange: MN county (3 letters, e.g., HEN), W/VE state/province (2 letters, e.g., WI), or DX",
+      "type": "text",
+      "required": true,
+      "forceUppercase": true,
+      "storeInMeta": true,
+      "description": "County abbreviation for MN stations, state/province for W/VE, or DX",
+      "exchangeFieldMapping": {
+        "myExchange": "EXCHs"
+      }
+    }
+  ],
+  "exchangeFields": {
+    "sent": [
+      {
+        "name": "NAMEs",
+        "type": "string",
+        "required": true,
+        "description": "Operator first name sent"
+      },
+      {
+        "name": "EXCHs",
+        "type": "string",
+        "required": true,
+        "description": "County (MN), State/Province (W/VE), or DX"
+      }
+    ],
+    "received": [
+      {
+        "name": "NAMEr",
+        "type": "string",
+        "required": true,
+        "description": "Operator first name received"
+      },
+      {
+        "name": "EXCHr",
+        "type": "string",
+        "required": true,
+        "description": "County (MN stations), State/Province (W/VE), or DX"
+      }
+    ]
+  },
+  "qsoFields": [
+    {
+      "name": "Date",
+      "column": "DATE",
+      "type": "date",
+      "format": "yyyy-MM-dd",
+      "required": true
+    },
+    {
+      "name": "Time",
+      "column": "TIME",
+      "type": "time",
+      "format": "HH:mm:ss",
+      "required": true
+    },
+    {
+      "name": "Callsign",
+      "column": "CALL",
+      "type": "string",
+      "required": true,
+      "uppercase": true
+    },
+    {
+      "name": "Frequency",
+      "column": "FREQ",
+      "type": "number",
+      "unit": "kHz",
+      "required": true
+    },
+    {
+      "name": "Mode",
+      "column": "MODE",
+      "type": "enum",
+      "values": ["CW", "SSB"],
+      "required": true
+    },
+    {
+      "name": "Name Sent",
+      "column": "NAMEs",
+      "type": "string",
+      "required": true,
+      "description": "Operator first name sent"
+    },
+    {
+      "name": "Name Received",
+      "column": "NAMEr",
+      "type": "string",
+      "required": true,
+      "description": "Operator first name received"
+    },
+    {
+      "name": "Exchange Sent",
+      "column": "EXCHs",
+      "type": "string",
+      "required": true,
+      "description": "County/State/Province/DX sent"
+    },
+    {
+      "name": "Exchange Received",
+      "column": "EXCHr",
+      "type": "string",
+      "required": true,
+      "description": "County/State/Province/DX received"
+    },
+    {
+      "name": "Points",
+      "column": "POINTS",
+      "type": "number",
+      "calculated": true
+    },
+    {
+      "name": "Multiplier",
+      "column": "M",
+      "type": "string",
+      "calculated": true
+    }
+  ],
+  "scoring": {
+    "points": {
+      "sameDxccEntity": {
+        "CW": 2,
+        "SSB": 2
+      },
+      "differentDxccEntity": {
+        "CW": 2,
+        "SSB": 2
+      },
+      "sameContinent": {
+        "CW": 2,
+        "SSB": 2
+      },
+      "differentContinent": {
+        "CW": 2,
+        "SSB": 2
+      }
+    },
+    "precedence": [
+      "sameDxccEntity",
+      "differentDxccEntity",
+      "sameContinent",
+      "differentContinent"
+    ],
+    "multipliers": {
+      "type": "multsOnce",
+      "description": "MN counties, US states, Canadian provinces/territories, and DX - each counted once overall (not per band or mode)",
+      "categories": ["namedMults"],
+      "alaskaAndHawaiiCountDxcc": false,
+      "usAndCanadaCountDxcc": false
+    },
+    "finalScore": "SUM(points) * SUM(multipliers)"
+  },
+  "dupeChecking": {
+    "type": "perBandAndMode",
+    "description": "Station may be worked once on CW and once on Phone per band. MN mobiles/rovers may be worked once per band & mode from each county."
+  },
+  "logging": {
+    "requiredFields": ["date", "time", "frequency", "mode", "callsign", "nameSent", "nameReceived", "exchSent", "exchReceived"],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "MNQP",
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {name_sent} {exch_sent} {call} {name_rcvd} {exch_rcvd}"
+    }
+  },
+  "callHistory": {
+    "fieldsToSave": ["NAMEr", "EXCHr"],
+    "description": "Save operator name and county/state for future lookups"
+  },
+  "validation": {
+    "minimumQSOs": 1,
+    "maxOperatingTime": 10,
+    "offTimesRequired": false,
+    "namedMults": [
+      "AIT", "ANO", "BEC", "BEL", "BEN", "BIG", "BLU", "BRO", "CAS", "CHP",
+      "CHS", "CLA", "CLE", "COO", "COT", "CRL", "CRO", "CRV", "DAK", "DOD",
+      "DOU", "FAI", "FIL", "FRE", "GOO", "GRA", "HEN", "HOU", "HUB", "ISA",
+      "ITA", "JAC", "KIT", "KNB", "KND", "KOO", "LAC", "LAK", "LES", "LIN",
+      "LKW", "LYO", "MAH", "MCL", "MEE", "MIL", "MOR", "MOW", "MRS", "MRT",
+      "MUR", "NIC", "NOB", "NOR", "OLM", "OTT", "PEN", "PIN", "PIP", "POL",
+      "POP", "RAM", "RDL", "RDW", "REN", "RIC", "ROC", "ROS", "SCO", "SHE",
+      "SIB", "STE", "STL", "STR", "STV", "SWI", "TOD", "TRA", "WAB", "WAD",
+      "WAT", "WIL", "WIN", "WRI", "WSC", "WSH", "YEL",
+      "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL",
+      "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME",
+      "MD", "MA", "MI", "MS", "MO", "MT", "NE", "NV", "NH", "NJ",
+      "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC",
+      "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY",
+      "AB", "BC", "MB", "NB", "NL", "NS", "NU", "NT", "ON", "PE", "QC", "SK", "YT",
+      "DX"
+    ],
+    "exchangeValidation": {
+      "type": "nameAndMultiplier",
+      "description": "Name is any string; exchange should be a valid MN county (3-letter), US state (2-letter), Canadian province (2-letter), or DX"
+    },
+    "receivedExchangeFilter": {
+      "promptId": "stationType",
+      "rules": {
+        "WVE": "inStateMults",
+        "DX": "inStateMults"
+      }
+    },
+    "inStateMults": [
+      "AIT", "ANO", "BEC", "BEL", "BEN", "BIG", "BLU", "BRO", "CAS", "CHP",
+      "CHS", "CLA", "CLE", "COO", "COT", "CRL", "CRO", "CRV", "DAK", "DOD",
+      "DOU", "FAI", "FIL", "FRE", "GOO", "GRA", "HEN", "HOU", "HUB", "ISA",
+      "ITA", "JAC", "KIT", "KNB", "KND", "KOO", "LAC", "LAK", "LES", "LIN",
+      "LKW", "LYO", "MAH", "MCL", "MEE", "MIL", "MOR", "MOW", "MRS", "MRT",
+      "MUR", "NIC", "NOB", "NOR", "OLM", "OTT", "PEN", "PIN", "PIP", "POL",
+      "POP", "RAM", "RDL", "RDW", "REN", "RIC", "ROC", "ROS", "SCO", "SHE",
+      "SIB", "STE", "STL", "STR", "STV", "SWI", "TOD", "TRA", "WAB", "WAD",
+      "WAT", "WIL", "WIN", "WRI", "WSC", "WSH", "YEL"
+    ]
+  },
+  "ui": {
+    "showMultiplierPanel": true,
+    "logColumns": ["DATE", "TIME", "CALL", "FREQ", "MODE", "NAMEs", "NAMEr", "EXCHs", "EXCHr", "POINTS", "M", "COMMENT"],
+    "entryFields": ["CALL", "NAMEr", "EXCHr"],
+    "fieldNavigation": {
+      "keys": "tab"
+    },
+    "bandMap": {
+      "enabled": true,
+      "bands": ["160m", "80m", "40m", "20m", "15m", "10m"]
+    },
+    "multiplierDisplay": {
+      "showCounties": true,
+      "showStates": true,
+      "showProvinces": true
+    }
+  }
+}

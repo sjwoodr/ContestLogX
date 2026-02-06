@@ -9,6 +9,7 @@
 #include "scorewidget.h"
 #include "scpwidget.h"
 #include "ssbmemorieswidget.h"
+#include "multiplierwidget.h"
 #include "scplineedit.h"
 #include "stationsetupdialog.h"
 #include "stationclassdialog.h"
@@ -601,6 +602,22 @@ void MainWindow::setupUi()
     addDockWidget(Qt::RightDockWidgetArea, m_ssbMemoriesWidget);
     m_ssbMemoriesWidget->hide();  // Hidden by default, user can show via Window menu
 
+    // Multiplier Widget as QDockWidget
+    m_multiplierDock = new QDockWidget("Multipliers", this);
+    m_multiplierDock->setObjectName("multiplierDock");  // Required for saveState/restoreState
+    m_multiplierWidget = new MultiplierWidget(m_multiplierDock);
+    m_multiplierWidget->setMinimumHeight(150);
+    m_multiplierDock->setWidget(m_multiplierWidget);
+    m_multiplierDock->setAllowedAreas(Qt::AllDockWidgetAreas);
+    m_multiplierDock->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable | QDockWidget::DockWidgetClosable);
+    addDockWidget(Qt::RightDockWidgetArea, m_multiplierDock);
+    m_multiplierDock->hide();  // Hidden by default
+    connect(m_multiplierDock, &QDockWidget::visibilityChanged, this, [this](bool visible) {
+        if (m_multiplierWidgetAction) {
+            m_multiplierWidgetAction->setChecked(visible);
+        }
+    });
+
     // Load SSB memories from settings
     m_ssbMemoriesWidget->setMemories(Settings::instance().getSsbMemories());
 
@@ -757,9 +774,12 @@ void MainWindow::setupMenus()
     
     QAction *scpAction = contestMenu->addAction("&Super Check Partial...");
     connect(scpAction, &QAction::triggered, this, &MainWindow::onScpDialog);
-    
+
+    QAction *showMultAction = contestMenu->addAction("Show &Multipliers...");
+    connect(showMultAction, &QAction::triggered, this, &MainWindow::onShowMultipliers);
+
     contestMenu->addSeparator();
-    
+
     QAction *cabrilloAction = contestMenu->addAction("&Generate Cabrillo log...");
     connect(cabrilloAction, &QAction::triggered, this, &MainWindow::onExportCabrillo);
     
@@ -793,7 +813,12 @@ void MainWindow::setupMenus()
     m_ssbMemoriesWidgetAction->setCheckable(true);
     m_ssbMemoriesWidgetAction->setChecked(false);  // Hidden by default
     connect(m_ssbMemoriesWidgetAction, &QAction::triggered, this, &MainWindow::onToggleSsbMemoriesWidget);
-    
+
+    m_multiplierWidgetAction = windowMenu->addAction("&Multipliers");
+    m_multiplierWidgetAction->setCheckable(true);
+    m_multiplierWidgetAction->setChecked(false);  // Hidden by default
+    connect(m_multiplierWidgetAction, &QAction::triggered, this, &MainWindow::onToggleMultiplierWidget);
+
     // Debug menu
     QMenu *debugMenu = menuBar()->addMenu("&Debug");
     
@@ -852,7 +877,14 @@ void MainWindow::setupMenus()
     m_scpDebugAction->setChecked(scpDebugEnabled);
     DebugLogger::instance().setScpDebugEnabled(scpDebugEnabled);
     connect(m_scpDebugAction, &QAction::triggered, this, &MainWindow::onToggleScpDebug);
-    
+
+    m_multiplierWidgetDebugAction = debugMenu->addAction("Enable &Multiplier Widget Debug Logging");
+    m_multiplierWidgetDebugAction->setCheckable(true);
+    bool multiplierWidgetDebugEnabled = Settings::instance().getMultiplierWidgetDebugEnabled();
+    m_multiplierWidgetDebugAction->setChecked(multiplierWidgetDebugEnabled);
+    DebugLogger::instance().setMultiplierWidgetDebugEnabled(multiplierWidgetDebugEnabled);
+    connect(m_multiplierWidgetDebugAction, &QAction::triggered, this, &MainWindow::onToggleMultiplierWidgetDebug);
+
     // Help menu
     QMenu *helpMenu = menuBar()->addMenu("&Help");
     
@@ -1337,15 +1369,17 @@ void MainWindow::onNewLog()
                                 }
                                 
                                 bool ok;
-                                int index = 0;
                                 QString selectedLabel = QInputDialog::getItem(this,
                                     "Contest Information", question,
-                                    labels, index, false, &ok);
-                                if (ok && index < values.size()) {
-                                    QString selectedValue = values[index];
-                                    m_contestEngine->setUserPromptValue(promptId, selectedValue);
-                                    DebugLogger::instance().log("MainWindow", 
-                                        QString("User prompt '%1' set to: '%2'").arg(promptId, selectedValue));
+                                    labels, 0, false, &ok);
+                                if (ok) {
+                                    int selectedIndex = labels.indexOf(selectedLabel);
+                                    if (selectedIndex >= 0 && selectedIndex < values.size()) {
+                                        QString selectedValue = values[selectedIndex];
+                                        m_contestEngine->setUserPromptValue(promptId, selectedValue);
+                                        DebugLogger::instance().log("MainWindow",
+                                            QString("User prompt '%1' set to: '%2'").arg(promptId, selectedValue));
+                                    }
                                 } else if (!ok) {
                                     // User cancelled
                                     m_contestEngine->resetStationClassState();
@@ -1419,6 +1453,18 @@ void MainWindow::onNewLog()
                     }
                 }
                 
+                // Refresh multiplier widget now that user prompts are set
+                if (m_multiplierWidget && m_contestEngine) {
+                    QJsonObject ui = m_contestDefinition["ui"].toObject();
+                    if (ui["showMultiplierPanel"].toBool(false)) {
+                        DebugLogger::instance().log("MultiplierWidget",
+                            QString("onNewLog post-prompt refresh: stationType='%1', effective mults=%2")
+                                .arg(m_contestEngine->getUserPromptValue("stationType"))
+                                .arg(m_contestEngine->getEffectiveNamedMultiplierList().size()));
+                        m_multiplierWidget->setMultiplierList(m_contestEngine->getEffectiveNamedMultiplierList());
+                    }
+                }
+
                 m_isModified = false;
                 updateWindowTitle();
                 clearEntryForm();
@@ -1706,6 +1752,18 @@ void MainWindow::onOpenLog()
                         auto score = m_contestEngine->getRunningScore();
                         m_scoreWidget->updateScore(score);
                     }
+                    // Update multiplier widget
+                    if (m_multiplierWidget && m_multiplierDock && m_multiplierDock->isVisible()) {
+                        QString multType = m_contestEngine->getMultiplierType();
+                        if (multType == "multsOnce")
+                            m_multiplierWidget->updateWorkedMultipliers(m_contestEngine->getWorkedNamedMults());
+                        else if (multType == "multsPerBand")
+                            m_multiplierWidget->updateWorkedMultipliers(m_contestEngine->getWorkedNamedMultsPerBand());
+                        else if (multType == "multsPerMode")
+                            m_multiplierWidget->updateWorkedMultipliers(m_contestEngine->getWorkedNamedMultsPerMode());
+                        else if (multType == "multsPerBandAndMode")
+                            m_multiplierWidget->updateWorkedMultipliers(m_contestEngine->getWorkedNamedMultsPerBandAndMode());
+                    }
                 } else {
                     QMessageBox::critical(this, "Error", "Failed to score QSOs");
                 }
@@ -1873,6 +1931,18 @@ void MainWindow::loadLogFile(const QString& filename)
                         for (auto it = userPromptValues.constBegin(); it != userPromptValues.constEnd(); ++it) {
                             DebugLogger::instance().log("MainWindow", QString("  %1 = '%2'").arg(it.key(), it.value()));
                         }
+
+                        // Refresh multiplier widget with effective mults (filtered by station type)
+                        if (m_multiplierWidget && m_contestDefinition.contains("ui")) {
+                            QJsonObject ui = m_contestDefinition["ui"].toObject();
+                            if (ui["showMultiplierPanel"].toBool(false)) {
+                                DebugLogger::instance().log("MultiplierWidget",
+                                    QString("loadLogFile post-restore refresh: stationType='%1', effective mults=%2")
+                                        .arg(m_contestEngine->getUserPromptValue("stationType"))
+                                        .arg(m_contestEngine->getEffectiveNamedMultiplierList().size()));
+                                m_multiplierWidget->setMultiplierList(m_contestEngine->getEffectiveNamedMultiplierList());
+                            }
+                        }
                     }
                     
                     // If we loaded a mode from the CLX file, restrict to that mode
@@ -1966,8 +2036,20 @@ void MainWindow::loadLogFile(const QString& filename)
                     auto score = m_contestEngine->getRunningScore();
                     m_scoreWidget->updateScore(score);
                 }
-                
-                m_statusLabel->setText("File loaded: " + filename + " (" + 
+                // Update multiplier widget
+                if (m_multiplierWidget && m_multiplierDock) {
+                    QString multType = m_contestEngine->getMultiplierType();
+                    if (multType == "multsOnce")
+                        m_multiplierWidget->updateWorkedMultipliers(m_contestEngine->getWorkedNamedMults());
+                    else if (multType == "multsPerBand")
+                        m_multiplierWidget->updateWorkedMultipliers(m_contestEngine->getWorkedNamedMultsPerBand());
+                    else if (multType == "multsPerMode")
+                        m_multiplierWidget->updateWorkedMultipliers(m_contestEngine->getWorkedNamedMultsPerMode());
+                    else if (multType == "multsPerBandAndMode")
+                        m_multiplierWidget->updateWorkedMultipliers(m_contestEngine->getWorkedNamedMultsPerBandAndMode());
+                }
+
+                m_statusLabel->setText("File loaded: " + filename + " (" +
                     QString::number(scoredQsos.count()) + " QSOs)");
                 
                 // If in debug log mode, generate summary sheet to debug log
@@ -2758,8 +2840,21 @@ void MainWindow::onLogQso()
         
         // Update score widget
         m_scoreWidget->updateScore(score);
-        
-        DebugLogger::instance().log("MainWindow", 
+
+        // Update multiplier widget
+        if (m_multiplierWidget && m_multiplierDock && m_multiplierDock->isVisible()) {
+            QString multType = m_contestEngine->getMultiplierType();
+            if (multType == "multsOnce")
+                m_multiplierWidget->updateWorkedMultipliers(m_contestEngine->getWorkedNamedMults());
+            else if (multType == "multsPerBand")
+                m_multiplierWidget->updateWorkedMultipliers(m_contestEngine->getWorkedNamedMultsPerBand());
+            else if (multType == "multsPerMode")
+                m_multiplierWidget->updateWorkedMultipliers(m_contestEngine->getWorkedNamedMultsPerMode());
+            else if (multType == "multsPerBandAndMode")
+                m_multiplierWidget->updateWorkedMultipliers(m_contestEngine->getWorkedNamedMultsPerBandAndMode());
+        }
+
+        DebugLogger::instance().log("MainWindow",
             QString("QSO logged: %1 points, %2 total mults, %3 DXCCs, %4 total score")
                 .arg(qso.getPoints())
                 .arg(score.multipliers)
@@ -3093,7 +3188,19 @@ void MainWindow::onRecalculateScore()
         ContestEngine::ContestScore score = m_contestEngine->getRunningScore();
         m_scoreWidget->updateScore(score);
     }
-    
+    // Update multiplier widget
+    if (m_multiplierWidget && m_multiplierDock) {
+        QString multType = m_contestEngine->getMultiplierType();
+        if (multType == "multsOnce")
+            m_multiplierWidget->updateWorkedMultipliers(m_contestEngine->getWorkedNamedMults());
+        else if (multType == "multsPerBand")
+            m_multiplierWidget->updateWorkedMultipliers(m_contestEngine->getWorkedNamedMultsPerBand());
+        else if (multType == "multsPerMode")
+            m_multiplierWidget->updateWorkedMultipliers(m_contestEngine->getWorkedNamedMultsPerMode());
+        else if (multType == "multsPerBandAndMode")
+            m_multiplierWidget->updateWorkedMultipliers(m_contestEngine->getWorkedNamedMultsPerBandAndMode());
+    }
+
     m_statusLabel->setText("Score recalculated");
     DebugLogger::instance().log("MainWindow", "Score recalculated for all QSOs");
 }
@@ -3129,6 +3236,45 @@ void MainWindow::onToggleSsbMemoriesWidget(bool checked)
         }
         savePanelState();
     }
+}
+
+void MainWindow::onToggleMultiplierWidget(bool checked)
+{
+    if (m_multiplierDock) {
+        m_multiplierDock->setVisible(checked);
+        savePanelState();
+    }
+}
+
+void MainWindow::onShowMultipliers()
+{
+    // Check if a contest is loaded
+    if (m_contestDefinition.isEmpty()) {
+        QMessageBox::information(this, "No Contest", "No contest is loaded. Please open a log or select a contest first.");
+        return;
+    }
+
+    // Check if showMultiplierPanel is enabled in the contest definition
+    bool panelEnabled = false;
+    if (m_contestDefinition.contains("ui")) {
+        QJsonObject ui = m_contestDefinition["ui"].toObject();
+        panelEnabled = ui["showMultiplierPanel"].toBool(false);
+    }
+
+    if (!panelEnabled) {
+        QMessageBox::information(this, "Multiplier Display",
+            "Multiplier display is not enabled for this contest.");
+        return;
+    }
+
+    // Show the dock and update the Window menu action
+    if (m_multiplierDock) {
+        m_multiplierDock->show();
+    }
+    if (m_multiplierWidgetAction) {
+        m_multiplierWidgetAction->setChecked(true);
+    }
+    savePanelState();
 }
 
 void MainWindow::onToggleFlrigDebug(bool checked)
@@ -3185,6 +3331,13 @@ void MainWindow::onToggleScpDebug(bool checked)
     DebugLogger::instance().setScpDebugEnabled(checked);
     Settings::instance().setScpDebugEnabled(checked);
     m_statusLabel->setText(checked ? "Super Check Partial debug logging enabled" : "Super Check Partial debug logging disabled");
+}
+
+void MainWindow::onToggleMultiplierWidgetDebug(bool checked)
+{
+    DebugLogger::instance().setMultiplierWidgetDebugEnabled(checked);
+    Settings::instance().setMultiplierWidgetDebugEnabled(checked);
+    m_statusLabel->setText(checked ? "Multiplier Widget debug logging enabled" : "Multiplier Widget debug logging disabled");
 }
 
 void MainWindow::onContestSetup()
@@ -3315,9 +3468,17 @@ void MainWindow::onContestSetup()
         }
     }
     
+    // Refresh multiplier widget in case station type changed
+    if (m_multiplierWidget && m_contestEngine && m_contestDefinition.contains("ui")) {
+        QJsonObject ui = m_contestDefinition["ui"].toObject();
+        if (ui["showMultiplierPanel"].toBool(false)) {
+            m_multiplierWidget->setMultiplierList(m_contestEngine->getEffectiveNamedMultiplierList());
+        }
+    }
+
     // Recalculate score with new settings
     onRecalculateScore();
-    
+
     QMessageBox::information(this, "Contest Setup", "Contest setup parameters have been updated.");
 }
 
@@ -3934,12 +4095,13 @@ void MainWindow::savePanelState()
 
     // Log dock widget sizes before saving
     DebugLogger::instance().log("MainWindow",
-        QString("Before save - DX Cluster height=%1, CW Console height=%2, Score height=%3, SCP height=%4, SSB height=%5")
+        QString("Before save - DX Cluster height=%1, CW Console height=%2, Score height=%3, SCP height=%4, SSB height=%5, Mult height=%6")
         .arg(m_dxClusterDock ? m_dxClusterDock->height() : -1)
         .arg(m_cwConsoleDock ? m_cwConsoleDock->height() : -1)
         .arg(m_scoreDock ? m_scoreDock->height() : -1)
         .arg(m_scpWidget ? m_scpWidget->height() : -1)
-        .arg(m_ssbMemoriesWidget ? m_ssbMemoriesWidget->height() : -1));
+        .arg(m_ssbMemoriesWidget ? m_ssbMemoriesWidget->height() : -1)
+        .arg(m_multiplierDock ? m_multiplierDock->height() : -1));
 
     // Save dock widget state (positions, sizes, floating state)
     QByteArray dockState = saveState();
@@ -4022,22 +4184,24 @@ void MainWindow::restorePanelState()
 
         // Log dock widget sizes after restore
         DebugLogger::instance().log("MainWindow",
-            QString("After restore - DX Cluster height=%1, CW Console height=%2, Score height=%3, SCP height=%4, SSB height=%5")
+            QString("After restore - DX Cluster height=%1, CW Console height=%2, Score height=%3, SCP height=%4, SSB height=%5, Mult height=%6")
             .arg(m_dxClusterDock ? m_dxClusterDock->height() : -1)
             .arg(m_cwConsoleDock ? m_cwConsoleDock->height() : -1)
             .arg(m_scoreDock ? m_scoreDock->height() : -1)
             .arg(m_scpWidget ? m_scpWidget->height() : -1)
-            .arg(m_ssbMemoriesWidget ? m_ssbMemoriesWidget->height() : -1));
+            .arg(m_ssbMemoriesWidget ? m_ssbMemoriesWidget->height() : -1)
+            .arg(m_multiplierDock ? m_multiplierDock->height() : -1));
 
         // Log again after layout has settled
         QTimer::singleShot(1000, this, [this]() {
             DebugLogger::instance().log("MainWindow",
-                QString("After layout (1s) - DX Cluster height=%1, CW Console height=%2, Score height=%3, SCP height=%4, SSB height=%5")
+                QString("After layout (1s) - DX Cluster height=%1, CW Console height=%2, Score height=%3, SCP height=%4, SSB height=%5, Mult height=%6")
                 .arg(m_dxClusterDock ? m_dxClusterDock->height() : -1)
                 .arg(m_cwConsoleDock ? m_cwConsoleDock->height() : -1)
                 .arg(m_scoreDock ? m_scoreDock->height() : -1)
                 .arg(m_scpWidget ? m_scpWidget->height() : -1)
-                .arg(m_ssbMemoriesWidget ? m_ssbMemoriesWidget->height() : -1));
+                .arg(m_ssbMemoriesWidget ? m_ssbMemoriesWidget->height() : -1)
+                .arg(m_multiplierDock ? m_multiplierDock->height() : -1));
         });
     } else {
         DebugLogger::instance().log("MainWindow", "No saved dock widget state found");
@@ -4278,7 +4442,48 @@ bool MainWindow::loadContestDefinition(const QString& filePath, bool restoreStat
             m_scoreWidget->setMultCategories(multCategories);
         }
     }
-    
+
+    // Configure multiplier widget if panel is enabled for this contest
+    if (m_multiplierWidget && m_contestDefinition.contains("ui")) {
+        QJsonObject ui = m_contestDefinition["ui"].toObject();
+        if (ui["showMultiplierPanel"].toBool(false)) {
+            DebugLogger::instance().log("MultiplierWidget",
+                QString("loadContestDefinition: stationType='%1', effective mults=%2, full mults=%3")
+                    .arg(m_contestEngine->getUserPromptValue("stationType"))
+                    .arg(m_contestEngine->getEffectiveNamedMultiplierList().size())
+                    .arg(m_contestEngine->getNamedMultiplierList().size()));
+            m_multiplierWidget->setMultiplierList(m_contestEngine->getEffectiveNamedMultiplierList());
+            m_multiplierWidget->setMultiplierType(m_contestEngine->getMultiplierType());
+
+            // Build bands and modes lists for filter
+            QStringList contestBandsList;
+            QStringList contestModesList;
+            if (m_contestDefinition.contains("contest")) {
+                QJsonObject contestObj = m_contestDefinition["contest"].toObject();
+                if (contestObj.contains("bands")) {
+                    QJsonArray bandsArray = contestObj["bands"].toArray();
+                    for (const QJsonValue& val : bandsArray) {
+                        contestBandsList.append(val.toString());
+                    }
+                }
+                if (contestObj.contains("modes")) {
+                    QJsonArray modesArray = contestObj["modes"].toArray();
+                    for (const QJsonValue& val : modesArray) {
+                        contestModesList.append(val.toString());
+                    }
+                }
+            }
+            m_multiplierWidget->setFilterOptions(contestBandsList, contestModesList);
+
+            DebugLogger::instance().log("MainWindow",
+                QString("Multiplier widget configured: %1 mults, type=%2")
+                    .arg(m_contestEngine->getEffectiveNamedMultiplierList().size())
+                    .arg(m_contestEngine->getMultiplierType()));
+        } else {
+            m_multiplierWidget->clear();
+        }
+    }
+
     updateWindowTitle();
     DebugLogger::instance().log("MainWindow", QString("loadContestDefinition completed successfully, m_contestDefinition.isEmpty(): %1").arg(m_contestDefinition.isEmpty() ? "true" : "false"));
     DebugLogger::instance().log("MainWindow", QString("Contest name: %1").arg(m_contestEngine->getContestName()));

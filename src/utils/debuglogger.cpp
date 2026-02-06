@@ -42,6 +42,7 @@ void DebugLogger::loadSettings()
     m_cwWindowDebugEnabled = settings.value("Debug/CWWindowDebug", false).toBool();
     m_dxccDatabaseDebugEnabled = settings.value("Debug/DxccDatabaseDebug", true).toBool();
     m_scpDebugEnabled = settings.value("Debug/ScpDebug", false).toBool();
+    m_multiplierWidgetDebugEnabled = settings.value("Debug/MultiplierWidgetDebug", false).toBool();
 }
 
 void DebugLogger::setFlrigDebugEnabled(bool enabled)
@@ -132,6 +133,17 @@ bool DebugLogger::isScpDebugEnabled() const
     return m_scpDebugEnabled;
 }
 
+void DebugLogger::setMultiplierWidgetDebugEnabled(bool enabled)
+{
+    m_multiplierWidgetDebugEnabled = enabled;
+    log("INFO", enabled ? "MultiplierWidget debug logging enabled" : "MultiplierWidget debug logging disabled");
+}
+
+bool DebugLogger::isMultiplierWidgetDebugEnabled() const
+{
+    return m_multiplierWidgetDebugEnabled;
+}
+
 void DebugLogger::setStdoutEnabled(bool enabled)
 {
     m_stdoutEnabled = enabled;
@@ -162,6 +174,9 @@ void DebugLogger::log(const QString& component, const QString& message)
         return;
     }
     if (!m_scpDebugEnabled && (component == "ScpDialog" || component == "ScpLineEdit")) {
+        return;
+    }
+    if (!m_multiplierWidgetDebugEnabled && component == "MultiplierWidget") {
         return;
     }
     

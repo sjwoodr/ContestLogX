@@ -166,7 +166,10 @@ public:
 
     bool getScpDebugEnabled() const;
     void setScpDebugEnabled(bool enabled);
-    
+
+    bool getMultiplierWidgetDebugEnabled() const;
+    void setMultiplierWidgetDebugEnabled(bool enabled);
+
     // Splitter states (as byte arrays)
     QByteArray getMainSplitterState() const;
     void setMainSplitterState(const QByteArray& state);

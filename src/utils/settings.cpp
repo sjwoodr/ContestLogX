@@ -636,6 +636,19 @@ void Settings::setScpDebugEnabled(bool enabled)
     save();
 }
 
+bool Settings::getMultiplierWidgetDebugEnabled() const
+{
+    return m_settings["debug"].toObject()["multiplierWidgetDebugEnabled"].toBool(false);
+}
+
+void Settings::setMultiplierWidgetDebugEnabled(bool enabled)
+{
+    QJsonObject debug = m_settings["debug"].toObject();
+    debug["multiplierWidgetDebugEnabled"] = enabled;
+    m_settings["debug"] = debug;
+    save();
+}
+
 bool Settings::getDxClusterDebugEnabled() const
 {
     return m_settings["debug"].toObject()["dxClusterDebugEnabled"].toBool(false);

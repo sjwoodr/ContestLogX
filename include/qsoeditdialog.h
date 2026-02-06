@@ -6,6 +6,7 @@
 #include <QComboBox>
 #include <QSpinBox>
 #include <QDateTimeEdit>
+#include <QMap>
 #include "qsorecord.h"
 
 class QsoEditDialog : public QDialog
@@ -31,11 +32,10 @@ private:
     QLineEdit* m_callEdit;
     QDoubleSpinBox* m_freqEdit;
     QComboBox* m_modeEdit;
-    QLineEdit* m_rstSentEdit;
-    QLineEdit* m_rstRecvEdit;
-    QLineEdit* m_exchSentEdit;
-    QLineEdit* m_exchRecvEdit;
+    QMap<QString, QLineEdit*> m_exchangeFieldEdits;
     QLineEdit* m_commentEdit;
+
+    static QString exchangeFieldLabel(const QString& key);
 };
 
 #endif // QSOEDITDIALOG_H

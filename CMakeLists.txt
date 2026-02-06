@@ -36,6 +36,7 @@ set(SOURCES
     src/ui/ssbmemorieswidget.cpp
     src/ui/dxclusterpanel.cpp
     src/ui/scorewidget.cpp
+    src/ui/multiplierwidget.cpp
     src/ui/stationsetupdialog.cpp
     src/stationclassdialog.cpp
     src/contestselectdialog.cpp
@@ -87,6 +88,7 @@ set(HEADERS
     include/qsoeditdialog.h
     include/contestengine.h
     include/scorewidget.h
+    include/multiplierwidget.h
     src/ui/freqmodedialog.h
     src/ui/cwwindow.h
     src/ui/cwmemoriesdialog.h

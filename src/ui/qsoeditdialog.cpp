@@ -45,31 +45,18 @@ void QsoEditDialog::setupUi()
     m_modeEdit->setCurrentText(m_originalQso.getMode());
     formLayout->addRow("Mode:", m_modeEdit);
 
-    m_rstSentEdit = new QLineEdit();
-    m_rstSentEdit->setText(m_originalQso.getRstSent());
-    formLayout->addRow("RST Sent:", m_rstSentEdit);
-
-    m_rstRecvEdit = new QLineEdit();
-    m_rstRecvEdit->setText(m_originalQso.getRstReceived());
-    formLayout->addRow("RST Received:", m_rstRecvEdit);
-
-    m_exchSentEdit = new QLineEdit();
-    m_exchSentEdit->setText(m_originalQso.getExchangeSent());
-    connect(m_exchSentEdit, &QLineEdit::textChanged, this, [this](const QString& text) {
-        m_exchSentEdit->blockSignals(true);
-        m_exchSentEdit->setText(text.toUpper());
-        m_exchSentEdit->blockSignals(false);
-    });
-    formLayout->addRow("Exchange Sent:", m_exchSentEdit);
-
-    m_exchRecvEdit = new QLineEdit();
-    m_exchRecvEdit->setText(m_originalQso.getExchangeReceived());
-    connect(m_exchRecvEdit, &QLineEdit::textChanged, this, [this](const QString& text) {
-        m_exchRecvEdit->blockSignals(true);
-        m_exchRecvEdit->setText(text.toUpper());
-        m_exchRecvEdit->blockSignals(false);
-    });
-    formLayout->addRow("Exchange Received:", m_exchRecvEdit);
+    const QMap<QString, QString> exchangeFields = m_originalQso.getExchangeFields();
+    for (auto it = exchangeFields.constBegin(); it != exchangeFields.constEnd(); ++it) {
+        QLineEdit* edit = new QLineEdit();
+        edit->setText(it.value());
+        connect(edit, &QLineEdit::textChanged, this, [edit](const QString& text) {
+            edit->blockSignals(true);
+            edit->setText(text.toUpper());
+            edit->blockSignals(false);
+        });
+        formLayout->addRow(exchangeFieldLabel(it.key()) + ":", edit);
+        m_exchangeFieldEdits[it.key()] = edit;
+    }
 
     m_commentEdit = new QLineEdit();
     m_commentEdit->setText(m_originalQso.getComment());
@@ -105,10 +92,9 @@ void QsoEditDialog::onOkClicked()
     m_editedQso.setCall(m_callEdit->text());
     m_editedQso.setFrequency(QString::number(m_freqEdit->value()));
     m_editedQso.setMode(m_modeEdit->currentText());
-    m_editedQso.setRstSent(m_rstSentEdit->text());
-    m_editedQso.setRstReceived(m_rstRecvEdit->text());
-    m_editedQso.setExchangeSent(m_exchSentEdit->text());
-    m_editedQso.setExchangeReceived(m_exchRecvEdit->text());
+    for (auto it = m_exchangeFieldEdits.constBegin(); it != m_exchangeFieldEdits.constEnd(); ++it) {
+        m_editedQso.setExchangeField(it.key(), it.value()->text());
+    }
     m_editedQso.setComment(m_commentEdit->text());
 
     accept();
@@ -122,4 +108,21 @@ void QsoEditDialog::onCancelClicked()
 QsoRecord QsoEditDialog::getEditedQso() const
 {
     return m_editedQso;
+}
+
+QString QsoEditDialog::exchangeFieldLabel(const QString& key)
+{
+    static const QMap<QString, QString> labels = {
+        {"RSTs", "RST Sent"},
+        {"RSTr", "RST Received"},
+        {"EXCHs", "Exchange Sent"},
+        {"EXCHr", "Exchange Received"},
+        {"NAMEs", "Name Sent"},
+        {"NAMEr", "Name Received"},
+        {"SNs", "Serial Sent"},
+        {"SNr", "Serial Received"},
+        {"GRIDs", "Grid Sent"},
+        {"GRIDr", "Grid Received"},
+    };
+    return labels.value(key, key);
 }

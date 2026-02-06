@@ -33,8 +33,10 @@ public:
     bool isDxClusterDebugEnabled() const;
     void setScpDebugEnabled(bool enabled);
     bool isScpDebugEnabled() const;
+    void setMultiplierWidgetDebugEnabled(bool enabled);
+    bool isMultiplierWidgetDebugEnabled() const;
     void setStdoutEnabled(bool enabled);
-    
+
 private:
     DebugLogger() = default;
     bool m_flrigDebugEnabled = false;
@@ -45,6 +47,7 @@ private:
     bool m_dxccDatabaseDebugEnabled = false;
     bool m_dxClusterDebugEnabled = false;
     bool m_scpDebugEnabled = false;
+    bool m_multiplierWidgetDebugEnabled = false;
     bool m_stdoutEnabled = false;
 };
 

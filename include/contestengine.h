@@ -71,7 +71,16 @@ public:
     QStringList getMultiplierCategories() const;
     bool getAlaskaHawaiiCountDxcc() const;
     bool getUsAndCanadaCountDxcc() const;
-    
+
+    // Worked multiplier tracking (for multiplier widget display)
+    QSet<QString> getWorkedNamedMults() const { return m_workedNamedMults; }
+    QSet<QString> getWorkedNamedMultsPerBand() const { return m_workedNamedMultsPerBand; }
+    QSet<QString> getWorkedNamedMultsPerMode() const { return m_workedNamedMultsPerMode; }
+    QSet<QString> getWorkedNamedMultsPerBandAndMode() const { return m_workedNamedMultsPerBandAndMode; }
+    QStringList getNamedMultiplierList() const;
+    QSet<QString> getEffectiveValidMults() const;
+    QStringList getEffectiveNamedMultiplierList() const;
+
     // Running score tracking
     struct BandModeStats {
         int cwQsos = 0;
@@ -171,6 +180,7 @@ private:
     QSet<QString> m_validProvinces;
     QSet<QString> m_validMultipliers;
     QSet<QString> m_validCallPrefixes;  // Call prefixes like YB0, YB1, 7A, 8B, etc.
+    QSet<QString> m_inStateMults;  // Subset of namedMults for in-state exchanges (e.g., MN counties)
     QString m_stationClass;
     QString m_stationClassExchangeName;
     QString m_stationClassExchangeId;
@@ -178,6 +188,12 @@ private:
     QMap<QString, QString> m_userPromptValues;  // Store user prompt responses (e.g., grid square)
     DxccDatabase* m_dxccDatabase;
     ContestScore m_runningScore;
+
+    // Worked named multiplier sets (persisted across updateRunningScore for widget display)
+    QSet<QString> m_workedNamedMults;              // multsOnce: {"OH", "HEN", ...}
+    QSet<QString> m_workedNamedMultsPerBand;        // multsPerBand: {"OH_20m", "HEN_40m", ...}
+    QSet<QString> m_workedNamedMultsPerMode;        // multsPerMode: {"OH_CW", ...}
+    QSet<QString> m_workedNamedMultsPerBandAndMode; // multsPerBandAndMode: {"OH_20m_CW", ...}
 };
 
 #endif // CONTESTENGINE_H

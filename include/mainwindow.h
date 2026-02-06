@@ -82,6 +82,8 @@ private slots:
     void onToggleScoreWidget(bool checked);
     void onToggleScpWidget(bool checked);
     void onToggleSsbMemoriesWidget(bool checked);
+    void onToggleMultiplierWidget(bool checked);
+    void onShowMultipliers();
     void onToggleFlrigDebug(bool checked);
     void onToggleMainWindowDebug(bool checked);
     void onToggleContestEngineDebug(bool checked);
@@ -90,6 +92,7 @@ private slots:
     void onToggleDxccDatabaseDebug(bool checked);
     void onToggleDxClusterDebug(bool checked);
     void onToggleScpDebug(bool checked);
+    void onToggleMultiplierWidgetDebug(bool checked);
     void onDownloadCtyDat();
     void onDownloadScp();
     void onManageCallHistory();
@@ -165,6 +168,8 @@ private:
     class ScpWidget *m_scpWidget;  // ScpWidget IS a QDockWidget
     class QDockWidget *m_scpDock;   // Pointer to m_scpWidget for consistency
     class SsbMemoriesWidget *m_ssbMemoriesWidget;  // SsbMemoriesWidget IS a QDockWidget
+    class MultiplierWidget *m_multiplierWidget;
+    class QDockWidget *m_multiplierDock;
     class QSplitter *m_mainSplitter;
     class QSplitter *m_rightPanelSplitter;
 
@@ -174,6 +179,7 @@ private:
     QAction *m_scoreWidgetAction;
     QAction *m_scpWidgetAction;
     QAction *m_ssbMemoriesWidgetAction;
+    QAction *m_multiplierWidgetAction;
     QAction *m_flrigDebugAction;
     QAction *m_mainWindowDebugAction;
     QAction *m_contestEngineDebugAction;
@@ -182,7 +188,8 @@ private:
     QAction *m_dxccDatabaseDebugAction;
     QAction *m_dxClusterDebugAction;
     QAction *m_scpDebugAction;
-    
+    QAction *m_multiplierWidgetDebugAction;
+
     // QSO Entry widgets
     QGroupBox *m_qsoEntryGroup;
     QHBoxLayout *m_qsoEntryLayout;
