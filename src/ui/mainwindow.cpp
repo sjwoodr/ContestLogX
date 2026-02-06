@@ -5171,6 +5171,7 @@ QString MainWindow::generateSummaryString()
 
             for (int i = 0; i < m_qsoModel->rowCount(); ++i) {
                 QsoRecord qso = m_qsoModel->getQso(i);
+                if (qso.getPoints() == 0) continue;
                 QString call = qso.getCall().toUpper();
                 workedCalls.insert(call);
                 if (!qso.isDupe()) {
@@ -5214,6 +5215,7 @@ QString MainWindow::generateSummaryString()
 
             for (int i = 0; i < m_qsoModel->rowCount(); ++i) {
                 QsoRecord qso = m_qsoModel->getQso(i);
+                if (qso.getPoints() == 0) continue;
                 QList<ContestEngine::MultiplierInfo> mults = m_contestEngine->getMultipliersWithCategory(qso);
 
                 for (const ContestEngine::MultiplierInfo& mult : mults) {
@@ -5252,6 +5254,7 @@ QString MainWindow::generateSummaryString()
 
             for (int i = 0; i < m_qsoModel->rowCount(); ++i) {
                 QsoRecord qso = m_qsoModel->getQso(i);
+                if (qso.getPoints() == 0) continue;
                 QString band = qso.getBand();
                 QList<ContestEngine::MultiplierInfo> mults = m_contestEngine->getMultipliersWithCategory(qso);
 
@@ -5292,6 +5295,7 @@ QString MainWindow::generateSummaryString()
 
             for (int i = 0; i < m_qsoModel->rowCount(); ++i) {
                 QsoRecord qso = m_qsoModel->getQso(i);
+                if (qso.getPoints() == 0) continue;
                 QString mode = qso.getMode();
                 QList<ContestEngine::MultiplierInfo> mults = m_contestEngine->getMultipliersWithCategory(qso);
 
@@ -5332,6 +5336,7 @@ QString MainWindow::generateSummaryString()
 
             for (int i = 0; i < m_qsoModel->rowCount(); ++i) {
                 QsoRecord qso = m_qsoModel->getQso(i);
+                if (qso.getPoints() == 0) continue;
                 QString band = qso.getBand();
                 QString mode = qso.getMode();
                 QString key = band + "/" + mode;

@@ -49,6 +49,16 @@
       "name": "Winter Field Day",
       "log_file": "test_wfd_mixed_log.clx",
       "expected_score": 658
+    },
+    {
+      "name": "MNQP In-State (MN station)",
+      "log_file": "test_mnqp_instate.clx",
+      "expected_score": 10296
+    },
+    {
+      "name": "MNQP Out-of-State (WVE station)",
+      "log_file": "test_mnqp_outofstate.clx",
+      "expected_score": 11400
     }
   ]
 }
