@@ -4525,8 +4525,17 @@ void MainWindow::updateLogHeaders()
     
     // Update the model
     m_qsoModel->setColumnHeaders(fullHeaders);
-    
-    DebugLogger::instance().log("MainWindow", 
+
+    // Set narrow default widths for short columns, then restore any user overrides
+    static const QSet<QString> narrowColumns = {"#", "M", "P", "C"};
+    for (int i = 0; i < fullHeaders.size(); ++i) {
+        if (narrowColumns.contains(fullHeaders[i])) {
+            m_qsoTable->setColumnWidth(i, 30);
+        }
+    }
+    restoreColumnWidths();
+
+    DebugLogger::instance().log("MainWindow",
         QString("Updated log headers: %1").arg(fullHeaders.join(", ")));
 }
 
