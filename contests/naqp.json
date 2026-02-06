@@ -496,6 +496,7 @@
     }
   },
   "ui": {
+    "showMultiplierPanel": true,
     "logColumns": ["DATE", "TIME", "CALL", "FREQ", "MODE", "RSTs", "RSTr", "NAMEs", "NAMEr", "EXCHs", "EXCHr", "POINTS", "M"],
     "entryFields": ["CALL", "NAMEr", "EXCHr"],
     "fieldNavigation": {

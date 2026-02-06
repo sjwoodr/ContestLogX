@@ -9,7 +9,7 @@
 #include <QString>
 
 struct SsbMemory {
-    QString abbreviation;  // 5 chars max for button display
+    QString abbreviation;  // 6 chars max for button display
     QString text;          // Full SSB text to speak via TTS
 };
 

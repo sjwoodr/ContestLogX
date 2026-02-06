@@ -819,6 +819,10 @@ void MainWindow::setupMenus()
     m_multiplierWidgetAction->setChecked(false);  // Hidden by default
     connect(m_multiplierWidgetAction, &QAction::triggered, this, &MainWindow::onToggleMultiplierWidget);
 
+    windowMenu->addSeparator();
+    QAction* resetLayoutAction = windowMenu->addAction("&Reset Widget Positions...");
+    connect(resetLayoutAction, &QAction::triggered, this, &MainWindow::onResetWidgetPositions);
+
     // Debug menu
     QMenu *debugMenu = menuBar()->addMenu("&Debug");
     
@@ -976,6 +980,7 @@ void MainWindow::createConnections()
     // TTS Manager connections
     connect(m_ttsManager, &TtsManager::finished, this, &MainWindow::onTtsFinished);
     connect(m_ttsManager, &TtsManager::error, this, &MainWindow::onTtsError);
+    m_ttsManager->setFlrigClient(m_flrigClient);
 
     // Initialize QRZCQ session if credentials are saved
     Settings& settings = Settings::instance();
@@ -3073,19 +3078,59 @@ void MainWindow::onSsbKeyingSetup()
     }
 }
 
+static QString callsignToPhonetic(const QString& callsign)
+{
+    static const QMap<QChar, QString> phonetics = {
+        {'A', "alpha"}, {'B', "bravo"}, {'C', "charlie"}, {'D', "delta"},
+        {'E', "echo"}, {'F', "foxtrot"}, {'G', "golf"}, {'H', "hotel"},
+        {'I', "india"}, {'J', "juliet"}, {'K', "kilo"}, {'L', "lima"},
+        {'M', "mike"}, {'N', "november"}, {'O', "oscar"}, {'P', "papa"},
+        {'Q', "quebec"}, {'R', "romeo"}, {'S', "sierra"}, {'T', "tango"},
+        {'U', "uniform"}, {'V', "victor"}, {'W', "whiskey"}, {'X', "x-ray"},
+        {'Y', "yankee"}, {'Z', "zulu"},
+        {'0', "zero"}, {'1', "one"}, {'2', "two"}, {'3', "three"},
+        {'4', "four"}, {'5', "five"}, {'6', "six"}, {'7', "seven"},
+        {'8', "eight"}, {'9', "niner"},
+    };
+
+    QStringList words;
+    for (const QChar& ch : callsign.toUpper()) {
+        if (ch == '/') {
+            words << "stroke";
+        } else {
+            auto it = phonetics.find(ch);
+            if (it != phonetics.end())
+                words << it.value();
+        }
+    }
+    return words.join(" ");
+}
+
 void MainWindow::onSsbMemoryTriggered(int memoryNumber, const QString& text)
 {
     DebugLogger::instance().log("MainWindow",
         QString("SSB Memory F%1 triggered: %2").arg(memoryNumber).arg(text));
 
-    // Update status bar
-    m_statusLabel->setText(QString("SSB F%1: %2").arg(memoryNumber).arg(text));
+    // Substitute macros in memory text
+    QString expandedText = text;
+    expandedText.replace("{CALL}", callsignToPhonetic(m_callEdit->text().trimmed()), Qt::CaseInsensitive);
+    expandedText.replace("{MYCALL}", callsignToPhonetic(getSessionCallsign()), Qt::CaseInsensitive);
+
+    // Serial number: {SNs}, {SN}, {serial} all resolve to next serial
+    QString nextSerial = QString::number(m_qsoModel->count() + 1);
+    expandedText.replace("{SNs}", nextSerial, Qt::CaseInsensitive);
+    expandedText.replace("{SN}", nextSerial, Qt::CaseInsensitive);
+    expandedText.replace("{serial}", nextSerial, Qt::CaseInsensitive);
+
+    // Update status bar with expanded text
+    m_statusLabel->setText(QString("SSB F%1: %2").arg(memoryNumber).arg(expandedText));
 
     // Trigger TTS if enabled
     Settings& settings = Settings::instance();
     if (settings.getSsbKeyingEnabled()) {
-        DebugLogger::instance().log("MainWindow", "Starting TTS playback");
-        m_ttsManager->speak(text);
+        DebugLogger::instance().log("MainWindow",
+            QString("Starting TTS playback: %1").arg(expandedText));
+        m_ttsManager->speak(expandedText);
     } else {
         DebugLogger::instance().log("MainWindow", "SSB keying disabled, skipping TTS");
     }
@@ -4206,6 +4251,64 @@ void MainWindow::restorePanelState()
     } else {
         DebugLogger::instance().log("MainWindow", "No saved dock widget state found");
     }
+}
+
+void MainWindow::onResetWidgetPositions()
+{
+    QMessageBox::StandardButton reply = QMessageBox::question(this,
+        "Reset Widget Positions",
+        "Reset all widget positions and sizes to defaults?\n\nThe application will need to restart for the changes to take full effect.",
+        QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+
+    if (reply != QMessageBox::Yes) return;
+
+    QString defaultLayoutPath = Settings::getDataPath() + "/default_layout.json";
+    QFile file(defaultLayoutPath);
+    if (!file.open(QIODevice::ReadOnly)) {
+        QMessageBox::warning(this, "Reset Widget Positions",
+            "Could not find default_layout.json");
+        return;
+    }
+
+    QJsonDocument doc = QJsonDocument::fromJson(file.readAll());
+    file.close();
+    if (!doc.isObject()) return;
+
+    QJsonObject defaults = doc.object();
+    Settings& settings = Settings::instance();
+
+    // Apply UI state from defaults
+    if (defaults.contains("ui")) {
+        QJsonObject ui = defaults["ui"].toObject();
+        if (ui.contains("dockWidgetState")) {
+            QByteArray dockState = QByteArray::fromBase64(ui["dockWidgetState"].toString().toLatin1());
+            settings.setDockWidgetState(dockState);
+            restoreState(dockState, 0);
+        }
+        if (ui.contains("mainSplitterState") && m_mainSplitter) {
+            QByteArray splitterState = QByteArray::fromBase64(ui["mainSplitterState"].toString().toUtf8());
+            settings.setMainSplitterState(splitterState);
+            m_mainSplitter->restoreState(splitterState);
+        }
+        settings.setDxClusterVisible(ui["dxClusterVisible"].toBool(true));
+        settings.setCwConsoleVisible(ui["cwConsoleVisible"].toBool(true));
+    }
+
+    // Apply window geometry from defaults
+    if (defaults.contains("window")) {
+        QJsonObject win = defaults["window"].toObject();
+        if (win.contains("geometryState")) {
+            QByteArray geomState = QByteArray::fromBase64(win["geometryState"].toString().toLatin1());
+            settings.setWindowGeometryState(geomState);
+            restoreGeometry(geomState);
+        }
+    }
+
+    // Restore visibility and menu state
+    restorePanelState();
+    settings.save();
+
+    DebugLogger::instance().log("MainWindow", "Widget positions reset to defaults");
 }
 
 QString MainWindow::freq2Mode(double freqMHz)

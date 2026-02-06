@@ -226,6 +226,7 @@
     }
   },
   "ui": {
+    "showMultiplierPanel": true,
     "logColumns": ["DATE", "TIME", "CALL", "FREQ", "MODE", "RSTs", "RSTr", "EXCHs", "EXCHr", "Nr", "M", "C", "COMMENT"],
     "entryFields": ["CALL", "RSTr", "EXCHr"],
     "fieldNavigation": {

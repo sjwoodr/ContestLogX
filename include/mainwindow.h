@@ -84,6 +84,7 @@ private slots:
     void onToggleSsbMemoriesWidget(bool checked);
     void onToggleMultiplierWidget(bool checked);
     void onShowMultipliers();
+    void onResetWidgetPositions();
     void onToggleFlrigDebug(bool checked);
     void onToggleMainWindowDebug(bool checked);
     void onToggleContestEngineDebug(bool checked);

@@ -7,6 +7,7 @@
 #include "settings.h"
 #include "debuglogger.h"
 #include "pipermanager.h"
+#include "flrigclient.h"
 #include <QStandardPaths>
 #include <QDir>
 #include <QFile>
@@ -19,6 +20,7 @@ TtsManager::TtsManager(QObject *parent)
     , m_ttsTimer(new QTimer(this))
     , m_audioTimer(new QTimer(this))
     , m_isActive(false)
+    , m_flrigClient(nullptr)
 {
     m_ttsTimer->setSingleShot(true);
     connect(m_ttsTimer, &QTimer::timeout, this, &TtsManager::onTtsTimeout);
@@ -60,6 +62,8 @@ void TtsManager::speak(const QString& text)
 void TtsManager::cancel()
 {
     DebugLogger::instance().log("TtsManager", "Cancelling TTS operation");
+
+    restoreOriginalMode();
 
     m_ttsTimer->stop();
     m_audioTimer->stop();
@@ -170,15 +174,33 @@ void TtsManager::startAudioProcess(const QString& audioFile)
     DebugLogger::instance().log("TtsManager",
         QString("Audio command: %1 %2").arg(audioCmd).arg(argsList.join(" ")));
 
-    m_audioProcess = new QProcess(this);
-    connect(m_audioProcess, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
-            this, &TtsManager::onAudioFinished);
-    connect(m_audioProcess, &QProcess::errorOccurred, this, &TtsManager::onAudioError);
+    // Switch to data mode (USB-D/LSB-D) and engage PTT
+    switchToDataMode();
 
-    m_audioProcess->start(audioCmd, argsList);
-    m_audioTimer->start(AUDIO_TIMEOUT_MS);
+    // Delay audio start to let the radio's PTT relay settle
+    int delayMs = m_savedMode.isEmpty() ? 0 : PTT_SETTLE_MS;
 
-    emit playbackStarted();
+    auto launchAudio = [this, audioCmd, argsList]() {
+        if (!m_isActive) return;  // cancelled during delay
+
+        m_audioProcess = new QProcess(this);
+        connect(m_audioProcess, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+                this, &TtsManager::onAudioFinished);
+        connect(m_audioProcess, &QProcess::errorOccurred, this, &TtsManager::onAudioError);
+
+        m_audioProcess->start(audioCmd, argsList);
+        m_audioTimer->start(AUDIO_TIMEOUT_MS);
+
+        emit playbackStarted();
+    };
+
+    if (delayMs > 0) {
+        DebugLogger::instance().log("TtsManager",
+            QString("Waiting %1ms for PTT settle").arg(delayMs));
+        QTimer::singleShot(delayMs, this, launchAudio);
+    } else {
+        launchAudio();
+    }
 }
 
 void TtsManager::onTtsFinished(int exitCode, QProcess::ExitStatus exitStatus)
@@ -260,6 +282,9 @@ void TtsManager::onAudioFinished(int exitCode, QProcess::ExitStatus exitStatus)
         QString("Audio finished with exit code: %1, status: %2")
         .arg(exitCode).arg(exitStatus == QProcess::NormalExit ? "normal" : "crashed"));
 
+    // Restore original mode before emitting signals
+    restoreOriginalMode();
+
     if (exitStatus != QProcess::NormalExit || exitCode != 0) {
         QString errorMsg = QString::fromUtf8(m_audioProcess->readAllStandardError());
         DebugLogger::instance().log("TtsManager", QString("Audio error: %1").arg(errorMsg));
@@ -277,6 +302,7 @@ void TtsManager::onAudioFinished(int exitCode, QProcess::ExitStatus exitStatus)
 void TtsManager::onAudioError(QProcess::ProcessError processError)
 {
     m_audioTimer->stop();
+    restoreOriginalMode();
 
     QString errorMsg;
     switch (processError) {
@@ -303,12 +329,54 @@ void TtsManager::onAudioError(QProcess::ProcessError processError)
 void TtsManager::onAudioTimeout()
 {
     DebugLogger::instance().log("TtsManager", "Audio timeout");
+    restoreOriginalMode();
     if (m_audioProcess) {
         m_audioProcess->kill();
     }
     emit error("Audio playback timed out");
     cleanup();
     m_isActive = false;
+}
+
+void TtsManager::switchToDataMode()
+{
+    m_savedMode.clear();
+
+    if (!m_flrigClient || !m_flrigClient->isConnected())
+        return;
+
+    QString currentMode = m_flrigClient->getMode();
+    if (currentMode.isEmpty())
+        return;
+
+    QString dataMode;
+    if (currentMode == "USB")
+        dataMode = "USB-D";
+    else if (currentMode == "LSB")
+        dataMode = "LSB-D";
+
+    if (!dataMode.isEmpty()) {
+        DebugLogger::instance().log("TtsManager",
+            QString("Switching from %1 to %2 for audio playback").arg(currentMode, dataMode));
+        m_savedMode = currentMode;
+        m_flrigClient->setMode(dataMode);
+        m_flrigClient->setPTT(true);
+        DebugLogger::instance().log("TtsManager", "PTT engaged");
+    }
+}
+
+void TtsManager::restoreOriginalMode()
+{
+    if (m_savedMode.isEmpty() || !m_flrigClient || !m_flrigClient->isConnected())
+        return;
+
+    m_flrigClient->setPTT(false);
+    DebugLogger::instance().log("TtsManager", "PTT released");
+
+    DebugLogger::instance().log("TtsManager",
+        QString("Restoring mode to %1").arg(m_savedMode));
+    m_flrigClient->setMode(m_savedMode);
+    m_savedMode.clear();
 }
 
 void TtsManager::cleanup()

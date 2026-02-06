@@ -50,7 +50,7 @@ void SsbMemoriesDialog::setupUi()
         gridLayout->addWidget(keyLabel, i + 1, 0);
 
         m_abbrevEdits[i] = new QLineEdit(this);
-        m_abbrevEdits[i]->setMaxLength(5);
+        m_abbrevEdits[i]->setMaxLength(6);
         m_abbrevEdits[i]->setPlaceholderText("Title");
         m_abbrevEdits[i]->setFixedWidth(80);
         gridLayout->addWidget(m_abbrevEdits[i], i + 1, 1);

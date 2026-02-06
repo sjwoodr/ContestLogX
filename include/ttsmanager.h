@@ -11,6 +11,8 @@
 #include <QTimer>
 #include <QString>
 
+class FlrigClient;
+
 /**
  * @brief Manages text-to-speech operations for SSB voice keying
  *
@@ -35,6 +37,12 @@ public:
      * @brief Cancel any ongoing TTS operation
      */
     void cancel();
+
+    /**
+     * @brief Set the flrig client for data mode switching during audio playback
+     * @param client FlrigClient instance (may be nullptr)
+     */
+    void setFlrigClient(FlrigClient *client) { m_flrigClient = client; }
 
     /**
      * @brief Check if TTS is currently active
@@ -71,6 +79,8 @@ private:
     void startTtsProcess(const QString& text);
     void startAudioProcess(const QString& audioFile);
     void cleanup();
+    void switchToDataMode();
+    void restoreOriginalMode();
     QString generateOutputPath() const;
 
     QProcess *m_ttsProcess;
@@ -80,8 +90,12 @@ private:
     QString m_currentOutputFile;
     bool m_isActive;
 
-    static const int TTS_TIMEOUT_MS = 10000;  // 10 seconds
+    FlrigClient *m_flrigClient;
+    QString m_savedMode;
+
+    static const int TTS_TIMEOUT_MS = 10000;   // 10 seconds
     static const int AUDIO_TIMEOUT_MS = 60000;  // 60 seconds (for long messages)
+    static const int PTT_SETTLE_MS = 150;       // delay after PTT for relay settle
 };
 
 #endif // TTSMANAGER_H
