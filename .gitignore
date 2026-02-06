@@ -1,5 +1,6 @@
 # Qt build artifacts
 build/
+dist/
 *.pro.user
 *.autosave
 .qmake.stash

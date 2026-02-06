@@ -10,13 +10,32 @@
 #   make clean        - Clean build artifacts
 #   make version      - Update version number
 #   make reset        - Reset application settings
+#   make appimage     - Build portable AppImage via Docker (output: dist/)
 
 # Number of parallel build jobs (default: number of CPU cores)
 JOBS ?= $(shell nproc)
 
+# Local desktop integration paths
+DESKTOP_DIR = $(HOME)/.local/share/applications
+ICON_DIR = $(HOME)/.local/share/icons/hicolor/256x256/apps
+
 # Default target
 all: build/Makefile
 	$(MAKE) -C build -j$(JOBS) && ln -sf build/ContestLogX ./clx
+	@$(MAKE) --no-print-directory install-desktop
+
+# Install desktop file and icon for local development
+install-desktop: $(DESKTOP_DIR)/ContestLogX.desktop $(ICON_DIR)/contestlogx.png
+
+$(DESKTOP_DIR)/ContestLogX.desktop: ContestLogX.desktop $(ICON_DIR)/contestlogx.png
+	@mkdir -p $(DESKTOP_DIR)
+	sed 's|Icon=contestlogx|Icon=$(ICON_DIR)/contestlogx.png|' $< > $@
+	-update-desktop-database $(DESKTOP_DIR) 2>/dev/null
+
+$(ICON_DIR)/contestlogx.png: resources/contestlogx.png
+	@mkdir -p $(ICON_DIR)
+	cp $< $@
+	-gtk-update-icon-cache -f -t $(HOME)/.local/share/icons/hicolor 2>/dev/null
 
 # Generate build system with CMake
 build/Makefile:
@@ -106,4 +125,10 @@ reset:
 		echo "Reset cancelled."; \
 	fi
 
-.PHONY: all clean test test-logs test-logs-headless version reset
+# Build AppImage via Docker (Ubuntu 22.04)
+appimage:
+	docker build -f Dockerfile.appimage -t clx-appimage-builder .
+	mkdir -p dist
+	docker run --rm -v $(CURDIR)/dist:/output clx-appimage-builder
+
+.PHONY: all clean test test-logs test-logs-headless version reset appimage install-desktop

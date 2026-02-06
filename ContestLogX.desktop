@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=ContestLogX
+Comment=Amateur Radio Contest Logging Software
+Exec=ContestLogX
+Icon=contestlogx
+StartupWMClass=ContestLogX
+Categories=Utility;HamRadio;

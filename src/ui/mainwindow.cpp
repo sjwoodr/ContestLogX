@@ -11,13 +11,12 @@
 #include "ssbmemorieswidget.h"
 #include "multiplierwidget.h"
 #include "scplineedit.h"
-#include "stationsetupdialog.h"
 #include "stationclassdialog.h"
 #include "contestselectdialog.h"
-#include "shortcutsdialog.h"
+#include "preferencesdialog.h"
+#include "theme.h"
 #include "cabrillodialog.h"
 #include "callhistorydialog.h"
-#include "qrzcqsettingsdialog.h"
 #include "scpdialog.h"
 #include "cabrilloexport.h"
 #include "contestengine.h"
@@ -117,30 +116,10 @@ MainWindow::MainWindow(QWidget *parent)
     QString ctyPath = m_dxccDatabase->getDataPath() + "/cty.dat";
     bool hasCtyDat = QFile::exists(ctyPath);
     
-    // Check for contests directory with at least one JSON file in current directory
-    QDir contestsDir("contests");
-    bool hasContestsDir = contestsDir.exists();
+    // Check for contests directory with at least one JSON file
+    QDir contestsDir(Settings::getContestsPath());
     QStringList contestFiles = contestsDir.entryList(QStringList() << "*.json", QDir::Files);
     bool hasContestFiles = !contestFiles.isEmpty();
-    
-    // If not found in current directory, check relative to executable
-    if (!hasContestFiles) {
-        QString appDir = QCoreApplication::applicationDirPath();
-        QDir appContestsDir(appDir + "/../contests");
-        if (appContestsDir.exists()) {
-            QStringList appContestFiles = appContestsDir.entryList(QStringList() << "*.json", QDir::Files);
-            if (!appContestFiles.isEmpty()) {
-                // Change to parent directory of executable (application root)
-                QDir::setCurrent(appDir + "/..");
-                DebugLogger::instance().log("MainWindow", QString("Changed working directory to: %1").arg(QDir::currentPath()));
-                
-                // Re-check after directory change
-                ctyPath = m_dxccDatabase->getDataPath() + "/cty.dat";
-                hasCtyDat = QFile::exists(ctyPath);
-                hasContestFiles = true;
-            }
-        }
-    }
     
     // If no cty.dat AND no contest files, show error and exit
     if (!hasCtyDat && !hasContestFiles) {
@@ -239,8 +218,8 @@ MainWindow::MainWindow(QWidget *parent)
     // Check if station setup is configured
     QString callsign = settings.getCallsign();
     if (callsign.isEmpty()) {
-        DebugLogger::instance().log("MainWindow", "Station not configured, showing station setup dialog");
-        QTimer::singleShot(100, this, &MainWindow::onStationSetup);
+        DebugLogger::instance().log("MainWindow", "Station not configured, showing preferences dialog");
+        QTimer::singleShot(100, this, &MainWindow::onPreferences);
     } else {
         // Check for --log command-line argument
         QStringList args = QApplication::arguments();
@@ -711,12 +690,7 @@ void MainWindow::setupMenus()
     connect(saveAsAction, &QAction::triggered, this, &MainWindow::onSaveLogAs);
     
     fileMenu->addSeparator();
-    
-    QAction *stationSetupAction = fileMenu->addAction("&Station Setup...");
-    connect(stationSetupAction, &QAction::triggered, this, &MainWindow::onStationSetup);
-    
-    fileMenu->addSeparator();
-    
+
     QAction *downloadCtyAction = fileMenu->addAction("&Download DXCC Database (cty.dat)...");
     connect(downloadCtyAction, &QAction::triggered, this, &MainWindow::onDownloadCtyDat);
     
@@ -727,17 +701,14 @@ void MainWindow::setupMenus()
     
     QAction *callHistoryAction = fileMenu->addAction("Manage &Call History...");
     connect(callHistoryAction, &QAction::triggered, this, &MainWindow::onManageCallHistory);
-    
-    QAction *qrzcqAction = fileMenu->addAction("Manage &QRZCQ Lookups...");
-    connect(qrzcqAction, &QAction::triggered, this, &MainWindow::onManageQrzcqLookups);
-    
+
     fileMenu->addSeparator();
-    
-    QAction *shortcutsAction = fileMenu->addAction("&Shortcuts...");
-    connect(shortcutsAction, &QAction::triggered, this, &MainWindow::onShortcuts);
-    
+
+    QAction *preferencesAction = fileMenu->addAction("&Preferences...");
+    connect(preferencesAction, &QAction::triggered, this, &MainWindow::onPreferences);
+
     fileMenu->addSeparator();
-    
+
     QAction *exitAction = fileMenu->addAction("E&xit");
     exitAction->setShortcut(QKeySequence::Quit);
     connect(exitAction, &QAction::triggered, this, &MainWindow::onExit);
@@ -1050,10 +1021,7 @@ void MainWindow::onNewLog()
                     
                     // Load the contest definition if specified
                     if (!contestFile.isEmpty()) {
-                        QString contestPath = QCoreApplication::applicationDirPath() + "/contests/" + contestFile;
-                        if (!QFile::exists(contestPath)) {
-                            contestPath = "contests/" + contestFile;
-                        }
+                        QString contestPath = Settings::getContestsPath() + "/" + contestFile;
                         if (QFile::exists(contestPath)) {
                             // Set station class and exchange data BEFORE loading contest definition
                             if (!stationClass.isEmpty()) {
@@ -1567,10 +1535,7 @@ void MainWindow::onOpenLog()
             
             // Load the contest definition if specified
             if (!contestFile.isEmpty()) {
-                QString contestPath = QCoreApplication::applicationDirPath() + "/contests/" + contestFile;
-                if (!QFile::exists(contestPath)) {
-                    contestPath = "contests/" + contestFile;
-                }
+                QString contestPath = Settings::getContestsPath() + "/" + contestFile;
                 if (QFile::exists(contestPath)) {
                     // Set station class BEFORE loading contest definition to prevent dialog
                     if (!stationClass.isEmpty()) {
@@ -1896,10 +1861,7 @@ void MainWindow::loadLogFile(const QString& filename)
             
             // Load the contest definition if specified
             if (!contestFile.isEmpty()) {
-                QString contestPath = QCoreApplication::applicationDirPath() + "/contests/" + contestFile;
-                if (!QFile::exists(contestPath)) {
-                    contestPath = "contests/" + contestFile;
-                }
+                QString contestPath = Settings::getContestsPath() + "/" + contestFile;
                 if (QFile::exists(contestPath)) {
                     // Set station class and exchange data BEFORE loading contest definition to prevent duplicate dialog
                     if (!stationClass.isEmpty()) {
@@ -2157,42 +2119,6 @@ void MainWindow::onSaveLogAs()
     onSaveLog();
 }
 
-void MainWindow::onStationSetup()
-{
-    Settings& settings = Settings::instance();
-    
-    // Load current station info
-    StationInfo info;
-    info.setCallsign(settings.getCallsign());
-    info.setOperatorName(settings.getOperatorName());
-    info.setGrid(settings.getGridSquare());
-    info.setState(settings.getState());
-    
-    DebugLogger::instance().log("MainWindow", 
-        QString("Station Setup - Before: Call=%1 Name=%2 Grid=%3 State=%4")
-        .arg(info.callsign()).arg(info.operatorName()).arg(info.grid()).arg(info.state()));
-    
-    StationSetupDialog dialog(info, this);
-    if (dialog.exec() == QDialog::Accepted) {
-        StationInfo newInfo = dialog.stationInfo();
-        
-        DebugLogger::instance().log("MainWindow", 
-            QString("Station Setup - After: Call=%1 Name=%2 Grid=%3 State=%4")
-            .arg(newInfo.callsign()).arg(newInfo.operatorName()).arg(newInfo.grid()).arg(newInfo.state()));
-        
-        settings.setCallsign(newInfo.callsign());
-        settings.setOperatorName(newInfo.operatorName());
-        settings.setGridSquare(newInfo.grid());
-        settings.setState(newInfo.state());
-        
-        DebugLogger::instance().log("MainWindow", "Calling settings.save()");
-        settings.save();
-        DebugLogger::instance().log("MainWindow", "settings.save() completed");
-    } else {
-        DebugLogger::instance().log("MainWindow", "Station Setup - Dialog was cancelled");
-    }
-}
-
 void MainWindow::onExit()
 {
     if (maybeSave()) {
@@ -2200,32 +2126,30 @@ void MainWindow::onExit()
     }
 }
 
-void MainWindow::onShortcuts()
+void MainWindow::onPreferences()
 {
-    ShortcutsDialog dialog(this);
-    dialog.exec();
+    PreferencesDialog dialog(this);
+    if (dialog.exec() == QDialog::Accepted) {
+        if (dialog.themeChanged()) {
+            applyTheme();
+        }
+        if (dialog.qrzcqChanged()) {
+            Settings& settings = Settings::instance();
+            QString username = settings.getQrzcqUsername();
+            QString password = settings.getQrzcqPassword();
+
+            if (!username.isEmpty() && !password.isEmpty()) {
+                m_qrzcqApi->setCredentials(username, password);
+                m_qrzcqApi->getSession();
+            }
+        }
+    }
 }
 
 void MainWindow::onManageCallHistory()
 {
     CallHistoryDialog dialog(this);
     dialog.exec();
-}
-
-void MainWindow::onManageQrzcqLookups()
-{
-    QrzcqSettingsDialog dialog(this);
-    if (dialog.exec() == QDialog::Accepted) {
-        // Reinitialize QRZCQ API with new credentials
-        Settings& settings = Settings::instance();
-        QString username = settings.getQrzcqUsername();
-        QString password = settings.getQrzcqPassword();
-        
-        if (!username.isEmpty() && !password.isEmpty()) {
-            m_qrzcqApi->setCredentials(username, password);
-            m_qrzcqApi->getSession();
-        }
-    }
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *event)
@@ -3998,7 +3922,7 @@ void MainWindow::onDupeFlashTimeout()
 {
     // Restore normal background
     if (m_qsoEntryGroup) {
-        m_qsoEntryGroup->setPalette(style()->standardPalette());
+        m_qsoEntryGroup->setPalette(qApp->palette());
         m_qsoEntryGroup->setAutoFillBackground(false);
     }
     m_dupeFlashTimer->stop();

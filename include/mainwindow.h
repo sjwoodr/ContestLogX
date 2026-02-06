@@ -44,7 +44,6 @@ private slots:
     void onOpenLog();
     void onSaveLog();
     void onSaveLogAs();
-    void onStationSetup();
     void onExit();
     
     void onRigControl();
@@ -97,9 +96,8 @@ private slots:
     void onDownloadCtyDat();
     void onDownloadScp();
     void onManageCallHistory();
-    void onManageQrzcqLookups();
     void onScpDialog();
-    void onShortcuts();
+    void onPreferences();
     void onQsoDoubleClicked(const QModelIndex& index);
     void onQsoContextMenuRequested(const QPoint& pos);
     void onEditQso();

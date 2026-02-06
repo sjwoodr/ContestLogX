@@ -5,6 +5,8 @@
 
 #include "mainwindow.h"
 #include "debuglogger.h"
+#include "theme.h"
+#include "settings.h"
 #include <QApplication>
 #include <QCommandLineParser>
 #include <QFile>
@@ -12,6 +14,9 @@
 #include <QDebug>
 #include <QTextStream>
 #include <QTimer>
+#include <QStyleFactory>
+#include <QPalette>
+#include <QIcon>
 
 // Application version
 static const char* APP_VERSION = "0.2.0";
@@ -73,6 +78,35 @@ void debugMessageHandler(QtMsgType type, const QMessageLogContext &context, cons
     }
 }
 
+void applyTheme()
+{
+    QApplication::setStyle(QStyleFactory::create("Fusion"));
+
+    QString theme = Settings::instance().getTheme();
+    if (theme == "light") {
+        qApp->setPalette(QApplication::style()->standardPalette());
+    } else {
+        QPalette darkPalette;
+        darkPalette.setColor(QPalette::Window, QColor(53, 53, 53));
+        darkPalette.setColor(QPalette::WindowText, Qt::white);
+        darkPalette.setColor(QPalette::Base, QColor(35, 35, 35));
+        darkPalette.setColor(QPalette::AlternateBase, QColor(53, 53, 53));
+        darkPalette.setColor(QPalette::ToolTipBase, QColor(25, 25, 25));
+        darkPalette.setColor(QPalette::ToolTipText, Qt::white);
+        darkPalette.setColor(QPalette::Text, Qt::white);
+        darkPalette.setColor(QPalette::Button, QColor(53, 53, 53));
+        darkPalette.setColor(QPalette::ButtonText, Qt::white);
+        darkPalette.setColor(QPalette::BrightText, Qt::red);
+        darkPalette.setColor(QPalette::Link, QColor(42, 130, 218));
+        darkPalette.setColor(QPalette::Highlight, QColor(42, 130, 218));
+        darkPalette.setColor(QPalette::HighlightedText, Qt::black);
+        darkPalette.setColor(QPalette::Disabled, QPalette::Text, QColor(127, 127, 127));
+        darkPalette.setColor(QPalette::Disabled, QPalette::ButtonText, QColor(127, 127, 127));
+        darkPalette.setColor(QPalette::Disabled, QPalette::WindowText, QColor(127, 127, 127));
+        qApp->setPalette(darkPalette);
+    }
+}
+
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
@@ -81,7 +115,9 @@ int main(int argc, char *argv[])
     // Don't set organization name to avoid double "ContestLogX" in AppDataLocation path
     // app.setOrganizationName("ContestLogX");
     app.setOrganizationDomain("contestlogx.com");
-    
+    app.setDesktopFileName("ContestLogX.desktop");
+    app.setWindowIcon(QIcon(":/contestlogx.png"));
+
     // Parse command-line arguments FIRST to check for --debug flag
     QCommandLineParser parser;
     parser.setApplicationDescription("Cross-platform amateur radio contest logging");
@@ -121,6 +157,8 @@ int main(int argc, char *argv[])
         DebugLogger::instance().log("ERROR", "Could not open clx_debug.log for writing");
     }
     
+    applyTheme();
+
     MainWindow window;
     window.show();
     

@@ -223,12 +223,20 @@ public:
     QString getAudioPlayArgs() const;
     void setAudioPlayArgs(const QString& args);
 
+    // Theme
+    QString getTheme() const;
+    void setTheme(const QString& theme);
+
     void save();
 
     // Static utility function to get data directory path
     // Finds data directory relative to program invocation path (supports symlinks)
     // This is for bundled/static data files like default_layout.json, contest definitions
     static QString getDataPath();
+
+    // Static utility function to get contests directory path
+    // Finds contests directory, with AppImage support via APPDIR env var
+    static QString getContestsPath();
 
     // Static utility function to get user data directory path
     // Returns AppDataLocation for user-writable data files (master.scp, cty.dat, history.json)

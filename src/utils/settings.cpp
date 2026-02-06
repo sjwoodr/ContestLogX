@@ -1154,15 +1154,37 @@ void Settings::setAudioPlayArgs(const QString& args)
     m_modified = true;
 }
 
+QString Settings::getTheme() const
+{
+    return m_settings["ui"].toObject()["theme"].toString("dark");
+}
+
+void Settings::setTheme(const QString& theme)
+{
+    QJsonObject ui = m_settings["ui"].toObject();
+    ui["theme"] = theme;
+    m_settings["ui"] = ui;
+    save();
+}
+
 QString Settings::getDataPath()
 {
+    // AppImage: resolve via APPDIR environment variable
+    QString appDir = qEnvironmentVariable("APPDIR");
+    if (!appDir.isEmpty()) {
+        QString appImageData = appDir + "/usr/share/contestlogx/data";
+        if (QDir(appImageData).exists()) {
+            return QDir(appImageData).absolutePath();
+        }
+    }
+
     // Get the invocation path (supports symlinks)
     // argv[0] contains the path used to invoke the program, before symlink resolution
     QStringList args = QCoreApplication::arguments();
     if (args.isEmpty()) {
         // Fallback to standard method if no arguments
-        QString appDir = QCoreApplication::applicationDirPath();
-        QString dataDir = QDir(appDir).filePath("../data");
+        QString binDir = QCoreApplication::applicationDirPath();
+        QString dataDir = QDir(binDir).filePath("../data");
         return QDir(dataDir).absolutePath();
     }
 
@@ -1191,6 +1213,34 @@ QString Settings::getDataPath()
     }
 
     return QDir(dataPath).absolutePath();
+}
+
+QString Settings::getContestsPath()
+{
+    // AppImage: resolve via APPDIR environment variable
+    QString appDir = qEnvironmentVariable("APPDIR");
+    if (!appDir.isEmpty()) {
+        QString appImageContests = appDir + "/usr/share/contestlogx/contests";
+        if (QDir(appImageContests).exists()) {
+            return QDir(appImageContests).absolutePath();
+        }
+    }
+
+    // Development: contests/ in current working directory
+    QDir cwdContests("contests");
+    if (cwdContests.exists()) {
+        return cwdContests.absolutePath();
+    }
+
+    // Installed: relative to executable (../share/contestlogx/contests or ../contests)
+    QString binDir = QCoreApplication::applicationDirPath();
+    QDir appContests(binDir + "/../contests");
+    if (appContests.exists()) {
+        return appContests.absolutePath();
+    }
+
+    // Fallback
+    return QDir("contests").absolutePath();
 }
 
 QString Settings::getUserDataPath()

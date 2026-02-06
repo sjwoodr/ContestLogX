@@ -37,7 +37,7 @@ set(SOURCES
     src/ui/dxclusterpanel.cpp
     src/ui/scorewidget.cpp
     src/ui/multiplierwidget.cpp
-    src/ui/stationsetupdialog.cpp
+    src/ui/preferencesdialog.cpp
     src/stationclassdialog.cpp
     src/contestselectdialog.cpp
     src/ui/shortcutsdialog.cpp
@@ -69,16 +69,16 @@ set(SOURCES
     src/utils/pipermanager.cpp
     src/DxccDatabase.cpp
     src/qrzcqapi.cpp
-    src/ui/qrzcqsettingsdialog.cpp
 )
 
 set(HEADERS
     include/mainwindow.h
     include/rigcontroldialog.h
-    include/stationsetupdialog.h
     include/stationclassdialog.h
     include/contestselectdialog.h
     include/shortcutsdialog.h
+    include/preferencesdialog.h
+    include/theme.h
     include/cabrillodialog.h
     include/cabrilloexport.h
     include/callhistorydialog.h
@@ -116,7 +116,6 @@ set(HEADERS
      src/utils/callsignutils.h
      include/DxccDatabase.h
      include/qrzcqapi.h
-     include/qrzcqsettingsdialog.h
 )
 
 # UI files
@@ -124,11 +123,17 @@ set(UI_FILES
     ui/mainwindow.ui
 )
 
+# Qt resources
+set(RESOURCES
+    resources/resources.qrc
+)
+
 # Create executable
 add_executable(${PROJECT_NAME}
     ${SOURCES}
     ${HEADERS}
     ${UI_FILES}
+    ${RESOURCES}
 )
 
 # Link Qt libraries
@@ -143,6 +148,23 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 # Installation
 install(TARGETS ${PROJECT_NAME}
     RUNTIME DESTINATION bin
+)
+
+install(DIRECTORY contests/
+    DESTINATION share/contestlogx/contests
+    FILES_MATCHING PATTERN "*.json"
+)
+
+install(FILES data/default_layout.json
+    DESTINATION share/contestlogx/data
+)
+
+install(FILES ContestLogX.desktop
+    DESTINATION share/applications
+)
+
+install(FILES resources/contestlogx.png
+    DESTINATION share/icons/hicolor/256x256/apps
 )
 
 # Enable testing

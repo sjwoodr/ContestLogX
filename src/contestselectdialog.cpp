@@ -1,5 +1,6 @@
 #include "contestselectdialog.h"
 #include "debuglogger.h"
+#include "settings.h"
 #include <QDir>
 #include <QFileInfo>
 #include <QJsonDocument>
@@ -78,10 +79,7 @@ void ContestSelectDialog::onOpenExistingClicked()
 
 void ContestSelectDialog::loadContestList()
 {
-    QDir contestsDir(QCoreApplication::applicationDirPath() + "/contests");
-    if (!contestsDir.exists()) {
-        contestsDir = QDir("contests");
-    }
+    QDir contestsDir(Settings::getContestsPath());
     
     DebugLogger::instance().log("ContestSelectDialog", 
         QString("Loading contests from: %1").arg(contestsDir.absolutePath()));

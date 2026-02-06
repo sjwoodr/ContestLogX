@@ -1,0 +1,7 @@
+build/
+dist/
+clx
+.git/
+web/
+docs/
+test_logs/

@@ -13,29 +13,26 @@
 #include <QKeySequence>
 #include <QMessageBox>
 
-const QList<ShortcutsDialog::DefaultShortcut> ShortcutsDialog::DEFAULT_SHORTCUTS = {
+const QList<ShortcutsWidget::DefaultShortcut> ShortcutsWidget::DEFAULT_SHORTCUTS = {
     {"clearQsoEntry", "Clear QSO Entry Panel", "Ctrl+W"},
     {"preSaveCall", "Save QSO Fields to Call History (without logging)", "Ctrl+S"}
 };
 
-ShortcutsDialog::ShortcutsDialog(QWidget* parent)
-    : QDialog(parent)
+ShortcutsWidget::ShortcutsWidget(QWidget* parent)
+    : QWidget(parent)
 {
-    setWindowTitle("Keyboard Shortcuts");
-    setMinimumSize(500, 400);
-    
     setupUI();
     loadShortcuts();
     populateTable();
 }
 
-void ShortcutsDialog::setupUI()
+void ShortcutsWidget::setupUI()
 {
     QVBoxLayout* mainLayout = new QVBoxLayout(this);
-    
+
     QLabel* label = new QLabel("Configure keyboard shortcuts:");
     mainLayout->addWidget(label);
-    
+
     // Table
     m_table = new QTableWidget;
     m_table->setColumnCount(3);
@@ -44,96 +41,82 @@ void ShortcutsDialog::setupUI()
     m_table->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_table->setSelectionMode(QAbstractItemView::SingleSelection);
     mainLayout->addWidget(m_table);
-    
+
     // Buttons
     QHBoxLayout* buttonLayout = new QHBoxLayout;
-    
+
     m_addButton = new QPushButton("Add");
     m_editButton = new QPushButton("Edit");
     m_removeButton = new QPushButton("Remove");
     m_resetButton = new QPushButton("Reset to Defaults");
-    
+
     buttonLayout->addWidget(m_addButton);
     buttonLayout->addWidget(m_editButton);
     buttonLayout->addWidget(m_removeButton);
     buttonLayout->addSpacing(20);
     buttonLayout->addWidget(m_resetButton);
     buttonLayout->addStretch();
-    
+
     mainLayout->addLayout(buttonLayout);
-    
-    // Dialog buttons
-    QHBoxLayout* dialogLayout = new QHBoxLayout;
-    m_okButton = new QPushButton("OK");
-    m_cancelButton = new QPushButton("Cancel");
-    
-    dialogLayout->addStretch();
-    dialogLayout->addWidget(m_okButton);
-    dialogLayout->addWidget(m_cancelButton);
-    
-    mainLayout->addLayout(dialogLayout);
-    
+
     // Connect signals
-    connect(m_addButton, &QPushButton::clicked, this, &ShortcutsDialog::onAddShortcut);
-    connect(m_editButton, &QPushButton::clicked, this, &ShortcutsDialog::onEditShortcut);
-    connect(m_removeButton, &QPushButton::clicked, this, &ShortcutsDialog::onRemoveShortcut);
-    connect(m_resetButton, &QPushButton::clicked, this, &ShortcutsDialog::onResetDefaults);
-    connect(m_okButton, &QPushButton::clicked, this, &ShortcutsDialog::onAccepted);
-    connect(m_cancelButton, &QPushButton::clicked, this, &QDialog::reject);
+    connect(m_addButton, &QPushButton::clicked, this, &ShortcutsWidget::onAddShortcut);
+    connect(m_editButton, &QPushButton::clicked, this, &ShortcutsWidget::onEditShortcut);
+    connect(m_removeButton, &QPushButton::clicked, this, &ShortcutsWidget::onRemoveShortcut);
+    connect(m_resetButton, &QPushButton::clicked, this, &ShortcutsWidget::onResetDefaults);
 }
 
-void ShortcutsDialog::loadShortcuts()
+void ShortcutsWidget::loadShortcuts()
 {
     Settings& settings = Settings::instance();
     m_shortcuts = settings.getShortcuts();
-    
+
     // Ensure all default shortcuts exist
     for (const auto& def : DEFAULT_SHORTCUTS) {
         if (!m_shortcuts.contains(def.action)) {
             m_shortcuts[def.action] = def.defaultKey;
         }
     }
+
+    m_originalShortcuts = m_shortcuts;
 }
 
-void ShortcutsDialog::populateTable()
+void ShortcutsWidget::populateTable()
 {
     m_table->setRowCount(0);
-    
-    // First, add all defaults and any custom shortcuts
-    QMap<QString, QString> allShortcuts = m_shortcuts;
-    
+
     int row = 0;
     for (const auto& def : DEFAULT_SHORTCUTS) {
         m_table->insertRow(row);
-        
+
         QTableWidgetItem* actionItem = new QTableWidgetItem(def.action);
         actionItem->setFlags(actionItem->flags() & ~Qt::ItemIsEditable);
         m_table->setItem(row, 0, actionItem);
-        
+
         QTableWidgetItem* descItem = new QTableWidgetItem(def.description);
         descItem->setFlags(descItem->flags() & ~Qt::ItemIsEditable);
         m_table->setItem(row, 1, descItem);
-        
-        QString keySeq = allShortcuts[def.action];
+
+        QString keySeq = m_shortcuts[def.action];
         QTableWidgetItem* keyItem = new QTableWidgetItem(keySeq);
         keyItem->setFlags(keyItem->flags() & ~Qt::ItemIsEditable);
         m_table->setItem(row, 2, keyItem);
-        
+
         row++;
     }
-    
+
     m_table->resizeColumnsToContents();
 }
 
-void ShortcutsDialog::onEditShortcut()
+void ShortcutsWidget::onEditShortcut()
 {
     int row = m_table->currentRow();
     if (row < 0) return;
-    
+
     QString action = m_table->item(row, 0)->text();
     QString description = m_table->item(row, 1)->text();
     QString currentKey = m_table->item(row, 2)->text();
-    
+
     bool ok;
     QString newKey = QInputDialog::getText(this,
         "Edit Shortcut",
@@ -141,36 +124,36 @@ void ShortcutsDialog::onEditShortcut()
         QLineEdit::Normal,
         currentKey,
         &ok);
-    
+
     if (ok && !newKey.isEmpty()) {
         QKeySequence seq(newKey);
         if (seq.isEmpty()) {
             QMessageBox::warning(this, "Invalid Shortcut", "The key sequence is invalid.");
             return;
         }
-        
+
         m_shortcuts[action] = seq.toString();
         m_table->item(row, 2)->setText(seq.toString());
     }
 }
 
-void ShortcutsDialog::onAddShortcut()
+void ShortcutsWidget::onAddShortcut()
 {
     // For now, users can only edit defaults
     QMessageBox::information(this, "Custom Shortcuts", "Custom shortcuts can be added in a future version.");
 }
 
-void ShortcutsDialog::onRemoveShortcut()
+void ShortcutsWidget::onRemoveShortcut()
 {
     QMessageBox::information(this, "Remove Shortcut", "Default shortcuts cannot be removed.");
 }
 
-void ShortcutsDialog::onResetDefaults()
+void ShortcutsWidget::onResetDefaults()
 {
     if (QMessageBox::question(this, "Reset Shortcuts",
         "Reset all shortcuts to their default values?",
         QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes) {
-        
+
         m_shortcuts.clear();
         for (const auto& def : DEFAULT_SHORTCUTS) {
             m_shortcuts[def.action] = def.defaultKey;
@@ -179,14 +162,9 @@ void ShortcutsDialog::onResetDefaults()
     }
 }
 
-void ShortcutsDialog::onAccepted()
+void ShortcutsWidget::saveShortcuts()
 {
-    Settings& settings = Settings::instance();
-    settings.setShortcuts(m_shortcuts);
-    accept();
-}
-
-QMap<QString, QString> ShortcutsDialog::getShortcuts() const
-{
-    return m_shortcuts;
+    if (m_shortcuts != m_originalShortcuts) {
+        Settings::instance().setShortcuts(m_shortcuts);
+    }
 }
