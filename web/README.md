@@ -115,7 +115,3 @@ import Layout from '../layouts/Layout.astro';
 - Custom colors are defined in `src/styles/global.css`
 - Use Tailwind utility classes for styling
 - The site uses a dark GitHub-style theme
-
-## Backup
-
-The original HTML site is backed up in `../web-backup/`
