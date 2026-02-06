@@ -4,6 +4,7 @@
  */
 
 #include <QtTest/QtTest>
+#include <QStandardPaths>
 #include "../include/settings.h"
 #include <QFile>
 #include <QDir>
@@ -24,12 +25,16 @@ private slots:
 
 void TestSettings::initTestCase()
 {
-    // Test will use default settings location
+    // Redirect QStandardPaths to a test-specific location so we don't
+    // clobber the user's real settings (operator name, grid, etc.)
+    QStandardPaths::setTestModeEnabled(true);
 }
 
 void TestSettings::cleanupTestCase()
 {
-    // Clean up test settings if needed
+    // Remove the test settings file
+    QString configPath = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
+    QFile::remove(configPath + "/ContestLogX/ContestLogX.json");
 }
 
 void TestSettings::testCallsignStorage()
