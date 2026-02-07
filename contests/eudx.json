@@ -1,0 +1,347 @@
+{
+  "contest": {
+    "name": "European Union DX Contest",
+    "abbreviation": "EUDX",
+    "version": "1.0.0",
+    "sponsor": "European Union DX Contest Committee",
+    "description": "International contest held the first full weekend of February (24 hours)",
+    "startDate": "First full weekend of February",
+    "duration": 24,
+    "offTimeGapMinutes": 0,
+    "modes": ["CW", "SSB"],
+    "bands": ["160m", "80m", "40m", "20m", "15m", "10m"],
+    "url": "https://eudxcc.altervista.org/",
+    "categories": {
+      "stations": ["SINGLE_OP", "MULTI_OP"],
+      "power": ["HIGH", "LOW", "QRP"],
+      "modes": ["CW", "SSB", "MIXED"]
+    }
+  },
+  "frequencies": {
+    "160m": {
+      "start": 1800,
+      "end": 2000,
+      "cw": {"start": 1800, "end": 1850},
+      "phone": {"start": 1850, "end": 2000}
+    },
+    "80m": {
+      "start": 3500,
+      "end": 4000,
+      "cw": {"start": 3500, "end": 3600},
+      "phone": {"start": 3600, "end": 4000}
+    },
+    "40m": {
+      "start": 7000,
+      "end": 7300,
+      "cw": {"start": 7000, "end": 7125},
+      "phone": {"start": 7125, "end": 7300}
+    },
+    "20m": {
+      "start": 14000,
+      "end": 14350,
+      "cw": {"start": 14000, "end": 14150},
+      "phone": {"start": 14150, "end": 14350}
+    },
+    "15m": {
+      "start": 21000,
+      "end": 21450,
+      "cw": {"start": 21000, "end": 21200},
+      "phone": {"start": 21200, "end": 21450}
+    },
+    "10m": {
+      "start": 28000,
+      "end": 29700,
+      "cw": {"start": 28000, "end": 28300},
+      "phone": {"start": 28300, "end": 29700}
+    }
+  },
+  "stationClasses": {
+    "enabled": false
+  },
+  "userPrompts": [
+    {
+      "id": "stationType",
+      "question": "Select your station location",
+      "type": "select",
+      "options": [
+        {"value": "EU", "label": "EU Member Country"},
+        {"value": "DX", "label": "Non-EU (DX)"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "EU stations send RST + region code. Non-EU stations send RST + ITU zone."
+    },
+    {
+      "id": "myExchange",
+      "question": "Enter your exchange: EU region code (e.g., DE01) or ITU zone number",
+      "type": "text",
+      "required": true,
+      "forceUppercase": true,
+      "storeInMeta": true,
+      "description": "EU region code for EU stations, ITU zone for non-EU stations",
+      "exchangeFieldMapping": {
+        "myExchange": "EXCHs"
+      }
+    },
+    {
+      "id": "operatingClass",
+      "question": "Select your operating class",
+      "type": "select",
+      "options": [
+        {"value": "SOAB-MIX-HP", "label": "Single Op All Band Mixed - High Power"},
+        {"value": "SOAB-MIX-LP", "label": "Single Op All Band Mixed - Low Power"},
+        {"value": "SOAB-MIX-QRP", "label": "Single Op All Band Mixed - QRP"},
+        {"value": "SOAB-CW-HP", "label": "Single Op All Band CW - High Power"},
+        {"value": "SOAB-CW-LP", "label": "Single Op All Band CW - Low Power"},
+        {"value": "SOAB-SSB-HP", "label": "Single Op All Band SSB - High Power"},
+        {"value": "SOAB-SSB-LP", "label": "Single Op All Band SSB - Low Power"},
+        {"value": "SOSB-160", "label": "Single Op Single Band - 160m"},
+        {"value": "SOSB-80", "label": "Single Op Single Band - 80m"},
+        {"value": "SOSB-40", "label": "Single Op Single Band - 40m"},
+        {"value": "SOSB-20", "label": "Single Op Single Band - 20m"},
+        {"value": "SOSB-15", "label": "Single Op Single Band - 15m"},
+        {"value": "SOSB-10", "label": "Single Op Single Band - 10m"},
+        {"value": "MULTI-OP", "label": "Multi Operator"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "Operating class for contest entry"
+    }
+  ],
+  "exchangeFields": {
+    "sent": [
+      {
+        "name": "RST",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report"
+      },
+      {
+        "name": "EXCH",
+        "type": "string",
+        "required": true,
+        "description": "EU region code or ITU zone"
+      }
+    ],
+    "received": [
+      {
+        "name": "RST",
+        "type": "rst",
+        "required": true,
+        "validation": "^[1-5][1-9][1-9]?$",
+        "description": "Signal report"
+      },
+      {
+        "name": "EXCH",
+        "type": "string",
+        "required": true,
+        "description": "EU region code or ITU zone"
+      }
+    ]
+  },
+  "qsoFields": [
+    {
+      "name": "Date",
+      "column": "DATE",
+      "type": "date",
+      "format": "yyyy-MM-dd",
+      "required": true
+    },
+    {
+      "name": "Time",
+      "column": "TIME",
+      "type": "time",
+      "format": "HH:mm:ss",
+      "required": true
+    },
+    {
+      "name": "Callsign",
+      "column": "CALL",
+      "type": "string",
+      "required": true,
+      "uppercase": true
+    },
+    {
+      "name": "Frequency",
+      "column": "FREQ",
+      "type": "number",
+      "unit": "kHz",
+      "required": true
+    },
+    {
+      "name": "Mode",
+      "column": "MODE",
+      "type": "enum",
+      "values": ["CW", "SSB"],
+      "required": true
+    },
+    {
+      "name": "RST Sent",
+      "column": "RST_SENT",
+      "type": "string",
+      "required": true,
+      "default": "599"
+    },
+    {
+      "name": "RST Received",
+      "column": "RST_RCV",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "Exchange Sent",
+      "column": "EXF",
+      "type": "string",
+      "required": true,
+      "description": "EU region code or ITU zone sent"
+    },
+    {
+      "name": "Exchange Received",
+      "column": "EXC",
+      "type": "string",
+      "required": true,
+      "description": "EU region code or ITU zone received"
+    },
+    {
+      "name": "Points",
+      "column": "POINTS",
+      "type": "number",
+      "calculated": true
+    },
+    {
+      "name": "Multiplier",
+      "column": "MULT",
+      "type": "string",
+      "calculated": true
+    }
+  ],
+  "scoring": {
+    "euCountryPrefixes": [
+      "OE", "ON", "LZ", "OK", "5B", "9A", "OZ", "ES",
+      "OH", "OH0",
+      "F", "FG", "FM", "FY", "FR", "FH",
+      "DL", "SV", "SV5", "SV9",
+      "HA", "EI",
+      "I", "IS", "IT9",
+      "YL", "LY", "LX", "9H",
+      "PA",
+      "SP", "CT", "CT3", "CU",
+      "YO", "OM", "S5",
+      "EA", "EA6", "EA8", "EA9",
+      "SM"
+    ],
+    "points": {
+      "sameDxccEntity": {
+        "CW": 2,
+        "SSB": 2
+      },
+      "euCountry": {
+        "CW": 10,
+        "SSB": 10
+      },
+      "sameContinent": {
+        "CW": 3,
+        "SSB": 3
+      },
+      "differentContinent": {
+        "CW": 5,
+        "SSB": 5
+      }
+    },
+    "precedence": [
+      "sameDxccEntity",
+      "euCountry",
+      "sameContinent",
+      "differentContinent"
+    ],
+    "multipliers": {
+      "type": "multsPerBand",
+      "description": "EU region codes and DXCC countries, each counted once per band",
+      "categories": ["namedMults", "dxcc"],
+      "alaskaAndHawaiiCountDxcc": true,
+      "usAndCanadaCountDxcc": true
+    },
+    "finalScore": "SUM(points) * (namedMults + dxccMultipliers)"
+  },
+  "dupeChecking": {
+    "type": "perBandAndMode",
+    "description": "Station may be worked once on CW and once on SSB per band"
+  },
+  "logging": {
+    "requiredFields": ["date", "time", "frequency", "mode", "callsign", "rstSent", "rstReceived", "exchangeSent", "exchangeReceived"],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "EUDX",
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {rst_sent} {exch_sent} {call} {rst_rcvd} {exch_rcvd}"
+    }
+  },
+  "callHistory": {
+    "fieldsToSave": ["EXCHr"],
+    "description": "Save exchange info for future lookups"
+  },
+  "validation": {
+    "minimumQSOs": 1,
+    "maxOperatingTime": 24,
+    "offTimesRequired": false,
+    "namedMults": [
+      "AT01", "AT02", "AT03", "AT04", "AT05", "AT06", "AT07", "AT08", "AT09",
+      "BE01", "BE02", "BE03", "BE04", "BE05", "BE06", "BE07", "BE08", "BE09", "BE10", "BE11",
+      "BG01", "BG02", "BG03", "BG04", "BG05", "BG06",
+      "CZ01", "CZ02", "CZ03", "CZ04", "CZ05", "CZ06", "CZ07", "CZ08", "CZ09", "CZ10", "CZ11", "CZ12", "CZ13", "CZ14",
+      "CY01", "CY02", "CY03", "CY04", "CY05",
+      "HR01", "HR02", "HR03", "HR04", "HR05",
+      "DK01", "DK02", "DK03", "DK04", "DK05",
+      "EE01", "EE02", "EE03", "EE04", "EE05",
+      "FI01", "FI02", "FI03", "FI04", "FI05", "FI06", "FI07", "FI08", "FI09", "FI10",
+      "FI11", "FI12", "FI13", "FI14", "FI15", "FI16", "FI17", "FI18", "FI19",
+      "FR01", "FR02", "FR03", "FR04", "FR05", "FR06", "FR07", "FR08", "FR09", "FR10",
+      "FR11", "FR12", "FR13", "FR14", "FR15", "FR16", "FR17", "FR18", "FR19", "FR20",
+      "DE01", "DE02", "DE03", "DE04", "DE05", "DE06", "DE07", "DE08", "DE09", "DE10",
+      "DE11", "DE12", "DE13", "DE14", "DE15", "DE16",
+      "GR01", "GR02", "GR03", "GR04", "GR05", "GR06", "GR07", "GR08", "GR09", "GR10",
+      "GR11", "GR12", "GR13",
+      "HU01", "HU02", "HU03", "HU04", "HU05", "HU06", "HU07",
+      "IE01", "IE02", "IE03", "IE04",
+      "IT01", "IT02", "IT03", "IT04", "IT05", "IT06", "IT07", "IT08", "IT09", "IT10",
+      "IT11", "IT12", "IT13", "IT14", "IT15", "IT16", "IT17", "IT18", "IT19", "IT20", "IT21",
+      "LV01", "LV02", "LV03", "LV04", "LV05", "LV06",
+      "LT01", "LT02", "LT03", "LT04", "LT05",
+      "LX01",
+      "MT01", "MT02", "MT03", "MT04", "MT05",
+      "NL01", "NL02", "NL03", "NL04", "NL05", "NL06", "NL07", "NL08", "NL09", "NL10",
+      "NL11", "NL12", "NL13",
+      "PL01", "PL02", "PL03", "PL04", "PL05", "PL06", "PL07", "PL08", "PL09", "PL10",
+      "PL11", "PL12", "PL13", "PL14", "PL15", "PL16",
+      "PT01", "PT02", "PT03", "PT04", "PT05", "PT06", "PT07",
+      "RO01", "RO02", "RO03", "RO04", "RO05", "RO06", "RO07", "RO08",
+      "SK01", "SK02", "SK03", "SK04", "SK05", "SK06", "SK07", "SK08",
+      "SI01", "SI02", "SI03", "SI04", "SI05", "SI06",
+      "ES01", "ES02", "ES03", "ES04", "ES05", "ES06", "ES07", "ES08", "ES09", "ES10",
+      "ES11", "ES12", "ES13", "ES14", "ES15", "ES16", "ES17", "ES18", "ES19",
+      "SE01", "SE02", "SE03", "SE04", "SE05", "SE06", "SE07", "SE08", "SE09", "SE10",
+      "SE11", "SE12", "SE13", "SE14", "SE15", "SE16", "SE17", "SE18", "SE19", "SE20", "SE21"
+    ],
+    "exchangeValidation": {
+      "type": "namedMultOrSerial",
+      "description": "EU stations send region code, non-EU stations send ITU zone number",
+      "serialNumberFormat": "^[0-9]{1,3}$",
+      "logic": "Accept if value matches a named multiplier OR matches serialNumberFormat"
+    }
+  },
+  "ui": {
+    "showMultiplierPanel": true,
+    "logColumns": ["DATE", "TIME", "CALL", "FREQ", "MODE", "RSTs", "RSTr", "EXCHs", "EXCHr", "POINTS", "M", "COMMENT"],
+    "entryFields": ["CALL", "RSTr", "EXCHr"],
+    "fieldNavigation": {
+      "keys": "tab"
+    },
+    "bandMap": {
+      "enabled": true,
+      "bands": ["160m", "80m", "40m", "20m", "15m", "10m"]
+    },
+    "multiplierDisplay": {
+      "showRegions": true,
+      "showDXCC": true
+    }
+  }
+}

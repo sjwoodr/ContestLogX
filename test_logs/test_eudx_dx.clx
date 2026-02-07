@@ -1,0 +1,326 @@
+{
+    "contest": {
+        "categories": {
+            "userPrompt_myExchange": "8",
+            "userPrompt_operatingClass": "SOAB-MIX-HP",
+            "userPrompt_stationType": "DX"
+        },
+        "contest_file": "eudx.json",
+        "mode": "",
+        "name": "European Union DX Contest",
+        "type": "European Union DX Contest",
+        "version": "1.0.0",
+        "year": 2026
+    },
+    "created": "2026-02-07T12:00:00",
+    "exchange_fields": [],
+    "format": "ContestLogX",
+    "format_version": "1.0",
+    "modified": "2026-02-07T18:00:00",
+    "qsos": [
+        {
+            "band": "20m",
+            "callsign": "W3XYZ",
+            "duplicate": false,
+            "dxcc_count": 0,
+            "exchange_fields": {
+                "CALL": "W3XYZ",
+                "EXCHr": "8",
+                "EXCHs": "8",
+                "RSTr": "599",
+                "RSTs": "599",
+                "SNs": "1"
+            },
+            "frequency": 14035,
+            "grid_square_count": 0,
+            "id": 1,
+            "mode": "CW",
+            "multiplier_count": 0,
+            "points": 2,
+            "rst_received": "599",
+            "rst_sent": "599",
+            "serial": 1,
+            "timestamp": "2026-02-07T12:01:00Z"
+        },
+        {
+            "band": "20m",
+            "callsign": "DL5ABC",
+            "duplicate": false,
+            "dxcc_count": 1,
+            "exchange_fields": {
+                "CALL": "DL5ABC",
+                "EXCHr": "DE01",
+                "EXCHs": "8",
+                "RSTr": "599",
+                "RSTs": "599",
+                "SNs": "2"
+            },
+            "frequency": 14040,
+            "grid_square_count": 0,
+            "id": 2,
+            "mode": "CW",
+            "multiplier_count": 1,
+            "points": 10,
+            "rst_received": "599",
+            "rst_sent": "599",
+            "serial": 2,
+            "timestamp": "2026-02-07T12:03:00Z"
+        },
+        {
+            "band": "20m",
+            "callsign": "F6DEF",
+            "duplicate": false,
+            "dxcc_count": 1,
+            "exchange_fields": {
+                "CALL": "F6DEF",
+                "EXCHr": "FR10",
+                "EXCHs": "8",
+                "RSTr": "599",
+                "RSTs": "599",
+                "SNs": "3"
+            },
+            "frequency": 14045,
+            "grid_square_count": 0,
+            "id": 3,
+            "mode": "CW",
+            "multiplier_count": 1,
+            "points": 10,
+            "rst_received": "599",
+            "rst_sent": "599",
+            "serial": 3,
+            "timestamp": "2026-02-07T12:05:00Z"
+        },
+        {
+            "band": "20m",
+            "callsign": "EA4ABC",
+            "duplicate": false,
+            "dxcc_count": 1,
+            "exchange_fields": {
+                "CALL": "EA4ABC",
+                "EXCHr": "ES05",
+                "EXCHs": "8",
+                "RSTr": "599",
+                "RSTs": "599",
+                "SNs": "4"
+            },
+            "frequency": 14050,
+            "grid_square_count": 0,
+            "id": 4,
+            "mode": "CW",
+            "multiplier_count": 1,
+            "points": 10,
+            "rst_received": "599",
+            "rst_sent": "599",
+            "serial": 4,
+            "timestamp": "2026-02-07T12:07:00Z"
+        },
+        {
+            "band": "20m",
+            "callsign": "VE3ABC",
+            "duplicate": false,
+            "dxcc_count": 1,
+            "exchange_fields": {
+                "CALL": "VE3ABC",
+                "EXCHr": "4",
+                "EXCHs": "8",
+                "RSTr": "599",
+                "RSTs": "599",
+                "SNs": "5"
+            },
+            "frequency": 14055,
+            "grid_square_count": 0,
+            "id": 5,
+            "mode": "CW",
+            "multiplier_count": 0,
+            "points": 3,
+            "rst_received": "599",
+            "rst_sent": "599",
+            "serial": 5,
+            "timestamp": "2026-02-07T12:09:00Z"
+        },
+        {
+            "band": "20m",
+            "callsign": "JA3XYZ",
+            "duplicate": false,
+            "dxcc_count": 1,
+            "exchange_fields": {
+                "CALL": "JA3XYZ",
+                "EXCHr": "45",
+                "EXCHs": "8",
+                "RSTr": "599",
+                "RSTs": "599",
+                "SNs": "6"
+            },
+            "frequency": 14060,
+            "grid_square_count": 0,
+            "id": 6,
+            "mode": "CW",
+            "multiplier_count": 0,
+            "points": 5,
+            "rst_received": "599",
+            "rst_sent": "599",
+            "serial": 6,
+            "timestamp": "2026-02-07T12:11:00Z"
+        },
+        {
+            "band": "20m",
+            "callsign": "VK3ABC",
+            "duplicate": false,
+            "dxcc_count": 1,
+            "exchange_fields": {
+                "CALL": "VK3ABC",
+                "EXCHr": "59",
+                "EXCHs": "8",
+                "RSTr": "599",
+                "RSTs": "599",
+                "SNs": "7"
+            },
+            "frequency": 14065,
+            "grid_square_count": 0,
+            "id": 7,
+            "mode": "CW",
+            "multiplier_count": 0,
+            "points": 5,
+            "rst_received": "599",
+            "rst_sent": "599",
+            "serial": 7,
+            "timestamp": "2026-02-07T12:13:00Z"
+        },
+        {
+            "band": "40m",
+            "callsign": "I2ABC",
+            "duplicate": false,
+            "dxcc_count": 1,
+            "exchange_fields": {
+                "CALL": "I2ABC",
+                "EXCHr": "IT04",
+                "EXCHs": "8",
+                "RSTr": "59",
+                "RSTs": "59",
+                "SNs": "8"
+            },
+            "frequency": 7150,
+            "grid_square_count": 0,
+            "id": 8,
+            "mode": "SSB",
+            "multiplier_count": 1,
+            "points": 10,
+            "rst_received": "59",
+            "rst_sent": "59",
+            "serial": 8,
+            "timestamp": "2026-02-07T13:01:00Z"
+        },
+        {
+            "band": "40m",
+            "callsign": "OZ5ABC",
+            "duplicate": false,
+            "dxcc_count": 1,
+            "exchange_fields": {
+                "CALL": "OZ5ABC",
+                "EXCHr": "DK03",
+                "EXCHs": "8",
+                "RSTr": "59",
+                "RSTs": "59",
+                "SNs": "9"
+            },
+            "frequency": 7155,
+            "grid_square_count": 0,
+            "id": 9,
+            "mode": "SSB",
+            "multiplier_count": 1,
+            "points": 10,
+            "rst_received": "59",
+            "rst_sent": "59",
+            "serial": 9,
+            "timestamp": "2026-02-07T13:03:00Z"
+        },
+        {
+            "band": "40m",
+            "callsign": "N5ABC",
+            "duplicate": false,
+            "dxcc_count": 0,
+            "exchange_fields": {
+                "CALL": "N5ABC",
+                "EXCHr": "7",
+                "EXCHs": "8",
+                "RSTr": "59",
+                "RSTs": "59",
+                "SNs": "10"
+            },
+            "frequency": 7160,
+            "grid_square_count": 0,
+            "id": 10,
+            "mode": "SSB",
+            "multiplier_count": 0,
+            "points": 2,
+            "rst_received": "59",
+            "rst_sent": "59",
+            "serial": 10,
+            "timestamp": "2026-02-07T13:05:00Z"
+        },
+        {
+            "band": "40m",
+            "callsign": "PY5ABC",
+            "duplicate": false,
+            "dxcc_count": 1,
+            "exchange_fields": {
+                "CALL": "PY5ABC",
+                "EXCHr": "15",
+                "EXCHs": "8",
+                "RSTr": "59",
+                "RSTs": "59",
+                "SNs": "11"
+            },
+            "frequency": 7165,
+            "grid_square_count": 0,
+            "id": 11,
+            "mode": "SSB",
+            "multiplier_count": 0,
+            "points": 5,
+            "rst_received": "59",
+            "rst_sent": "59",
+            "serial": 11,
+            "timestamp": "2026-02-07T13:07:00Z"
+        },
+        {
+            "band": "40m",
+            "callsign": "LU5ABC",
+            "duplicate": false,
+            "dxcc_count": 1,
+            "exchange_fields": {
+                "CALL": "LU5ABC",
+                "EXCHr": "14",
+                "EXCHs": "8",
+                "RSTr": "599",
+                "RSTs": "599",
+                "SNs": "12"
+            },
+            "frequency": 7030,
+            "grid_square_count": 0,
+            "id": 12,
+            "mode": "CW",
+            "multiplier_count": 0,
+            "points": 5,
+            "rst_received": "599",
+            "rst_sent": "599",
+            "serial": 12,
+            "timestamp": "2026-02-07T13:09:00Z"
+        }
+    ],
+    "station": {
+        "callsign": "N9OH",
+        "equipment": {
+            "power": 1000
+        },
+        "location": {
+            "grid": "EN52",
+            "state": "IN"
+        },
+        "operator": "Test Operator DX"
+    },
+    "statistics": {
+        "score": 0,
+        "total_points": 0,
+        "total_qsos": 12
+    }
+}

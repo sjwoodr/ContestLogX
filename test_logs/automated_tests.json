@@ -59,6 +59,16 @@
       "name": "MNQP Out-of-State (WVE station)",
       "log_file": "test_mnqp_outofstate.clx",
       "expected_score": 11400
+    },
+    {
+      "name": "EUDX Contest (EU station)",
+      "log_file": "test_eudx_eu.clx",
+      "expected_score": 2185
+    },
+    {
+      "name": "EUDX Contest (Non-EU station)",
+      "log_file": "test_eudx_dx.clx",
+      "expected_score": 1309
     }
   ]
 }

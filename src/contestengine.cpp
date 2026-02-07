@@ -687,6 +687,16 @@ int ContestEngine::calculatePoints(const QsoRecord& qso, const QString& myCallsi
                     ruleApplies = sameContinent;
                 } else if (rule == "differentContinent") {
                     ruleApplies = !sameContinent;
+                } else if (rule == "euCountry") {
+                    if (scoring.contains("euCountryPrefixes")) {
+                        QJsonArray euList = scoring["euCountryPrefixes"].toArray();
+                        for (const auto& v : euList) {
+                            if (v.toString() == theirEntity.primaryPrefix) {
+                                ruleApplies = true;
+                                break;
+                            }
+                        }
+                    }
                 }
                 
                 // If rule applies and points are defined, return them
