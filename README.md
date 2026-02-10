@@ -412,31 +412,43 @@ Example `ContestLogX.json`:
 ## Building ContestLogX
 
 ### Requirements
-- Qt6 development libraries
-- C++17 compiler (GCC, Clang, MSVC)
+- Qt6 development libraries (Core, Widgets, Network, SerialPort, Xml)
+- C++17 compiler (GCC, Clang, or MSVC)
 - CMake 3.16 or later
+- Python 3 (for test scripts)
 
-### Linux Build
+### Linux (Ubuntu/Debian)
 ```bash
-# Install dependencies (Debian/Ubuntu)
-sudo apt install qt6-base-dev qt6-serialport-dev cmake build-essential
+# Install dependencies
+sudo apt install cmake build-essential qt6-base-dev libqt6serialport6-dev libqt6xml6-dev
 
 # Build
-cd ContestLogX
-mkdir -p build && cd build
-cmake ..
-make -j$(nproc)
+make
+```
+
+### macOS
+```bash
+# Install dependencies
+brew install qt6 cmake
+
+# If CMake can't find Qt6 automatically:
+export CMAKE_PREFIX_PATH=$(brew --prefix qt6)
+
+# Build
+make
 ```
 
 ### Running
 ```bash
-# From source directory (so it finds contests/)
-cd /home/steve/src/other/ContestLogX
-build/ContestLogX
+./clx                                    # run
+./clx --debug --log <logfile.clx>        # debug mode with log file
+```
 
-# Or specify data path
-# TODO: this may not work yet
-CONTESTLOGX_DATA_PATH=/path/to/data build/ContestLogX
+### Testing
+```bash
+make test                # unit tests
+make test-logs           # automated contest log validation
+make test-logs-headless  # log tests without display (CI)
 ```
 
 ## Known Issues / TODO
@@ -494,7 +506,7 @@ Website: contestlogx.com (to be created)
 
 ---
 
-**ContestLogX v0.2.0**  
+**ContestLogX v0.3.0**  
 *Amateur Radio Contest Logging Software*  
 Copyright (c) 2025-2026, by Steve Woodruff, N9OH
 

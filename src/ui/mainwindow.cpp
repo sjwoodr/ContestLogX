@@ -215,30 +215,30 @@ MainWindow::MainWindow(QWidget *parent)
         DebugLogger::instance().log("MainWindow", "Auto-connect disabled");
     }
     
-    // Check if station setup is configured
-    QString callsign = settings.getCallsign();
-    if (callsign.isEmpty()) {
-        DebugLogger::instance().log("MainWindow", "Station not configured, showing preferences dialog");
-        QTimer::singleShot(100, this, &MainWindow::onPreferences);
+    // Check for --test-only and --log command-line arguments first
+    QStringList args = QApplication::arguments();
+    int logIndex = args.indexOf("--log");
+    int testIndex = args.indexOf("--test-only");
+
+    if (testIndex != -1) {
+        m_testMode = true;
+        DebugLogger::instance().log("MainWindow", "Test mode enabled");
+    }
+
+    if (logIndex != -1 && logIndex + 1 < args.count()) {
+        QString logFilePath = args[logIndex + 1];
+        m_debugLogMode = true;
+        DebugLogger::instance().log("MainWindow", QString("Loading log file from command line: %1").arg(logFilePath));
+        DebugLogger::instance().log("MainWindow", "Debug log mode enabled - summary sheet will be written to debug log");
+        QTimer::singleShot(100, this, [this, logFilePath]() {
+            loadLogFile(logFilePath);
+        });
     } else {
-        // Check for --log command-line argument
-        QStringList args = QApplication::arguments();
-        int logIndex = args.indexOf("--log");
-        int testIndex = args.indexOf("--test-only");
-        
-        if (testIndex != -1) {
-            m_testMode = true;
-            DebugLogger::instance().log("MainWindow", "Test mode enabled");
-        }
-        
-        if (logIndex != -1 && logIndex + 1 < args.count()) {
-            QString logFilePath = args[logIndex + 1];
-            m_debugLogMode = true;
-            DebugLogger::instance().log("MainWindow", QString("Loading log file from command line: %1").arg(logFilePath));
-            DebugLogger::instance().log("MainWindow", "Debug log mode enabled - summary sheet will be written to debug log");
-            QTimer::singleShot(100, this, [this, logFilePath]() {
-                loadLogFile(logFilePath);
-            });
+        // Check if station setup is configured
+        QString callsign = settings.getCallsign();
+        if (callsign.isEmpty()) {
+            DebugLogger::instance().log("MainWindow", "Station not configured, showing preferences dialog");
+            QTimer::singleShot(100, this, &MainWindow::onPreferences);
         } else {
             DebugLogger::instance().log("MainWindow", "Station configured, showing contest selection dialog");
             QTimer::singleShot(100, this, &MainWindow::onNewLog);
@@ -2047,7 +2047,8 @@ void MainWindow::loadLogFile(const QString& filename)
                 
                 // Reset modified flag since we just loaded the file
                 m_isModified = false;
-                
+                updateWindowTitle();
+
                 // Update score display
                 if (m_scoreWidget) {
                     m_scoreWidget->resetScore();
@@ -3603,7 +3604,7 @@ void MainWindow::onExportCabrillo()
 void MainWindow::onAbout()
 {
     QMessageBox::about(this, "About ContestLogX",
-        "ContestLogX - Version 0.2.0 (Alpha)\n\n"
+        "ContestLogX - Version 0.3.0 (Alpha)\n\n"
         "Cross-platform amateur radio contest logging software\n\n"
         "Radio control via flrig (http://www.w1hkj.com/)\n\n"
         "Copyright (c) 2025-2026, by Steve Woodruff, N9OH");
