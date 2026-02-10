@@ -2019,11 +2019,11 @@
         }
     ],
     "station": {
-        "callsign": "",
+        "callsign": "N9OH",
         "equipment": {
             "power": 100
         },
-        "operator": ""
+        "operator": "Steve Woodruff"
     },
     "statistics": {
         "score": 17388,

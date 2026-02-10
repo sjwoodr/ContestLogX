@@ -8,8 +8,7 @@
         "year": 2026
     },
     "created": "2026-01-10T23:06:30",
-    "exchange_fields": [
-    ],
+    "exchange_fields": [],
     "format": "ContestLogX",
     "format_version": "1.0",
     "modified": "2026-01-10T23:06:30",
@@ -200,11 +199,11 @@
         }
     ],
     "station": {
-        "callsign": "",
+        "callsign": "N9OH",
         "equipment": {
             "power": 100
         },
-        "operator": ""
+        "operator": "Steve Woodruff"
     },
     "statistics": {
         "score": 8,

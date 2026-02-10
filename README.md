@@ -506,7 +506,7 @@ Website: contestlogx.com (to be created)
 
 ---
 
-**ContestLogX v0.3.1**  
+**ContestLogX v0.3.2**  
 *Amateur Radio Contest Logging Software*  
 Copyright (c) 2025-2026, by Steve Woodruff, N9OH
 
