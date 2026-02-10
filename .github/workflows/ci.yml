@@ -56,3 +56,162 @@ jobs:
       - name: Test clx --help (headless)
         run: QT_QPA_PLATFORM=offscreen ./clx --help
         timeout-minutes: 1
+
+  build-appimage:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: build-and-test
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract version from CMakeLists.txt
+        id: version
+        run: |
+          VERSION=$(grep 'project(ContestLogX VERSION' CMakeLists.txt | sed 's/.*VERSION \([0-9.]*\).*/\1/')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "VERSION: $VERSION"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build AppImage
+        run: |
+          mkdir -p dist
+          docker build -f Dockerfile.appimage -t clx-appimage-builder .
+          docker run --rm -v $(pwd)/dist:/output clx-appimage-builder
+
+      - name: Rename and compress AppImage
+        run: |
+          cd dist
+          APPIMAGE=$(ls ContestLogX-*.AppImage)
+          COMPRESSED_NAME="ContestLogX.${{ steps.version.outputs.version }}.AppImage.tar.gz"
+          tar -czf "$COMPRESSED_NAME" "$APPIMAGE"
+          ls -lh
+          echo "COMPRESSED_ARTIFACT=$COMPRESSED_NAME" >> $GITHUB_ENV
+
+      - name: Upload AppImage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: appimage
+          path: dist/ContestLogX.${{ steps.version.outputs.version }}.AppImage.tar.gz
+
+  build-macos:
+    runs-on: macos-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: build-and-test
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract version from CMakeLists.txt
+        id: version
+        run: |
+          VERSION=$(grep 'project(ContestLogX VERSION' CMakeLists.txt | sed 's/.*VERSION \([0-9.]*\).*/\1/')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "VERSION: $VERSION"
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.5.*'
+          host: 'macos'
+          target: 'desktop'
+          modules: 'qtnetworkauth qtserialport qtmultimedia'
+          cache: true
+
+      - name: Install additional dependencies
+        run: brew install cmake
+
+      - name: Download DXCC database (cty.dat)
+        run: |
+          mkdir -p ~/.local/share/ContestLogX
+          curl -s -L https://www.country-files.com/cty/cty.dat -o ~/.local/share/ContestLogX/cty.dat
+          ls -lh ~/.local/share/ContestLogX/cty.dat
+
+      - name: Build macOS app bundle
+        run: |
+          chmod +x scripts/build-macos-bundle.sh
+          scripts/build-macos-bundle.sh
+
+      - name: Compress app bundle
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          cd dist
+          TARBALL_NAME="ContestLogX.${VERSION}.macOS.tar.gz"
+          tar -czf "$TARBALL_NAME" "ContestLogX.app"
+          ls -lh
+          echo "MACOS_ARTIFACT=$TARBALL_NAME" >> $GITHUB_ENV
+
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-app
+          path: dist/ContestLogX.${{ steps.version.outputs.version }}.macOS.tar.gz
+
+  create-release:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [build-appimage, build-macos]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract version from CMakeLists.txt
+        id: version
+        run: |
+          VERSION=$(grep 'project(ContestLogX VERSION' CMakeLists.txt | sed 's/.*VERSION \([0-9.]*\).*/\1/')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "VERSION: $VERSION"
+
+      - name: Download AppImage artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: appimage
+          path: artifacts/
+
+      - name: Download macOS artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: macos-app
+          path: artifacts/
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          release_name: Release ${{ steps.version.outputs.version }}
+          body: |
+            ContestLogX Release ${{ steps.version.outputs.version }}
+            
+            ## Downloads
+            - **Linux AppImage**: ContestLogX.${{ steps.version.outputs.version }}.AppImage.tar.gz
+            - **macOS App Bundle**: ContestLogX.${{ steps.version.outputs.version }}.macOS.tar.gz
+          draft: false
+          prerelease: false
+
+      - name: Upload Linux AppImage to Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: artifacts/ContestLogX.${{ steps.version.outputs.version }}.AppImage.tar.gz
+          asset_name: ContestLogX.${{ steps.version.outputs.version }}.AppImage.tar.gz
+          asset_content_type: application/gzip
+
+      - name: Upload macOS app to Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: artifacts/ContestLogX.${{ steps.version.outputs.version }}.macOS.tar.gz
+          asset_name: ContestLogX.${{ steps.version.outputs.version }}.macOS.tar.gz
+          asset_content_type: application/gzip

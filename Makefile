@@ -11,6 +11,7 @@
 #   make version      - Update version number
 #   make reset        - Reset application settings
 #   make appimage     - Build portable AppImage via Docker (output: dist/)
+#   make macos        - Build macOS app bundle (requires macOS)
 
 # Number of parallel build jobs (default: number of CPU cores)
 JOBS ?= $(shell nproc)
@@ -131,4 +132,8 @@ appimage:
 	mkdir -p dist
 	docker run --rm -v $(CURDIR)/dist:/output clx-appimage-builder
 
-.PHONY: all clean test test-logs test-logs-headless version reset appimage install-desktop
+# Build macOS app bundle (requires macOS)
+macos:
+	@scripts/build-macos-bundle.sh
+
+.PHONY: all clean test test-logs test-logs-headless version reset appimage macos install-desktop

@@ -1178,6 +1178,13 @@ QString Settings::getDataPath()
         }
     }
 
+    // macOS app bundle: ContestLogX.app/Contents/Resources/share/contestlogx/data
+    QString binDir = QCoreApplication::applicationDirPath();
+    QDir bundleData(binDir + "/../Resources/share/contestlogx/data");
+    if (bundleData.exists()) {
+        return bundleData.absolutePath();
+    }
+
     // Get the invocation path (supports symlinks)
     // argv[0] contains the path used to invoke the program, before symlink resolution
     QStringList args = QCoreApplication::arguments();
@@ -1226,6 +1233,13 @@ QString Settings::getContestsPath()
         }
     }
 
+    // macOS app bundle: ContestLogX.app/Contents/Resources/share/contestlogx/contests
+    QString binDir = QCoreApplication::applicationDirPath();
+    QDir bundleContests(binDir + "/../Resources/share/contestlogx/contests");
+    if (bundleContests.exists()) {
+        return bundleContests.absolutePath();
+    }
+
     // Development: contests/ in current working directory
     QDir cwdContests("contests");
     if (cwdContests.exists()) {
@@ -1233,7 +1247,6 @@ QString Settings::getContestsPath()
     }
 
     // Installed: relative to executable (../share/contestlogx/contests or ../contests)
-    QString binDir = QCoreApplication::applicationDirPath();
     QDir appContests(binDir + "/../contests");
     if (appContests.exists()) {
         return appContests.absolutePath();

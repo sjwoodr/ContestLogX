@@ -1,6 +1,7 @@
 # Qt build artifacts
 build/
 dist/
+.DS_Store
 *.pro.user
 *.autosave
 .qmake.stash
