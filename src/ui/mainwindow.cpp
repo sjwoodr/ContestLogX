@@ -688,7 +688,10 @@ void MainWindow::setupMenus()
     QAction *saveAsAction = fileMenu->addAction("Save Log &As...");
     saveAsAction->setShortcut(QKeySequence::SaveAs);
     connect(saveAsAction, &QAction::triggered, this, &MainWindow::onSaveLogAs);
-    
+
+    QAction *exportAction = fileMenu->addAction("&Export...");
+    connect(exportAction, &QAction::triggered, this, &MainWindow::onExportAdif);
+
     fileMenu->addSeparator();
 
     QAction *downloadCtyAction = fileMenu->addAction("&Download DXCC Database (cty.dat)...");
@@ -1106,23 +1109,71 @@ void MainWindow::onNewLog()
                 
                 // Prompt for station class if the contest requires it
                 if (m_contestEngine && m_contestEngine->needsStationClass()) {
-                    StationClassDialog classDialog(
-                        m_contestEngine->getStationClassPrompt(),
-                        m_contestEngine->getStationClassOptions(),
-                        this);
-                    if (classDialog.exec() == QDialog::Accepted) {
-                        QString selectedClass = classDialog.getSelectedClass();
+                    QStringList classOptions = m_contestEngine->getStationClassOptions();
+                    QString selectedClass;
+
+                    // Auto-select if only one class available
+                    if (classOptions.size() == 1) {
+                        selectedClass = classOptions.first().split('|').first();
+                        DebugLogger::instance().log("MainWindow",
+                            QString("Auto-selected single station class: %1").arg(selectedClass));
+                    } else {
+                        StationClassDialog classDialog(
+                            m_contestEngine->getStationClassPrompt(),
+                            classOptions,
+                            this);
+                        if (classDialog.exec() == QDialog::Accepted) {
+                            selectedClass = classDialog.getSelectedClass();
+                        }
+                    }
+
+                    if (!selectedClass.isEmpty()) {
                         m_contestEngine->setStationClass(selectedClass);
-                        DebugLogger::instance().log("MainWindow", 
+                        DebugLogger::instance().log("MainWindow",
                             QString("Station class selected: %1").arg(selectedClass));
-                        
+
+                        // Prompt for operator callsign if contest requests it
+                        if (m_contestEngine->stationClassPromptsForCallsign()) {
+                            QString defaultCall = Settings::instance().getCallsign();
+                            QDialog callDialog(this);
+                            callDialog.setWindowTitle("Operator Callsign");
+                            QVBoxLayout callLayout(&callDialog);
+                            QLabel callLabel("Enter operator callsign:");
+                            QLineEdit callEdit;
+                            callEdit.setText(defaultCall);
+                            callEdit.selectAll();
+                            QDialogButtonBox callButtons(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+                            callLayout.addWidget(&callLabel);
+                            callLayout.addWidget(&callEdit);
+                            callLayout.addWidget(&callButtons);
+                            connect(&callButtons, &QDialogButtonBox::accepted, &callDialog, &QDialog::accept);
+                            connect(&callButtons, &QDialogButtonBox::rejected, &callDialog, &QDialog::reject);
+                            connect(&callEdit, &QLineEdit::textChanged, [&callEdit](const QString& text) {
+                                if (text != text.toUpper()) {
+                                    int pos = callEdit.cursorPosition();
+                                    callEdit.blockSignals(true);
+                                    callEdit.setText(text.toUpper());
+                                    callEdit.setCursorPosition(pos);
+                                    callEdit.blockSignals(false);
+                                }
+                            });
+                            if (callDialog.exec() == QDialog::Accepted && !callEdit.text().trimmed().isEmpty()) {
+                                m_sessionStationInfo->setCallsign(callEdit.text().trimmed().toUpper());
+                                DebugLogger::instance().log("MainWindow",
+                                    QString("Operator callsign set to: %1").arg(m_sessionStationInfo->callsign()));
+                            } else {
+                                m_contestEngine->resetStationClassState();
+                                return;
+                            }
+                        }
+
                         // Check if this class needs additional input
                         if (m_contestEngine->stationClassNeedsInput() && m_contestEngine->getStationClassExchangeData().isEmpty()) {
                             // Prompt for name and ID separately
                             QString namePrompt = m_contestEngine->getStationClassNamePrompt();
                             QString idPrompt = m_contestEngine->getStationClassIdPrompt();
                             QJsonObject inputValidation = m_contestEngine->getStationClassInputValidation();
-                            
+
                             // Prompt for name with real-time uppercase conversion
                             QString name;
                             while (true) {
@@ -2097,26 +2148,46 @@ void MainWindow::onSaveLog()
 void MainWindow::onSaveLogAs()
 {
     QString fileName = QFileDialog::getSaveFileName(this,
-        "Save Log File", "", 
-        "ContestLogX 2.0 Format (*.clx);;"
-        "ADIF Files (*.adi *.adif);;"
-        "CSV Files (*.csv);;"
-        "All Files (*)");
-    
+        "Save Log File", "",
+        "ContestLogX 2.0 Format (*.clx)");
+
     if (fileName.isEmpty())
         return;
-    
-    // Ensure .clx extension (the default format we save in)
-    if (!fileName.endsWith(".clx", Qt::CaseInsensitive) &&
-        !fileName.endsWith(".csv", Qt::CaseInsensitive) &&
-        !fileName.endsWith(".adi", Qt::CaseInsensitive) &&
-        !fileName.endsWith(".adif", Qt::CaseInsensitive)) {
-        // No recognized extension, add .clx
+
+    // Ensure .clx extension
+    if (!fileName.endsWith(".clx", Qt::CaseInsensitive)) {
         fileName += ".clx";
     }
     
     m_currentFile = fileName;
     onSaveLog();
+}
+
+void MainWindow::onExportAdif()
+{
+    QString fileName = QFileDialog::getSaveFileName(this,
+        "Export Log", "",
+        "ADIF Files (*.adi);;"
+        "CSV Files (*.csv)");
+
+    if (fileName.isEmpty())
+        return;
+
+    // Ensure a recognized extension
+    if (!fileName.endsWith(".adi", Qt::CaseInsensitive) &&
+        !fileName.endsWith(".csv", Qt::CaseInsensitive)) {
+        fileName += ".adi";
+    }
+
+    FileHandler fileHandler;
+    fileHandler.setStationCallsign(getSessionCallsign());
+    if (fileHandler.save(fileName, m_qsoModel->getQsos())) {
+        m_statusLabel->setText("Exported: " + fileName + " (" +
+            QString::number(m_qsoModel->count()) + " QSOs)");
+    } else {
+        QMessageBox::warning(this, "Export Failed",
+            "Failed to export file:\n\n" + fileHandler.lastError());
+    }
 }
 
 void MainWindow::onExit()
@@ -4301,26 +4372,75 @@ bool MainWindow::loadContestDefinition(const QString& filePath, bool restoreStat
         
         // Only show dialog if no station class is already set
         if (currentClass.isEmpty()) {
-            StationClassDialog dialog(
-                m_contestEngine->getStationClassPrompt(),
-                m_contestEngine->getStationClassOptions(),
-                this,
-                currentClass  // Pass current class as default
-            );
-            
-            if (dialog.exec() == QDialog::Accepted) {
-                QString selectedClass = dialog.getSelectedClass();
+            QStringList classOptions = m_contestEngine->getStationClassOptions();
+            QString selectedClass;
+
+            // Auto-select if only one class available
+            if (classOptions.size() == 1) {
+                selectedClass = classOptions.first().split('|').first();
+                DebugLogger::instance().log("MainWindow",
+                    QString("Auto-selected single station class: %1").arg(selectedClass));
+            } else {
+                StationClassDialog dialog(
+                    m_contestEngine->getStationClassPrompt(),
+                    classOptions,
+                    this,
+                    currentClass  // Pass current class as default
+                );
+
+                if (dialog.exec() == QDialog::Accepted) {
+                    selectedClass = dialog.getSelectedClass();
+                }
+            }
+
+            if (!selectedClass.isEmpty()) {
                 m_contestEngine->setStationClass(selectedClass);
-                DebugLogger::instance().log("MainWindow", 
+                DebugLogger::instance().log("MainWindow",
                     QString("Station class selected: %1").arg(selectedClass));
-                
+
+                // Prompt for operator callsign if contest requests it
+                if (m_contestEngine->stationClassPromptsForCallsign()) {
+                    QString defaultCall = Settings::instance().getCallsign();
+                    QDialog callDialog(this);
+                    callDialog.setWindowTitle("Operator Callsign");
+                    QVBoxLayout callLayout(&callDialog);
+                    QLabel callLabel("Enter operator callsign:");
+                    QLineEdit callEdit;
+                    callEdit.setText(defaultCall);
+                    callEdit.selectAll();
+                    QDialogButtonBox callButtons(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+                    callLayout.addWidget(&callLabel);
+                    callLayout.addWidget(&callEdit);
+                    callLayout.addWidget(&callButtons);
+                    connect(&callButtons, &QDialogButtonBox::accepted, &callDialog, &QDialog::accept);
+                    connect(&callButtons, &QDialogButtonBox::rejected, &callDialog, &QDialog::reject);
+                    connect(&callEdit, &QLineEdit::textChanged, [&callEdit](const QString& text) {
+                        if (text != text.toUpper()) {
+                            int pos = callEdit.cursorPosition();
+                            callEdit.blockSignals(true);
+                            callEdit.setText(text.toUpper());
+                            callEdit.setCursorPosition(pos);
+                            callEdit.blockSignals(false);
+                        }
+                    });
+                    if (callDialog.exec() == QDialog::Accepted && !callEdit.text().trimmed().isEmpty()) {
+                        m_sessionStationInfo->setCallsign(callEdit.text().trimmed().toUpper());
+                        DebugLogger::instance().log("MainWindow",
+                            QString("Operator callsign set to: %1").arg(m_sessionStationInfo->callsign()));
+                    } else {
+                        DebugLogger::instance().log("MainWindow", "Operator callsign prompt cancelled");
+                        m_contestDefinition = QJsonObject();
+                        return false;
+                    }
+                }
+
                 // Check if this class needs additional input and we don't have saved data
                 if (m_contestEngine->stationClassNeedsInput() && m_contestEngine->getStationClassExchangeData().isEmpty()) {
                     // Prompt for name and ID separately
                     QString namePrompt = m_contestEngine->getStationClassNamePrompt();
                     QString idPrompt = m_contestEngine->getStationClassIdPrompt();
                     QJsonObject inputValidation = m_contestEngine->getStationClassInputValidation();
-                    
+
                     // Create custom dialog for name with uppercase
                     QInputDialog *nameDialog = new QInputDialog(this);
                     nameDialog->setWindowTitle("Station Information");

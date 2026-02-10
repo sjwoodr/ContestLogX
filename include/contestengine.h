@@ -142,6 +142,7 @@ public:
     QString getSentExchangeName() const;
     QString getSentExchangeId() const;
     bool stationClassNeedsInput() const;
+    bool stationClassPromptsForCallsign() const;
     QString getStationClassInputPrompt() const;
     QString getStationClassNamePrompt() const;
     QString getStationClassIdPrompt() const;

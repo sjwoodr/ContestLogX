@@ -7,6 +7,7 @@
 #include "clxfile.h"
 #include "stationinfo.h"
 #include "debuglogger.h"
+#include <QApplication>
 #include <QFile>
 #include <QTextStream>
 #include <QDataStream>
@@ -265,7 +266,8 @@ bool FileHandler::saveAdif(const QString& filename, const QList<QsoRecord>& qsos
     out << "ADIF Export from ContestLogX\n";
     out << "<ADIF_VER:5>3.1.0\n";
     out << "<PROGRAMID:5>ContestLogX\n";
-    out << "<PROGRAMVERSION:8>12.0.0\n";
+    QString ver = QApplication::applicationVersion();
+    out << QString("<PROGRAMVERSION:%1>%2\n").arg(ver.length()).arg(ver);
     out << "<EOH>\n\n";
     
     // Write QSOs
@@ -278,25 +280,52 @@ bool FileHandler::saveAdif(const QString& filename, const QList<QsoRecord>& qsos
         QString rstRcvd = qso.getRstReceived();
         QString exchange = qso.getExchange();
         
-        out << "<CALL:" << call.length() << ">" << call << " ";
-        out << "<QSO_DATE:8>" << dt.toString("yyyyMMdd") << " ";
-        out << "<TIME_ON:6>" << dt.toString("HHmmss") << " ";
-        out << "<FREQ:" << freq.length() << ">" << freq << " ";
-        out << "<MODE:" << mode.length() << ">" << mode << " ";
-        
-        // Write RST fields using standard ADIF names
+        // Core fields on first line
+        out << "<QSO_DATE:8>" << dt.toString("yyyyMMdd")
+            << " <TIME_ON:6>" << dt.toString("HHmmss")
+            << " <FREQ:" << freq.length() << ">" << freq
+            << " <MODE:" << mode.length() << ">" << mode << "\n";
+
+        // Remaining fields indented, one per line
+        out << "    <CALL:" << call.length() << ">" << call << "\n";
+
         if (!rstSent.isEmpty()) {
-            out << "<RST_SENT:" << rstSent.length() << ">" << rstSent << " ";
+            out << "    <RST_SENT:" << rstSent.length() << ">" << rstSent << "\n";
         }
         if (!rstRcvd.isEmpty()) {
-            out << "<RST_RCVD:" << rstRcvd.length() << ">" << rstRcvd << " ";
+            out << "    <RST_RCVD:" << rstRcvd.length() << ">" << rstRcvd << "\n";
         }
-        
-        // Write other exchange data if present
-        if (!exchange.isEmpty()) {
-            out << "<STX:" << exchange.length() << ">" << exchange << " ";
+
+        if (!m_stationCallsign.isEmpty()) {
+            out << "    <STATION_CALLSIGN:" << m_stationCallsign.length() << ">" << m_stationCallsign << "\n";
         }
-        
+
+        // Write exchange fields — map known fields to standard ADIF tags,
+        // everything else as APP_CLX_ tags
+        QMap<QString, QString> exchFields = qso.getExchangeFields();
+        for (auto it = exchFields.constBegin(); it != exchFields.constEnd(); ++it) {
+            if (it.value().isEmpty())
+                continue;
+            QString key = it.key().toUpper();
+            QString adifTag;
+            // Skip fields already written as standard ADIF tags above
+            if (key == "RSTS" || key == "RSTR" || key == "CALL")
+                continue;
+            if (key == "SNS")           adifTag = "STX";
+            else if (key == "SNR")      adifTag = "SRX";
+            else if (key == "NAMER")    adifTag = "NAME";
+            else if (key == "EXCHR")    adifTag = "QTH";
+            else if (key == "NOTES")    adifTag = "NOTES";
+            else if (key == "GRIDR")    adifTag = "GRIDSQUARE";
+            else if (key == "GRIDS")    adifTag = "MY_GRIDSQUARE";
+
+            if (!adifTag.isEmpty()) {
+                out << "    <" << adifTag << ":" << it.value().length() << ">" << it.value() << "\n";
+            } else {
+                out << "    <APP_CLX_" << key << ":" << it.value().length() << ">" << it.value() << "\n";
+            }
+        }
+
         out << "<EOR>\n";
     }
     

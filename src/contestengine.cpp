@@ -1515,10 +1515,12 @@ bool ContestEngine::isFieldRequired(const QString& fieldName) const
         // Check both sent and received fields
         QJsonArray allFields;
         if (exchangeFields.contains("sent")) {
-            allFields.append(exchangeFields["sent"].toArray());
+            for (const QJsonValue& v : exchangeFields["sent"].toArray())
+                allFields.append(v);
         }
         if (exchangeFields.contains("received")) {
-            allFields.append(exchangeFields["received"].toArray());
+            for (const QJsonValue& v : exchangeFields["received"].toArray())
+                allFields.append(v);
         }
         
         DebugLogger::instance().log("ContestEngine", 
@@ -1759,6 +1761,28 @@ bool ContestEngine::stationClassNeedsInput() const
         }
     }
     
+    return false;
+}
+
+bool ContestEngine::stationClassPromptsForCallsign() const
+{
+    if (m_stationClass.isEmpty()) {
+        return false;
+    }
+
+    if (m_contestDef.contains("stationClasses")) {
+        QJsonObject stationClasses = m_contestDef["stationClasses"].toObject();
+        if (stationClasses.contains("classes")) {
+            QJsonArray classes = stationClasses["classes"].toArray();
+            for (const QJsonValue& val : classes) {
+                QJsonObject classObj = val.toObject();
+                if (classObj["id"].toString() == m_stationClass) {
+                    return classObj.value("promptForCallsign").toBool(false);
+                }
+            }
+        }
+    }
+
     return false;
 }
 
@@ -2306,9 +2330,12 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
         // For multsOnce and multsPerBand: use simple points × mults formula
         int totalMultipliers = m_runningScore.namedMultCount + m_runningScore.dxccMultCount + m_runningScore.ituRegionMultCount + m_runningScore.namedCallPrefixCount + m_runningScore.gridSquareMultCount;
         m_runningScore.contestScore = (m_runningScore.contactScore * totalMultipliers) + m_runningScore.bonusPoints;
-    } else {
+    } else if (m_runningScore.multipliers > 0) {
         // Traditional scoring: points * mults
         m_runningScore.contestScore = (m_runningScore.contactScore * m_runningScore.multipliers) + m_runningScore.bonusPoints;
+    } else {
+        // No multipliers defined: score is just the sum of points
+        m_runningScore.contestScore = m_runningScore.contactScore + m_runningScore.bonusPoints;
     }
     
     DebugLogger::instance().log("ContestEngine", 

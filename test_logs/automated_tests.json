@@ -69,6 +69,11 @@
       "name": "EUDX Contest (Non-EU station)",
       "log_file": "test_eudx_dx.clx",
       "expected_score": 1309
+    },
+    {
+      "name": "General Purpose DXCC Log",
+      "log_file": "test_general_dxcc_log.clx",
+      "expected_score": 52
     }
   ]
 }

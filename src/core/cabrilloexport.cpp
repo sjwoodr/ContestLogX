@@ -5,6 +5,7 @@
 #include <QDateTime>
 #include <QDebug>
 #include <QJsonArray>
+#include <QApplication>
 
 CabrilloExport::CabrilloExport()
 {
@@ -122,7 +123,7 @@ QString CabrilloExport::generateHeader(const QJsonObject& contestDef, const QJso
     addIfRequired("email", "EMAIL", headerData["email"].toString());
     
     // CREATED-BY is auto-generated - get from the app version
-    QString createdBy = QString("ContestLogX %1").arg("0.0.3");
+    QString createdBy = QString("ContestLogX %1").arg(QApplication::applicationVersion());
     addIfRequired("createdBy", "CREATED-BY", createdBy);
     
     addIfRequired("claimedScore", "CLAIMED-SCORE", headerData["claimedScore"].toString());

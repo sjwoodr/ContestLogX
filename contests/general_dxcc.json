@@ -1,0 +1,295 @@
+{
+  "contest": {
+    "name": "General Purpose DXCC Log",
+    "abbreviation": "GENERAL-DXCC",
+    "version": "1.0.0",
+    "sponsor": "",
+    "startDate": "Any time",
+    "duration": 0,
+    "offTimeGapMinutes": 0,
+    "modes": ["CW", "SSB", "RTTY", "FT8", "FT4"],
+    "bands": ["160m", "80m", "60m", "40m", "30m", "20m", "17m", "15m", "12m", "10m", "6m"],
+    "url": "",
+    "categories": {
+      "stations": ["SINGLE_OP"]
+    }
+  },
+  "frequencies": {
+    "160m": {
+      "start": 1800,
+      "end": 2000,
+      "cw": {"start": 1800, "end": 2000},
+      "phone": {"start": 1800, "end": 2000},
+      "digital": {"start": 1800, "end": 2000}
+    },
+    "80m": {
+      "start": 3500,
+      "end": 4000,
+      "cw": {"start": 3500, "end": 3600},
+      "phone": {"start": 3600, "end": 4000},
+      "digital": {"start": 3500, "end": 3600}
+    },
+    "60m": {
+      "start": 5330,
+      "end": 5407,
+      "cw": {"start": 5330, "end": 5407},
+      "phone": {"start": 5330, "end": 5407},
+      "digital": {"start": 5330, "end": 5407}
+    },
+    "40m": {
+      "start": 7000,
+      "end": 7300,
+      "cw": {"start": 7000, "end": 7125},
+      "phone": {"start": 7125, "end": 7300},
+      "digital": {"start": 7000, "end": 7125}
+    },
+    "30m": {
+      "start": 10100,
+      "end": 10150,
+      "cw": {"start": 10100, "end": 10150},
+      "digital": {"start": 10100, "end": 10150}
+    },
+    "20m": {
+      "start": 14000,
+      "end": 14350,
+      "cw": {"start": 14000, "end": 14150},
+      "phone": {"start": 14150, "end": 14350},
+      "digital": {"start": 14000, "end": 14150}
+    },
+    "17m": {
+      "start": 18068,
+      "end": 18168,
+      "cw": {"start": 18068, "end": 18110},
+      "phone": {"start": 18110, "end": 18168},
+      "digital": {"start": 18068, "end": 18110}
+    },
+    "15m": {
+      "start": 21000,
+      "end": 21450,
+      "cw": {"start": 21000, "end": 21200},
+      "phone": {"start": 21200, "end": 21450},
+      "digital": {"start": 21000, "end": 21200}
+    },
+    "12m": {
+      "start": 24890,
+      "end": 24990,
+      "cw": {"start": 24890, "end": 24930},
+      "phone": {"start": 24930, "end": 24990},
+      "digital": {"start": 24890, "end": 24930}
+    },
+    "10m": {
+      "start": 28000,
+      "end": 29700,
+      "cw": {"start": 28000, "end": 28300},
+      "phone": {"start": 28300, "end": 29700},
+      "digital": {"start": 28000, "end": 28300}
+    },
+    "6m": {
+      "start": 50000,
+      "end": 54000,
+      "cw": {"start": 50000, "end": 50100},
+      "phone": {"start": 50100, "end": 54000},
+      "digital": {"start": 50000, "end": 50100}
+    }
+  },
+  "stationClasses": {
+    "enabled": true,
+    "prompt": "General Purpose DXCC Log",
+    "classes": [
+      {
+        "id": "GENERAL_DXCC",
+        "name": "General_Dxcc",
+        "description": "General purpose logging",
+        "needsInput": true,
+        "promptForCallsign": true,
+        "inputPrompts": {
+          "id": "Enter your QTH (state/province/country)"
+        },
+        "exchangeFieldMapping": {
+          "id": "EXCHs"
+        },
+        "inputValidation": {
+          "id": {
+            "forceUppercase": true
+          }
+        },
+        "exchangeSent": {
+          "type": "customInput"
+        }
+      }
+    ]
+  },
+  "exchangeFields": {
+    "sent": [
+      {
+        "name": "RST",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report"
+      },
+      {
+        "name": "EXCHs",
+        "type": "string",
+        "required": true,
+        "description": "QTH sent"
+      },
+      {
+        "name": "NAMEs",
+        "type": "string",
+        "required": false,
+        "description": "Operator name sent (optional)"
+      }
+    ],
+    "received": [
+      {
+        "name": "RST",
+        "type": "rst",
+        "required": false,
+        "validation": "^[1-5][1-9][1-9]?$",
+        "description": "Signal report (optional)"
+      },
+      {
+        "name": "EXCHr",
+        "type": "string",
+        "required": false,
+        "description": "QTH received"
+      },
+      {
+        "name": "NAMEr",
+        "type": "string",
+        "required": false,
+        "description": "Operator name received (optional)"
+      },
+      {
+        "name": "NOTES",
+        "type": "string",
+        "required": false,
+        "description": "Comment (optional)"
+      }
+    ]
+  },
+  "qsoFields": [
+    {
+      "name": "Date",
+      "column": "DATE",
+      "type": "date",
+      "format": "yyyy-MM-dd",
+      "required": true
+    },
+    {
+      "name": "Time",
+      "column": "TIME",
+      "type": "time",
+      "format": "HH:mm:ss",
+      "required": true
+    },
+    {
+      "name": "Callsign",
+      "column": "CALL",
+      "type": "string",
+      "required": true,
+      "uppercase": true
+    },
+    {
+      "name": "Frequency",
+      "column": "FREQ",
+      "type": "number",
+      "unit": "kHz",
+      "required": true
+    },
+    {
+      "name": "Mode",
+      "column": "MODE",
+      "type": "enum",
+      "values": ["CW", "SSB", "RTTY", "FT8", "FT4"],
+      "required": true
+    },
+    {
+      "name": "RST Sent",
+      "column": "RST_SENT",
+      "type": "string",
+      "required": true,
+      "default": "599"
+    },
+    {
+      "name": "RST Received",
+      "column": "RST_RCV",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "QTH Sent",
+      "column": "EXCHs",
+      "type": "string",
+      "required": true,
+      "description": "QTH sent"
+    },
+    {
+      "name": "QTH Received",
+      "column": "EXCHr",
+      "type": "string",
+      "required": true,
+      "description": "QTH received"
+    },
+    {
+      "name": "Name Sent",
+      "column": "NAMEs",
+      "type": "string",
+      "required": false,
+      "description": "Operator name sent (optional)"
+    },
+    {
+      "name": "Name Received",
+      "column": "NAMEr",
+      "type": "string",
+      "required": false,
+      "description": "Operator name received (optional)"
+    },
+    {
+      "name": "Comment",
+      "column": "NOTES",
+      "type": "string",
+      "required": false,
+      "description": "Comment (optional)"
+    }
+  ],
+  "scoring": {
+    "points": {
+      "perQso": 1
+    },
+    "multipliers": {},
+    "finalScore": "SUM(points)"
+  },
+  "dupeChecking": {
+    "type": "perBandAndMode",
+    "description": "Station may be worked once per band per mode"
+  },
+  "logging": {
+    "requiredFields": ["date", "time", "frequency", "mode", "callsign", "rstSent", "rstReceived", "exchSent", "exchReceived"],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "GENERAL-DXCC",
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {rst_sent} {exch_sent} {call} {rst_rcvd} {exch_rcvd}"
+    }
+  },
+  "callHistory": {
+    "fieldsToSave": ["NAMEr", "EXCHr"],
+    "description": "Save operator name and QTH for future lookups"
+  },
+  "validation": {
+    "minimumQSOs": 0,
+    "maxOperatingTime": 0,
+    "offTimesRequired": false
+  },
+  "ui": {
+    "logColumns": ["DATE", "TIME", "CALL", "FREQ", "MODE", "RSTs", "RSTr", "EXCHs", "EXCHr", "NAMEs", "NAMEr", "NOTES"],
+    "entryFields": ["CALL", "RSTr", "EXCHr", "NAMEr", "NOTES"],
+    "fieldNavigation": {
+      "keys": "tab"
+    },
+    "bandMap": {
+      "enabled": true,
+      "bands": ["160m", "80m", "60m", "40m", "30m", "20m", "17m", "15m", "12m", "10m", "6m"]
+    }
+  }
+}

@@ -24,7 +24,10 @@ class FileHandler
 {
 public:
     FileHandler();
-    
+
+    // Set station callsign for ADIF export (STATION_CALLSIGN field)
+    void setStationCallsign(const QString& callsign) { m_stationCallsign = callsign; }
+
     // Main load/save (detects format from extension)
     bool load(const QString& filename, QList<QsoRecord>& qsos);
     bool save(const QString& filename, const QList<QsoRecord>& qsos);
@@ -59,7 +62,8 @@ public:
 
 private:
     QString m_lastError;
-    
+    QString m_stationCallsign;
+
     QString formatDateTime(const QDateTime& dt) const;
     QDateTime parseDateTime(const QString& str) const;
 };
