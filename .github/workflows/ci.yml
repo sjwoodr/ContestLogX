@@ -43,6 +43,13 @@ jobs:
         env:
           QT_QPA_PLATFORM: offscreen
 
+      - name: Debug YBDX scoring
+        run: |
+          QT_QPA_PLATFORM=offscreen ./clx --debug --log test_logs/test_ybdx_ssb_log.clx --test-only
+          echo "=== Debug log output ==="
+          cat clx_debug.log
+        timeout-minutes: 2
+
       - name: Run log tests
         run: make test-logs-headless
         env:
