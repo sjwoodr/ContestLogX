@@ -45,6 +45,7 @@ private slots:
     void onSaveLog();
     void onSaveLogAs();
     void onExportAdif();
+    void onImportAdif();
     void onExit();
     
     void onRigControl();

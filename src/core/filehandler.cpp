@@ -185,64 +185,70 @@ bool FileHandler::loadAdif(const QString& filename, QList<QsoRecord>& qsos)
         QString record = content.mid(pos, eorPos - pos);
         
         QsoRecord qso;
-        
-        // Extract CALL
-        QRegularExpression callRx("<call:(\\d+)>([^<]+)", QRegularExpression::CaseInsensitiveOption);
-        QRegularExpressionMatch callMatch = callRx.match(record);
-        if (callMatch.hasMatch()) {
-            qso.setCall(callMatch.captured(2).trimmed());
+
+        // Generic tag parser: extract all <tagname:len>value pairs
+        QMap<QString, QString> tags;
+        QRegularExpression tagRx("<([^:>]+):(\\d+)>", QRegularExpression::CaseInsensitiveOption);
+        QRegularExpressionMatchIterator tagIt = tagRx.globalMatch(record);
+        while (tagIt.hasNext()) {
+            QRegularExpressionMatch m = tagIt.next();
+            QString tagName = m.captured(1).toUpper();
+            int len = m.captured(2).toInt();
+            int valueStart = m.capturedEnd(0);
+            QString value = record.mid(valueStart, len).trimmed();
+            tags.insert(tagName, value);
         }
-        
-        // Extract QSO_DATE and TIME_ON
-        QRegularExpression dateRx("<qso_date:(\\d+)>([^<]+)", QRegularExpression::CaseInsensitiveOption);
-        QRegularExpression timeRx("<time_on:(\\d+)>([^<]+)", QRegularExpression::CaseInsensitiveOption);
-        QRegularExpressionMatch dateMatch = dateRx.match(record);
-        QRegularExpressionMatch timeMatch = timeRx.match(record);
-        if (dateMatch.hasMatch() && timeMatch.hasMatch()) {
-            QString date = dateMatch.captured(2).trimmed();  // YYYYMMDD
-            QString time = timeMatch.captured(2).trimmed();  // HHMMSS
-            QDateTime dt = QDateTime::fromString(date + time, "yyyyMMddHHmmss");
+
+        // Core fields
+        if (tags.contains("CALL"))
+            qso.setCall(tags["CALL"]);
+
+        if (tags.contains("QSO_DATE") && tags.contains("TIME_ON")) {
+            QDateTime dt = QDateTime::fromString(tags["QSO_DATE"] + tags["TIME_ON"], "yyyyMMddHHmmss");
             dt.setTimeSpec(Qt::UTC);
             qso.setDateTime(dt);
         }
-        
-        // Extract FREQ (MHz to kHz)
-        QRegularExpression freqRx("<freq:(\\d+)>([^<]+)", QRegularExpression::CaseInsensitiveOption);
-        QRegularExpressionMatch freqMatch = freqRx.match(record);
-        if (freqMatch.hasMatch()) {
-            double freqMHz = freqMatch.captured(2).toDouble();
+
+        if (tags.contains("FREQ")) {
+            double freqMHz = tags["FREQ"].toDouble();
             qso.setFrequency(QString::number(freqMHz * 1000.0, 'f', 1));
         }
-        
-        // Extract MODE
-        QRegularExpression modeRx("<mode:(\\d+)>([^<]+)", QRegularExpression::CaseInsensitiveOption);
-        QRegularExpressionMatch modeMatch = modeRx.match(record);
-        if (modeMatch.hasMatch()) {
-            qso.setMode(modeMatch.captured(2).trimmed());
+
+        if (tags.contains("MODE"))
+            qso.setMode(tags["MODE"]);
+
+        if (tags.contains("RST_SENT"))
+            qso.setRstSent(tags["RST_SENT"]);
+
+        if (tags.contains("RST_RCVD"))
+            qso.setRstReceived(tags["RST_RCVD"]);
+
+        // Standard ADIF → exchange field reverse mappings
+        QMap<QString, QString> adifToExchange;
+        adifToExchange["STX"] = "SNs";
+        adifToExchange["SRX"] = "SNr";
+        adifToExchange["NAME"] = "NAMEr";
+        adifToExchange["QTH"] = "EXCHr";
+        adifToExchange["NOTES"] = "NOTES";
+        adifToExchange["GRIDSQUARE"] = "GRIDr";
+        adifToExchange["MY_GRIDSQUARE"] = "GRIDs";
+
+        for (auto it = adifToExchange.constBegin(); it != adifToExchange.constEnd(); ++it) {
+            if (tags.contains(it.key()))
+                qso.setExchangeField(it.value(), tags[it.key()]);
         }
-        
-        // Extract RST_SENT and RST_RCVD
-        QRegularExpression rstSentRx("<rst_sent:(\\d+)>([^<]+)", QRegularExpression::CaseInsensitiveOption);
-        QRegularExpression rstRcvdRx("<rst_rcvd:(\\d+)>([^<]+)", QRegularExpression::CaseInsensitiveOption);
-        QRegularExpression stxRx("<stx:(\\d+)>([^<]+)", QRegularExpression::CaseInsensitiveOption);
-        
-        QRegularExpressionMatch rstSentMatch = rstSentRx.match(record);
-        if (rstSentMatch.hasMatch()) {
-            qso.setRstSent(rstSentMatch.captured(2).trimmed());
+
+        // COMMENT → NOTES (fallback if NOTES tag wasn't present)
+        if (tags.contains("COMMENT") && !tags.contains("NOTES"))
+            qso.setExchangeField("NOTES", tags["COMMENT"]);
+
+        // APP_CLX_* tags → strip prefix and use as exchange field name
+        for (auto it = tags.constBegin(); it != tags.constEnd(); ++it) {
+            if (it.key().startsWith("APP_CLX_")) {
+                QString fieldName = it.key().mid(8); // strip "APP_CLX_"
+                qso.setExchangeField(fieldName, it.value());
+            }
         }
-        
-        QRegularExpressionMatch rstRcvdMatch = rstRcvdRx.match(record);
-        if (rstRcvdMatch.hasMatch()) {
-            qso.setRstReceived(rstRcvdMatch.captured(2).trimmed());
-        }
-        
-        // Also capture STX (Serial TX) or other exchange data
-        QString exchange;
-        QRegularExpressionMatch stxMatch = stxRx.match(record);
-        if (stxMatch.hasMatch()) {
-            exchange = stxMatch.captured(2).trimmed();
-        }
-        qso.setExchange(exchange);
         
         qsos.append(qso);
         pos = eorPos + 5;

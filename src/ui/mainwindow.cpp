@@ -692,6 +692,9 @@ void MainWindow::setupMenus()
     QAction *exportAction = fileMenu->addAction("&Export...");
     connect(exportAction, &QAction::triggered, this, &MainWindow::onExportAdif);
 
+    QAction *importAction = fileMenu->addAction("&Import...");
+    connect(importAction, &QAction::triggered, this, &MainWindow::onImportAdif);
+
     fileMenu->addSeparator();
 
     QAction *downloadCtyAction = fileMenu->addAction("&Download DXCC Database (cty.dat)...");
@@ -2191,6 +2194,52 @@ void MainWindow::onExportAdif()
     }
 }
 
+void MainWindow::onImportAdif()
+{
+    if (m_contestDefinition.isEmpty()) {
+        QMessageBox::warning(this, "Import",
+            "No log is currently open.\n\nPlease create or open a log first.");
+        return;
+    }
+
+    QString fileName = QFileDialog::getOpenFileName(this,
+        "Import ADIF File", "",
+        "ADIF Files (*.adi *.adif);;"
+        "All Files (*)");
+
+    if (fileName.isEmpty())
+        return;
+
+    FileHandler fileHandler;
+    QList<QsoRecord> importedQsos;
+    if (!fileHandler.loadAdif(fileName, importedQsos)) {
+        QMessageBox::warning(this, "Import Failed",
+            "Failed to import file:\n\n" + fileHandler.lastError());
+        return;
+    }
+
+    if (importedQsos.isEmpty()) {
+        QMessageBox::information(this, "Import",
+            "No QSOs found in the selected file.");
+        return;
+    }
+
+    int startSerial = m_qsoModel->count() + 1;
+    for (int i = 0; i < importedQsos.size(); ++i) {
+        importedQsos[i].setSerial(startSerial + i);
+        m_qsoModel->addQso(importedQsos[i]);
+    }
+
+    m_isModified = true;
+    updateWindowTitle();
+
+    onRecalculateScore();
+
+    m_statusLabel->setText(QString("Imported %1 QSOs from %2")
+        .arg(importedQsos.size())
+        .arg(QFileInfo(fileName).fileName()));
+}
+
 void MainWindow::onExit()
 {
     if (maybeSave()) {
@@ -3604,7 +3653,7 @@ void MainWindow::onExportCabrillo()
 void MainWindow::onAbout()
 {
     QMessageBox::about(this, "About ContestLogX",
-        "ContestLogX - Version 0.3.2 (Alpha)\n\n"
+        "ContestLogX - Version 0.3.3 (Alpha)\n\n"
         "Cross-platform amateur radio contest logging software\n\n"
         "Radio control via flrig (http://www.w1hkj.com/)\n\n"
         "Copyright (c) 2025-2026, by Steve Woodruff, N9OH");
