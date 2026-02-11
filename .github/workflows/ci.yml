@@ -117,7 +117,7 @@ jobs:
         uses: jurplel/install-qt-action@v4
         with:
           version: '6.5.*'
-          host: 'macos'
+          host: 'mac'
           target: 'desktop'
           modules: 'qtnetworkauth qtserialport qtmultimedia'
           cache: true

@@ -495,7 +495,7 @@ make test-logs-headless  # log tests without display (CI)
 
 Steve Woodruff, N9OH  
 Email: steve@n9oh.com
-Website: contestlogx.com (to be created)
+Website: contestlogx.com
 
 ## Acknowledgments
 
@@ -506,7 +506,7 @@ Website: contestlogx.com (to be created)
 
 ---
 
-**ContestLogX v0.3.3**  
+**ContestLogX v0.4.0**  
 *Amateur Radio Contest Logging Software*  
 Copyright (c) 2025-2026, by Steve Woodruff, N9OH
 
