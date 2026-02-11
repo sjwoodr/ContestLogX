@@ -9,6 +9,8 @@
 #include <QString>
 #include <QList>
 #include "qsorecord.h"
+#include "cwmemory.h"
+#include "ssbmemory.h"
 
 class StationInfo;  // Forward declaration
 
@@ -58,11 +60,19 @@ public:
     // Overload with userPromptValues and StationInfo
     bool saveClxWithContest(const QString& filename, const QList<QsoRecord>& qsos, const QString& contestFile, const QJsonObject& contestDef, const QString& stationClass, const QString& stationClassExchangeName, const QString& stationClassExchangeId, const QMap<QString, QString>& userPromptValues, const StationInfo& stationInfo);
 
+    // Contest-specific memories pass-through
+    void setContestCwMemories(const QList<CwMemory>& memories) { m_contestCwMemories = memories; }
+    void setContestSsbMemories(const QList<SsbMemory>& memories) { m_contestSsbMemories = memories; }
+    void setUseContestMemories(bool use) { m_useContestMemories = use; }
+
     QString lastError() const { return m_lastError; }
 
 private:
     QString m_lastError;
     QString m_stationCallsign;
+    QList<CwMemory> m_contestCwMemories;
+    QList<SsbMemory> m_contestSsbMemories;
+    bool m_useContestMemories = false;
 
     QString formatDateTime(const QDateTime& dt) const;
     QDateTime parseDateTime(const QString& str) const;

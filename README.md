@@ -144,8 +144,9 @@ ContestLogX is a cross-platform amateur radio contest logging application built 
 - [x] .clx (JSON) save/load
 - [x] Contest metadata in log file
 - [x] Station class persistence
-- [x] ADIF export
+- [x] ADIF export/import
 - [x] CSV export
+- [x] Cabrillo export
 
 #### UI/UX
 - [x] Professional Qt interface
@@ -155,6 +156,10 @@ ContestLogX is a cross-platform amateur radio contest logging application built 
 - [x] Status bar with multi-info display
 - [x] Dark theme for tables
 - [x] Menu system (File, Rig, Window, Help, Debug)
+- [x] Multiplier checklist window
+- [x] QSO editing/deletion
+- [x] Partial callsign checking (Super Check Partial)
+- [x] Voice keyer (SSB memory buttons)
 
 #### Configuration
 - [x] Station setup dialog
@@ -166,17 +171,11 @@ ContestLogX is a cross-platform amateur radio contest logging application built 
 ### ❌ Not Implemented (Future)
 
 - [ ] Band map
-- [ ] Multiplier checklist window
 - [ ] Rate meter / statistics
-- [ ] Partial callsign checking (Super Check Partial)
 - [ ] Network/multi-op support
 - [ ] RTTY/digital mode integration
-- [ ] Voice keyer
 - [ ] Additional contest modules
 - [ ] Log comparison/checking
-- [ ] Cabrillo export
-- [ ] ADIF export
-- [ ] QSO editing/deletion
 - [ ] Search/filter in log
 - [ ] Log backup/archive
 - [ ] Awards tracking (DXCC, WAS, etc.)
@@ -506,7 +505,7 @@ Website: contestlogx.com
 
 ---
 
-**ContestLogX v0.4.1**  
+**ContestLogX v0.4.2**  
 *Amateur Radio Contest Logging Software*  
 Copyright (c) 2025-2026, by Steve Woodruff, N9OH
 

@@ -22,6 +22,8 @@
 #include "qsoeditdialog.h"
 #include "qrzcqapi.h"
 #include "stationinfo.h"
+#include "cwmemory.h"
+#include "ssbmemory.h"
 
 class MainWindow : public QMainWindow
 {
@@ -121,6 +123,7 @@ private:
     void setupMenus();
     void createConnections();
     void loadCWMemories();
+    void loadSsbMemories();
     void flashDupeWarning();
     
     void clearEntryForm();
@@ -232,6 +235,11 @@ private:
 
     // SSB Voice Keying
     class TtsManager *m_ttsManager;
+
+    // Contest-specific memories
+    QList<CwMemory> m_contestCwMemories;
+    QList<SsbMemory> m_contestSsbMemories;
+    bool m_useContestMemories = false;
 
     // UI state saving
 

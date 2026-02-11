@@ -695,6 +695,13 @@ bool FileHandler::saveClxWithContest(const QString& filename, const QList<QsoRec
         }
     }
 
+    // Contest-specific memories
+    if (m_useContestMemories) {
+        clxFile.setUseContestMemories(true);
+        clxFile.setCwMemories(m_contestCwMemories);
+        clxFile.setSsbMemories(m_contestSsbMemories);
+    }
+
     // Add QSOs
     for (const QsoRecord& qso : qsos) {
         clxFile.addQso(qso);

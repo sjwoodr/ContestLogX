@@ -4,6 +4,8 @@
  */
 
 #include "clxfile.h"
+#include "cwmemory.h"
+#include "ssbmemory.h"
 #include "../utils/bandplan.h"
 #include <QFile>
 #include <QJsonDocument>
@@ -158,14 +160,33 @@ bool ClxFile::loadJson(const QJsonObject& json)
         }
     }
     
-    // CW Messages
-    if (json.contains("cw_messages")) {
-        QJsonObject cw = json["cw_messages"].toObject();
-        for (auto it = cw.begin(); it != cw.end(); ++it) {
-            m_cwMessages[it.key()] = it.value().toString();
+    // Contest-specific memories
+    if (json.contains("memory_mode") && json["memory_mode"].toString() == "contest") {
+        m_useContestMemories = true;
+    }
+
+    if (json.contains("cw_memories")) {
+        QJsonArray cwArr = json["cw_memories"].toArray();
+        for (const QJsonValue& v : cwArr) {
+            QJsonObject obj = v.toObject();
+            CwMemory mem;
+            mem.abbreviation = obj["abbreviation"].toString();
+            mem.text = obj["text"].toString();
+            m_cwMemories.append(mem);
         }
     }
-    
+
+    if (json.contains("ssb_memories")) {
+        QJsonArray ssbArr = json["ssb_memories"].toArray();
+        for (const QJsonValue& v : ssbArr) {
+            QJsonObject obj = v.toObject();
+            SsbMemory mem;
+            mem.abbreviation = obj["abbreviation"].toString();
+            mem.text = obj["text"].toString();
+            m_ssbMemories.append(mem);
+        }
+    }
+
     return true;
 }
 
@@ -234,13 +255,27 @@ QJsonObject ClxFile::toJson() const
     }
     json["qsos"] = qsos;
     
-    // CW Messages
-    if (!m_cwMessages.isEmpty()) {
-        QJsonObject cw;
-        for (auto it = m_cwMessages.begin(); it != m_cwMessages.end(); ++it) {
-            cw[it.key()] = it.value();
+    // Contest-specific memories
+    if (m_useContestMemories) {
+        json["memory_mode"] = "contest";
+
+        QJsonArray cwArr;
+        for (const CwMemory& mem : m_cwMemories) {
+            QJsonObject obj;
+            obj["abbreviation"] = mem.abbreviation;
+            obj["text"] = mem.text;
+            cwArr.append(obj);
         }
-        json["cw_messages"] = cw;
+        json["cw_memories"] = cwArr;
+
+        QJsonArray ssbArr;
+        for (const SsbMemory& mem : m_ssbMemories) {
+            QJsonObject obj;
+            obj["abbreviation"] = mem.abbreviation;
+            obj["text"] = mem.text;
+            ssbArr.append(obj);
+        }
+        json["ssb_memories"] = ssbArr;
     }
     
     // Statistics

@@ -283,7 +283,7 @@
   },
   "ui": {
     "logColumns": ["DATE", "TIME", "CALL", "FREQ", "MODE", "RSTs", "RSTr", "EXCHs", "EXCHr", "NAMEs", "NAMEr", "NOTES"],
-    "entryFields": ["CALL", "RSTr", "EXCHr", "NAMEr", "NOTES"],
+    "entryFields": ["CALL", "RSTs", "RSTr", "EXCHr", "NAMEr", "NOTES"],
     "fieldNavigation": {
       "keys": "tab"
     },

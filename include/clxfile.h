@@ -10,6 +10,8 @@
 #include "stationinfo.h"
 #include "exchangefield.h"
 #include "qsorecord.h"
+#include "cwmemory.h"
+#include "ssbmemory.h"
 #include <QString>
 #include <QList>
 #include <QMap>
@@ -46,10 +48,13 @@ public:
     const QList<QsoRecord>& qsos() const { return m_qsos; }
     void addQso(const QsoRecord& qso) { m_qsos.append(qso); }
     
-    // CW Messages
-    QString cwMessage(const QString& key) const { return m_cwMessages.value(key); }
-    void setCwMessage(const QString& key, const QString& message) { m_cwMessages[key] = message; }
-    QMap<QString, QString> cwMessages() const { return m_cwMessages; }
+    // Contest-specific memories
+    QList<CwMemory> cwMemories() const { return m_cwMemories; }
+    void setCwMemories(const QList<CwMemory>& memories) { m_cwMemories = memories; }
+    QList<SsbMemory> ssbMemories() const { return m_ssbMemories; }
+    void setSsbMemories(const QList<SsbMemory>& memories) { m_ssbMemories = memories; }
+    bool useContestMemories() const { return m_useContestMemories; }
+    void setUseContestMemories(bool use) { m_useContestMemories = use; }
     
     // Statistics
     int totalQsos() const;
@@ -71,7 +76,9 @@ private:
     StationInfo m_station;
     QList<ExchangeField> m_exchangeFields;
     QList<QsoRecord> m_qsos;
-    QMap<QString, QString> m_cwMessages;
+    QList<CwMemory> m_cwMemories;
+    QList<SsbMemory> m_ssbMemories;
+    bool m_useContestMemories = false;
     QString m_lastError;
 };
 

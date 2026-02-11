@@ -597,8 +597,8 @@ void MainWindow::setupUi()
         }
     });
 
-    // Load SSB memories from settings
-    m_ssbMemoriesWidget->setMemories(Settings::instance().getSsbMemories());
+    // Load SSB memories (from contest or settings)
+    loadSsbMemories();
 
     // Connect memory triggered signal to TTS manager
     connect(m_ssbMemoriesWidget, &SsbMemoriesWidget::memoryTriggered,
@@ -1024,7 +1024,23 @@ void MainWindow::onNewLog()
                     // We need to parse the file to get contest info - for now we'll load it separately
                     QList<QsoRecord> temp;
                     fileHandler.loadClxWithContest(selectedFile, temp, contestFile, stationClass, loadedContestVersion, stationClassExchangeName, stationClassExchangeId);
-                    
+
+                    // Load contest-specific memories from the file
+                    ClxFile clxFileForMem;
+                    if (clxFileForMem.load(selectedFile)) {
+                        if (clxFileForMem.useContestMemories()) {
+                            m_useContestMemories = true;
+                            m_contestCwMemories = clxFileForMem.cwMemories();
+                            m_contestSsbMemories = clxFileForMem.ssbMemories();
+                        } else {
+                            m_useContestMemories = false;
+                            m_contestCwMemories.clear();
+                            m_contestSsbMemories.clear();
+                        }
+                        loadCWMemories();
+                        loadSsbMemories();
+                    }
+
                     // Load the contest definition if specified
                     if (!contestFile.isEmpty()) {
                         QString contestPath = Settings::getContestsPath() + "/" + contestFile;
@@ -1585,8 +1601,23 @@ void MainWindow::onOpenLog()
                 if (!loadedMode.isEmpty()) {
                     DebugLogger::instance().log("MainWindow", QString("Loaded contest mode from CLX: %1").arg(loadedMode));
                 }
+
+                // Load contest-specific memories
+                if (clxFile.useContestMemories()) {
+                    m_useContestMemories = true;
+                    m_contestCwMemories = clxFile.cwMemories();
+                    m_contestSsbMemories = clxFile.ssbMemories();
+                    DebugLogger::instance().log("MainWindow", QString("Loaded contest-specific memories from CLX: %1 CW, %2 SSB")
+                        .arg(m_contestCwMemories.size()).arg(m_contestSsbMemories.size()));
+                } else {
+                    m_useContestMemories = false;
+                    m_contestCwMemories.clear();
+                    m_contestSsbMemories.clear();
+                }
+                loadCWMemories();
+                loadSsbMemories();
             }
-            
+
             // Load the contest definition if specified
             if (!contestFile.isEmpty()) {
                 QString contestPath = Settings::getContestsPath() + "/" + contestFile;
@@ -1908,9 +1939,24 @@ void MainWindow::loadLogFile(const QString& filename)
                 if (!loadedMode.isEmpty()) {
                     DebugLogger::instance().log("MainWindow", QString("Loaded contest mode from CLX: %1").arg(loadedMode));
                 }
+
+                // Load contest-specific memories
+                if (clxFile.useContestMemories()) {
+                    m_useContestMemories = true;
+                    m_contestCwMemories = clxFile.cwMemories();
+                    m_contestSsbMemories = clxFile.ssbMemories();
+                    DebugLogger::instance().log("MainWindow", QString("Loaded contest-specific memories from CLX: %1 CW, %2 SSB")
+                        .arg(m_contestCwMemories.size()).arg(m_contestSsbMemories.size()));
+                } else {
+                    m_useContestMemories = false;
+                    m_contestCwMemories.clear();
+                    m_contestSsbMemories.clear();
+                }
+                loadCWMemories();
+                loadSsbMemories();
             }
-            
-            DebugLogger::instance().log("MainWindow", 
+
+            DebugLogger::instance().log("MainWindow",
                 QString("Loaded from CLX: contestFile='%1' stationClass='%2' exchangeName='%3' exchangeId='%4'").arg(contestFile, stationClass, stationClassExchangeName, stationClassExchangeId));
             
             // Load the contest definition if specified
@@ -2127,6 +2173,12 @@ void MainWindow::onSaveLog()
         QString stationClassExchangeName = m_contestEngine ? m_contestEngine->getStationClassExchangeName() : QString();
         QString stationClassExchangeId = m_contestEngine ? m_contestEngine->getStationClassExchangeId() : QString();
         QMap<QString, QString> userPromptValues = m_contestEngine ? m_contestEngine->getUserPromptValues() : QMap<QString, QString>();
+
+        // Pass contest-specific memories to FileHandler
+        fileHandler.setUseContestMemories(m_useContestMemories);
+        fileHandler.setContestCwMemories(m_contestCwMemories);
+        fileHandler.setContestSsbMemories(m_contestSsbMemories);
+
         success = fileHandler.saveClxWithContest(m_currentFile, m_qsoModel->getQsos(), m_contestFile, m_contestDefinition, stationClass, stationClassExchangeName, stationClassExchangeId, userPromptValues, *m_sessionStationInfo);
     } else {
         success = fileHandler.save(m_currentFile, m_qsoModel->getQsos());
@@ -3067,29 +3119,55 @@ void MainWindow::onFreqModeButtonClicked()
 
 void MainWindow::loadCWMemories()
 {
-    Settings& settings = Settings::instance();
-    QList<CwMemory> memories = settings.getCwMemories();
+    QList<CwMemory> memories;
+    if (m_useContestMemories && !m_contestCwMemories.isEmpty()) {
+        memories = m_contestCwMemories;
+    } else {
+        memories = Settings::instance().getCwMemories();
+    }
     if (m_cwConsole) {
         m_cwConsole->setMemories(memories);
+    }
+}
+
+void MainWindow::loadSsbMemories()
+{
+    QList<SsbMemory> memories;
+    if (m_useContestMemories && !m_contestSsbMemories.isEmpty()) {
+        memories = m_contestSsbMemories;
+    } else {
+        memories = Settings::instance().getSsbMemories();
+    }
+    if (m_ssbMemoriesWidget) {
+        m_ssbMemoriesWidget->setMemories(memories);
     }
 }
 
 void MainWindow::onEditCWMemories()
 {
     Settings& settings = Settings::instance();
-    
+
     CwMemoriesDialog dialog(this);
     dialog.setMemories(settings.getCwMemories());
-    
+    dialog.setContestMemories(m_contestCwMemories);
+    dialog.setContestMode(m_useContestMemories);
+
     if (dialog.exec() == QDialog::Accepted) {
         QList<CwMemory> memories = dialog.getMemories();
-        settings.setCwMemories(memories);
-        
-        // Update CW console with new memories
-        if (m_cwConsole) {
-            m_cwConsole->setMemories(memories);
+        bool contestMode = dialog.isContestMode();
+
+        if (contestMode) {
+            m_contestCwMemories = memories;
+            m_useContestMemories = true;
+            m_isModified = true;
+            updateWindowTitle();
+        } else {
+            settings.setCwMemories(memories);
+            m_useContestMemories = false;
         }
-        
+
+        loadCWMemories();
+        loadSsbMemories();
         m_statusLabel->setText("CW memories updated");
     }
 }
@@ -3100,16 +3178,25 @@ void MainWindow::onEditSsbMemories()
 
     SsbMemoriesDialog dialog(this);
     dialog.setMemories(settings.getSsbMemories());
+    dialog.setContestMemories(m_contestSsbMemories);
+    dialog.setContestMode(m_useContestMemories);
 
     if (dialog.exec() == QDialog::Accepted) {
         QList<SsbMemory> memories = dialog.getMemories();
-        settings.setSsbMemories(memories);
+        bool contestMode = dialog.isContestMode();
 
-        // Update SSB Memories widget if open
-        if (m_ssbMemoriesWidget) {
-            m_ssbMemoriesWidget->setMemories(memories);
+        if (contestMode) {
+            m_contestSsbMemories = memories;
+            m_useContestMemories = true;
+            m_isModified = true;
+            updateWindowTitle();
+        } else {
+            settings.setSsbMemories(memories);
+            m_useContestMemories = false;
         }
 
+        loadCWMemories();
+        loadSsbMemories();
         m_statusLabel->setText("SSB memories updated");
     }
 }
@@ -3653,7 +3740,7 @@ void MainWindow::onExportCabrillo()
 void MainWindow::onAbout()
 {
     QMessageBox::about(this, "About ContestLogX",
-        "ContestLogX - Version 0.4.1 (Alpha)\n\n"
+        "ContestLogX - Version 0.4.2 (Alpha)\n\n"
         "Cross-platform amateur radio contest logging software\n\n"
         "Radio control via flrig (http://www.w1hkj.com/)\n\n"
         "Copyright (c) 2025-2026, by Steve Woodruff, N9OH");

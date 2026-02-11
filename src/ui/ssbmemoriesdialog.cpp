@@ -10,9 +10,12 @@
 #include <QGroupBox>
 #include <QLabel>
 #include <QDialogButtonBox>
+#include <QButtonGroup>
 
 SsbMemoriesDialog::SsbMemoriesDialog(QWidget *parent)
     : QDialog(parent)
+    , m_stationRadio(nullptr)
+    , m_contestRadio(nullptr)
 {
     setWindowTitle("SSB Memories Editor");
     setMinimumWidth(600);
@@ -25,10 +28,25 @@ SsbMemoriesDialog::~SsbMemoriesDialog()
 
 void SsbMemoriesDialog::setupUi()
 {
-    setFixedSize(700, 350);
+    setFixedSize(700, 390);
 
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
     mainLayout->setSpacing(8);
+
+    // Memory source radio buttons
+    QHBoxLayout *radioLayout = new QHBoxLayout();
+    m_stationRadio = new QRadioButton("Station Memories (global)", this);
+    m_contestRadio = new QRadioButton("Contest-Specific Memories", this);
+    m_stationRadio->setChecked(true);
+    QButtonGroup *group = new QButtonGroup(this);
+    group->addButton(m_stationRadio);
+    group->addButton(m_contestRadio);
+    radioLayout->addWidget(m_stationRadio);
+    radioLayout->addWidget(m_contestRadio);
+    radioLayout->addStretch();
+    mainLayout->addLayout(radioLayout);
+
+    connect(m_stationRadio, &QRadioButton::toggled, this, &SsbMemoriesDialog::onModeToggled);
 
     // Create grid layout for compact display
     QGridLayout *gridLayout = new QGridLayout();
@@ -74,6 +92,27 @@ void SsbMemoriesDialog::setupUi()
     mainLayout->addWidget(buttonBox);
 }
 
+void SsbMemoriesDialog::onModeToggled()
+{
+    bool switchingToContest = m_contestRadio->isChecked();
+
+    // Save current UI state to the appropriate internal list
+    if (m_currentIsContest) {
+        m_contestMemories = getMemoriesFromUi();
+    } else {
+        m_stationMemories = getMemoriesFromUi();
+    }
+
+    // Load the other set into the UI
+    if (switchingToContest) {
+        loadMemoriesToUi(m_contestMemories);
+    } else {
+        loadMemoriesToUi(m_stationMemories);
+    }
+
+    m_currentIsContest = switchingToContest;
+}
+
 void SsbMemoriesDialog::onSave()
 {
     accept();
@@ -84,7 +123,20 @@ void SsbMemoriesDialog::onCancel()
     reject();
 }
 
-QList<SsbMemory> SsbMemoriesDialog::getMemories() const
+void SsbMemoriesDialog::loadMemoriesToUi(const QList<SsbMemory>& memories)
+{
+    for (int i = 0; i < 8; i++) {
+        if (i < memories.size()) {
+            m_abbrevEdits[i]->setText(memories[i].abbreviation);
+            m_textEdits[i]->setPlainText(memories[i].text);
+        } else {
+            m_abbrevEdits[i]->clear();
+            m_textEdits[i]->clear();
+        }
+    }
+}
+
+QList<SsbMemory> SsbMemoriesDialog::getMemoriesFromUi() const
 {
     QList<SsbMemory> memories;
     for (int i = 0; i < 8; i++) {
@@ -96,10 +148,47 @@ QList<SsbMemory> SsbMemoriesDialog::getMemories() const
     return memories;
 }
 
+QList<SsbMemory> SsbMemoriesDialog::getMemories() const
+{
+    return getMemoriesFromUi();
+}
+
 void SsbMemoriesDialog::setMemories(const QList<SsbMemory>& memories)
 {
-    for (int i = 0; i < qMin(8, memories.size()); i++) {
-        m_abbrevEdits[i]->setText(memories[i].abbreviation);
-        m_textEdits[i]->setPlainText(memories[i].text);
+    m_stationMemories = memories;
+    if (!m_currentIsContest) {
+        loadMemoriesToUi(memories);
     }
+}
+
+void SsbMemoriesDialog::setContestMemories(const QList<SsbMemory>& memories)
+{
+    m_contestMemories = memories;
+    if (m_currentIsContest) {
+        loadMemoriesToUi(memories);
+    }
+}
+
+void SsbMemoriesDialog::setContestMode(bool contest)
+{
+    // Block signals to prevent onModeToggled from overwriting memories
+    m_stationRadio->blockSignals(true);
+    m_contestRadio->blockSignals(true);
+
+    m_currentIsContest = contest;
+    if (contest) {
+        m_contestRadio->setChecked(true);
+        loadMemoriesToUi(m_contestMemories);
+    } else {
+        m_stationRadio->setChecked(true);
+        loadMemoriesToUi(m_stationMemories);
+    }
+
+    m_stationRadio->blockSignals(false);
+    m_contestRadio->blockSignals(false);
+}
+
+bool SsbMemoriesDialog::isContestMode() const
+{
+    return m_contestRadio->isChecked();
 }
