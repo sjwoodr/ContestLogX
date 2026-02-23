@@ -12,19 +12,111 @@ import Layout from '../layouts/Layout.astro';
         ContestLogX supports a wide variety of amateur radio contests through user-defined JSON modules.
       </p>
 
-      <div class="rounded-lg border p-8" style="background-color: #161b22; border-color: #30363d;">
+      <div class="rounded-lg border p-8 mb-8" style="background-color: #161b22; border-color: #30363d;">
         <h2 class="text-2xl font-semibold mb-6">Built-in Contest Modules</h2>
-        <ul class="space-y-2 mb-12">
-          <li>ARRL 10 Meter Contest</li>
-          <li>ARRL VHF Contest</li>
-          <li>CWops Tests (CWT)</li>
-          <li>North American QSO Party (NAQP)</li>
-          <li>Winter Field Day</li>
-          <li>YBDX</li>
-        </ul>
 
-        <h2 class="text-2xl font-semibold mb-6">Custom Contest Support</h2>
-        <p class="leading-relaxed">
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm" style="border-collapse: separate; border-spacing: 0;">
+            <thead>
+              <tr style="border-bottom: 1px solid #30363d;">
+                <th class="text-left py-3 pr-6 font-semibold opacity-60 uppercase text-xs tracking-wider">Contest</th>
+                <th class="text-left py-3 pr-6 font-semibold opacity-60 uppercase text-xs tracking-wider">Sponsor</th>
+                <th class="text-left py-3 pr-6 font-semibold opacity-60 uppercase text-xs tracking-wider">Bands</th>
+                <th class="text-left py-3 font-semibold opacity-60 uppercase text-xs tracking-wider">Modes</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                {
+                  name: "ARRL 10 Meter Contest",
+                  sponsor: "ARRL",
+                  bands: "10m",
+                  modes: "CW, SSB, Digital",
+                  url: "https://contests.arrl.org/contestrules/10-meter-contest-rules/",
+                },
+                {
+                  name: "ARRL International DX Contest",
+                  sponsor: "ARRL",
+                  bands: "160–10m",
+                  modes: "CW, SSB",
+                  url: "https://contests.arrl.org/contestrules/",
+                },
+                {
+                  name: "ARRL VHF Contest",
+                  sponsor: "ARRL",
+                  bands: "6m–1mm",
+                  modes: "CW, SSB, FM, Digital",
+                  url: "https://www.arrl.org/vhf-uh-f-contests",
+                },
+                {
+                  name: "CWops Tests (CWT)",
+                  sponsor: "CWops",
+                  bands: "160–10m",
+                  modes: "CW",
+                  url: "https://www.cwops.org/cwt.html",
+                },
+                {
+                  name: "European Union DX Contest",
+                  sponsor: "EU DX Contest Committee",
+                  bands: "160–10m",
+                  modes: "CW, SSB",
+                  url: "https://eudxcc.altervista.org/",
+                },
+                {
+                  name: "Minnesota QSO Party",
+                  sponsor: "Minnesota Wireless Assoc. (W0AA)",
+                  bands: "160–10m",
+                  modes: "CW, SSB",
+                  url: "https://www.w0aa.org/mn-qso-party/",
+                },
+                {
+                  name: "North American QSO Party (NAQP)",
+                  sponsor: "NCJWEB / CQ Magazine",
+                  bands: "160–10m",
+                  modes: "CW, SSB, RTTY",
+                  url: "https://www.ncjweb.com/naqp.html",
+                },
+                {
+                  name: "Winter Field Day",
+                  sponsor: "Winter Field Day Assoc.",
+                  bands: "160m–microwave",
+                  modes: "CW, SSB, FM, Digital",
+                  url: "https://winterfieldday.org",
+                },
+                {
+                  name: "YB DX Contest",
+                  sponsor: "Indonesian Amateur Radio Society",
+                  bands: "80–10m",
+                  modes: "SSB",
+                  url: "https://ybdxcontest.com/",
+                },
+                {
+                  name: "General Purpose DXCC Log",
+                  sponsor: "—",
+                  bands: "160–6m",
+                  modes: "CW, SSB, RTTY, FT8, FT4",
+                  url: null,
+                },
+              ].map((c, i, arr) => (
+                <tr style={i < arr.length - 1 ? "border-bottom: 1px solid #21262d;" : ""}>
+                  <td class="py-4 pr-6 font-medium">
+                    {c.url
+                      ? <a href={c.url} target="_blank" rel="noopener noreferrer" class="hover:underline" style="color: #58a6ff;">{c.name}</a>
+                      : c.name}
+                  </td>
+                  <td class="py-4 pr-6 opacity-70">{c.sponsor}</td>
+                  <td class="py-4 pr-6 opacity-70 whitespace-nowrap">{c.bands}</td>
+                  <td class="py-4 opacity-70">{c.modes}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="rounded-lg border p-8" style="background-color: #161b22; border-color: #30363d;">
+        <h2 class="text-2xl font-semibold mb-4">Custom Contest Support</h2>
+        <p class="leading-relaxed opacity-80">
           ContestLogX allows you to define your own contest modules using a simple JSON format.
           This means you can create support for any contest, customizing exchange fields,
           scoring rules, multipliers, and more.
