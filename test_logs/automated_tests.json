@@ -74,6 +74,16 @@
       "name": "General Purpose DXCC Log",
       "log_file": "test_general_dxcc_log.clx",
       "expected_score": 52
+    },
+    {
+      "name": "ARRL DX Contest (W/VE station - CW)",
+      "log_file": "test_arrl_dx_wve.clx",
+      "expected_score": 15744
+    },
+    {
+      "name": "ARRL DX Contest (DX station - CW)",
+      "log_file": "test_arrl_dx_dxstn.clx",
+      "expected_score": 16974
     }
   ]
 }

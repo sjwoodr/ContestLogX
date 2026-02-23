@@ -3740,7 +3740,7 @@ void MainWindow::onExportCabrillo()
 void MainWindow::onAbout()
 {
     QMessageBox::about(this, "About ContestLogX",
-        "ContestLogX - Version 0.4.2 (Alpha)\n\n"
+        "ContestLogX - Version 0.4.3 (Alpha)\n\n"
         "Cross-platform amateur radio contest logging software\n\n"
         "Radio control via flrig (http://www.w1hkj.com/)\n\n"
         "Copyright (c) 2025-2026, by Steve Woodruff, N9OH");
@@ -4473,7 +4473,18 @@ bool MainWindow::loadContestDefinition(const QString& filePath, bool restoreStat
             DebugLogger::instance().log("MainWindow", QString("Restored station class exchange: %1").arg(savedStationClassExchange));
         }
     } else {
-        DebugLogger::instance().log("MainWindow", "Station class restore skipped (new log)");
+        // restoreStationClass=false means don't show a dialog, but a station class may
+        // have been pre-set before this call (e.g. loaded from a CLX file). Restore it
+        // so contest loading and widget population see the correct class.
+        // For truly new logs savedStationClass is empty, so nothing is restored.
+        if (!savedStationClass.isEmpty()) {
+            m_contestEngine->setStationClass(savedStationClass);
+            DebugLogger::instance().log("MainWindow", QString("Restored pre-set station class (no dialog): %1").arg(savedStationClass));
+        }
+        if (!savedStationClassExchange.isEmpty()) {
+            m_contestEngine->setStationClassExchangeData(savedStationClassExchange);
+            DebugLogger::instance().log("MainWindow", QString("Restored pre-set station class exchange (no dialog): %1").arg(savedStationClassExchange));
+        }
     }
     
     QFile file(filePath);
@@ -4794,19 +4805,31 @@ void MainWindow::updateLogHeaders()
     
     // Fall back to default columns if not found in contest definition
     if (fullHeaders.isEmpty()) {
-        fullHeaders << "DATE" << "TIME" << "CALL" << "FREQ" << "MODE" 
-                   << "RSTs" << "RSTr" << "EXCHs" << "EXCHr" 
+        fullHeaders << "DATE" << "TIME" << "CALL" << "FREQ" << "MODE"
+                   << "RSTs" << "RSTr" << "EXCHs" << "EXCHr"
                    << "Nr" << "Dupe" << "M" << "C" << "P" << "COMMENT";
-        
-        DebugLogger::instance().log("MainWindow", 
+
+        DebugLogger::instance().log("MainWindow",
             QString("Using default log columns: %1").arg(fullHeaders.join(", ")));
     }
-    
+
     // Always prepend "#" (QSO number) as the first column if not already present
     if (!fullHeaders.isEmpty() && fullHeaders.first() != "#") {
         fullHeaders.prepend("#");
     }
-    
+
+    // Enforce C column visibility: show only when contest has DXCC multipliers.
+    // This applies regardless of whether columns came from JSON or the default list.
+    bool hasDxccMults = m_contestEngine &&
+                        m_contestEngine->getMultiplierCategories().contains("dxcc");
+    if (hasDxccMults && !fullHeaders.contains("C")) {
+        // Insert C directly after M, or before COMMENT if M is absent
+        int mIdx = fullHeaders.indexOf("M");
+        fullHeaders.insert(mIdx >= 0 ? mIdx + 1 : fullHeaders.size() - 1, "C");
+    } else if (!hasDxccMults) {
+        fullHeaders.removeAll("C");
+    }
+
     // Update the model
     m_qsoModel->setColumnHeaders(fullHeaders);
 

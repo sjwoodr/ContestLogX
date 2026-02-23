@@ -75,6 +75,8 @@ private:
     QString buildXmlRpcCall(const QString& method, const QVariantList& params = QVariantList());
     QVariant parseXmlRpcResponse(const QString& xml);
     void sendRequest(const QString& xmlRequest);
+    QVariant waitForResponse(int timeoutMs = 2000);
+    void handleTimeout();
     
     QTcpSocket *m_socket;
     QString m_host;

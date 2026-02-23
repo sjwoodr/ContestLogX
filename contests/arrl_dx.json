@@ -1,0 +1,320 @@
+{
+  "contest": {
+    "name": "ARRL International DX Contest",
+    "abbreviation": "ARRL-DX",
+    "version": "1.0.0",
+    "sponsor": "ARRL",
+    "description": "Annual contest encouraging W/VE stations to expand knowledge of DX propagation. W/VE stations contact DX only; DX stations contact W/VE only. CW weekend third full weekend in February; Phone weekend first full weekend in March.",
+    "startDate": "CW: Third full weekend in February; Phone: First full weekend in March",
+    "duration": 48,
+    "offTimeGapMinutes": 30,
+    "modes": ["CW", "SSB"],
+    "bands": ["160m", "80m", "40m", "20m", "15m", "10m"],
+    "url": "https://contests.arrl.org/contestrules/",
+    "categories": {
+      "power": ["HIGH", "LOW", "QRP"],
+      "stations": ["SINGLE_OP", "SINGLE_OP_UNLIMITED", "MULTI_SINGLE", "MULTI_TWO", "MULTI_MULTI"]
+    }
+  },
+  "frequencies": {
+    "160m": {
+      "start": 1800,
+      "end": 2000,
+      "cw": {"start": 1800, "end": 1900},
+      "phone": {"start": 1900, "end": 2000}
+    },
+    "80m": {
+      "start": 3500,
+      "end": 4000,
+      "cw": {"start": 3500, "end": 3600},
+      "phone": {"start": 3600, "end": 4000}
+    },
+    "40m": {
+      "start": 7000,
+      "end": 7300,
+      "cw": {"start": 7000, "end": 7125},
+      "phone": {"start": 7125, "end": 7300}
+    },
+    "20m": {
+      "start": 14000,
+      "end": 14350,
+      "cw": {"start": 14000, "end": 14150},
+      "phone": {"start": 14150, "end": 14350}
+    },
+    "15m": {
+      "start": 21000,
+      "end": 21450,
+      "cw": {"start": 21000, "end": 21200},
+      "phone": {"start": 21200, "end": 21450}
+    },
+    "10m": {
+      "start": 28000,
+      "end": 29700,
+      "cw": {"start": 28000, "end": 28300},
+      "phone": {"start": 28300, "end": 29700}
+    }
+  },
+  "stationClasses": {
+    "enabled": true,
+    "prompt": "Station Class - W_VE or DX?",
+    "classes": [
+      {
+        "id": "W_VE",
+        "name": "W/VE (US/Canada)",
+        "description": "Contact DX only; Count DXCC mults.",
+        "exchangeSent": {
+          "type": "state_province",
+          "source": "station_qth"
+        }
+      },
+      {
+        "id": "DX",
+        "name": "DX (including KH6/KL7/CY9/CY0)",
+        "description": "Contact W/VE only; Count state/prov mults.",
+        "exchangeSent": {
+          "type": "string",
+          "description": "Power level (e.g., 100, KW, QRP, 5W)"
+        }
+      }
+    ]
+  },
+  "userPrompts": [
+    {
+      "id": "contestMode",
+      "question": "Which contest weekend are you entering?",
+      "type": "select",
+      "options": [
+        {"value": "CW", "label": "CW (Third full weekend in February)"},
+        {"value": "SSB", "label": "Phone/SSB (First full weekend in March)"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "CW and Phone are separate contest weekends with separate results"
+    },
+    {
+      "id": "operatingCategory",
+      "question": "Select your operating category",
+      "type": "select",
+      "options": [
+        {"value": "SO-AB", "label": "Single Operator All Band"},
+        {"value": "SO-SB", "label": "Single Operator Single Band"},
+        {"value": "SOU-AB", "label": "Single Operator Unlimited All Band"},
+        {"value": "SOU-SB", "label": "Single Operator Unlimited Single Band"},
+        {"value": "MS", "label": "Multioperator Single Transmitter"},
+        {"value": "M2", "label": "Multioperator Two Transmitter"},
+        {"value": "MM", "label": "Multioperator Multitransmitter"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "MS limited to 10 band changes/clock hour; M2 limited to 6 band changes/clock hour per transmitter"
+    },
+    {
+      "id": "powerCategory",
+      "question": "Select your power category",
+      "type": "select",
+      "options": [
+        {"value": "HP", "label": "High Power (up to 1500W)"},
+        {"value": "LP", "label": "Low Power (up to 100W)"},
+        {"value": "QRP", "label": "QRP (up to 5W)"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "MS category LP or HP only; M2 and MM are HP only"
+    }
+  ],
+  "exchangeFields": {
+    "sent": [
+      {
+        "name": "RST",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report sent"
+      },
+      {
+        "name": "EXCHs",
+        "type": "string",
+        "required": true,
+        "description": "State/Province abbreviation (W/VE) or power level (DX, e.g. 100, KW, QRP)"
+      }
+    ],
+    "received": [
+      {
+        "name": "RST",
+        "type": "rst",
+        "required": true,
+        "validation": "^[1-5][1-9][1-9]?$",
+        "description": "Signal report received"
+      },
+      {
+        "name": "EXCHr",
+        "type": "string",
+        "required": true,
+        "description": "Power level received (W/VE) or state/province abbreviation received (DX)"
+      }
+    ]
+  },
+  "qsoFields": [
+    {
+      "name": "Date",
+      "column": "DATE",
+      "type": "date",
+      "format": "yyyy-MM-dd",
+      "required": true
+    },
+    {
+      "name": "Time",
+      "column": "TIME",
+      "type": "time",
+      "format": "HH:mm:ss",
+      "required": true
+    },
+    {
+      "name": "Callsign",
+      "column": "CALL",
+      "type": "string",
+      "required": true,
+      "uppercase": true
+    },
+    {
+      "name": "Frequency",
+      "column": "FREQ",
+      "type": "number",
+      "unit": "kHz",
+      "required": true
+    },
+    {
+      "name": "Mode",
+      "column": "MODE",
+      "type": "enum",
+      "values": ["CW", "SSB"],
+      "required": true
+    },
+    {
+      "name": "RST Sent",
+      "column": "RSTs",
+      "type": "string",
+      "required": true,
+      "default": "599"
+    },
+    {
+      "name": "RST Received",
+      "column": "RSTr",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "Exchange Sent",
+      "column": "EXCHs",
+      "type": "string",
+      "required": true,
+      "description": "State/Province (W/VE) or power level (DX)"
+    },
+    {
+      "name": "Exchange Received",
+      "column": "EXCHr",
+      "type": "string",
+      "required": true,
+      "description": "Power (received by W/VE) or state/province (received by DX)"
+    },
+    {
+      "name": "Points",
+      "column": "POINTS",
+      "type": "number",
+      "calculated": true
+    },
+    {
+      "name": "Multiplier",
+      "column": "M",
+      "type": "string",
+      "calculated": true
+    }
+  ],
+  "scoring": {
+    "points": {
+      "sameDxccEntity": {
+        "CW": 3,
+        "SSB": 3
+      },
+      "differentDxccEntity": {
+        "CW": 3,
+        "SSB": 3
+      }
+    },
+    "precedence": [
+      "sameDxccEntity",
+      "differentDxccEntity"
+    ],
+    "multipliers": {
+      "__comment": "W/VE stations count DXCC entities (excluding USA and Canada). DX stations count US states (48 contiguous), DC, and Canadian provinces/territories plus Labrador (LB). Alaska (KL7) and Hawaii (KH6) count as DXCC entities, not states. NL (Newfoundland/VO1) and LB (Labrador/VO2) are counted separately by tradition. Multipliers count once per band.",
+      "type": "multsPerBand",
+      "description": "DXCC entities (W/VE stations) or US states and Canadian provinces/territories (DX stations), counted once per band",
+      "categories": ["namedMults", "dxcc"],
+      "alaskaAndHawaiiCountDxcc": true,
+      "usAndCanadaCountDxcc": false,
+      "stationClassMultipliers": {
+        "W_VE": ["dxcc"],
+        "DX": ["namedMults"]
+      }
+    },
+    "finalScore": "SUM(points) * (namedMults + dxccMultipliers)"
+  },
+  "dupeChecking": {
+    "type": "perBand",
+    "description": "Station may be worked once per band"
+  },
+  "logging": {
+    "requiredFields": ["date", "time", "frequency", "mode", "callsign", "rstSent", "rstReceived", "exchSent", "exchReceived"],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "ARRL-DX-CW",
+      "contestMapping": {
+        "CW": "ARRL-DX-CW",
+        "SSB": "ARRL-DX-SSB"
+      },
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {rst_sent} {exch_sent} {call} {rst_rcvd} {exch_rcvd}",
+      "requiredHeaders": ["CONTEST", "CALLSIGN", "LOCATION", "CATEGORY-ASSISTED", "CATEGORY-BAND", "CATEGORY-MODE", "CATEGORY-OPERATOR", "CATEGORY-POWER", "CATEGORY-TRANSMITTER", "CATEGORY-OVERLAY", "CLAIMED-SCORE", "CLUB", "CREATED-BY", "NAME", "ADDRESS", "ADDRESS-CITY", "ADDRESS-STATE-PROVINCE", "ADDRESS-POSTALCODE", "ADDRESS-COUNTRY", "EMAIL", "OPERATORS", "SOAPBOX"]
+    }
+  },
+  "callHistory": {
+    "fieldsToSave": ["EXCHr"],
+    "description": "Save received exchange (power or state/province) for future lookups"
+  },
+  "validation": {
+    "minimumQSOs": 1,
+    "maxOperatingTime": 48,
+    "offTimesRequired": false,
+    "__comment_namedMults": "48 contiguous US states + DC + 13 Canadian provinces/territories + LB (Labrador). AK (KL7) and HI (KH6) are DX stations in this contest and are NOT included as named mults; they count as DXCC entities. NL = Newfoundland (VO1), LB = Labrador (VO2), counted separately per tradition.",
+    "namedMults": [
+      "AL", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "ID",
+      "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI",
+      "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY",
+      "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN",
+      "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY", "DC",
+      "AB", "BC", "MB", "NB", "NL", "NT", "NS", "NU", "ON", "PE", "QC", "SK", "YT",
+      "LB"
+    ],
+    "exchangeValidation": {
+      "type": "namedMultOrPower",
+      "description": "W/VE stations send state/province abbreviation (must match a named multiplier); DX stations send power as a number (watts) or abbreviation",
+      "powerFormat": "^[0-9]{1,4}[WwKk]?$|^(?i)(QRP|LP|HP|KW)$",
+      "logic": "Accept if value matches a named multiplier OR matches powerFormat"
+    }
+  },
+  "ui": {
+    "showMultiplierPanel": true,
+    "logColumns": ["DATE", "TIME", "CALL", "FREQ", "MODE", "RSTs", "RSTr", "EXCHs", "EXCHr", "POINTS", "M", "COMMENT"],
+    "entryFields": ["CALL", "RSTr", "EXCHr"],
+    "fieldNavigation": {
+      "keys": "tab"
+    },
+    "bandMap": {
+      "enabled": true,
+      "bands": ["160m", "80m", "40m", "20m", "15m", "10m"]
+    },
+    "multiplierDisplay": {
+      "showStates": true,
+      "showProvinces": true,
+      "showDXCC": true
+    }
+  }
+}

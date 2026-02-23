@@ -1124,6 +1124,19 @@ QStringList ContestEngine::getMultiplierCategories() const
         QJsonObject scoring = m_contestDef["scoring"].toObject();
         if (scoring.contains("multipliers")) {
             QJsonObject mults = scoring["multipliers"].toObject();
+            // If the contest defines per-station-class multiplier categories, use them.
+            // This supports asymmetric contests like ARRL DX where W/VE stations count
+            // DXCC entities while DX stations count named mults (states/provinces).
+            if (!m_stationClass.isEmpty() && mults.contains("stationClassMultipliers")) {
+                QJsonObject scMults = mults["stationClassMultipliers"].toObject();
+                if (scMults.contains(m_stationClass)) {
+                    QJsonArray classCategories = scMults[m_stationClass].toArray();
+                    for (const QJsonValue& val : classCategories) {
+                        categories.append(val.toString());
+                    }
+                    return categories;
+                }
+            }
             if (mults.contains("categories")) {
                 QJsonArray categoriesArray = mults["categories"].toArray();
                 for (const QJsonValue& val : categoriesArray) {
@@ -1206,6 +1219,13 @@ QSet<QString> ContestEngine::getEffectiveValidMults() const
 
 QStringList ContestEngine::getEffectiveNamedMultiplierList() const
 {
+    // If the active station class uses a different multiplier category (e.g. W/VE in
+    // ARRL DX uses "dxcc" not "namedMults"), there is no fixed named-mult list to
+    // display in the widget.
+    if (!getMultiplierCategories().contains("namedMults")) {
+        return QStringList();
+    }
+
     QSet<QString> effective = getEffectiveValidMults();
     if (effective == m_validMultipliers) {
         return getNamedMultiplierList();
@@ -2017,6 +2037,7 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
         
         // Skip multiplier and band stat tracking for out-of-band or duplicate QSOs
         if (qso.isDupe()) {
+            qso.setPoints(0);
             qso.setMultiplierCount(qsoNamedMults);
             qso.setDxccCount(qsoDxccMults);
             qso.setGridSquareMultiplierCount(qsoGridSquareMults);

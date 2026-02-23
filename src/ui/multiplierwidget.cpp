@@ -109,6 +109,7 @@ void MultiplierWidget::clear()
     }
 
     m_workedLabel->setText("Worked: 0/0");
+    m_workedLabel->show();
     m_filterCombo->hide();
 }
 
@@ -129,6 +130,18 @@ void MultiplierWidget::rebuildGrid()
         delete item->widget();
         delete item;
     }
+
+    if (m_allMults.isEmpty()) {
+        auto *msg = new QLabel("No Named Multipliers\nFor Station Class", m_gridContainer);
+        msg->setAlignment(Qt::AlignCenter);
+        msg->setWordWrap(true);
+        msg->setStyleSheet("color: gray; font-style: italic;");
+        m_gridLayout->addWidget(msg, 0, 0);
+        m_workedLabel->hide();
+        return;
+    }
+
+    m_workedLabel->show();
 
     // Create checkboxes for each multiplier
     for (int i = 0; i < m_allMults.size(); ++i) {
