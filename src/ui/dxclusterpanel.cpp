@@ -116,9 +116,6 @@ void DxClusterPanel::setupUi()
         "  font-size: 11pt; "
         "  gridline-color: #404040; "
         "} "
-        "QTableWidget::item { "
-        "  padding: 4px; "
-        "} "
         "QTableWidget::item:alternate { "
         "  background-color: #1a1a1a; "
         "} "
@@ -127,6 +124,8 @@ void DxClusterPanel::setupUi()
         "  color: white; "
         "}"
     );
+    m_spotTable->verticalHeader()->setDefaultSectionSize(28);
+    m_spotTable->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
     connect(m_spotTable, &QTableWidget::cellClicked, this, &DxClusterPanel::onSpotClicked);
     mainLayout->addWidget(m_spotTable);
     
