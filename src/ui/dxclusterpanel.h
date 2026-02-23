@@ -22,6 +22,7 @@ public:
     void loadSettings();
     void saveSettings();
     void removeSpot(const QString& callsign);
+    void setTableFont(const QFont& font);
 
 public slots:
     void setSpotCommand(const QString& callsign, double freqKhz);

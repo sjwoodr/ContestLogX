@@ -11,6 +11,10 @@
 #include <QCheckBox>
 #include <QLineEdit>
 #include <QPushButton>
+#include <QFontComboBox>
+#include <QSpinBox>
+#include <QFont>
+#include <QList>
 
 class QrzcqApi;
 class ShortcutsWidget;
@@ -26,6 +30,7 @@ public:
     bool stationChanged() const { return m_stationChanged; }
     bool themeChanged() const { return m_themeChanged; }
     bool qrzcqChanged() const { return m_qrzcqChanged; }
+    bool fontsChanged() const { return m_fontsChanged; }
 
 private slots:
     void onAccept();
@@ -61,6 +66,15 @@ private:
     QPushButton *m_qrzcqTestButton;
     bool m_qrzcqChanged;
     QrzcqApi *m_qrzcqApi;
+
+    // Fonts tab
+    struct FontRow {
+        QString panelKey;
+        QFontComboBox *familyCombo;
+        QSpinBox *sizeSpinBox;
+    };
+    QList<FontRow> m_fontRows;
+    bool m_fontsChanged;
 };
 
 #endif // PREFERENCESDIALOG_H

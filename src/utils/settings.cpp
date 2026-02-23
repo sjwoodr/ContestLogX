@@ -1167,6 +1167,32 @@ void Settings::setTheme(const QString& theme)
     save();
 }
 
+QFont Settings::getPanelFont(const QString& panelKey) const
+{
+    QJsonObject fontObj = m_settings["fonts"].toObject()[panelKey].toObject();
+    if (fontObj.isEmpty())
+        return QFont();
+    QFont font;
+    QString family = fontObj["family"].toString();
+    if (!family.isEmpty())
+        font.setFamily(family);
+    int pointSize = fontObj["pointSize"].toInt(0);
+    if (pointSize > 0)
+        font.setPointSize(pointSize);
+    return font;
+}
+
+void Settings::setPanelFont(const QString& panelKey, const QFont& font)
+{
+    QJsonObject fonts = m_settings["fonts"].toObject();
+    QJsonObject fontObj;
+    fontObj["family"] = font.family();
+    fontObj["pointSize"] = font.pointSize();
+    fonts[panelKey] = fontObj;
+    m_settings["fonts"] = fonts;
+    save();
+}
+
 QString Settings::getDataPath()
 {
     // AppImage: resolve via APPDIR environment variable

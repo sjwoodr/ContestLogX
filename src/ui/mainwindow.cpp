@@ -253,6 +253,9 @@ MainWindow::MainWindow(QWidget *parent)
     int savedWpm = settings.getCwWpm();
     m_lastWpm = savedWpm;
     m_wpmLabel->setText(QString("WPM: %1").arg(savedWpm));
+
+    // Apply saved font settings
+    applyFontSettings();
 }
 
 MainWindow::~MainWindow()
@@ -2309,6 +2312,9 @@ void MainWindow::onPreferences()
         if (dialog.themeChanged()) {
             applyTheme();
         }
+        if (dialog.fontsChanged()) {
+            applyFontSettings();
+        }
         if (dialog.qrzcqChanged()) {
             Settings& settings = Settings::instance();
             QString username = settings.getQrzcqUsername();
@@ -2320,6 +2326,37 @@ void MainWindow::onPreferences()
             }
         }
     }
+}
+
+void MainWindow::applyFontSettings()
+{
+    Settings& settings = Settings::instance();
+
+    auto applyFont = [](QWidget* widget, const QFont& font) {
+        if (widget && !font.family().isEmpty())
+            widget->setFont(font);
+    };
+
+    applyFont(m_qsoEntryGroup, settings.getPanelFont("qsoEntry"));
+    applyFont(m_qsoTable,      settings.getPanelFont("qsoLog"));
+    applyFont(m_scpWidget,     settings.getPanelFont("scp"));
+    applyFont(m_cwConsole,     settings.getPanelFont("cwKeyboard"));
+
+    QFont dxFont = settings.getPanelFont("dxCluster");
+    if (m_dxClusterPanel && !dxFont.family().isEmpty())
+        m_dxClusterPanel->setTableFont(dxFont);
+
+    QFont scoreFont = settings.getPanelFont("scoreWidget");
+    if (m_scoreWidget && !scoreFont.family().isEmpty())
+        m_scoreWidget->setBaseFont(scoreFont);
+
+    QFont cwMemFont = settings.getPanelFont("cwMemories");
+    if (m_cwConsole && !cwMemFont.family().isEmpty())
+        m_cwConsole->setMemoriesFont(cwMemFont);
+
+    QFont ssbMemFont = settings.getPanelFont("ssbMemories");
+    if (m_ssbMemoriesWidget && !ssbMemFont.family().isEmpty())
+        m_ssbMemoriesWidget->widget()->setFont(ssbMemFont);
 }
 
 void MainWindow::onManageCallHistory()

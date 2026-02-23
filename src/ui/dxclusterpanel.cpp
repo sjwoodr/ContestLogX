@@ -17,6 +17,7 @@
 #include <QRegularExpression>
 #include <QInputDialog>
 #include <QJsonObject>
+#include <QFontMetrics>
 #include <QCheckBox>
 
 DxClusterPanel::DxClusterPanel(QWidget *parent)
@@ -106,14 +107,13 @@ void DxClusterPanel::setupUi()
     m_spotTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
     m_spotTable->verticalHeader()->setVisible(false);
     
-    // Set bigger font and darker alternating row colors
+    // Set default font and darker alternating row colors
     QFont tableFont;
     tableFont.setPointSize(11);
     m_spotTable->setFont(tableFont);
-    
+
     m_spotTable->setStyleSheet(
         "QTableWidget { "
-        "  font-size: 11pt; "
         "  gridline-color: #404040; "
         "} "
         "QTableWidget::item:alternate { "
@@ -560,6 +560,14 @@ void DxClusterPanel::onSpotLastQso()
 {
     // Request last QSO info from MainWindow via signal
     emit spotLastQsoRequested();
+}
+
+void DxClusterPanel::setTableFont(const QFont& font)
+{
+    m_spotTable->setFont(font);
+    // Adjust row height proportionally to the new font size
+    QFontMetrics fm(font);
+    m_spotTable->verticalHeader()->setDefaultSectionSize(fm.height() + 10);
 }
 
 void DxClusterPanel::setSpotCommand(const QString& callsign, double freqKhz)

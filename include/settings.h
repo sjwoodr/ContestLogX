@@ -12,6 +12,7 @@
 #include <QRect>
 #include <QMap>
 #include <QList>
+#include <QFont>
 #include "cwmemory.h"
 #include "ssbmemory.h"
 
@@ -226,6 +227,10 @@ public:
     // Theme
     QString getTheme() const;
     void setTheme(const QString& theme);
+
+    // Panel fonts (keys: qsoEntry, qsoLog, dxCluster, scp, cwKeyboard)
+    QFont getPanelFont(const QString& panelKey) const;
+    void setPanelFont(const QString& panelKey, const QFont& font);
 
     void save();
 

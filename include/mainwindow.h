@@ -102,6 +102,7 @@ private slots:
     void onManageCallHistory();
     void onScpDialog();
     void onPreferences();
+    void applyFontSettings();
     void onQsoDoubleClicked(const QModelIndex& index);
     void onQsoContextMenuRequested(const QPoint& pos);
     void onEditQso();

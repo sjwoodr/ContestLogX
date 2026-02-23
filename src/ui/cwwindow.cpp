@@ -183,6 +183,16 @@ void CWWindow::onMemoryButton(int fKey)
     }
 }
 
+void CWWindow::setMemoriesFont(const QFont& font)
+{
+    QString styleSheet = QString("QPushButton { font-family: '%1'; font-size: %2pt; padding: 2px; }")
+        .arg(font.family())
+        .arg(font.pointSize());
+    for (int i = 0; i < 8; i++) {
+        memoryButtons[i]->setStyleSheet(styleSheet);
+    }
+}
+
 void CWWindow::setMemories(const QList<CwMemory>& mems)
 {
     memories = mems;

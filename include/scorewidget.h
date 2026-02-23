@@ -26,9 +26,11 @@ public:
     void clear();
     void resetScore();
     int getFinalScore() const { return m_finalScore; }
+    void setBaseFont(const QFont& font);
 
 private:
     QTableWidget* m_scoreTable;
+    QLabel* m_titleLabel;
     QLabel* m_contestScoreLabel;
     QLabel* m_multsSummaryLabel;
     QStringList m_contestBands;

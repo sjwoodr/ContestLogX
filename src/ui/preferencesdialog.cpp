@@ -15,6 +15,7 @@
 #include <QGroupBox>
 #include <QLabel>
 #include <QMessageBox>
+#include <QApplication>
 
 PreferencesDialog::PreferencesDialog(QWidget *parent)
     : QDialog(parent)
@@ -22,6 +23,7 @@ PreferencesDialog::PreferencesDialog(QWidget *parent)
     , m_themeChanged(false)
     , m_qrzcqChanged(false)
     , m_qrzcqApi(new QrzcqApi(this))
+    , m_fontsChanged(false)
 {
     m_originalTheme = Settings::instance().getTheme();
     setupUi();
@@ -130,6 +132,65 @@ void PreferencesDialog::setupUi()
 
     tabWidget->addTab(qrzcqTab, "QRZCQ");
 
+    // Fonts tab
+    QWidget *fontsTab = new QWidget(this);
+    QVBoxLayout *fontsVLayout = new QVBoxLayout(fontsTab);
+
+    QFormLayout *fontsLayout = new QFormLayout();
+    fontsLayout->setFieldGrowthPolicy(QFormLayout::ExpandingFieldsGrow);
+
+    struct PanelDef { QString key; QString label; };
+    const QList<PanelDef> panels = {
+        { "qsoEntry",    "QSO Entry" },
+        { "qsoLog",      "QSO Log" },
+        { "dxCluster",   "DX Cluster" },
+        { "scp",         "Super Check Partial" },
+        { "cwKeyboard",  "CW Keyboard" },
+        { "scoreWidget", "Score Widget" },
+        { "cwMemories",  "CW Memories" },
+        { "ssbMemories", "SSB Memories" },
+    };
+
+    for (const PanelDef& p : panels) {
+        QFont saved = settings.getPanelFont(p.key);
+        QFont current = saved.family().isEmpty() ? QApplication::font() : saved;
+
+        QFontComboBox *familyCombo = new QFontComboBox(this);
+        familyCombo->setCurrentFont(current);
+        familyCombo->setMinimumWidth(200);
+
+        QSpinBox *sizeSpinBox = new QSpinBox(this);
+        sizeSpinBox->setRange(6, 48);
+        sizeSpinBox->setValue(current.pointSize() > 0 ? current.pointSize() : QApplication::font().pointSize());
+        sizeSpinBox->setSuffix(" pt");
+        sizeSpinBox->setFixedWidth(70);
+
+        QHBoxLayout *row = new QHBoxLayout();
+        row->addWidget(familyCombo, 1);
+        row->addWidget(sizeSpinBox);
+
+        fontsLayout->addRow(p.label + ":", row);
+        m_fontRows.append({ p.key, familyCombo, sizeSpinBox });
+    }
+
+    fontsVLayout->addLayout(fontsLayout);
+    fontsVLayout->addStretch();
+
+    QHBoxLayout *fontsButtonLayout = new QHBoxLayout();
+    fontsButtonLayout->addStretch();
+    QPushButton *resetFontsButton = new QPushButton("Reset to Defaults", this);
+    connect(resetFontsButton, &QPushButton::clicked, this, [this]() {
+        QFont appFont = QApplication::font();
+        for (const FontRow& row : m_fontRows) {
+            row.familyCombo->setCurrentFont(appFont);
+            row.sizeSpinBox->setValue(appFont.pointSize() > 0 ? appFont.pointSize() : 10);
+        }
+    });
+    fontsButtonLayout->addWidget(resetFontsButton);
+    fontsVLayout->addLayout(fontsButtonLayout);
+
+    tabWidget->addTab(fontsTab, "Fonts");
+
     mainLayout->addWidget(tabWidget);
 
     QDialogButtonBox *buttonBox = new QDialogButtonBox(
@@ -168,6 +229,17 @@ void PreferencesDialog::onAccept()
 
     // Shortcuts
     m_shortcutsWidget->saveShortcuts();
+
+    // Fonts
+    for (const FontRow& row : m_fontRows) {
+        QFont font = row.familyCombo->currentFont();
+        font.setPointSize(row.sizeSpinBox->value());
+        QFont saved = settings.getPanelFont(row.panelKey);
+        if (font.family() != saved.family() || font.pointSize() != saved.pointSize()) {
+            settings.setPanelFont(row.panelKey, font);
+            m_fontsChanged = true;
+        }
+    }
 
     // QRZCQ
     bool autoChanged = m_qrzcqAutoLookupCheckbox->isChecked() != settings.getQrzcqAutoLookupEnabled();

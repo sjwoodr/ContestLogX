@@ -8,6 +8,7 @@
 #include <QVBoxLayout>
 #include <QSpinBox>
 #include <QLabel>
+#include <QFont>
 #include "cwmemory.h"
 
 class FlrigClient;
@@ -22,6 +23,7 @@ public:
 
     int getCurrentWPM() const { return wpmSpinBox->value(); }
     void setMemories(const QList<CwMemory>& memories);
+    void setMemoriesFont(const QFont& font);
 
 public slots:
     // Trigger a specific memory (0-7 for F1-F8)

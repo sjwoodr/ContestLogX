@@ -17,12 +17,12 @@ ScoreWidget::ScoreWidget(QWidget *parent)
     // Title with score
     QHBoxLayout* titleLayout = new QHBoxLayout();
     
-    QLabel* titleLabel = new QLabel("Contest Score:", this);
-    QFont titleFont = titleLabel->font();
+    m_titleLabel = new QLabel("Contest Score:", this);
+    QFont titleFont = m_titleLabel->font();
     titleFont.setBold(true);
     titleFont.setPointSize(titleFont.pointSize() + 2);
-    titleLabel->setFont(titleFont);
-    titleLayout->addWidget(titleLabel);
+    m_titleLabel->setFont(titleFont);
+    titleLayout->addWidget(m_titleLabel);
     
     m_contestScoreLabel = new QLabel("0", this);
     QFont scoreFont = m_contestScoreLabel->font();
@@ -185,6 +185,29 @@ QString ScoreWidget::getBandDisplayOrder(int index) const
         return bands[index];
     }
     return QString();
+}
+
+void ScoreWidget::setBaseFont(const QFont& font)
+{
+    // Table inherits directly
+    m_scoreTable->setFont(font);
+
+    // Title label: bold, +2pt
+    QFont titleFont = font;
+    titleFont.setBold(true);
+    titleFont.setPointSize(font.pointSize() + 2);
+    m_titleLabel->setFont(titleFont);
+
+    // Score value: bold, +3pt
+    QFont scoreFont = font;
+    scoreFont.setBold(true);
+    scoreFont.setPointSize(font.pointSize() + 3);
+    m_contestScoreLabel->setFont(scoreFont);
+
+    // Mults summary: -1pt
+    QFont summaryFont = font;
+    summaryFont.setPointSize(qMax(6, font.pointSize() - 1));
+    m_multsSummaryLabel->setFont(summaryFont);
 }
 
 void ScoreWidget::updateMultsSummary(const ContestEngine::ContestScore& score)
