@@ -8,6 +8,7 @@
 
 #include <QString>
 #include <QList>
+#include <QJsonObject>
 #include "qsorecord.h"
 #include "cwmemory.h"
 #include "ssbmemory.h"
@@ -30,6 +31,9 @@ public:
     // Set station callsign for ADIF export (STATION_CALLSIGN field)
     void setStationCallsign(const QString& callsign) { m_stationCallsign = callsign; }
 
+    // Set contest definition used by loadCabrillo() when called via load()
+    void setContestDefinition(const QJsonObject& def) { m_contestDefinition = def; }
+
     // Main load/save (detects format from extension)
     bool load(const QString& filename, QList<QsoRecord>& qsos);
     bool save(const QString& filename, const QList<QsoRecord>& qsos);
@@ -40,6 +44,9 @@ public:
     
     bool loadAdif(const QString& filename, QList<QsoRecord>& qsos);
     bool saveAdif(const QString& filename, const QList<QsoRecord>& qsos);
+
+    bool loadCabrillo(const QString& filename, QList<QsoRecord>& qsos,
+                      const QJsonObject& contestDef = QJsonObject());
     
     bool loadWl(const QString& filename, QList<QsoRecord>& qsos);
     bool saveWl(const QString& filename, const QList<QsoRecord>& qsos);
@@ -70,6 +77,7 @@ public:
 private:
     QString m_lastError;
     QString m_stationCallsign;
+    QJsonObject m_contestDefinition;
     QList<CwMemory> m_contestCwMemories;
     QList<SsbMemory> m_contestSsbMemories;
     bool m_useContestMemories = false;

@@ -278,6 +278,21 @@ Alaska (AK) and Hawaii (HI) are both US states AND separate DXCC entities (KL7 a
 
 The contest engine automatically detects Alaska/Hawaii stations by DXCC lookup and applies the appropriate multiplier handling.
 
+**WAE (DARC WAEDC) Entity Handling:**
+The cty.dat prefix database marks certain entities with `*` to indicate they count in CQ/DARC-sponsored contests (WAE) but **not** in ARRL-sponsored contests. Examples: Sicily (IT9), African Italy (IG9), Johnston Island (KH3), Palmyra & Jarvis (KH5).
+
+By default, ContestLogX excludes these WAE-only entities from DXCC multiplier counts (correct for ARRL DX, ARRL 10M, etc.):
+- `"includeWaeEntities": false` *(default)* — WAE-only entities are excluded from DXCC mults. Use for ARRL-sponsored contests and most others.
+- `"includeWaeEntities": true` — WAE-only entities count as valid DXCC mults. Use for DARC WAEDC, CQ WW, and other CQ/DARC-sponsored contests where these entities are recognized.
+
+```json
+"multipliers": {
+  "type": "multsPerBand",
+  "categories": ["dxcc"],
+  "includeWaeEntities": true
+}
+```
+
 **Multiplier Types:**
 The `type` field determines how multipliers are counted:
 - `multsOnce`: Each multiplier counts only once (e.g., work OH once for entire contest)

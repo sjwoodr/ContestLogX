@@ -7,12 +7,15 @@
 #include "clxfile.h"
 #include "stationinfo.h"
 #include "debuglogger.h"
+#include "../utils/bandplan.h"
 #include <QApplication>
 #include <QFile>
 #include <QTextStream>
 #include <QDataStream>
 #include <QFileInfo>
 #include <QRegularExpression>
+#include <QJsonObject>
+#include <QDate>
 #include <QDebug>
 #include <cstring>
 
@@ -45,6 +48,8 @@ bool FileHandler::load(const QString& filename, QList<QsoRecord>& qsos)
         return loadAdif(filename, qsos);
     } else if (ext == "wl") {
         return loadWl(filename, qsos);
+    } else if (ext == "log" || ext == "cbr" || ext == "cab") {
+        return loadCabrillo(filename, qsos, m_contestDefinition);
     } else {
         // Default to CLX
         return loadClx(filename, qsos);
@@ -754,6 +759,158 @@ bool FileHandler::loadClxWithContest(const QString& filename, QList<QsoRecord>& 
             userPromptValues[promptId] = it.value();
         }
     }
-    
+
+    return true;
+}
+
+// Cabrillo Format Implementation
+bool FileHandler::loadCabrillo(const QString& filename, QList<QsoRecord>& qsos,
+                               const QJsonObject& contestDef)
+{
+    QFile file(filename);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        m_lastError = "Cannot open file: " + file.errorString();
+        return false;
+    }
+
+    QTextStream in(&file);
+    qsos.clear();
+
+    // Resolve QSO template from contest definition, or use default RST-based template
+    QString qsoTemplate;
+    if (!contestDef.isEmpty()
+        && contestDef.contains("logging")
+        && contestDef["logging"].isObject()) {
+        QJsonObject loggingObj = contestDef["logging"].toObject();
+        if (loggingObj.contains("cabrillo") && loggingObj["cabrillo"].isObject()) {
+            QJsonObject cabrilloObj = loggingObj["cabrillo"].toObject();
+            if (cabrilloObj.contains("qsoTemplate"))
+                qsoTemplate = cabrilloObj["qsoTemplate"].toString();
+        }
+    }
+    if (qsoTemplate.isEmpty()) {
+        // Default template covers most HF contests (RST + exchange)
+        qsoTemplate = "QSO: {freq} {mode} {date} {time} {mycall} {rst_sent} {exch_sent} {call} {rst_rcvd} {exch_rcvd}";
+    }
+
+    // Parse template into ordered field list (split on whitespace, strip braces)
+    QStringList templateTokens = qsoTemplate.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
+    QStringList templateFields;
+    for (const QString& tok : templateTokens) {
+        if (tok.startsWith('{') && tok.endsWith('}'))
+            templateFields.append(tok.mid(1, tok.length() - 2));
+        else
+            templateFields.append(QString()); // literal / skip
+    }
+
+    // Mode mapping: Cabrillo → internal
+    QMap<QString, QString> modeMap;
+    modeMap["CW"] = "CW";
+    modeMap["PH"] = "SSB";
+    modeMap["FM"] = "FM";
+    modeMap["RY"] = "RTTY";
+    modeMap["DG"] = "DIGITAL";
+
+    // VHF band code → representative kHz frequency
+    QMap<QString, QString> vhfBandFreq;
+    vhfBandFreq["50"]   = "50125";
+    vhfBandFreq["70"]   = "70200";
+    vhfBandFreq["144"]  = "144200";
+    vhfBandFreq["222"]  = "222100";
+    vhfBandFreq["432"]  = "432100";
+    vhfBandFreq["902"]  = "902100";
+    vhfBandFreq["1.2G"] = "1296100";
+    vhfBandFreq["2.3G"] = "2304100";
+    vhfBandFreq["3.4G"] = "3400100";
+    vhfBandFreq["5.7G"] = "5760100";
+    vhfBandFreq["10G"]  = "10368100";
+    vhfBandFreq["24G"]  = "24192100";
+    vhfBandFreq["47G"]  = "47088100";
+
+    QString parsedDate, parsedTime;
+
+    while (!in.atEnd()) {
+        QString line = in.readLine().trimmed();
+        if (line.isEmpty())
+            continue;
+
+        // Only process QSO lines
+        if (!line.startsWith("QSO:", Qt::CaseInsensitive))
+            continue;
+
+        QStringList tokens = line.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
+
+        if (tokens.size() < templateFields.size())
+            continue; // malformed line
+
+        QsoRecord qso;
+        parsedDate.clear();
+        parsedTime.clear();
+
+        for (int i = 0; i < templateFields.size() && i < tokens.size(); ++i) {
+            const QString& field = templateFields[i];
+            const QString& value = tokens[i];
+
+            if (field.isEmpty()) continue; // literal token, skip
+
+            if (field == "freq") {
+                // Map VHF band shorthands or use numeric kHz directly
+                QString trimmed = value.trimmed();
+                QString freqKhz = vhfBandFreq.contains(trimmed) ? vhfBandFreq[trimmed] : trimmed;
+                qso.setFrequency(freqKhz);
+                // Set band name so per-band dupe checking works correctly
+                qso.setBandName(BandPlan::freq2Band(freqKhz.toDouble()));
+            } else if (field == "mode") {
+                QString internalMode = modeMap.value(value.toUpper(), value);
+                qso.setMode(internalMode);
+            } else if (field == "date") {
+                parsedDate = value; // yyyy-MM-dd
+            } else if (field == "time") {
+                parsedTime = value; // HHmm or HH:mm
+                if (parsedDate.isEmpty()) parsedDate = QDate::currentDate().toString("yyyy-MM-dd");
+                // Normalize time to HHmm
+                QString normalizedTime = parsedTime.remove(':');
+                if (normalizedTime.length() == 4)
+                    normalizedTime += "00"; // append seconds
+                QDateTime dt = QDateTime::fromString(parsedDate + normalizedTime, "yyyy-MM-ddHHmmss");
+                dt.setTimeSpec(Qt::UTC);
+                qso.setDateTime(dt);
+            } else if (field == "mycall") {
+                // Skip - this is the operator's own callsign
+            } else if (field == "call") {
+                qso.setCall(value.toUpper());
+            } else if (field == "rst_sent") {
+                qso.setRstSent(value);
+                qso.setExchangeField("RSTs", value);
+            } else if (field == "rst_rcvd") {
+                qso.setRstReceived(value);
+                qso.setExchangeField("RSTr", value);
+            } else if (field == "exch_sent") {
+                qso.setExchangeField("EXCHs", value);
+            } else if (field == "exch_rcvd") {
+                qso.setExchangeField("EXCHr", value);
+            } else if (field == "name_sent") {
+                qso.setExchangeField("NAMEs", value);
+            } else if (field == "name_rcvd") {
+                qso.setExchangeField("NAMEr", value);
+            } else if (field == "GRIDs") {
+                qso.setExchangeField("GRIDs", value);
+            } else if (field == "GRIDr") {
+                qso.setExchangeField("GRIDr", value);
+            } else if (field == "serial_sent") {
+                qso.setExchangeField("SNs", value);
+            } else if (field == "serial_rcvd") {
+                qso.setExchangeField("SNr", value);
+            } else {
+                // Generic: use the field name directly as exchange key
+                qso.setExchangeField(field, value);
+            }
+        }
+
+        if (!qso.getCall().isEmpty())
+            qsos.append(qso);
+    }
+
+    qDebug() << "Loaded" << qsos.count() << "QSOs from Cabrillo:" << filename;
     return true;
 }

@@ -921,10 +921,24 @@ QList<ContestEngine::MultiplierInfo> ContestEngine::getMultipliersWithCategory(c
         
         // Add DXCC if appropriate
         if (shouldAddDxcc && !entity.prefixes.isEmpty()) {
-            QString dxccMult = entity.primaryPrefix.isEmpty() ? entity.prefixes.first().prefix : entity.primaryPrefix;
-            result.append({dxccMult, "dxcc"});
-            DebugLogger::instance().log("ContestEngine", 
-                QString("  Added DXCC mult '%1'").arg(dxccMult));
+            // Skip WAE-only entities (marked with * in cty.dat) unless the contest opts in.
+            // These count in CQ/DARC-sponsored contests but NOT ARRL-sponsored contests.
+            bool includeWae = false;
+            if (!m_contestDef.isEmpty() && m_contestDef.contains("scoring")) {
+                QJsonObject scoring = m_contestDef["scoring"].toObject();
+                if (scoring.contains("multipliers")) {
+                    includeWae = scoring["multipliers"].toObject()["includeWaeEntities"].toBool(false);
+                }
+            }
+            if (entity.waeOnly && !includeWae) {
+                DebugLogger::instance().log("ContestEngine",
+                    QString("  Skipping WAE-only DXCC entity '%1' (not counted in ARRL-sponsored contests)").arg(entity.primaryPrefix));
+            } else {
+                QString dxccMult = entity.primaryPrefix.isEmpty() ? entity.prefixes.first().prefix : entity.primaryPrefix;
+                result.append({dxccMult, "dxcc"});
+                DebugLogger::instance().log("ContestEngine",
+                    QString("  Added DXCC mult '%1'").arg(dxccMult));
+            }
         }
     }
     

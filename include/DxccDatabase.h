@@ -37,6 +37,7 @@ struct DxccEntity {
     double gmtOffset;
     QString primaryPrefix;
     QList<DxccPrefix> prefixes;
+    bool waeOnly = false;  // true = DARC WAEDC list only, does NOT count for ARRL-sponsored contests
 };
 
 class DxccDatabase : public QObject

@@ -417,7 +417,7 @@ void MainWindow::setupUi()
     m_qsoTable->setMinimumHeight(400);
     
     // Freeze the first column (QSO number)
-    m_qsoTable->setColumnWidth(0, 50);  // Set width for # column
+    m_qsoTable->setColumnWidth(0, 40);  // Set width for # column (fits 3-digit QSO numbers)
     
     // Add double-click handling for QSO editing
     connect(m_qsoTable, &QTableView::doubleClicked, this, &MainWindow::onQsoDoubleClicked);
@@ -2255,16 +2255,19 @@ void MainWindow::onImportAdif()
     }
 
     QString fileName = QFileDialog::getOpenFileName(this,
-        "Import ADIF File", "",
+        "Import File", "",
+        "All Supported Files (*.adi *.adif *.log *.cbr *.cab);;"
         "ADIF Files (*.adi *.adif);;"
+        "Cabrillo Files (*.log *.cbr *.cab);;"
         "All Files (*)");
 
     if (fileName.isEmpty())
         return;
 
     FileHandler fileHandler;
+    fileHandler.setContestDefinition(m_contestDefinition);
     QList<QsoRecord> importedQsos;
-    if (!fileHandler.loadAdif(fileName, importedQsos)) {
+    if (!fileHandler.load(fileName, importedQsos)) {
         QMessageBox::warning(this, "Import Failed",
             "Failed to import file:\n\n" + fileHandler.lastError());
         return;
@@ -4834,10 +4837,10 @@ void MainWindow::updateLogHeaders()
     m_qsoModel->setColumnHeaders(fullHeaders);
 
     // Set narrow default widths for short columns, then restore any user overrides
-    static const QSet<QString> narrowColumns = {"#", "M", "P", "C"};
+    static const QMap<QString, int> defaultColumnWidths = {{"#", 40}, {"M", 30}, {"P", 30}, {"C", 30}};
     for (int i = 0; i < fullHeaders.size(); ++i) {
-        if (narrowColumns.contains(fullHeaders[i])) {
-            m_qsoTable->setColumnWidth(i, 30);
+        if (defaultColumnWidths.contains(fullHeaders[i])) {
+            m_qsoTable->setColumnWidth(i, defaultColumnWidths[fullHeaders[i]]);
         }
     }
     restoreColumnWidths();

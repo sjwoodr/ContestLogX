@@ -86,11 +86,12 @@ bool DxccDatabase::loadFromFile(const QString &filename)
             // Field 7: Primary prefix
             QString primaryPrefix = fields[7].trimmed();
             
-            // Handle * prefix (WAEDC only)
+            // Handle * prefix (WAEDC only - counts in CQ/DARC contests but NOT ARRL-sponsored contests)
             if (primaryPrefix.startsWith('*')) {
                 primaryPrefix = primaryPrefix.mid(1);
+                entity.waeOnly = true;
             }
-            
+
             entity.dxcc = nextDxccNumber++;
             entity.primaryPrefix = primaryPrefix;
 
