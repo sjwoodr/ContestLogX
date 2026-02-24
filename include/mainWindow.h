@@ -128,6 +128,7 @@ private:
     void setupMenus();
     void createConnections();
     void loadQsosIntoModel(const QList<QsoRecord>& qsos, QProgressDialog* progressDialog);
+    void applyRestrictedModeFromUserPrompts();
     void loadCWMemories();
     void loadSsbMemories();
     void flashDupeWarning();

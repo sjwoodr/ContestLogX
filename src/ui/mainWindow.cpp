@@ -891,6 +891,26 @@ void MainWindow::loadQsosIntoModel(const QList<QsoRecord>& qsos, QProgressDialog
     progressDialog->setValue(qsos.size());
 }
 
+// Scans the loaded contest definition's userPrompts for entries with "restrictMode": true,
+// then applies setRestrictedMode() using the matching value already stored in the engine.
+void MainWindow::applyRestrictedModeFromUserPrompts()
+{
+    if (!m_contestEngine || m_contestDefinition.isEmpty()) return;
+    QJsonArray prompts = m_contestDefinition["userPrompts"].toArray();
+    for (const QJsonValue& pv : prompts) {
+        QJsonObject p = pv.toObject();
+        if (p["restrictMode"].toBool(false)) {
+            QString id = p["id"].toString();
+            QString modeValue = m_contestEngine->getUserPromptValue(id);
+            if (!modeValue.isEmpty()) {
+                m_contestEngine->setRestrictedMode(modeValue);
+                DebugLogger::instance().log("MainWindow",
+                    QString("Applied restricted mode '%1' from userPrompt '%2'").arg(modeValue, id));
+            }
+        }
+    }
+}
+
 void MainWindow::createConnections()
 {
     connect(m_logButton, &QPushButton::clicked, this, &MainWindow::onLogQso);
@@ -1498,6 +1518,9 @@ void MainWindow::onNewLog()
                     }
                 }
                 
+                // Apply mode restriction if any userPrompt has "restrictMode": true
+                applyRestrictedModeFromUserPrompts();
+
                 // Refresh multiplier widget now that user prompts are set
                 if (m_multiplierWidget && m_contestEngine) {
                     QJsonObject ui = m_contestDefinition["ui"].toObject();
@@ -1573,10 +1596,11 @@ void MainWindow::onOpenLog()
             QString loadedContestVersion;
             QString stationClassExchangeName;
             QString stationClassExchangeId;
+            QMap<QString, QString> userPromptValues;
             FileHandler fileHandler;
-            
+
             QList<QsoRecord> temp;
-            fileHandler.loadClxWithContest(fileName, temp, contestFile, stationClass, loadedContestVersion, stationClassExchangeName, stationClassExchangeId);
+            fileHandler.loadClxWithContest(fileName, temp, contestFile, stationClass, loadedContestVersion, stationClassExchangeName, stationClassExchangeId, userPromptValues);
             
             // Also load the station info from the CLX file (for session use only - don't persist to Settings)
             ClxFile clxFile;
@@ -1646,16 +1670,26 @@ void MainWindow::onOpenLog()
                     
                     // Pass false to NOT restore/prompt for station class since we already have it
                     loadContestDefinition(contestPath, false);
-                    
+
+                    // Restore userPromptValues after contest is loaded
+                    if (!userPromptValues.isEmpty() && m_contestEngine) {
+                        for (auto it = userPromptValues.constBegin(); it != userPromptValues.constEnd(); ++it) {
+                            m_contestEngine->setUserPromptValue(it.key(), it.value());
+                        }
+                        DebugLogger::instance().log("MainWindow", QString("Restored %1 user prompt values from CLX").arg(userPromptValues.size()));
+                        // Apply mode restriction if any userPrompt has "restrictMode": true
+                        applyRestrictedModeFromUserPrompts();
+                    }
+
                     // If we loaded a mode from the CLX file, restrict to that mode
                     if (!loadedMode.isEmpty()) {
                         m_contestEngine->setRestrictedMode(loadedMode);
                     }
-                    
+
                     // Check if contest version has changed
                     if (!loadedContestVersion.isEmpty() && !m_contestDefinition.isEmpty()) {
                         QString currentVersion = m_contestDefinition["contest"].toObject()["version"].toString();
-                        DebugLogger::instance().log("MainWindow", 
+                        DebugLogger::instance().log("MainWindow",
                             QString("Contest version check: Log file v%1, Current definition v%2").arg(loadedContestVersion, currentVersion));
                         if (!currentVersion.isEmpty() && !isSemanticVersionEqual(currentVersion, loadedContestVersion)) {
                             DebugLogger::instance().log("MainWindow", "Version mismatch detected - showing user warning");
@@ -1985,6 +2019,9 @@ void MainWindow::loadLogFile(const QString& filename)
                             DebugLogger::instance().log("MainWindow", QString("  %1 = '%2'").arg(it.key(), it.value()));
                         }
 
+                        // Apply mode restriction if any userPrompt has "restrictMode": true
+                        applyRestrictedModeFromUserPrompts();
+
                         // Refresh multiplier widget with effective mults (filtered by station type)
                         if (m_multiplierWidget && m_contestDefinition.contains("ui")) {
                             QJsonObject ui = m_contestDefinition["ui"].toObject();
@@ -1997,7 +2034,7 @@ void MainWindow::loadLogFile(const QString& filename)
                             }
                         }
                     }
-                    
+
                     // If we loaded a mode from the CLX file, restrict to that mode
                     if (!loadedMode.isEmpty()) {
                         m_contestEngine->setRestrictedMode(loadedMode);
@@ -3613,6 +3650,9 @@ void MainWindow::onContestSetup()
                     // Also update the contest engine
                     if (m_contestEngine) {
                         m_contestEngine->setUserPromptValue(promptId, selectedValue);
+                        if (promptObj["restrictMode"].toBool(false)) {
+                            applyRestrictedModeFromUserPrompts();
+                        }
                     }
                     DebugLogger::instance().log("MainWindow",
                         QString("Set userPrompt %1 = %2").arg(promptId, selectedValue));

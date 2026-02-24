@@ -224,6 +224,7 @@ import Layout from '../layouts/Layout.astro';
     ],
     "required":     true,
     "storeInMeta":  true,
+    "restrictMode": true,
     "description":  "CW and Phone are separate contest weekends"
   },
   {
@@ -263,6 +264,7 @@ import Layout from '../layouts/Layout.astro';
               <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">forceUppercase</td><td class="pr-4">boolean</td><td>For <code>text</code> type — forces input to uppercase</td></tr>
               <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">validation</td><td class="pr-4">string</td><td>Regex applied to <code>text</code> type input</td></tr>
               <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">storeInMeta</td><td class="pr-4">boolean</td><td>If true, answer is stored in the <code>.clx</code> file metadata</td></tr>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">restrictMode</td><td class="pr-4">boolean</td><td>For <code>select</code> type — if true, the selected value restricts the log to that mode only (e.g., selecting "CW" blocks SSB contacts). Restored automatically when reopening a <code>.clx</code> file.</td></tr>
               <tr><td class="py-2 pr-4 font-mono">exchangeFieldMapping</td><td class="pr-4">object</td><td>Maps prompt <code>id</code> → exchange field name (e.g., <code>"myExchange": "EXCHs"</code>)</td></tr>
             </tbody>
           </table>

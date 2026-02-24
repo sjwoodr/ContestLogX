@@ -89,6 +89,7 @@
       ],
       "required": true,
       "storeInMeta": true,
+      "restrictMode": true,
       "description": "CW and Phone are separate contest weekends with separate results"
     },
     {
