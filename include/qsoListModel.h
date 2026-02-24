@@ -28,6 +28,7 @@ public:
     int columnCount(const QModelIndex &parent = QModelIndex()) const override;
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
+    void sort(int column, Qt::SortOrder order = Qt::AscendingOrder) override;
     
     // Data manipulation
     void addQso(const QsoRecord& qso);
@@ -47,8 +48,12 @@ public:
     void setColumnHeaders(const QStringList& headers);
     QStringList columnHeaders() const { return m_columnHeaders; }
     
+    // Filtering
+    void setFilter(const QString& text);
+    QString filterText() const { return m_filterText; }
+
     // Utility
-    int count() const { return m_qsos.count(); }
+    int count() const { return m_qsos.count(); }        // always total (unfiltered)
     const QList<QsoRecord>& getQsos() const { return m_qsos; }
     QList<QsoRecord> getAllQsos() const { return m_qsos; }
 
@@ -60,8 +65,14 @@ signals:
 private:
     QList<QsoRecord> m_qsos;
     QStringList m_columnHeaders;
-    
-    // Default column headers if none set
+    QString m_filterText;
+    QList<int> m_visibleIndices;  // source-row indices visible under current filter; empty = no filter
+
+    int mapToSource(int viewRow) const;   // view row → m_qsos index
+    int mapFromSource(int sourceRow) const; // m_qsos index → view row (-1 if filtered out)
+    void rebuildVisibleIndices();
+    bool matchesFilter(const QsoRecord& qso) const;
+
     QStringList defaultHeaders() const;
 };
 

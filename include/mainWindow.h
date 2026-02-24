@@ -162,6 +162,9 @@ private:
     QTableView *m_qsoTable;
     
     QLabel *m_statusLabel;
+    QWidget *m_filterBar;
+    QLineEdit *m_filterEdit;
+    class QShortcut *m_filterShortcut;
     QPushButton *m_freqModeButton;
     QLabel *m_contestNameLabel;
     QLabel *m_qsoCountLabel;

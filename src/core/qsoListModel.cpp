@@ -6,6 +6,7 @@
 #include "qsoListModel.h"
 #include "debugLogger.h"
 #include <QColor>
+#include <algorithm>
 
 QsoListModel::QsoListModel(QObject *parent)
     : QAbstractTableModel(parent)
@@ -17,7 +18,7 @@ int QsoListModel::rowCount(const QModelIndex &parent) const
 {
     if (parent.isValid())
         return 0;
-    return m_qsos.count();
+    return m_visibleIndices.isEmpty() ? m_qsos.count() : m_visibleIndices.count();
 }
 
 int QsoListModel::columnCount(const QModelIndex &parent) const
@@ -36,18 +37,19 @@ QStringList QsoListModel::defaultHeaders() const
 
 QVariant QsoListModel::data(const QModelIndex &index, int role) const
 {
-    if (!index.isValid() || index.row() >= m_qsos.count())
+    if (!index.isValid() || index.row() >= rowCount())
         return QVariant();
-    
-    const QsoRecord& qso = m_qsos.at(index.row());
+
+    const QsoRecord& qso = m_qsos.at(mapToSource(index.row()));
     
     if (role == Qt::DisplayRole || role == Qt::EditRole) {
         QString header = m_columnHeaders.at(index.column()).toUpper();
         QString originalHeader = m_columnHeaders.at(index.column());  // Keep original case
         
-        // QSO number column - always first column
+        // QSO number column — show logged serial so it stays meaningful after sorting
         if (header == "#") {
-            return index.row() + 1;
+            unsigned long serial = qso.getSerial();
+            return serial > 0 ? QVariant::fromValue(serial) : QVariant(index.row() + 1);
         }
         // Map header names to data (case-insensitive)
         else if (header == "DATE") {
@@ -135,36 +137,60 @@ void QsoListModel::setColumnHeaders(const QStringList& headers)
 {
     beginResetModel();
     m_columnHeaders = headers;
+    rebuildVisibleIndices();
     endResetModel();
 }
 
 void QsoListModel::addQso(const QsoRecord& qso)
 {
-    int row = m_qsos.count();
-    beginInsertRows(QModelIndex(), row, row);
-    m_qsos.append(qso);
-    endInsertRows();
-    emit qsoAdded(row);
+    int sourceRow = m_qsos.count();
+    if (m_visibleIndices.isEmpty()) {
+        // No filter active — simple append
+        beginInsertRows(QModelIndex(), sourceRow, sourceRow);
+        m_qsos.append(qso);
+        endInsertRows();
+    } else {
+        // Filter active — add to source, then expose if it matches
+        m_qsos.append(qso);
+        if (matchesFilter(qso)) {
+            int viewRow = m_visibleIndices.count();
+            beginInsertRows(QModelIndex(), viewRow, viewRow);
+            m_visibleIndices.append(sourceRow);
+            endInsertRows();
+        }
+    }
+    emit qsoAdded(sourceRow);
 }
 
-void QsoListModel::removeQso(int row)
+void QsoListModel::removeQso(int viewRow)
 {
-    if (row < 0 || row >= m_qsos.count())
+    if (viewRow < 0 || viewRow >= rowCount())
         return;
-    
-    beginRemoveRows(QModelIndex(), row, row);
-    m_qsos.removeAt(row);
+
+    int sourceRow = mapToSource(viewRow);
+    beginRemoveRows(QModelIndex(), viewRow, viewRow);
+    m_qsos.removeAt(sourceRow);
+    if (!m_visibleIndices.isEmpty()) {
+        // Adjust remaining visible indices that pointed past the removed source row
+        for (int& idx : m_visibleIndices) {
+            if (idx > sourceRow) --idx;
+        }
+        m_visibleIndices.removeAt(viewRow);
+    }
     endRemoveRows();
-    emit qsoRemoved(row);
+    emit qsoRemoved(sourceRow);
 }
 
 void QsoListModel::updateQso(int row, const QsoRecord& qso)
 {
     if (row < 0 || row >= m_qsos.count())
         return;
-    
+
     m_qsos[row] = qso;
-    emit dataChanged(index(row, 0), index(row, m_columnHeaders.count() - 1));
+    int viewRow = mapFromSource(row);
+    if (viewRow >= 0) {
+        emit dataChanged(index(viewRow, 0), index(viewRow, m_columnHeaders.count() - 1));
+    }
     emit qsoUpdated(row);
 }
 
@@ -172,13 +198,14 @@ void QsoListModel::updateMultiplierCount(int row, int multCount)
 {
     if (row < 0 || row >= m_qsos.count())
         return;
-    
+
     m_qsos[row].setMultiplierCount(multCount);
-    
-    // Find the M column index to update just that cell
+
+    int viewRow = mapFromSource(row);
+    if (viewRow < 0) return;
     int multColIndex = m_columnHeaders.indexOf("M");
     if (multColIndex >= 0) {
-        emit dataChanged(index(row, multColIndex), index(row, multColIndex));
+        emit dataChanged(index(viewRow, multColIndex), index(viewRow, multColIndex));
     }
 }
 
@@ -186,13 +213,14 @@ void QsoListModel::updateDxccCount(int row, int dxccCount)
 {
     if (row < 0 || row >= m_qsos.count())
         return;
-    
+
     m_qsos[row].setDxccCount(dxccCount);
-    
-    // Find the C column index to update just that cell
+
+    int viewRow = mapFromSource(row);
+    if (viewRow < 0) return;
     int dxccColIndex = m_columnHeaders.indexOf("C");
     if (dxccColIndex >= 0) {
-        emit dataChanged(index(row, dxccColIndex), index(row, dxccColIndex));
+        emit dataChanged(index(viewRow, dxccColIndex), index(viewRow, dxccColIndex));
     }
 }
 
@@ -200,17 +228,16 @@ void QsoListModel::updateItuRegionCount(int row, int ituRegionCount)
 {
     if (row < 0 || row >= m_qsos.count())
         return;
-    
+
     m_qsos[row].setItuRegionCount(ituRegionCount);
-    
-    // ITU regions may be displayed in a separate column if the contest uses them
-    // For now, we'll look for an "ITU" or similar column
+
+    int viewRow = mapFromSource(row);
+    if (viewRow < 0) return;
     int ituColIndex = m_columnHeaders.indexOf("ITU");
-    if (ituColIndex < 0) {
+    if (ituColIndex < 0)
         ituColIndex = m_columnHeaders.indexOf("Region");
-    }
     if (ituColIndex >= 0) {
-        emit dataChanged(index(row, ituColIndex), index(row, ituColIndex));
+        emit dataChanged(index(viewRow, ituColIndex), index(viewRow, ituColIndex));
     }
 }
 
@@ -221,12 +248,14 @@ void QsoListModel::updateGridSquareMultiplier(int row, const QString& gridSquare
     
     DebugLogger::instance().log("QsoListModel", QString("updateGridSquareMultiplier: row=%1, gridSquare='%2'").arg(row).arg(gridSquare));
     m_qsos[row].setGridSquareMultiplier(gridSquare);
-    
-    // Look for GRID_MULT column
-    int gridMultColIndex = m_columnHeaders.indexOf("GRID_MULT");
-    DebugLogger::instance().log("QsoListModel", QString("  GRID_MULT column index: %1").arg(gridMultColIndex));
-    if (gridMultColIndex >= 0) {
-        emit dataChanged(index(row, gridMultColIndex), index(row, gridMultColIndex));
+
+    int viewRow = mapFromSource(row);
+    if (viewRow >= 0) {
+        int gridMultColIndex = m_columnHeaders.indexOf("GRID_MULT");
+        DebugLogger::instance().log("QsoListModel", QString("  GRID_MULT column index: %1").arg(gridMultColIndex));
+        if (gridMultColIndex >= 0) {
+            emit dataChanged(index(viewRow, gridMultColIndex), index(viewRow, gridMultColIndex));
+        }
     }
 }
 
@@ -236,11 +265,12 @@ void QsoListModel::updateGridSquareMultiplierCount(int row, int gridSquareMultCo
         return;
     
     m_qsos[row].setGridSquareMultiplierCount(gridSquareMultCount);
-    
-    // Look for GRID_MULT column
+
+    int viewRow = mapFromSource(row);
+    if (viewRow < 0) return;
     int gridMultColIndex = m_columnHeaders.indexOf("GRID_MULT");
     if (gridMultColIndex >= 0) {
-        emit dataChanged(index(row, gridMultColIndex), index(row, gridMultColIndex));
+        emit dataChanged(index(viewRow, gridMultColIndex), index(viewRow, gridMultColIndex));
     }
 }
 
@@ -255,6 +285,7 @@ void QsoListModel::clear()
 {
     beginResetModel();
     m_qsos.clear();
+    m_visibleIndices.clear();
     endResetModel();
 }
 
@@ -262,6 +293,7 @@ void QsoListModel::replaceAll(const QList<QsoRecord>& qsos)
 {
     beginResetModel();
     m_qsos = qsos;
+    rebuildVisibleIndices();
     endResetModel();
 }
 
@@ -270,8 +302,111 @@ void QsoListModel::reverseQsos()
     if (m_qsos.isEmpty()) {
         return;
     }
-    
+
     beginResetModel();
     std::reverse(m_qsos.begin(), m_qsos.end());
+    endResetModel();
+}
+
+void QsoListModel::sort(int column, Qt::SortOrder order)
+{
+    if (column < 0 || column >= m_columnHeaders.size() || m_qsos.isEmpty())
+        return;
+
+    emit layoutAboutToBeChanged();
+
+    const QString header = m_columnHeaders.at(column).toUpper();
+    const QString origHeader = m_columnHeaders.at(column);
+
+    std::stable_sort(m_qsos.begin(), m_qsos.end(),
+        [&](const QsoRecord& a, const QsoRecord& b) {
+            bool lessThan = false;
+
+            if (header == "#" || header == "SERIAL" || header == "NR") {
+                lessThan = a.getSerial() < b.getSerial();
+            } else if (header == "DATE" || header == "TIME") {
+                lessThan = a.getDateTime() < b.getDateTime();
+            } else if (header == "FREQUENCY" || header == "FREQ") {
+                lessThan = a.getFrequency().toDouble() < b.getFrequency().toDouble();
+            } else if (header == "CALL") {
+                lessThan = a.getCall() < b.getCall();
+            } else if (header == "MODE") {
+                lessThan = a.getMode() < b.getMode();
+            } else if (header == "RSTS") {
+                lessThan = a.getRstSent() < b.getRstSent();
+            } else if (header == "RSTR") {
+                lessThan = a.getRstReceived() < b.getRstReceived();
+            } else if (header == "DUPE") {
+                lessThan = (a.isDupe() ? 1 : 0) < (b.isDupe() ? 1 : 0);
+            } else if (header == "M") {
+                lessThan = a.getMultiplierCount() < b.getMultiplierCount();
+            } else if (header == "C") {
+                lessThan = a.getDxccCount() < b.getDxccCount();
+            } else if (header == "P" || header == "POINTS") {
+                lessThan = a.getPoints() < b.getPoints();
+            } else {
+                // Exchange fields and anything else — string comparison
+                lessThan = a.getExchangeField(origHeader) < b.getExchangeField(origHeader);
+            }
+
+            return order == Qt::AscendingOrder ? lessThan : !lessThan;
+        });
+
+    rebuildVisibleIndices();
+    emit layoutChanged();
+}
+
+int QsoListModel::mapToSource(int viewRow) const
+{
+    if (m_visibleIndices.isEmpty())
+        return viewRow;
+    if (viewRow < 0 || viewRow >= m_visibleIndices.count())
+        return -1;
+    return m_visibleIndices.at(viewRow);
+}
+
+int QsoListModel::mapFromSource(int sourceRow) const
+{
+    if (m_visibleIndices.isEmpty())
+        return sourceRow;
+    return m_visibleIndices.indexOf(sourceRow);
+}
+
+void QsoListModel::rebuildVisibleIndices()
+{
+    m_visibleIndices.clear();
+    if (m_filterText.isEmpty())
+        return;
+    for (int i = 0; i < m_qsos.count(); ++i) {
+        if (matchesFilter(m_qsos.at(i)))
+            m_visibleIndices.append(i);
+    }
+}
+
+bool QsoListModel::matchesFilter(const QsoRecord& qso) const
+{
+    if (m_filterText.isEmpty())
+        return true;
+    const QString filter = m_filterText.toLower();
+    const QStringList fields = {
+        qso.getCall(),
+        qso.getMode(),
+        qso.getExchangeSent(),
+        qso.getExchangeReceived(),
+        qso.getComment(),
+        qso.getFrequency(),
+    };
+    for (const QString& field : fields) {
+        if (field.toLower().contains(filter))
+            return true;
+    }
+    return false;
+}
+
+void QsoListModel::setFilter(const QString& text)
+{
+    beginResetModel();
+    m_filterText = text;
+    rebuildVisibleIndices();
     endResetModel();
 }

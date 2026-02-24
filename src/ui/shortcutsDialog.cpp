@@ -15,7 +15,8 @@
 
 const QList<ShortcutsWidget::DefaultShortcut> ShortcutsWidget::DEFAULT_SHORTCUTS = {
     {"clearQsoEntry", "Clear QSO Entry Panel", "Ctrl+W"},
-    {"preSaveCall", "Save QSO Fields to Call History (without logging)", "Ctrl+S"}
+    {"preSaveCall", "Save QSO Fields to Call History (without logging)", "Ctrl+S"},
+    {"qsoViewFilter", "Filter QSO Log", "Ctrl+F"}
 };
 
 ShortcutsWidget::ShortcutsWidget(QWidget* parent)

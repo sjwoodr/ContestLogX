@@ -72,6 +72,7 @@
 #include <QColor>
 #include <QPalette>
 #include <QKeySequence>
+#include <QShortcut>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -81,6 +82,9 @@ MainWindow::MainWindow(QWidget *parent)
     , m_qrzButton(nullptr)
     , m_qsoTable(nullptr)
     , m_statusLabel(nullptr)
+    , m_filterBar(nullptr)
+    , m_filterEdit(nullptr)
+    , m_filterShortcut(nullptr)
     , m_freqModeButton(nullptr)
     , m_contestNameLabel(nullptr)
     , m_qsoCountLabel(nullptr)
@@ -334,6 +338,16 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
     if (event->type() == QEvent::KeyPress) {
         QKeyEvent *keyEvent = static_cast<QKeyEvent*>(event);
         QLineEdit* lineEdit = qobject_cast<QLineEdit*>(obj);
+
+        // Escape in the filter bar hides it and clears the filter
+        if (obj == m_filterEdit && keyEvent->key() == Qt::Key_Escape) {
+            m_filterEdit->clear();
+            m_filterBar->setVisible(false);
+            m_qsoModel->setFilter("");
+            m_statusLabel->setText("Ready");
+            m_callEdit->setFocus();
+            return true;
+        }
         
         // Handle Space and/or Tab keys to advance to next text input field (wraps around)
         // Which keys are used depends on contest definition
@@ -416,6 +430,8 @@ void MainWindow::setupUi()
     m_qsoTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_qsoTable->setSelectionMode(QAbstractItemView::SingleSelection);
     m_qsoTable->horizontalHeader()->setStretchLastSection(true);
+    m_qsoTable->horizontalHeader()->setSortIndicatorShown(true);
+    m_qsoTable->setSortingEnabled(true);
     m_qsoTable->verticalHeader()->setVisible(false);
     m_qsoTable->setMinimumHeight(400);
     
@@ -429,10 +445,67 @@ void MainWindow::setupUi()
     connect(m_qsoTable, &QTableView::customContextMenuRequested, this, &MainWindow::onQsoContextMenuRequested);
     connect(m_qsoTable->horizontalHeader(), &QHeaderView::sectionResized,
             this, &MainWindow::onColumnResized);
+    connect(m_qsoTable->horizontalHeader(), &QHeaderView::sortIndicatorChanged,
+            this, [this](int logicalIndex, Qt::SortOrder order) {
+                QStringList headers = m_qsoModel->columnHeaders();
+                if (logicalIndex == 0 && order == Qt::AscendingOrder) {
+                    m_statusLabel->setText("Ready");
+                } else if (logicalIndex >= 0 && logicalIndex < headers.size()) {
+                    QString arrow = (order == Qt::AscendingOrder) ? u8"\u25b2" : u8"\u25bc";
+                    m_statusLabel->setText(QString("Sorted by %1 %2")
+                        .arg(headers.at(logicalIndex), arrow));
+                }
+            });
     restoreColumnWidths();
-    
+
     leftLayout->addWidget(m_qsoTable, 1);
-    
+
+    // Filter bar (hidden by default, shown via Ctrl+F shortcut)
+    m_filterBar = new QWidget(this);
+    m_filterBar->setVisible(false);
+    QHBoxLayout *filterLayout = new QHBoxLayout(m_filterBar);
+    filterLayout->setContentsMargins(4, 2, 4, 2);
+    filterLayout->setSpacing(6);
+    QLabel *filterLabel = new QLabel("Filter:");
+    m_filterEdit = new QLineEdit();
+    m_filterEdit->setPlaceholderText("Type to filter QSOs...");
+    m_filterEdit->installEventFilter(this);
+    QPushButton *filterClearBtn = new QPushButton("x");
+    filterClearBtn->setMaximumWidth(28);
+    filterLayout->addWidget(filterLabel);
+    filterLayout->addWidget(m_filterEdit, 1);
+    filterLayout->addWidget(filterClearBtn);
+    leftLayout->addWidget(m_filterBar);
+    connect(m_filterEdit, &QLineEdit::textChanged, this, [this](const QString& text) {
+        m_qsoModel->setFilter(text);
+        if (text.isEmpty()) {
+            m_statusLabel->setText("Ready");
+        } else {
+            int visible = m_qsoModel->rowCount();
+            int total = m_qsoModel->count();
+            m_statusLabel->setText(QString("Filter: %1 of %2 QSOs").arg(visible).arg(total));
+        }
+    });
+    connect(filterClearBtn, &QPushButton::clicked, this, [this]() {
+        m_filterEdit->clear();
+        m_filterBar->setVisible(false);
+        m_qsoModel->setFilter("");
+        m_statusLabel->setText("Ready");
+    });
+
+    // Register window-level shortcut for the QSO filter so it fires regardless of focus
+    {
+        QMap<QString, QString> storedShortcuts = Settings::instance().getShortcuts();
+        QString filterKey = storedShortcuts.value("qsoViewFilter", "Ctrl+F");
+        m_filterShortcut = new QShortcut(QKeySequence(filterKey), this);
+        m_filterShortcut->setContext(Qt::WindowShortcut);
+        connect(m_filterShortcut, &QShortcut::activated, this, [this]() {
+            m_filterBar->setVisible(true);
+            m_filterEdit->setFocus();
+            m_filterEdit->selectAll();
+        });
+    }
+
     // Entry form at BOTTOM
     QWidget *entryPanel = new QWidget(this);
     QHBoxLayout *entryPanelLayout = new QHBoxLayout(entryPanel);
@@ -2314,6 +2387,13 @@ void MainWindow::onPreferences()
 {
     PreferencesDialog dialog(this);
     if (dialog.exec() == QDialog::Accepted) {
+        // Update filter shortcut key in case it was changed
+        if (m_filterShortcut) {
+            QMap<QString, QString> storedShortcuts = Settings::instance().getShortcuts();
+            QString filterKey = storedShortcuts.value("qsoViewFilter", "Ctrl+F");
+            m_filterShortcut->setKey(QKeySequence(filterKey));
+        }
+
         if (dialog.themeChanged()) {
             applyTheme();
         }
@@ -2426,8 +2506,17 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
     QKeySequence eventSeq(keyWithModifiers);
     QString eventSeqStr = eventSeq.toString();
 
-    // Check against registered shortcuts
+    // Check against registered shortcuts (merge with hard-coded defaults for any not yet saved)
     QMap<QString, QString> shortcuts = Settings::instance().getShortcuts();
+    static const QMap<QString, QString> defaultShortcuts = {
+        {"clearQsoEntry", "Ctrl+W"},
+        {"preSaveCall",   "Ctrl+S"},
+        {"qsoViewFilter", "Ctrl+F"},
+    };
+    for (auto dit = defaultShortcuts.begin(); dit != defaultShortcuts.end(); ++dit) {
+        if (!shortcuts.contains(dit.key()))
+            shortcuts[dit.key()] = dit.value();
+    }
 
     for (auto it = shortcuts.begin(); it != shortcuts.end(); ++it) {
         QKeySequence storedSeq(it.value());
@@ -2440,6 +2529,11 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
                 return;
             } else if (it.key() == "preSaveCall") {
                 preSaveCall();
+                return;
+            } else if (it.key() == "qsoViewFilter") {
+                m_filterBar->setVisible(true);
+                m_filterEdit->setFocus();
+                m_filterEdit->selectAll();
                 return;
             }
         }
@@ -2476,6 +2570,18 @@ void MainWindow::onCallChanged(const QString& text)
     if (callsign.isEmpty()) {
         m_statusLabel->setText("Ready");
         return;
+    }
+
+    // Reset sort to default (#/serial) as soon as the operator starts typing,
+    // so the new entry will appear at the bottom of the log when logged.
+    if (m_qsoTable->horizontalHeader()->sortIndicatorSection() != 0)
+        m_qsoTable->sortByColumn(0, Qt::AscendingOrder);
+
+    // Clear any active filter when the user starts working on a new QSO entry
+    if (m_filterBar && m_filterBar->isVisible()) {
+        m_filterEdit->clear();
+        m_filterBar->setVisible(false);
+        m_qsoModel->setFilter("");
     }
     
     bool found = false;
@@ -3011,7 +3117,7 @@ void MainWindow::onLogQso()
     
     clearEntryForm();
     m_callEdit->setFocus();
-    
+
     // Update QSO count in status bar
     m_qsoCountLabel->setText(QString("QSOs: %1").arg(m_qsoModel->count()));
 }
