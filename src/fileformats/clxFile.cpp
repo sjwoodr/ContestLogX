@@ -220,8 +220,12 @@ QJsonObject ClxFile::toJson() const
         qsoJson["id"] = id++;
         qsoJson["serial"] = (int)qso.getSerial();
         qsoJson["timestamp"] = qso.getDateTime().toUTC().toString(Qt::ISODate);
-        qsoJson["frequency"] = qso.getFrequency().toDouble();
-        qsoJson["band"] = qso.getBand();
+        double freqKhz = qso.getFrequency().toDouble();
+        qsoJson["frequency"] = freqKhz;
+        QString band = qso.getBand();
+        if (band.isEmpty() && freqKhz > 0)
+            band = BandPlan::freq2Band(freqKhz);
+        qsoJson["band"] = band;
         qsoJson["mode"] = qso.getMode();
         qsoJson["callsign"] = qso.getCall();
         qsoJson["duplicate"] = qso.isDupe();

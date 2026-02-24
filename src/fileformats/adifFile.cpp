@@ -4,6 +4,7 @@
  */
 
 #include "adifFile.h"
+#include "../utils/bandPlan.h"
 #include <QApplication>
 #include <QFile>
 #include <QTextStream>
@@ -73,6 +74,15 @@ bool AdifFile::load(const QString& filename, QList<QsoRecord>& qsos)
         if (tags.contains("FREQ")) {
             double freqMHz = tags["FREQ"].toDouble();
             qso.setFrequency(QString::number(freqMHz * 1000.0, 'f', 1));
+        }
+
+        // Band: read ADIF BAND tag directly; fall back to deriving from frequency
+        if (tags.contains("BAND")) {
+            qso.setBandName(tags["BAND"]);
+        } else if (!qso.getFrequency().isEmpty()) {
+            QString band = BandPlan::freq2Band(qso.getFrequency().toDouble());
+            if (!band.isEmpty())
+                qso.setBandName(band);
         }
 
         if (tags.contains("MODE"))
