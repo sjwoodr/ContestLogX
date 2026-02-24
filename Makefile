@@ -79,13 +79,13 @@ version:
 	echo "Updating version to $$NEW_VERSION..."; \
 	sed -i "s/project(ContestLogX VERSION [0-9.]*/project(ContestLogX VERSION $$NEW_VERSION/" CMakeLists.txt; \
 	sed -i "s/ContestLogX v[0-9.]*/ContestLogX v$$NEW_VERSION/" README.md; \
-	sed -i 's/Version [0-9.]*\( (Alpha)\)/Version '"$$NEW_VERSION"'\1/' src/ui/mainwindow.cpp; \
+	sed -i 's/Version [0-9.]*\( (Beta)\)/Version '"$$NEW_VERSION"'\1/' src/ui/mainWindow.cpp; \
 	sed -i 's/APP_VERSION = "[0-9.]*"/APP_VERSION = "'"$$NEW_VERSION"'"/' src/main.cpp; \
 	echo "Version updated to $$NEW_VERSION in:"; \
 	echo "  - CMakeLists.txt"; \
 	echo "  - README.md"; \
 	echo "  - src/main.cpp"; \
-	echo "  - src/ui/mainwindow.cpp"; \
+	echo "  - src/ui/mainWindow.cpp"; \
 	echo ""; \
 	echo "Regenerating CMake cache..."; \
 	rm -rf build/CMakeCache.txt build/CMakeFiles; \
