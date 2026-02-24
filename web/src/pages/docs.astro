@@ -198,9 +198,19 @@ F8  N9OH`}</pre>
           <p class="opacity-80 mt-2">Access via <strong>File → Export</strong> and choose the desired format.</p>
 
           <h3 class="text-lg font-semibold mb-2 mt-4">Import</h3>
-          <p class="opacity-80">
+          <p class="opacity-80 mb-2">
             Existing logs in Cabrillo or ADIF format can be imported into ContestLogX via <strong>File → Import</strong>.
             This is useful for migrating logs from other software or re-scoring old contest logs.
+          </p>
+          <p class="opacity-80 mb-2">
+            <strong>Cabrillo import is preferred over ADIF for contest logs.</strong> ADIF is a general-purpose
+            format and does not have standard field names for contest-specific exchanges (e.g., state, serial number,
+            power category). ContestLogX can only map a small set of well-known ADIF fields; non-standard fields
+            used by other loggers are not recognized, and contest exchange fields will often be empty after an ADIF import.
+          </p>
+          <p class="opacity-80">
+            Cabrillo files contain the exchange data in a structured, contest-specific format and import cleanly.
+            If your logging software can export both formats, use Cabrillo for importing contest logs into ContestLogX.
           </p>
         </section>
 
