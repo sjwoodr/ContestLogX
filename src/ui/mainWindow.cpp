@@ -18,7 +18,7 @@
 #include "cabrilloDialog.h"
 #include "callHistoryDialog.h"
 #include "scpDialog.h"
-#include "cabrilloExport.h"
+#include "cabrilloFile.h"
 #include "contestEngine.h"
 #include "fileHandler.h"
 #include "clxFile.h"
@@ -3676,7 +3676,7 @@ void MainWindow::onExportCabrillo()
     }
     
     // Export
-    CabrilloExport exporter;
+    CabrilloFile exporter;
     QString myCallsign = getSessionCallsign();
     QString selectedMode = m_contestEngine->getStationClassMode();
     if (!exporter.exportToFile(fileName, m_qsoModel->getAllQsos(), m_contestDefinition, dialog.getHeaderData(), myCallsign, selectedMode)) {

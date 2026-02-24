@@ -56,10 +56,12 @@ set(SOURCES
     src/core/exchangeField.cpp
     src/core/loadingWorker.cpp
     src/core/scoringWorker.cpp
-    src/core/cabrilloExport.cpp
     src/callHistory.cpp
     src/superCheckPartial.cpp
     src/fileformats/clxFile.cpp
+    src/fileformats/adifFile.cpp
+    src/fileformats/cabrilloFile.cpp
+    src/fileformats/csvFile.cpp
     src/rig/flrigClient.cpp
     src/utils/settings.cpp
     src/utils/debugLogger.cpp
@@ -80,7 +82,9 @@ set(HEADERS
     include/preferencesDialog.h
     include/theme.h
     include/cabrilloDialog.h
-    include/cabrilloExport.h
+    include/cabrilloFile.h
+    include/adifFile.h
+    include/csvFile.h
     include/callHistoryDialog.h
     include/scpDialog.h
     include/scpWidget.h
