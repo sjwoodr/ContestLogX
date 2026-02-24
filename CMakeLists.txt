@@ -26,101 +26,101 @@ include_directories(
 # Source files
 set(SOURCES
     src/main.cpp
-    src/ui/mainwindow.cpp
-    src/ui/rigcontroldialog.cpp
-    src/ui/freqmodedialog.cpp
-    src/ui/cwwindow.cpp
-    src/ui/cwmemoriesdialog.cpp
-    src/ui/ssbmemoriesdialog.cpp
-    src/ui/ssbkeyingsetupdialog.cpp
-    src/ui/ssbmemorieswidget.cpp
-    src/ui/dxclusterpanel.cpp
-    src/ui/scorewidget.cpp
-    src/ui/multiplierwidget.cpp
-    src/ui/preferencesdialog.cpp
-    src/stationclassdialog.cpp
-    src/contestselectdialog.cpp
-    src/ui/shortcutsdialog.cpp
-    src/ui/qsoeditdialog.cpp
-    src/ui/cabrillodialog.cpp
-    src/ui/callhistorydialog.cpp
-    src/ui/scpdialog.cpp
-    src/ui/scpwidget.cpp
-    src/ui/scplineedit.cpp
-    src/contestengine.cpp
-    src/core/qsorecord.cpp
-    src/core/qsolistmodel.cpp
-    src/core/filehandler.cpp
-    src/core/contestinfo.cpp
-    src/core/stationinfo.cpp
-    src/core/exchangefield.cpp
-    src/core/loadingworker.cpp
-    src/core/scoringworker.cpp
-    src/core/cabrilloexport.cpp
-    src/callhistory.cpp
-    src/supercheckpartial.cpp
-    src/fileformats/clxfile.cpp
-    src/rig/flrigclient.cpp
+    src/ui/mainWindow.cpp
+    src/ui/rigControlDialog.cpp
+    src/ui/freqModeDialog.cpp
+    src/ui/cwWindow.cpp
+    src/ui/cwMemoriesDialog.cpp
+    src/ui/ssbMemoriesDialog.cpp
+    src/ui/ssbKeyingSetupDialog.cpp
+    src/ui/ssbMemoriesWidget.cpp
+    src/ui/dxClusterPanel.cpp
+    src/ui/scoreWidget.cpp
+    src/ui/multiplierWidget.cpp
+    src/ui/preferencesDialog.cpp
+    src/stationClassDialog.cpp
+    src/contestSelectDialog.cpp
+    src/ui/shortcutsDialog.cpp
+    src/ui/qsoEditDialog.cpp
+    src/ui/cabrilloDialog.cpp
+    src/ui/callHistoryDialog.cpp
+    src/ui/scpDialog.cpp
+    src/ui/scpWidget.cpp
+    src/ui/scpLineEdit.cpp
+    src/contestEngine.cpp
+    src/core/qsoRecord.cpp
+    src/core/qsoListModel.cpp
+    src/core/fileHandler.cpp
+    src/core/contestInfo.cpp
+    src/core/stationInfo.cpp
+    src/core/exchangeField.cpp
+    src/core/loadingWorker.cpp
+    src/core/scoringWorker.cpp
+    src/core/cabrilloExport.cpp
+    src/callHistory.cpp
+    src/superCheckPartial.cpp
+    src/fileformats/clxFile.cpp
+    src/rig/flrigClient.cpp
     src/utils/settings.cpp
-    src/utils/debuglogger.cpp
-    src/utils/bandplan.cpp
-    src/utils/callsignutils.cpp
-    src/utils/ttsmanager.cpp
-    src/utils/pipermanager.cpp
+    src/utils/debugLogger.cpp
+    src/utils/bandPlan.cpp
+    src/utils/callsignUtils.cpp
+    src/utils/ttsManager.cpp
+    src/utils/piperManager.cpp
     src/database/dxccDatabase.cpp
-    src/qrzcqapi.cpp
+    src/qrzcqApi.cpp
 )
 
 set(HEADERS
-    include/mainwindow.h
-    include/rigcontroldialog.h
-    include/stationclassdialog.h
-    include/contestselectdialog.h
-    include/shortcutsdialog.h
-    include/preferencesdialog.h
+    include/mainWindow.h
+    include/rigControlDialog.h
+    include/stationClassDialog.h
+    include/contestSelectDialog.h
+    include/shortcutsDialog.h
+    include/preferencesDialog.h
     include/theme.h
-    include/cabrillodialog.h
-    include/cabrilloexport.h
-    include/callhistorydialog.h
-    include/scpdialog.h
-    include/scpwidget.h
-    include/scplineedit.h
-    include/qsoeditdialog.h
-    include/contestengine.h
-    include/scorewidget.h
-    include/multiplierwidget.h
-    src/ui/freqmodedialog.h
-    src/ui/cwwindow.h
-    src/ui/cwmemoriesdialog.h
-    src/ui/ssbmemoriesdialog.h
-    src/ui/ssbkeyingsetupdialog.h
-    include/ssbmemorieswidget.h
-    src/ui/dxclusterpanel.h
-    include/qsorecord.h
-    include/qsolistmodel.h
-    include/filehandler.h
-    include/contestinfo.h
-    include/stationinfo.h
-    include/exchangefield.h
-    include/loadingworker.h
-     include/scoringworker.h
-     include/clxfile.h
-     include/flrigclient.h
+    include/cabrilloDialog.h
+    include/cabrilloExport.h
+    include/callHistoryDialog.h
+    include/scpDialog.h
+    include/scpWidget.h
+    include/scpLineEdit.h
+    include/qsoEditDialog.h
+    include/contestEngine.h
+    include/scoreWidget.h
+    include/multiplierWidget.h
+    src/ui/freqModeDialog.h
+    src/ui/cwWindow.h
+    src/ui/cwMemoriesDialog.h
+    src/ui/ssbMemoriesDialog.h
+    src/ui/ssbKeyingSetupDialog.h
+    include/ssbMemoriesWidget.h
+    src/ui/dxClusterPanel.h
+    include/qsoRecord.h
+    include/qsoListModel.h
+    include/fileHandler.h
+    include/contestInfo.h
+    include/stationInfo.h
+    include/exchangeField.h
+    include/loadingWorker.h
+     include/scoringWorker.h
+     include/clxFile.h
+     include/flrigClient.h
      include/settings.h
-     include/callhistory.h
-     include/supercheckpartial.h
-     include/debuglogger.h
-     include/ttsmanager.h
-     include/pipermanager.h
-     src/utils/bandplan.h
-     src/utils/callsignutils.h
+     include/callHistory.h
+     include/superCheckPartial.h
+     include/debugLogger.h
+     include/ttsManager.h
+     include/piperManager.h
+     src/utils/bandPlan.h
+     src/utils/callsignUtils.h
      include/dxccDatabase.h
-     include/qrzcqapi.h
+     include/qrzcqApi.h
 )
 
 # UI files
 set(UI_FILES
-    ui/mainwindow.ui
+    ui/mainWindow.ui
 )
 
 # Qt resources

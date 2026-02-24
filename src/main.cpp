@@ -3,8 +3,8 @@
  * Copyright (c) 2025-2026, by Steve Woodruff, N9OH
  */
 
-#include "mainwindow.h"
-#include "debuglogger.h"
+#include "mainWindow.h"
+#include "debugLogger.h"
 #include "theme.h"
 #include "settings.h"
 #include <QApplication>

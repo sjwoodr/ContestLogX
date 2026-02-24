@@ -22,7 +22,7 @@ endfunction()
 
 # QsoRecord tests
 add_clx_test(test_qsorecord test_qsorecord.cpp 
-    ${CMAKE_SOURCE_DIR}/src/core/qsorecord.cpp)
+    ${CMAKE_SOURCE_DIR}/src/core/qsoRecord.cpp)
 
 # Settings tests
 add_clx_test(test_settings test_settings.cpp
@@ -30,15 +30,15 @@ add_clx_test(test_settings test_settings.cpp
 
 # CallsignUtils tests
 add_clx_test(test_callsignutils test_callsignutils.cpp
-    ${CMAKE_SOURCE_DIR}/src/utils/callsignutils.cpp)
+    ${CMAKE_SOURCE_DIR}/src/utils/callsignUtils.cpp)
 
 # BandPlan tests
 add_clx_test(test_bandplan test_bandplan.cpp
-    ${CMAKE_SOURCE_DIR}/src/utils/bandplan.cpp)
+    ${CMAKE_SOURCE_DIR}/src/utils/bandPlan.cpp)
 
 # Dupe Checking tests
 add_clx_test(test_dupecheck test_dupecheck.cpp
-    ${CMAKE_SOURCE_DIR}/src/core/qsorecord.cpp)
+    ${CMAKE_SOURCE_DIR}/src/core/qsoRecord.cpp)
 
 # TODO: Portable Callsigns tests
 # test_portable_callsigns.cpp provides comprehensive unit tests for:

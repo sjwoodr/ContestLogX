@@ -4,7 +4,7 @@
  */
 
 #include <QtTest/QtTest>
-#include "../src/utils/bandplan.h"
+#include "../src/utils/bandPlan.h"
 
 class TestBandPlan : public QObject
 {

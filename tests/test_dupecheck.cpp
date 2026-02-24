@@ -4,7 +4,7 @@
  */
 
 #include <QtTest/QtTest>
-#include "../include/qsorecord.h"
+#include "../include/qsoRecord.h"
 
 class TestDupeChecking : public QObject
 {

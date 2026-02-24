@@ -1,5 +1,5 @@
 #include "dxccDatabase.h"
-#include "debuglogger.h"
+#include "debugLogger.h"
 #include "settings.h"
 #include <QFile>
 #include <QTextStream>

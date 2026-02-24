@@ -4,7 +4,7 @@
  */
 
 #include <QtTest/QtTest>
-#include "../src/utils/callsignutils.h"
+#include "../src/utils/callsignUtils.h"
 
 class TestCallsignUtils : public QObject
 {

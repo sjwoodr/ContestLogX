@@ -13,8 +13,8 @@
 #include <QMap>
 #include <QList>
 #include <QFont>
-#include "cwmemory.h"
-#include "ssbmemory.h"
+#include "cwMemory.h"
+#include "ssbMemory.h"
 
 /**
  * @brief Application settings manager
