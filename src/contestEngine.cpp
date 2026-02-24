@@ -151,12 +151,18 @@ void ContestEngine::cacheContestProperties()
             m_cachedIncludeWaeEntities  = mults["includeWaeEntities"].toBool(false);
 
             // Multiplier categories (may be station-class specific)
+            // JSON key is "stationClassMultipliers"; also accept legacy "stationClassCategories"
             m_cachedMultCategories.clear();
-            if (!m_stationClass.isEmpty() && mults.contains("stationClassCategories")) {
-                QJsonObject scCats = mults["stationClassCategories"].toObject();
-                if (scCats.contains(m_stationClass)) {
-                    for (const QJsonValue& v : scCats[m_stationClass].toArray())
-                        m_cachedMultCategories.append(v.toString());
+            if (!m_stationClass.isEmpty()) {
+                for (const QString& key : {"stationClassMultipliers", "stationClassCategories"}) {
+                    if (mults.contains(key)) {
+                        QJsonObject scCats = mults[key].toObject();
+                        if (scCats.contains(m_stationClass)) {
+                            for (const QJsonValue& v : scCats[m_stationClass].toArray())
+                                m_cachedMultCategories.append(v.toString());
+                            break;
+                        }
+                    }
                 }
             }
             if (m_cachedMultCategories.isEmpty() && mults.contains("categories")) {
