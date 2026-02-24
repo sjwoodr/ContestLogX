@@ -81,11 +81,14 @@ version:
 	sed -i "s/ContestLogX v[0-9.]*/ContestLogX v$$NEW_VERSION/" README.md; \
 	sed -i 's/Version [0-9.]*\( (Beta)\)/Version '"$$NEW_VERSION"'\1/' src/ui/mainWindow.cpp; \
 	sed -i 's/APP_VERSION = "[0-9.]*"/APP_VERSION = "'"$$NEW_VERSION"'"/' src/main.cpp; \
+	sed -i "s|releases/download/v[0-9.]*/ContestLogX\.[0-9.]*\.|releases/download/v$$NEW_VERSION/ContestLogX.$$NEW_VERSION.|g" web/src/pages/download.astro; \
+	sed -i "s/Version [0-9.]* (Beta)/Version $$NEW_VERSION (Beta)/g" web/src/pages/download.astro; \
 	echo "Version updated to $$NEW_VERSION in:"; \
 	echo "  - CMakeLists.txt"; \
 	echo "  - README.md"; \
 	echo "  - src/main.cpp"; \
 	echo "  - src/ui/mainWindow.cpp"; \
+	echo "  - web/src/pages/download.astro"; \
 	echo ""; \
 	echo "Regenerating CMake cache..."; \
 	rm -rf build/CMakeCache.txt build/CMakeFiles; \
