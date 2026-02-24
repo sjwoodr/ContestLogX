@@ -252,6 +252,24 @@ static void applyContestMeta(ClxFile& clxFile, const QJsonObject& contestDef,
         if (!it.value().isEmpty())
             clxFile.contest().setCategory("userPrompt_" + it.key(), it.value());
     }
+
+    // Persist the contest mode for any userPrompt with "restrictMode": true.
+    // This populates ContestInfo::mode() so the load path can restore setRestrictedMode()
+    // independently of the userPromptValues mechanism.
+    if (contestDef.contains("userPrompts")) {
+        QJsonArray prompts = contestDef["userPrompts"].toArray();
+        for (const QJsonValue& pv : prompts) {
+            QJsonObject p = pv.toObject();
+            if (p["restrictMode"].toBool(false)) {
+                QString id = p["id"].toString();
+                QString modeValue = userPromptValues.value(id);
+                if (!modeValue.isEmpty()) {
+                    clxFile.contest().setMode(modeValue);
+                    break;
+                }
+            }
+        }
+    }
 }
 
 bool FileHandler::saveClxWithContest(const QString& filename, const QList<QsoRecord>& qsos,
