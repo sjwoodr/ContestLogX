@@ -18,7 +18,7 @@ import Layout from '../layouts/Layout.astro';
         <ol class="space-y-1 opacity-80 list-decimal list-inside">
           <li><a href="#getting-started" class="hover:underline" style="color: #58a6ff;">Getting Started</a></li>
           <li><a href="#rig-control" class="hover:underline" style="color: #58a6ff;">Rig Control via flrig</a></li>
-          <li><a href="#logging" class="hover:underline" style="color: #58a6ff;">Logging a QSO</a></li>
+          <li><a href="#logging" class="hover:underline" style="color: #58a6ff;">Logging a QSO, Sorting &amp; Filtering</a></li>
           <li><a href="#call-history" class="hover:underline" style="color: #58a6ff;">Call History &amp; Exchange Autofill</a></li>
           <li><a href="#cw-ssb-memories" class="hover:underline" style="color: #58a6ff;">CW &amp; SSB Memories</a></li>
           <li><a href="#import-export" class="hover:underline" style="color: #58a6ff;">Importing &amp; Exporting Logs</a></li>
@@ -111,6 +111,21 @@ import Layout from '../layouts/Layout.astro';
             <li>Fill in received exchange fields (RST, name, state, serial, etc.).</li>
             <li>Press <strong>Enter</strong> to log the QSO. The entry row clears and the QSO is appended to the log.</li>
           </ol>
+
+          <h3 class="text-lg font-semibold mb-2 mt-6">Sorting the Log</h3>
+          <p class="opacity-80">
+            Click any column header to sort the log by that field — click again to reverse the order. The status bar shows
+            the active sort (e.g., <em>Sorted by CALL ▲</em>). The sort resets to chronological order automatically when
+            you start typing a new callsign.
+          </p>
+
+          <h3 class="text-lg font-semibold mb-2 mt-4">Filtering the Log</h3>
+          <p class="opacity-80">
+            Press <strong>Ctrl+F</strong> (configurable in <strong>Preferences → Shortcuts</strong>) to open the filter bar.
+            Type any substring to narrow the log to matching QSOs — the search covers callsign, mode, exchange, comment, and
+            frequency. The status bar shows <em>Filter: N of M QSOs</em> while a filter is active. Press
+            <strong>Escape</strong>, click the clear button, or start typing in the entry fields to dismiss the filter.
+          </p>
 
           <h3 class="text-lg font-semibold mb-2 mt-6">Dupe Checking</h3>
           <p class="opacity-80">
