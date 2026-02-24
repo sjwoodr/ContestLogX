@@ -25,12 +25,16 @@ public:
     void setMemories(const QList<CwMemory>& memories);
     void setMemoriesFont(const QFont& font);
 
+public:
+    void sendCWText(const QString& text);
+
 public slots:
     // Trigger a specific memory (0-7 for F1-F8)
     void onMemoryButton(int fKey);
 
 signals:
     void wpmChanged(int wpm);
+    void memoryTriggered(int fKey, const QString& text);
 
 protected:
     bool eventFilter(QObject *obj, QEvent *event) override;
@@ -42,7 +46,6 @@ private slots:
     void onWpmChanged(int wpm);
 
 private:
-    void sendCWText(const QString& text);
     
     QTextEdit* historyText;
     QLineEdit* inputLine;

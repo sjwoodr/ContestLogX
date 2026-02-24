@@ -607,6 +607,10 @@ void MainWindow::setupUi()
     connect(m_ssbMemoriesWidget, &SsbMemoriesWidget::memoryTriggered,
             this, &MainWindow::onSsbMemoryTriggered);
 
+    // Connect CW memory triggered signal for macro substitution
+    connect(m_cwConsole, &CWWindow::memoryTriggered,
+            this, &MainWindow::onCwMemoryTriggered);
+
     // Enable nested docking and animated docks
     setDockNestingEnabled(true);
     setDockOptions(QMainWindow::AnimatedDocks | QMainWindow::AllowNestedDocks | QMainWindow::AllowTabbedDocks);
@@ -3305,6 +3309,28 @@ void MainWindow::onSsbMemoryTriggered(int memoryNumber, const QString& text)
         m_ttsManager->speak(expandedText);
     } else {
         DebugLogger::instance().log("MainWindow", "SSB keying disabled, skipping TTS");
+    }
+}
+
+void MainWindow::onCwMemoryTriggered(int fKey, const QString& text)
+{
+    DebugLogger::instance().log("MainWindow",
+        QString("CW Memory F%1 triggered: %2").arg(fKey + 1).arg(text));
+
+    QString expandedText = text;
+    expandedText.replace("{CALL}", m_callEdit->text().trimmed(), Qt::CaseInsensitive);
+    expandedText.replace("{MYCALL}", getSessionCallsign(), Qt::CaseInsensitive);
+
+    QString nextSerial = QString::number(m_qsoModel->count() + 1);
+    expandedText.replace("{SNs}", nextSerial, Qt::CaseInsensitive);
+    expandedText.replace("{SN}", nextSerial, Qt::CaseInsensitive);
+    expandedText.replace("{serial}", nextSerial, Qt::CaseInsensitive);
+
+    DebugLogger::instance().log("MainWindow",
+        QString("CW Memory expanded: %1").arg(expandedText));
+
+    if (m_cwConsole) {
+        m_cwConsole->sendCWText(expandedText);
     }
 }
 

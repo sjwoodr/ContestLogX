@@ -27,17 +27,30 @@ import Layout from '../layouts/Layout.astro';
       </p>
     </header>
 
-    <!-- Features -->
+    <!-- Why section -->
     <section class="max-w-3xl mt-10 text-left leading-relaxed">
+      <h2 class="text-2xl font-bold mb-4">Why another contest logger?</h2>
+      <p class="opacity-80 mb-4">
+        Most contest loggers are Windows-only, closed-source, or locked to a fixed set of contests.
+        ContestLogX is built from the ground up to run natively on Linux, macOS, and Windows — no
+        emulation, no workarounds. Every contest is defined in a simple JSON file, so you can add
+        support for any contest yourself without touching a line of C++. Whether you're a serious
+        DX contester or running a small club-sponsored event, ContestLogX adapts to you.
+      </p>
+    </section>
+
+    <!-- Features -->
+    <section class="w-full max-w-3xl mt-2 text-left leading-relaxed">
+      <h2 class="text-2xl font-bold mb-4">ContestLogX Features</h2>
       <ul class="space-y-2">
-        <li>Cross-Platform: Linux, OS X, Windows</li>
-        <li>Full rig control via flrig</li>
-        <li>User-defined contest modules in JSON format</li>
+        <li>Cross-Platform: Linux, macOS, Windows — first-class on all three</li>
+        <li>User-defined contest modules in JSON — add any contest without recompiling</li>
+        <li>Full rig control via <a href="https://www.w1hkj.org/" class="underline" style="color: #58a6ff;">flrig</a></li>
         <li>Lightning‑fast logging optimized for contest workflow</li>
         <li>Clean, modern UI with dark‑theme focus</li>
         <li>Callsign lookup and exchange autofill</li>
         <li>CW and SSB Memories utilizing TTS (text-to-speech)</li>
-        <li>Export to Cabrillo and ADIF formats</li>
+        <li>Import and export Cabrillo and ADIF formats</li>
         <li>Designed by an active contester for real‑world use</li>
       </ul>
     </section>

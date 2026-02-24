@@ -12,22 +12,54 @@ import Layout from '../layouts/Layout.astro';
         See ContestLogX in action with screenshots of the interface, features, and workflow.
       </p>
 
-      <!-- Placeholder for screenshot gallery -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div class="rounded-lg border p-6 h-64 flex items-center justify-center" style="background-color: #161b22; border-color: #30363d;">
-          <p style="color: #8b949e;">Screenshot coming soon</p>
+        <div class="rounded-lg overflow-hidden border" style="border-color: #30363d;">
+          <img src="/clx_ss_1.png" alt="ContestLogX screenshot 1" class="lightbox-trigger w-full h-auto cursor-zoom-in" />
         </div>
-        <div class="rounded-lg border p-6 h-64 flex items-center justify-center" style="background-color: #161b22; border-color: #30363d;">
-          <p style="color: #8b949e;">Screenshot coming soon</p>
+        <div class="rounded-lg overflow-hidden border" style="border-color: #30363d;">
+          <img src="/clx_ss_2.png" alt="ContestLogX screenshot 2" class="lightbox-trigger w-full h-auto cursor-zoom-in" />
         </div>
-        <div class="rounded-lg border p-6 h-64 flex items-center justify-center" style="background-color: #161b22; border-color: #30363d;">
-          <p style="color: #8b949e;">Screenshot coming soon</p>
+        <div class="rounded-lg overflow-hidden border" style="border-color: #30363d;">
+          <img src="/clx_ss_3.png" alt="ContestLogX screenshot 3" class="lightbox-trigger w-full h-auto cursor-zoom-in" />
         </div>
-        <div class="rounded-lg border p-6 h-64 flex items-center justify-center" style="background-color: #161b22; border-color: #30363d;">
-          <p style="color: #8b949e;">Screenshot coming soon</p>
+        <div class="rounded-lg overflow-hidden border" style="border-color: #30363d;">
+          <img src="/clx_ss_4.png" alt="ContestLogX screenshot 4" class="lightbox-trigger w-full h-auto cursor-zoom-in" />
         </div>
       </div>
     </div>
 
   </div>
+
+  <!-- Lightbox overlay -->
+  <div id="lightbox" class="fixed inset-0 z-50 hidden items-center justify-center" style="background-color: rgba(0,0,0,0.85);">
+    <img id="lightbox-img" src="" alt="" class="max-w-[90vw] max-h-[90vh] rounded-lg shadow-2xl object-contain" />
+  </div>
 </Layout>
+
+<script>
+  const lightbox = document.getElementById('lightbox')!;
+  const lightboxImg = document.getElementById('lightbox-img') as HTMLImageElement;
+
+  document.querySelectorAll('.lightbox-trigger').forEach(img => {
+    img.addEventListener('click', () => {
+      const src = (img as HTMLImageElement).src;
+      const alt = (img as HTMLImageElement).alt;
+      lightboxImg.src = src;
+      lightboxImg.alt = alt;
+      lightbox.classList.remove('hidden');
+      lightbox.classList.add('flex');
+    });
+  });
+
+  lightbox.addEventListener('click', () => {
+    lightbox.classList.add('hidden');
+    lightbox.classList.remove('flex');
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      lightbox.classList.add('hidden');
+      lightbox.classList.remove('flex');
+    }
+  });
+</script>

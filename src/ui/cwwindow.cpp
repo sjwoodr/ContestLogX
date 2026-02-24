@@ -178,7 +178,7 @@ void CWWindow::onMemoryButton(int fKey)
     if (fKey >= 0 && fKey < memories.size()) {
         const CwMemory& mem = memories[fKey];
         if (!mem.text.isEmpty()) {
-            sendCWText(mem.text);
+            emit memoryTriggered(fKey, mem.text);
         }
     }
 }

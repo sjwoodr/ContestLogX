@@ -8,59 +8,327 @@ import Layout from '../layouts/Layout.astro';
     <div class="max-w-4xl w-full">
       <h1 class="text-4xl font-bold mb-6">Documentation</h1>
 
-      <p class="text-lg opacity-80 mb-12">
-        Learn how to get the most out of ContestLogX with our comprehensive documentation.
+      <p class="text-lg opacity-80 mb-10">
+        Everything you need to get up and running with ContestLogX.
       </p>
 
-      <!-- Documentation sections -->
-      <div class="space-y-6">
-        <div class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
-          <h2 class="text-2xl font-semibold mb-3">Getting Started</h2>
-          <p class="opacity-80 mb-4">
-            Learn the basics of ContestLogX, from installation to your first contest.
-          </p>
-          <p style="color: #58a6ff;">Coming soon</p>
-        </div>
+      <!-- Table of Contents -->
+      <nav class="rounded-lg border p-6 mb-10" style="background-color: #161b22; border-color: #30363d;">
+        <h2 class="text-lg font-semibold mb-3">Contents</h2>
+        <ol class="space-y-1 opacity-80 list-decimal list-inside">
+          <li><a href="#getting-started" class="hover:underline" style="color: #58a6ff;">Getting Started</a></li>
+          <li><a href="#rig-control" class="hover:underline" style="color: #58a6ff;">Rig Control via flrig</a></li>
+          <li><a href="#logging" class="hover:underline" style="color: #58a6ff;">Logging a QSO</a></li>
+          <li><a href="#call-history" class="hover:underline" style="color: #58a6ff;">Call History &amp; Exchange Autofill</a></li>
+          <li><a href="#cw-ssb-memories" class="hover:underline" style="color: #58a6ff;">CW &amp; SSB Memories</a></li>
+          <li><a href="#import-export" class="hover:underline" style="color: #58a6ff;">Importing &amp; Exporting Logs</a></li>
+          <li><a href="#custom-contests" class="hover:underline" style="color: #58a6ff;">Creating Custom Contest Modules</a></li>
+          <li><a href="#clx-format" class="hover:underline" style="color: #58a6ff;">CLX File Format</a></li>
+          <li><a href="#data-files" class="hover:underline" style="color: #58a6ff;">Data Files &amp; Storage Locations</a></li>
+        </ol>
+      </nav>
 
-        <div class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
-          <h2 class="text-2xl font-semibold mb-3">Rig Control Setup</h2>
-          <p class="opacity-80 mb-4">
-            Configure flrig integration for seamless rig control and frequency tracking.
-          </p>
-          <p style="color: #58a6ff;">Coming soon</p>
-        </div>
+      <div class="space-y-10">
 
-        <div class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
-          <h2 class="text-2xl font-semibold mb-3">Creating Custom Contest Modules</h2>
-          <p class="opacity-80 mb-4">
-            Define your own contests with JSON modules. Learn the format and available options.
-          </p>
-          <p style="color: #58a6ff;">Coming soon</p>
-        </div>
+        <!-- Getting Started -->
+        <section id="getting-started" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
+          <h2 class="text-2xl font-semibold mb-4">1. Getting Started</h2>
 
-        <div class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
-          <h2 class="text-2xl font-semibold mb-3">Keyboard Shortcuts</h2>
-          <p class="opacity-80 mb-4">
-            Master the keyboard shortcuts for lightning-fast logging during contests.
-          </p>
-          <p style="color: #58a6ff;">Coming soon</p>
-        </div>
+          <h3 class="text-lg font-semibold mb-2 mt-4">Install Dependencies (Ubuntu/Debian)</h3>
+          <pre class="rounded p-4 text-sm overflow-x-auto mb-4" style="background-color: #0d1117; color: #e6edf3;">sudo apt install cmake qt6-base-dev libqt6serialport6-dev libqt6xml6-dev</pre>
 
-        <div class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
-          <h2 class="text-2xl font-semibold mb-3">Cabrillo Export</h2>
-          <p class="opacity-80 mb-4">
-            Export your logs in Cabrillo format for contest submission.
-          </p>
-          <p style="color: #58a6ff;">Coming soon</p>
-        </div>
+          <h3 class="text-lg font-semibold mb-2 mt-4">Build &amp; Run</h3>
+          <pre class="rounded p-4 text-sm overflow-x-auto mb-4" style="background-color: #0d1117; color: #e6edf3;">make        # build
+./clx       # run</pre>
 
-        <div class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
-          <h2 class="text-2xl font-semibold mb-3">CW & SSB Memories</h2>
+          <h3 class="text-lg font-semibold mb-2 mt-4">First-Time Setup</h3>
+          <ol class="list-decimal list-inside space-y-2 opacity-80">
+            <li>On first launch, go to <strong>File → Settings</strong> and enter your callsign, name, and QTH.</li>
+            <li>Download the DXCC database via <strong>File → Download cty.dat</strong>. This is required for DXCC multiplier scoring.</li>
+            <li>Optionally download the Super Check Partial database via <strong>File → Download master.scp</strong> for callsign checking.</li>
+            <li>Select a contest via <strong>File → New Log</strong>, choose your contest and station class, then fill in any required exchange information.</li>
+          </ol>
+
+          <h3 class="text-lg font-semibold mb-2 mt-6">Supported Contests</h3>
+          <p class="opacity-80 mb-2">ContestLogX ships with built-in modules for the following contests:</p>
+          <ul class="list-disc list-inside space-y-1 opacity-80">
+            <li>North American QSO Party (NAQP) — CW, SSB, RTTY</li>
+            <li>ARRL 10-Meter Contest</li>
+            <li>ARRL DX Contest</li>
+            <li>ARRL VHF Contest</li>
+            <li>CWops CWT (CW Mini Test)</li>
+            <li>YB DX Contest</li>
+            <li>EU DX Contest</li>
+            <li>Minnesota QSO Party (MNQP)</li>
+            <li>Winter Field Day</li>
+            <li>General DXCC (open-ended DXCC tracking)</li>
+          </ul>
+          <p class="opacity-80 mt-2">Additional contests can be added by dropping a JSON definition file into the <code>contests/</code> directory — no recompilation needed.</p>
+        </section>
+
+        <!-- Rig Control -->
+        <section id="rig-control" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
+          <h2 class="text-2xl font-semibold mb-4">2. Rig Control via <a href="https://www.w1hkj.org/" class="underline" style="color: #58a6ff;">flrig</a></h2>
+
           <p class="opacity-80 mb-4">
-            Set up and use CW and SSB memories with text-to-speech for efficient operation.
+            ContestLogX integrates with <a href="https://www.w1hkj.org/" class="underline" style="color: #58a6ff;">flrig</a> for rig control.
+            When connected, frequency and mode are polled automatically and reflected in the logging entry fields.
           </p>
-          <p style="color: #58a6ff;">Coming soon</p>
-        </div>
+
+          <h3 class="text-lg font-semibold mb-2">Setup Steps</h3>
+          <ol class="list-decimal list-inside space-y-2 opacity-80">
+            <li>Start flrig and connect it to your radio.</li>
+            <li>In flrig, go to <strong>Config → Server</strong>, enable the XML-RPC server, and note the port (default: <code>12345</code>).</li>
+            <li>In ContestLogX, go to <strong>Rig → flrig Connection</strong>.</li>
+            <li>Enter <code>localhost</code> as the host and <code>12345</code> as the port, then click <strong>Connect</strong>.</li>
+            <li>The status bar will show the current frequency and mode (e.g., <code>14025.0 CW</code>), updated every 500 ms.</li>
+          </ol>
+
+          <h3 class="text-lg font-semibold mb-2 mt-6">Troubleshooting</h3>
+          <ul class="space-y-2 opacity-80">
+            <li><strong>Connection refused:</strong> flrig is not running, or the XML-RPC server is not enabled.</li>
+            <li><strong>Frequency shows 0:</strong> Check the port number and verify flrig is responding. You can test with:<br />
+              <pre class="rounded p-3 text-sm overflow-x-auto mt-2" style="background-color: #0d1117; color: #e6edf3;">curl -X POST http://localhost:12345/RPC2 \
+  -H "Content-Type: text/xml" \
+  -d '&lt;?xml version="1.0"?&gt;&lt;methodCall&gt;&lt;methodName&gt;rig.get_vfo&lt;/methodName&gt;&lt;/methodCall&gt;'</pre>
+            </li>
+            <li><strong>Debug mode:</strong> Run <code>./clx --debug</code> and enable flrig debug messages from the Debug menu to see full XML-RPC traffic.</li>
+          </ul>
+        </section>
+
+        <!-- Logging a QSO -->
+        <section id="logging" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
+          <h2 class="text-2xl font-semibold mb-4">3. Logging a QSO</h2>
+
+          <p class="opacity-80 mb-4">
+            The entry row at the top of the log accepts QSO data. Fields vary by contest but always include callsign, frequency/band, mode, and exchange data.
+          </p>
+
+          <h3 class="text-lg font-semibold mb-2">Entry Workflow</h3>
+          <ol class="list-decimal list-inside space-y-2 opacity-80">
+            <li>Type the callsign in the <strong>CALL</strong> field.</li>
+            <li>Press <strong>Tab</strong> or <strong>Space</strong> to move to the next field. Call history and dupe checking run automatically.</li>
+            <li>Fill in received exchange fields (RST, name, state, serial, etc.).</li>
+            <li>Press <strong>Enter</strong> to log the QSO. The entry row clears and the QSO is appended to the log.</li>
+          </ol>
+
+          <h3 class="text-lg font-semibold mb-2 mt-6">Dupe Checking</h3>
+          <p class="opacity-80">
+            Duplicate checking is contest-aware. Depending on the contest definition, dupes may be checked per-band, per-mode, per-band-and-mode, or across the whole contest. A visual indicator highlights duplicate callsigns before you log.
+          </p>
+
+          <h3 class="text-lg font-semibold mb-2 mt-4">Score Display</h3>
+          <p class="opacity-80">
+            The score widget updates in real time showing QSO count, multipliers, and total score broken down by band and mode.
+            Multipliers are tracked as named mults (e.g., states/provinces), DXCC entities, grid squares, or ITU regions depending on the contest.
+          </p>
+        </section>
+
+        <!-- Call History -->
+        <section id="call-history" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
+          <h2 class="text-2xl font-semibold mb-4">4. Call History &amp; Exchange Autofill</h2>
+
+          <p class="opacity-80 mb-4">
+            ContestLogX maintains a persistent call history database. When you enter a callsign, exchange fields (name, state, QTH, CWops ID, grid, etc.)
+            are automatically pre-filled from previous QSOs — across contests and sessions.
+          </p>
+
+          <h3 class="text-lg font-semibold mb-2">How It Works</h3>
+          <ol class="list-decimal list-inside space-y-2 opacity-80">
+            <li>Enter a callsign and press <strong>Tab</strong> or <strong>Space</strong>.</li>
+            <li>If the call is in history, matching exchange fields are auto-populated.</li>
+            <li>Accept the values or type over them, then log as normal.</li>
+            <li>On save (with auto-save enabled), operator data from all QSOs is merged back into history.</li>
+          </ol>
+
+          <h3 class="text-lg font-semibold mb-2 mt-4">Managing History</h3>
+          <p class="opacity-80 mb-2">Go to <strong>File → Manage Call History</strong> to:</p>
+          <ul class="list-disc list-inside space-y-1 opacity-80">
+            <li>Browse all stored records in a sortable table</li>
+            <li>Double-click or right-click any record to edit or delete it</li>
+            <li>Toggle call history insertion on/off</li>
+            <li>Toggle auto-save on/off</li>
+            <li>Clear all history</li>
+          </ul>
+
+          <h3 class="text-lg font-semibold mb-2 mt-4">What Gets Stored</h3>
+          <p class="opacity-80">Static operator info is stored: name, QTH, state/province, CWops ID, grid square. Per-QSO data (date, band, RST, serial numbers, points) is never stored in history.</p>
+        </section>
+
+        <!-- CW & SSB Memories -->
+        <section id="cw-ssb-memories" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
+          <h2 class="text-2xl font-semibold mb-4">5. CW &amp; SSB Memories</h2>
+
+          <p class="opacity-80 mb-4">
+            ContestLogX supports eight programmable message memories (F1–F8). CW messages are sent via your keyer interface;
+            SSB messages use the system text-to-speech (TTS) engine — no audio recordings to manage.
+          </p>
+
+          <h3 class="text-lg font-semibold mb-2">SSB Token Substitution</h3>
+          <p class="opacity-80 mb-2">SSB memories support token substitution before the text is sent to TTS. Callsigns are automatically converted to NATO phonetics.</p>
+          <ul class="list-disc list-inside space-y-1 opacity-80">
+            <li><code>{"{"+"CALL}"}</code> — callsign in the entry field, spoken as NATO phonetics (e.g., "Kilo One Alpha Bravo Charlie")</li>
+            <li><code>{"{"+"MYCALL}"}</code> — your station callsign, spoken as NATO phonetics</li>
+            <li><code>{"{"+"SN}"}</code> / <code>{"{"+"SNs}"}</code> / <code>{"{"+"serial}"}</code> — next outgoing serial number</li>
+          </ul>
+          <p class="opacity-80 mt-2">CW memories are sent verbatim — no token substitution is applied.</p>
+
+          <h3 class="text-lg font-semibold mb-2 mt-4">Typical Memory Layout</h3>
+          <pre class="rounded p-4 text-sm overflow-x-auto" style="background-color: #0d1117; color: #e6edf3;">{`F1  CQ TEST N9OH N9OH
+F2  {CALL} 5NN {SN}
+F3  TU N9OH
+F4  {CALL}
+F5  ?
+F6  AGN?
+F7  QRZ?
+F8  N9OH`}</pre>
+        </section>
+
+        <!-- Import/Export -->
+        <section id="import-export" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
+          <h2 class="text-2xl font-semibold mb-4">6. Importing &amp; Exporting Logs</h2>
+
+          <p class="opacity-80 mb-4">ContestLogX supports both import and export for Cabrillo and ADIF formats.</p>
+
+          <h3 class="text-lg font-semibold mb-2">Export</h3>
+          <ul class="list-disc list-inside space-y-1 opacity-80">
+            <li><strong>Cabrillo</strong> — standard format for contest submission to sponsors (ARRL, CQ, etc.)</li>
+            <li><strong>ADIF</strong> — standard format for uploading to Logbook of the World (LoTW), QRZ, eQSL, and others</li>
+          </ul>
+          <p class="opacity-80 mt-2">Access via <strong>File → Export</strong> and choose the desired format.</p>
+
+          <h3 class="text-lg font-semibold mb-2 mt-4">Import</h3>
+          <p class="opacity-80">
+            Existing logs in Cabrillo or ADIF format can be imported into ContestLogX via <strong>File → Import</strong>.
+            This is useful for migrating logs from other software or re-scoring old contest logs.
+          </p>
+        </section>
+
+        <!-- Custom Contest Modules -->
+        <section id="custom-contests" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
+          <h2 class="text-2xl font-semibold mb-4">7. Creating Custom Contest Modules</h2>
+
+          <p class="opacity-80 mb-4">
+            Every contest in ContestLogX is defined by a JSON file in the <code>contests/</code> directory.
+            You can add support for any contest — including regional and club-sponsored events — by creating a new JSON file.
+            No recompilation is needed.
+          </p>
+          <p class="mb-4">
+            <a href="/contest-module-format" style="color: #58a6ff;" class="underline font-semibold">→ Full Contest Module Format Reference</a>
+            — complete field-by-field documentation with examples from all built-in contest modules.
+          </p>
+          <h3 class="text-lg font-semibold mb-2">File Structure Overview</h3>
+          <pre class="rounded p-4 text-sm overflow-x-auto mb-4" style="background-color: #0d1117; color: #e6edf3;">{`{
+  "contest": {
+    "name": "My Contest",
+    "abbreviation": "MYC",
+    "modes": ["CW", "SSB"],
+    "bands": ["40m", "20m", "15m", "10m"]
+  },
+  "frequencies": { ... },
+  "stationClasses": { ... },
+  "exchangeFields": { ... },
+  "scoring": {
+    "qsoPoints": { ... },
+    "multipliers": [ ... ],
+    "finalScore": "SUM(points) * namedMults"
+  },
+  "validation": {
+    "namedMults": ["CA", "OR", "WA", ...]
+  },
+  "dupeChecking": { ... }
+}`}</pre>
+
+          <h3 class="text-lg font-semibold mb-2 mt-2">Multiplier Types</h3>
+          <ul class="list-disc list-inside space-y-1 opacity-80">
+            <li><code>namedMults</code> — exchange field values validated against a list (e.g., US states, ARRL sections)</li>
+            <li><code>dxccMultipliers</code> — DXCC entities, scored once per contest or once per band</li>
+            <li><code>ituRegions</code> — ITU regions per band</li>
+            <li><code>namedCallPrefixes</code> — specific callsign prefixes (e.g., YB0–YB9)</li>
+            <li><code>gridSquareMultipliers</code> — Maidenhead grid squares per band (used in VHF contests)</li>
+          </ul>
+
+          <h3 class="text-lg font-semibold mb-2 mt-4">Multiplier Scope</h3>
+          <ul class="list-disc list-inside space-y-1 opacity-80">
+            <li><code>multsOnce</code> — counted once for the whole contest</li>
+            <li><code>multsPerBand</code> — a new multiplier on each band</li>
+            <li><code>multsPerMode</code> — a new multiplier on each mode</li>
+            <li><code>multsPerBandAndMode</code> — a new multiplier per band/mode combination</li>
+          </ul>
+
+          <h3 class="text-lg font-semibold mb-2 mt-4">QSO Scoring Rules</h3>
+          <p class="opacity-80 mb-2">Points are assigned based on the geographic relationship between stations. Rules are evaluated in the order listed in the <code>precedence</code> array — the first match wins.</p>
+          <pre class="rounded p-4 text-sm overflow-x-auto" style="background-color: #0d1117; color: #e6edf3;">{`"qsoPoints": {
+  "sameDxccEntity":     { "CW": 1, "SSB": 1 },
+  "sameContinent":      { "CW": 2, "SSB": 1 },
+  "differentContinent": { "CW": 3, "SSB": 2 }
+},
+"precedence": [
+  "sameDxccEntity",
+  "sameContinent",
+  "differentContinent"
+]`}</pre>
+
+          <h3 class="text-lg font-semibold mb-2 mt-4">Final Score Formula</h3>
+          <p class="opacity-80 mb-2">A formula string in the <code>scoring.finalScore</code> field controls how the final score is calculated, e.g.:</p>
+          <pre class="rounded p-4 text-sm overflow-x-auto" style="background-color: #0d1117; color: #e6edf3;">"finalScore": "SUM(points) * (namedMults + dxccMultipliers)"</pre>
+
+          <h3 class="text-lg font-semibold mb-2 mt-4">Installing a New Module</h3>
+          <p class="opacity-80">Drop your <code>.json</code> file into the <code>contests/</code> directory next to the application, then restart ContestLogX. Your contest will appear in the <strong>File → New Log</strong> dialog.</p>
+        </section>
+
+        <!-- CLX File Format -->
+        <section id="clx-format" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
+          <h2 class="text-2xl font-semibold mb-4">8. CLX File Format</h2>
+
+          <p class="opacity-80 mb-4">
+            ContestLogX saves logs in the <code>.clx</code> format — a human-readable JSON file that is easy to inspect,
+            back up, and version-control. It stores all contest and station metadata alongside the full QSO list.
+          </p>
+
+          <h3 class="text-lg font-semibold mb-2">Top-Level Structure</h3>
+          <pre class="rounded p-4 text-sm overflow-x-auto mb-4" style="background-color: #0d1117; color: #e6edf3;">{`{
+  "metadata": {
+    "contestFile": "naqp.json",
+    "stationClass": "SO_UNASSISTED_CW",
+    "version": "1.0"
+  },
+  "station": {
+    "callsign": "N9OH",
+    "name": "Steve",
+    "qth": "OH"
+  },
+  "categories": { ... },
+  "qsos": [ ... ]
+}`}</pre>
+
+          <p class="opacity-80">Because <code>.clx</code> is plain JSON, you can inspect it in any text editor, query it with <code>jq</code>, or import it into scripts for post-contest analysis.</p>
+        </section>
+
+        <!-- Data Files -->
+        <section id="data-files" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
+          <h2 class="text-2xl font-semibold mb-4">9. Data Files &amp; Storage Locations</h2>
+
+          <h3 class="text-lg font-semibold mb-2">User Data</h3>
+          <pre class="rounded p-4 text-sm overflow-x-auto mb-4" style="background-color: #0d1117; color: #e6edf3;">Linux:   ~/.local/share/ContestLogX/
+macOS:   ~/Library/Application Support/ContestLogX/
+Windows: %APPDATA%\ContestLogX\</pre>
+          <ul class="list-disc list-inside space-y-1 opacity-80">
+            <li><code>cty.dat</code> — DXCC database (download via <strong>File → Download cty.dat</strong>)</li>
+            <li><code>master.scp</code> — Super Check Partial callsign database (optional, download via <strong>File → Download master.scp</strong>)</li>
+            <li><code>history.json</code> — call history records (auto-maintained)</li>
+          </ul>
+
+          <h3 class="text-lg font-semibold mb-2 mt-4">Configuration</h3>
+          <pre class="rounded p-4 text-sm overflow-x-auto mb-4" style="background-color: #0d1117; color: #e6edf3;">Linux:   ~/.config/ContestLogX/ContestLogX.json
+macOS:   ~/Library/Preferences/ContestLogX/ContestLogX.json
+Windows: %APPDATA%\ContestLogX\ContestLogX.json</pre>
+          <p class="opacity-80">Application settings including rig connection details, call history preferences, and window layout are saved here automatically.</p>
+
+          <h3 class="text-lg font-semibold mb-2 mt-4">Debug Logging</h3>
+          <p class="opacity-80">Run with <code>./clx --debug --log &lt;logfile.clx&gt;</code> to enable verbose logging to <code>clx_debug.log</code> in the current directory. Useful for diagnosing rig control and scoring issues.</p>
+        </section>
+
       </div>
     </div>
 

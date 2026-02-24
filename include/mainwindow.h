@@ -109,6 +109,7 @@ private slots:
     void onDeleteQso();
     void onDupeFlashTimeout();
     void onSsbMemoryTriggered(int memoryNumber, const QString& text);
+    void onCwMemoryTriggered(int fKey, const QString& text);
     void onTtsFinished();
     void onTtsError(const QString& error);
 

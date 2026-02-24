@@ -1,0 +1,707 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Contest Module Format – ContestLogX">
+  <div class="flex flex-col items-center px-5 py-10">
+    <div class="max-w-4xl w-full">
+
+      <div class="mb-8">
+        <a href="/docs" style="color: #58a6ff;" class="hover:underline text-sm">← Back to Documentation</a>
+      </div>
+
+      <h1 class="text-4xl font-bold mb-4">Contest Module Format</h1>
+      <p class="text-lg opacity-80 mb-10">
+        Complete reference for the ContestLogX contest definition JSON format.
+        Every contest is defined by a single <code>.json</code> file in the <code>contests/</code>
+        directory. Drop a new file there and it appears in the contest selection dialog immediately —
+        no recompilation needed.
+      </p>
+
+      <!-- TOC -->
+      <nav class="rounded-lg border p-6 mb-10" style="background-color: #161b22; border-color: #30363d;">
+        <h2 class="text-lg font-semibold mb-3">Contents</h2>
+        <ol class="space-y-1 opacity-80 list-decimal list-inside columns-2">
+          <li><a href="#top-level" style="color: #58a6ff;" class="hover:underline">Top-Level Structure</a></li>
+          <li><a href="#contest" style="color: #58a6ff;" class="hover:underline">contest</a></li>
+          <li><a href="#frequencies" style="color: #58a6ff;" class="hover:underline">frequencies</a></li>
+          <li><a href="#station-classes" style="color: #58a6ff;" class="hover:underline">stationClasses</a></li>
+          <li><a href="#user-prompts" style="color: #58a6ff;" class="hover:underline">userPrompts</a></li>
+          <li><a href="#exchange-fields" style="color: #58a6ff;" class="hover:underline">exchangeFields</a></li>
+          <li><a href="#qso-fields" style="color: #58a6ff;" class="hover:underline">qsoFields</a></li>
+          <li><a href="#scoring" style="color: #58a6ff;" class="hover:underline">scoring</a></li>
+          <li><a href="#dupe-checking" style="color: #58a6ff;" class="hover:underline">dupeChecking</a></li>
+          <li><a href="#logging" style="color: #58a6ff;" class="hover:underline">logging</a></li>
+          <li><a href="#call-history" style="color: #58a6ff;" class="hover:underline">callHistory</a></li>
+          <li><a href="#validation" style="color: #58a6ff;" class="hover:underline">validation</a></li>
+          <li><a href="#ui" style="color: #58a6ff;" class="hover:underline">ui</a></li>
+          <li><a href="#minimal-example" style="color: #58a6ff;" class="hover:underline">Minimal Example</a></li>
+        </ol>
+      </nav>
+
+      <div class="space-y-10">
+
+        <!-- Top-Level Structure -->
+        <section id="top-level" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
+          <h2 class="text-2xl font-semibold mb-4">Top-Level Structure</h2>
+          <p class="opacity-80 mb-4">A contest definition file contains these top-level keys:</p>
+          <pre class="rounded p-4 text-sm overflow-x-auto" style="background-color: #0d1117; color: #e6edf3;">{`{
+  "contest":       { ... },   // required — metadata, bands, modes
+  "frequencies":   { ... },   // required — band/mode frequency ranges
+  "stationClasses":{ ... },   // required — entry classes (can be disabled)
+  "userPrompts":   [ ... ],   // optional — setup questions collected at contest start
+  "exchangeFields":{ ... },   // required — sent/received exchange field definitions
+  "qsoFields":     [ ... ],   // required — log table column definitions
+  "scoring":       { ... },   // required — QSO points, multipliers, final score formula
+  "dupeChecking":  { ... },   // required — duplicate detection scope
+  "logging":       { ... },   // required — Cabrillo export settings
+  "callHistory":   { ... },   // optional — fields to persist to call history
+  "validation":    { ... },   // required — constraints and valid multiplier lists
+  "ui":            { ... }    // required — log columns, entry fields, display options
+}`}</pre>
+        </section>
+
+        <!-- contest -->
+        <section id="contest" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
+          <h2 class="text-2xl font-semibold mb-4">contest</h2>
+          <p class="opacity-80 mb-4">Contest identity and metadata.</p>
+          <pre class="rounded p-4 text-sm overflow-x-auto mb-4" style="background-color: #0d1117; color: #e6edf3;">{`"contest": {
+  "name":               "North American QSO Party",
+  "abbreviation":       "NAQP",
+  "version":            "1.0.0",
+  "sponsor":            "NCJWEB / CQ Magazine",
+  "description":        "Optional longer description",
+  "startDate":          "Second full weekend in January (CW)",
+  "duration":           12,
+  "offTimeGapMinutes":  30,
+  "modes":              ["CW", "SSB", "RTTY"],
+  "bands":              ["160m", "80m", "40m", "20m", "15m", "10m"],
+  "url":                "https://www.ncjweb.com/naqp.html",
+  "categories": {
+    "mode":     ["CW", "SSB", "RTTY"],
+    "stations": ["SINGLE_OP", "MULTI_OP"],
+    "power":    ["QRP", "LOW_POWER", "HIGH_POWER"]
+  }
+}`}</pre>
+          <table class="w-full text-sm opacity-80">
+            <thead><tr class="text-left border-b" style="border-color: #30363d;">
+              <th class="pb-2 pr-4">Field</th><th class="pb-2 pr-4">Type</th><th class="pb-2">Notes</th>
+            </tr></thead>
+            <tbody class="space-y-1">
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">name</td><td class="pr-4">string</td><td>Full contest name shown in UI</td></tr>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">abbreviation</td><td class="pr-4">string</td><td>Short code used in Cabrillo and filenames</td></tr>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">version</td><td class="pr-4">string</td><td>Semver for tracking module revisions</td></tr>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">sponsor</td><td class="pr-4">string</td><td>Sponsoring organization</td></tr>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">description</td><td class="pr-4">string</td><td>Optional longer description</td></tr>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">startDate</td><td class="pr-4">string</td><td>Human-readable date description</td></tr>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">duration</td><td class="pr-4">number</td><td>Contest duration in hours; <code>0</code> = no limit (general logging)</td></tr>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">offTimeGapMinutes</td><td class="pr-4">number</td><td>Minimum consecutive off-time in minutes; <code>0</code> = no off-time rule</td></tr>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">modes</td><td class="pr-4">array</td><td><code>"CW"</code>, <code>"SSB"</code>, <code>"RTTY"</code>, <code>"DIGITAL"</code>, <code>"FM"</code>, <code>"FT8"</code>, <code>"FT4"</code></td></tr>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">bands</td><td class="pr-4">array</td><td>HF: <code>"160m"</code>…<code>"6m"</code>; VHF/UHF: <code>"2m"</code>, <code>"70cm"</code>, etc.</td></tr>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">url</td><td class="pr-4">string</td><td>Official contest rules URL</td></tr>
+              <tr><td class="py-2 pr-4 font-mono">categories</td><td class="pr-4">object</td><td>Informational only; does not affect scoring logic</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- frequencies -->
+        <section id="frequencies" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
+          <h2 class="text-2xl font-semibold mb-4">frequencies</h2>
+          <p class="opacity-80 mb-4">
+            An object keyed by band name. Each band object defines the overall frequency range
+            and optional mode sub-ranges used for automatic mode detection when rig control is active.
+            Frequencies are in <strong>kHz</strong> for HF bands.
+          </p>
+          <pre class="rounded p-4 text-sm overflow-x-auto mb-4" style="background-color: #0d1117; color: #e6edf3;">{`"frequencies": {
+  "40m": {
+    "start": 7000,
+    "end":   7300,
+    "cw":     {"start": 7000, "end": 7125},
+    "phone":  {"start": 7125, "end": 7300},
+    "digital":{"start": 7000, "end": 7125}
+  },
+  "6m": {
+    "start": 50000,
+    "end":   54000,
+    "cw":  {"start": 50000, "end": 50100},
+    "ssb": {"start": 50100, "end": 50300},
+    "fm":  {"start": 52525, "end": 52625}
+  }
+}`}</pre>
+          <p class="opacity-80 text-sm">Mode sub-range keys: <code>cw</code>, <code>phone</code>, <code>ssb</code> (alias for phone), <code>digital</code>, <code>fm</code>.
+          Bands with no mode sub-ranges (e.g., microwave) only need <code>start</code> and <code>end</code>.</p>
+        </section>
+
+        <!-- stationClasses -->
+        <section id="station-classes" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
+          <h2 class="text-2xl font-semibold mb-4">stationClasses</h2>
+          <p class="opacity-80 mb-4">
+            Defines entry classes (e.g., W/VE vs. DX, Single Op vs. Multi-Op).
+            Set <code>enabled: false</code> if your contest has no class distinction.
+          </p>
+          <div class="rounded p-3 mb-4 text-sm" style="background-color: #2d1e00; border: 1px solid #9e6a03; color: #e3b341;">
+            <strong>Deprecated:</strong> The per-class input collection fields —
+            <code>needsInput</code>, <code>inputPrompts</code>, <code>exchangeFieldMapping</code>,
+            and <code>inputValidation</code> inside each station class — are the older approach for
+            collecting operator name, state, and other sent exchange values at setup time.
+            New contest modules should use the top-level <a href="#user-prompts" style="color: #58a6ff;" class="underline">userPrompts</a> array instead,
+            which is more flexible and works independently of <code>stationClasses</code>.
+            Existing modules using the per-class approach continue to work.
+          </div>
+          <pre class="rounded p-4 text-sm overflow-x-auto mb-4" style="background-color: #0d1117; color: #e6edf3;">{`"stationClasses": {
+  "enabled": true,
+  "prompt":  "Select your entry class",
+  "classes": [
+    {
+      "id":          "SO_UNASSISTED_CW",
+      "name":        "Single Operator Unassisted - CW",
+      "description": "One operator, no spotting assistance, CW mode",
+      "mode":        "CW",           // optional — locks contest to this mode
+      "needsInput":  true,
+      "inputPrompts": {
+        "name": "Enter your first name",
+        "id":   "Enter your state/province/country"
+      },
+      "exchangeFieldMapping": {
+        "name": "NAMEs",
+        "id":   "EXCHs"
+      },
+      "inputValidation": {
+        "name": {"forceUppercase": true},
+        "id":   {"forceUppercase": true, "type": "numeric"}
+      },
+      "exchangeSent": {
+        "type": "customInput"
+      }
+    }
+  ]
+}`}</pre>
+
+          <h3 class="text-lg font-semibold mb-2 mt-4">exchangeSent types</h3>
+          <table class="w-full text-sm opacity-80">
+            <thead><tr class="text-left border-b" style="border-color: #30363d;">
+              <th class="pb-2 pr-4">type</th><th class="pb-2">Description</th>
+            </tr></thead>
+            <tbody>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">customInput</td><td>User enters the sent exchange manually at contest setup</td></tr>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">serial</td><td>Auto-incrementing serial number; add <code>"startingNumber": 1</code></td></tr>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">state_province</td><td>Populated from station QTH; add <code>"source": "station_qth"</code></td></tr>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">maidenhead_grid</td><td>Grid square from station settings</td></tr>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">fixedValue</td><td>Always sends the same value; add <code>"value": "CWA"</code></td></tr>
+              <tr><td class="py-2 pr-4 font-mono">string</td><td>Free-form string entered at setup (e.g., power level)</td></tr>
+            </tbody>
+          </table>
+
+          <h3 class="text-lg font-semibold mb-2 mt-4">inputValidation type values</h3>
+          <p class="opacity-80 text-sm">Per-field validation options inside <code>inputValidation</code>:
+          <code>type</code> can be <code>"numeric"</code> or <code>"alphanumeric"</code>;
+          <code>forceUppercase</code> is a boolean;
+          <code>defaultValue</code> pre-fills the input.</p>
+        </section>
+
+        <!-- userPrompts -->
+        <section id="user-prompts" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
+          <h2 class="text-2xl font-semibold mb-4">userPrompts</h2>
+          <div class="rounded p-3 mb-4 text-sm" style="background-color: #0d2b1a; border: 1px solid #2ea043; color: #56d364;">
+            <strong>Preferred approach</strong> for collecting operator setup information (name, state, contest mode, power category, etc.).
+            Supersedes the older per-class <code>needsInput</code> / <code>inputPrompts</code> fields inside <code>stationClasses</code>.
+            Use <code>userPrompts</code> for all new contest modules.
+          </div>
+          <p class="opacity-80 mb-4">
+            An array of questions shown to the operator when starting a new log.
+            Answers are stored in the <code>.clx</code> metadata and can be mapped to exchange fields.
+            Works with <code>stationClasses.enabled: false</code> (as in MNQP and Winter Field Day)
+            or alongside a simple station class list where the class itself has no input fields.
+          </p>
+          <pre class="rounded p-4 text-sm overflow-x-auto mb-4" style="background-color: #0d1117; color: #e6edf3;">{`"userPrompts": [
+  {
+    "id":           "contestMode",
+    "question":     "Which contest weekend are you entering?",
+    "type":         "select",
+    "options": [
+      {"value": "CW",  "label": "CW (Third full weekend in February)"},
+      {"value": "SSB", "label": "Phone/SSB (First full weekend in March)"}
+    ],
+    "required":     true,
+    "storeInMeta":  true,
+    "description":  "CW and Phone are separate contest weekends"
+  },
+  {
+    "id":            "myExchange",
+    "question":      "Enter your exchange (e.g., OH):",
+    "type":          "text",
+    "required":      true,
+    "forceUppercase":true,
+    "storeInMeta":   true,
+    "validation":    "^[A-Z]{2,3}$",
+    "description":   "Your sent exchange",
+    "exchangeFieldMapping": {
+      "myExchange": "EXCHs"
+    }
+  },
+  {
+    "id":       "objectiveMultipliers",
+    "question": "Select Objective Multipliers you are claiming:",
+    "type":     "checkboxes",
+    "options": [
+      {"value": "ALT_POWER",    "label": "Alternative Power (x1)", "points": 1},
+      {"value": "AWAY_FROM_HOME","label": "Operate away from home (x3)", "points": 3}
+    ],
+    "required":    false,
+    "storeInMeta": true
+  }
+]`}</pre>
+
+          <table class="w-full text-sm opacity-80">
+            <thead><tr class="text-left border-b" style="border-color: #30363d;">
+              <th class="pb-2 pr-4">Field</th><th class="pb-2 pr-4">Type</th><th class="pb-2">Notes</th>
+            </tr></thead>
+            <tbody>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">id</td><td class="pr-4">string</td><td>Unique identifier; also the key used in <code>exchangeFieldMapping</code></td></tr>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">type</td><td class="pr-4">string</td><td><code>"text"</code>, <code>"select"</code>, or <code>"checkboxes"</code></td></tr>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">options</td><td class="pr-4">array</td><td>For <code>select</code> and <code>checkboxes</code>; each has <code>value</code> and <code>label</code>; checkboxes may also have <code>points</code></td></tr>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">forceUppercase</td><td class="pr-4">boolean</td><td>For <code>text</code> type — forces input to uppercase</td></tr>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">validation</td><td class="pr-4">string</td><td>Regex applied to <code>text</code> type input</td></tr>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">storeInMeta</td><td class="pr-4">boolean</td><td>If true, answer is stored in the <code>.clx</code> file metadata</td></tr>
+              <tr><td class="py-2 pr-4 font-mono">exchangeFieldMapping</td><td class="pr-4">object</td><td>Maps prompt <code>id</code> → exchange field name (e.g., <code>"myExchange": "EXCHs"</code>)</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- exchangeFields -->
+        <section id="exchange-fields" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
+          <h2 class="text-2xl font-semibold mb-4">exchangeFields</h2>
+          <p class="opacity-80 mb-4">Defines the sent and received exchange fields. These drive the QSO entry form and export templates.</p>
+          <pre class="rounded p-4 text-sm overflow-x-auto mb-4" style="background-color: #0d1117; color: #e6edf3;">{`"exchangeFields": {
+  "sent": [
+    {
+      "name":        "RST",
+      "type":        "rst",
+      "required":    true,
+      "default":     "599",
+      "description": "Signal report"
+    },
+    {
+      "name":        "NAMEs",
+      "type":        "string",
+      "required":    true,
+      "description": "Operator first name sent"
+    }
+  ],
+  "received": [
+    {
+      "name":       "RST",
+      "type":       "rst",
+      "required":   false,
+      "validation": "^[1-5][1-9][1-9]?$",
+      "description":"Signal report received"
+    },
+    {
+      "name":        "EXCHr",
+      "type":        "string",
+      "required":    true,
+      "description": "State/Province/Country received"
+    }
+  ]
+}`}</pre>
+
+          <h3 class="text-lg font-semibold mb-2 mt-2">Field name conventions</h3>
+          <p class="opacity-80 mb-2 text-sm">Exchange field names use a 3–5 letter code with an <code>s</code> (sent) or <code>r</code> (received) suffix:</p>
+          <div class="grid grid-cols-2 gap-4 text-sm opacity-80">
+            <ul class="list-disc list-inside space-y-1">
+              <li><code>RSTs</code> / <code>RSTr</code> — RST signal report</li>
+              <li><code>NAMEs</code> / <code>NAMEr</code> — operator first name</li>
+              <li><code>EXCHs</code> / <code>EXCHr</code> — generic exchange (state, serial, etc.)</li>
+              <li><code>SNs</code> / <code>SNr</code> — serial number</li>
+            </ul>
+            <ul class="list-disc list-inside space-y-1">
+              <li><code>GRIDs</code> / <code>GRIDr</code> — Maidenhead grid square</li>
+              <li><code>CATs</code> / <code>CATr</code> — category/class</li>
+              <li><code>LOCs</code> / <code>LOCr</code> — location identifier</li>
+              <li><code>EXCH</code> — single exchange field (no sent/rcvd variant)</li>
+            </ul>
+          </div>
+
+          <h3 class="text-lg font-semibold mb-2 mt-4">Field types</h3>
+          <p class="opacity-80 text-sm"><code>"rst"</code> — RST field with default 599 (or 59 for SSB); <code>"string"</code> — general text field.
+          The <code>validation</code> property accepts a regex string applied to input.</p>
+        </section>
+
+        <!-- qsoFields -->
+        <section id="qso-fields" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
+          <h2 class="text-2xl font-semibold mb-4">qsoFields</h2>
+          <p class="opacity-80 mb-4">Defines the columns stored in the QSO record and displayed in the log table. DATE, TIME, CALL, FREQ, and MODE are standard; add contest-specific columns as needed.</p>
+          <pre class="rounded p-4 text-sm overflow-x-auto mb-4" style="background-color: #0d1117; color: #e6edf3;">{`"qsoFields": [
+  {"name":"Date",      "column":"DATE",  "type":"date",   "format":"yyyy-MM-dd", "required":true},
+  {"name":"Time",      "column":"TIME",  "type":"time",   "format":"HH:mm:ss",   "required":true},
+  {"name":"Callsign",  "column":"CALL",  "type":"string", "required":true, "uppercase":true},
+  {"name":"Frequency", "column":"FREQ",  "type":"number", "unit":"kHz",    "required":true},
+  {"name":"Mode",      "column":"MODE",  "type":"enum",   "values":["CW","SSB"], "required":true},
+  {"name":"RST Sent",  "column":"RST_SENT","type":"string","required":true, "default":"599"},
+  {"name":"RST Received","column":"RST_RCV","type":"string","required":true},
+  {"name":"QTH Sent",  "column":"EXCHs", "type":"string", "required":true},
+  {"name":"QTH Received","column":"EXCHr","type":"string", "required":true},
+  {"name":"Points",    "column":"POINTS","type":"number",  "calculated":true},
+  {"name":"Multiplier","column":"M",     "type":"string",  "calculated":true}
+]`}</pre>
+          <p class="opacity-80 text-sm">Set <code>"calculated": true</code> on fields computed by the scoring engine (Points, Multiplier). Set <code>"default"</code> to pre-fill the entry field. The <code>column</code> value is the key used in <code>ui.logColumns</code>.</p>
+        </section>
+
+        <!-- scoring -->
+        <section id="scoring" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
+          <h2 class="text-2xl font-semibold mb-4">scoring</h2>
+
+          <h3 class="text-lg font-semibold mb-2">QSO Points</h3>
+          <p class="opacity-80 mb-2">Points are defined by the geographic relationship between stations. Each rule is an object keyed by mode.</p>
+
+          <h4 class="font-semibold mb-2 mt-3 opacity-90">Geographic relationship rules</h4>
+          <pre class="rounded p-4 text-sm overflow-x-auto mb-4" style="background-color: #0d1117; color: #e6edf3;">{`"points": {
+  "sameDxccEntity":     {"CW": 1, "SSB": 1},
+  "differentDxccEntity":{"CW": 3, "SSB": 2},
+  "sameContinent":      {"CW": 2, "SSB": 1},
+  "differentContinent": {"CW": 5, "SSB": 3},
+  "namedCallPrefixes":  {"SSB": 10},    // for contacts matching namedCallPrefixes list
+  "euCountry":          {"CW": 10}      // custom rule (defined in scoring.euCountryPrefixes)
+}
+// Aliases: "sameCountry" = sameDxccEntity, "differentCountry" = differentDxccEntity`}</pre>
+
+          <h4 class="font-semibold mb-2 mt-3 opacity-90">Flat per-QSO points (all modes equal)</h4>
+          <pre class="rounded p-4 text-sm overflow-x-auto mb-4" style="background-color: #0d1117; color: #e6edf3;">{`"points": {"perQso": 1}`}</pre>
+
+          <h4 class="font-semibold mb-2 mt-3 opacity-90">Points by mode category (e.g., Winter Field Day)</h4>
+          <pre class="rounded p-4 text-sm overflow-x-auto mb-4" style="background-color: #0d1117; color: #e6edf3;">{`"points": {
+  "phone":   1,
+  "cw":      2,
+  "digital": 2
+}`}</pre>
+
+          <h4 class="font-semibold mb-2 mt-3 opacity-90">Points by band and contest month (ARRL VHF)</h4>
+          <pre class="rounded p-4 text-sm overflow-x-auto mb-4" style="background-color: #0d1117; color: #e6edf3;">{`"points": {
+  "byBand": {
+    "january":   {"6m": 1, "2m": 1, "70cm": 2, "23cm": 4},
+    "june":      {"6m": 1, "2m": 1, "70cm": 2, "23cm": 3},
+    "september": {"6m": 1, "2m": 1, "70cm": 2, "23cm": 3}
+  }
+}`}</pre>
+          <p class="opacity-80 text-sm mb-4">The contest month is selected by the operator via a <code>userPrompts</code> entry with <code>id: "contestMonth"</code>.</p>
+
+          <h3 class="text-lg font-semibold mb-2 mt-4">precedence</h3>
+          <p class="opacity-80 mb-2">
+            An ordered array of point rule names. The engine evaluates each rule in order and
+            applies the <strong>first match</strong>. Any rule defined in <code>points</code>
+            but absent from <code>precedence</code> is never applied (a warning is logged).
+          </p>
+          <pre class="rounded p-4 text-sm overflow-x-auto mb-4" style="background-color: #0d1117; color: #e6edf3;">{`"precedence": [
+  "sameDxccEntity",
+  "sameContinent",
+  "differentContinent"
+]`}</pre>
+
+          <h3 class="text-lg font-semibold mb-2 mt-4">multipliers</h3>
+          <pre class="rounded p-4 text-sm overflow-x-auto mb-4" style="background-color: #0d1117; color: #e6edf3;">{`"multipliers": {
+  "type":                    "multsPerBand",
+  "description":             "States and DXCC countries per band",
+  "categories":              ["namedMults", "dxcc"],
+  "alaskaAndHawaiiCountDxcc":false,
+  "usAndCanadaCountDxcc":    false,
+  "countOncePerBand":        true,
+  "stationClassMultipliers": {
+    "W_VE": ["dxcc"],
+    "DX":   ["namedMults"]
+  }
+}`}</pre>
+
+          <table class="w-full text-sm opacity-80 mb-4">
+            <thead><tr class="text-left border-b" style="border-color: #30363d;">
+              <th class="pb-2 pr-4">type</th><th class="pb-2">Description</th>
+            </tr></thead>
+            <tbody>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">multsOnce</td><td>Each multiplier counted once for the whole contest</td></tr>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">multsPerBand</td><td>Each multiplier counted once per band</td></tr>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">multsPerMode</td><td>Each multiplier counted once per mode</td></tr>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">multsPerBandAndMode</td><td>Each multiplier counted once per band/mode combination</td></tr>
+              <tr><td class="py-2 pr-4 font-mono">objectiveMultipliers</td><td>Score multiplied by user-selected objectives (Winter Field Day)</td></tr>
+            </tbody>
+          </table>
+
+          <table class="w-full text-sm opacity-80 mb-4">
+            <thead><tr class="text-left border-b" style="border-color: #30363d;">
+              <th class="pb-2 pr-4">category</th><th class="pb-2">Description</th>
+            </tr></thead>
+            <tbody>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">namedMults</td><td>Values from <code>validation.namedMults</code> list (states, provinces, counties, etc.)</td></tr>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">dxcc</td><td>DXCC entities from the DXCC database</td></tr>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">namedCallPrefixes</td><td>Call sign prefixes from <code>validation.namedCallPrefixes</code> (e.g., YB DX)</td></tr>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">gridSquares</td><td>Maidenhead grid squares (ARRL VHF)</td></tr>
+              <tr><td class="py-2 pr-4 font-mono">objectiveMultipliers</td><td>User-selected objective checkboxes (Winter Field Day)</td></tr>
+            </tbody>
+          </table>
+
+          <h3 class="text-lg font-semibold mb-2 mt-4">finalScore</h3>
+          <p class="opacity-80 mb-2">A formula string controlling how the final score is computed. Available tokens:</p>
+          <pre class="rounded p-4 text-sm overflow-x-auto" style="background-color: #0d1117; color: #e6edf3;">{`// Most contests:
+"finalScore": "SUM(points) * SUM(multipliers)"
+"finalScore": "SUM(points) * (namedMults + dxccMultipliers)"
+"finalScore": "SUM(points) * (namedCallPrefixes + dxccMultipliers)"
+"finalScore": "SUM(points) * SUM(gridSquareMultipliers)"
+
+// No multipliers:
+"finalScore": "SUM(points)"
+
+// Objective multipliers (Winter Field Day):
+"finalScore": "(SUM(points)) * (objectiveMultiplierCount + 1)"`}</pre>
+        </section>
+
+        <!-- dupeChecking -->
+        <section id="dupe-checking" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
+          <h2 class="text-2xl font-semibold mb-4">dupeChecking</h2>
+          <pre class="rounded p-4 text-sm overflow-x-auto mb-4" style="background-color: #0d1117; color: #e6edf3;">{`"dupeChecking": {
+  "type":        "perBand",
+  "description": "Station may be worked once per band"
+}`}</pre>
+          <table class="w-full text-sm opacity-80">
+            <thead><tr class="text-left border-b" style="border-color: #30363d;">
+              <th class="pb-2 pr-4">type</th><th class="pb-2">Description</th>
+            </tr></thead>
+            <tbody>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">overall</td><td>Once per contest, regardless of band or mode</td></tr>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">perBand</td><td>Once per band (most HF contests)</td></tr>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">perMode</td><td>Once per mode</td></tr>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">perBandAndMode</td><td>Once per band/mode combination (e.g., CW and SSB on 40m are separate)</td></tr>
+              <tr><td class="py-2 pr-4 font-mono">perBandAndGridSquare</td><td>Once per band per grid square (ARRL VHF — rovers may be worked from multiple grids)</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- logging -->
+        <section id="logging" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
+          <h2 class="text-2xl font-semibold mb-4">logging</h2>
+          <p class="opacity-80 mb-4">Controls Cabrillo export. The <code>qsoTemplate</code> uses <code>{`{token}`}</code> placeholders filled at export time.</p>
+          <pre class="rounded p-4 text-sm overflow-x-auto mb-4" style="background-color: #0d1117; color: #e6edf3;">{`"logging": {
+  "requiredFields": ["date","time","frequency","mode","callsign","rstSent","rstReceived","exchSent","exchReceived"],
+  "cabrillo": {
+    "version":       "3.0",
+    "contest":       "NAQP-CW",
+    "contestMapping": {
+      "CW":  "NAQP-CW",
+      "SSB": "NAQP-SSB",
+      "RTTY":"NAQP-RTTY"
+    },
+    "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {name_sent} {exch_sent} {call} {name_rcvd} {exch_rcvd}",
+    "requiredHeaders": ["CONTEST","CALLSIGN","CATEGORY-OPERATOR","CLAIMED-SCORE","CREATED-BY","NAME","EMAIL"]
+  }
+}`}</pre>
+          <p class="opacity-80 text-sm">
+            Use <code>contestMapping</code> when the Cabrillo contest name varies by mode (e.g., NAQP-CW vs NAQP-SSB).
+            The <code>qsoTemplate</code> tokens reference field names from <code>qsoFields</code>.
+          </p>
+        </section>
+
+        <!-- callHistory -->
+        <section id="call-history" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
+          <h2 class="text-2xl font-semibold mb-4">callHistory</h2>
+          <p class="opacity-80 mb-4">Specifies which received exchange fields should be saved to the persistent call history database for future autofill.</p>
+          <pre class="rounded p-4 text-sm overflow-x-auto" style="background-color: #0d1117; color: #e6edf3;">{`"callHistory": {
+  "fieldsToSave": ["NAMEr", "EXCHr"],
+  "description":  "Save operator name and QTH for future lookups"
+}`}</pre>
+          <p class="opacity-80 mt-2 text-sm">Set <code>fieldsToSave</code> to <code>[]</code> if no fields should be persisted (e.g., serial-number-only contests).</p>
+        </section>
+
+        <!-- validation -->
+        <section id="validation" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
+          <h2 class="text-2xl font-semibold mb-4">validation</h2>
+          <pre class="rounded p-4 text-sm overflow-x-auto mb-4" style="background-color: #0d1117; color: #e6edf3;">{`"validation": {
+  "minimumQSOs":        10,
+  "maxOperatingTime":   12,
+  "offTimesRequired":   true,
+  "minimumOffTimeMinutes": 30,
+
+  // Named multipliers — valid values for the exchange mult field:
+  "namedMults": ["AL","AK","AZ","CA", ...],
+
+  // Named call prefixes — for namedCallPrefixes multiplier category:
+  "namedCallPrefixes": ["YB0","YB1","YC0", ...],
+
+  // Grid square format regex (ARRL VHF):
+  "gridSquareFormat": "^[A-R]{2}[0-9]{2}[a-x]{2}$",
+
+  // How the received exchange is validated:
+  "exchangeValidation": {
+    "type":               "namedMultOrSerial",
+    "description":        "State/Province or serial number",
+    "serialNumberFormat": "^[0-9]{1,4}$",
+    "logic":              "Accept if matches namedMult OR serialNumberFormat"
+  },
+
+  // Per-station-type exchange filter (MNQP — W/VE and DX only see MN counties):
+  "receivedExchangeFilter": {
+    "promptId": "stationType",
+    "rules": {
+      "WVE": "inStateMults",
+      "DX":  "inStateMults"
+    }
+  },
+  "inStateMults": ["HEN","WRI","RAM", ...]
+}`}</pre>
+
+          <h3 class="text-lg font-semibold mb-2 mt-2">exchangeValidation types</h3>
+          <table class="w-full text-sm opacity-80">
+            <thead><tr class="text-left border-b" style="border-color: #30363d;">
+              <th class="pb-2 pr-4">type</th><th class="pb-2">Description</th>
+            </tr></thead>
+            <tbody>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">nameAndMultiplier</td><td>Name field is free text; QTH field must match <code>namedMults</code></td></tr>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">namedMultOrSerial</td><td>Accepts a named mult OR a serial number (format in <code>serialNumberFormat</code>)</td></tr>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">namedMultOrPower</td><td>Accepts a named mult OR a power value (format in <code>powerFormat</code>)</td></tr>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">maidenheadGrid</td><td>Validates against <code>gridSquareFormat</code> regex</td></tr>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">serial</td><td>Numeric serial number only</td></tr>
+              <tr><td class="py-2 pr-4 font-mono">freeForm</td><td>No validation — user is responsible for correct entry</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- ui -->
+        <section id="ui" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
+          <h2 class="text-2xl font-semibold mb-4">ui</h2>
+          <pre class="rounded p-4 text-sm overflow-x-auto mb-4" style="background-color: #0d1117; color: #e6edf3;">{`"ui": {
+  "showMultiplierPanel": true,
+  "logColumns":   ["DATE","TIME","CALL","FREQ","MODE","RSTs","RSTr","NAMEs","NAMEr","EXCHs","EXCHr","POINTS","M"],
+  "entryFields":  ["CALL","NAMEr","EXCHr"],
+  "fieldNavigation": {
+    "keys": "tab"
+  },
+  "bandMap": {
+    "enabled": true,
+    "bands":   ["160m","80m","40m","20m","15m","10m"]
+  },
+  "multiplierDisplay": {
+    "showStates":    true,
+    "showProvinces": true,
+    "showDXCC":      true,
+    "showCounties":  false,
+    "showYBPrefixes":false
+  }
+}`}</pre>
+          <table class="w-full text-sm opacity-80">
+            <thead><tr class="text-left border-b" style="border-color: #30363d;">
+              <th class="pb-2 pr-4">Field</th><th class="pb-2">Notes</th>
+            </tr></thead>
+            <tbody>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">showMultiplierPanel</td><td>Shows the multiplier checkbox panel (requires <code>validation.namedMults</code>)</td></tr>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">logColumns</td><td>Ordered list of column keys shown in the QSO log table; must match <code>qsoFields[].column</code> values</td></tr>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">entryFields</td><td>Fields shown in the QSO entry row (Tab navigates between them). <code>CALL</code> is always first.</td></tr>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">fieldNavigation.keys</td><td><code>"tab"</code> — Tab only; <code>"both"</code> — Tab and Space both advance fields</td></tr>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">bandMap.enabled</td><td>Shows the band selector buttons</td></tr>
+              <tr><td class="py-2 pr-4 font-mono">multiplierDisplay</td><td>Controls which multiplier groups appear in the multiplier panel</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- Minimal Example -->
+        <section id="minimal-example" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
+          <h2 class="text-2xl font-semibold mb-4">Minimal Example</h2>
+          <p class="opacity-80 mb-4">
+            A simple club sprint: 4-hour CW-only, 40m/20m, 1 point per QSO, unique callsigns as multipliers.
+            Save as <code>contests/my_club_sprint.json</code> and restart ContestLogX.
+          </p>
+          <pre class="rounded p-4 text-sm overflow-x-auto" style="background-color: #0d1117; color: #e6edf3;">{`{
+  "contest": {
+    "name":        "My Club Sprint",
+    "abbreviation":"MCS",
+    "version":     "1.0.0",
+    "sponsor":     "My Amateur Radio Club",
+    "startDate":   "First Saturday of March",
+    "duration":    4,
+    "offTimeGapMinutes": 0,
+    "modes": ["CW"],
+    "bands": ["40m", "20m"],
+    "url":   ""
+  },
+  "frequencies": {
+    "40m": {"start":7000,"end":7300,"cw":{"start":7000,"end":7125}},
+    "20m": {"start":14000,"end":14350,"cw":{"start":14000,"end":14150}}
+  },
+  "stationClasses": {
+    "enabled": true,
+    "prompt": "Enter your name and state",
+    "classes": [
+      {
+        "id": "SO",
+        "name": "Single Operator",
+        "needsInput": true,
+        "inputPrompts": {"name":"Your first name","id":"Your state/province"},
+        "exchangeFieldMapping": {"name":"NAMEs","id":"EXCHs"},
+        "inputValidation": {"name":{"forceUppercase":true},"id":{"forceUppercase":true}},
+        "exchangeSent": {"type":"customInput"}
+      }
+    ]
+  },
+  "exchangeFields": {
+    "sent": [
+      {"name":"RST",   "type":"rst",    "required":true},
+      {"name":"NAMEs", "type":"string", "required":true},
+      {"name":"EXCHs", "type":"string", "required":true}
+    ],
+    "received": [
+      {"name":"RST",   "type":"rst",    "required":false},
+      {"name":"NAMEr", "type":"string", "required":true},
+      {"name":"EXCHr", "type":"string", "required":true}
+    ]
+  },
+  "qsoFields": [
+    {"name":"Date",     "column":"DATE",  "type":"date",   "format":"yyyy-MM-dd","required":true},
+    {"name":"Time",     "column":"TIME",  "type":"time",   "format":"HH:mm:ss",  "required":true},
+    {"name":"Callsign", "column":"CALL",  "type":"string", "required":true,"uppercase":true},
+    {"name":"Frequency","column":"FREQ",  "type":"number", "unit":"kHz","required":true},
+    {"name":"Mode",     "column":"MODE",  "type":"enum",   "values":["CW"],"required":true},
+    {"name":"Name Sent","column":"NAMEs", "type":"string", "required":true},
+    {"name":"Name Rcvd","column":"NAMEr", "type":"string", "required":true},
+    {"name":"QTH Sent", "column":"EXCHs", "type":"string", "required":true},
+    {"name":"QTH Rcvd", "column":"EXCHr", "type":"string", "required":true},
+    {"name":"Points",   "column":"POINTS","type":"number", "calculated":true}
+  ],
+  "scoring": {
+    "points": {"perQso": 1},
+    "multipliers": {
+      "type": "multsOnce",
+      "categories": ["namedMults"]
+    },
+    "finalScore": "SUM(points) * SUM(multipliers)"
+  },
+  "dupeChecking": {"type":"perBand"},
+  "logging": {
+    "requiredFields": ["date","time","frequency","mode","callsign","rstSent","rstReceived","exchSent","exchReceived"],
+    "cabrillo": {
+      "version":     "3.0",
+      "contest":     "MCS",
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {rst_sent} {name_sent} {exch_sent} {call} {rst_rcvd} {name_rcvd} {exch_rcvd}"
+    }
+  },
+  "callHistory": {"fieldsToSave":["NAMEr","EXCHr"]},
+  "validation": {
+    "minimumQSOs":      1,
+    "maxOperatingTime": 4,
+    "offTimesRequired": false,
+    "namedMults": [
+      "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA",
+      "KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ",
+      "NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT",
+      "VA","WA","WV","WI","WY","DC",
+      "AB","BC","MB","NB","NL","NS","NU","NT","ON","PE","QC","SK","YT"
+    ],
+    "exchangeValidation": {"type":"nameAndMultiplier"}
+  },
+  "ui": {
+    "logColumns":  ["DATE","TIME","CALL","FREQ","MODE","NAMEs","NAMEr","EXCHs","EXCHr","POINTS"],
+    "entryFields": ["CALL","NAMEr","EXCHr"],
+    "fieldNavigation": {"keys":"tab"},
+    "bandMap": {"enabled":true,"bands":["40m","20m"]}
+  }
+}`}</pre>
+        </section>
+
+      </div>
+    </div>
+  </div>
+</Layout>
