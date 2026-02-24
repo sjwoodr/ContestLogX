@@ -7,7 +7,7 @@
 
 ## What is ContestLogX?
 
-ContestLogX is a cross-platform amateur radio contest logging application built entirely from scratch using Qt6. It was initially envisioned as a Qt port of WriteLog but evolved into a completely independent application with its own architecture, file formats, and feature set.
+ContestLogX is a cross-platform amateur radio contest logging application built entirely from scratch using Qt6. Most contest loggers are Windows-only, closed-source, or locked to a fixed set of contests. ContestLogX is built from the ground up to run natively on Linux, macOS, and Windows — no emulation, no workarounds. Every contest is defined in a simple JSON file, so you can add support for any contest yourself without touching a line of C++. Whether you're a serious DX contester or running a small club-sponsored event, ContestLogX adapts to you.
 
 ## Development History
 

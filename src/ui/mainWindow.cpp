@@ -3881,11 +3881,19 @@ void MainWindow::onExportCabrillo()
 
 void MainWindow::onAbout()
 {
-    QMessageBox::about(this, "About ContestLogX",
-        "ContestLogX - Version 0.5.0 (Beta)\n\n"
-        "Cross-platform amateur radio contest logging software\n\n"
-        "Radio control via flrig (http://www.w1hkj.com/)\n\n"
-        "Copyright (c) 2025-2026, by Steve Woodruff, N9OH");
+    QMessageBox msgBox(this);
+    msgBox.setWindowTitle("About ContestLogX");
+    msgBox.setTextFormat(Qt::RichText);
+    msgBox.setTextInteractionFlags(Qt::TextBrowserInteraction);
+    msgBox.setText(
+        "<b>ContestLogX - Version 0.6.0 (Beta)</b><br><br>"
+        "Cross-platform amateur radio contest logging software<br><br>"
+        "Copyright &copy; 2025-2026, by Steve Woodruff, N9OH<br><br>"
+        "<a href=\"https://contestlogx.com\">https://contestlogx.com</a><br><br>"
+        "<a href=\"https://github.com/sjwoodr/ContestLogX\">"
+        "https://github.com/sjwoodr/ContestLogX</a>"
+    );
+    msgBox.exec();
 }
 
 void MainWindow::clearEntryForm()
@@ -4983,6 +4991,21 @@ void MainWindow::updateLogHeaders()
         }
     }
     restoreColumnWidths();
+
+    // Ensure no column is narrower than its header label
+    QHeaderView* header = m_qsoTable->horizontalHeader();
+    QFontMetrics fm(header->font());
+    const int padding = 18;  // horizontal breathing room around the text
+    for (int i = 0; i < fullHeaders.size(); ++i) {
+        int minWidth = fm.horizontalAdvance(fullHeaders[i]) + padding;
+        int current = m_qsoTable->columnWidth(i);
+        if (current < minWidth) {
+            m_qsoTable->setColumnWidth(i, minWidth);
+            DebugLogger::instance().log("MainWindow",
+                QString("Column '%1' too narrow (%2px < %3px min), expanded")
+                    .arg(fullHeaders[i]).arg(current).arg(minWidth));
+        }
+    }
 
     DebugLogger::instance().log("MainWindow",
         QString("Updated log headers: %1").arg(fullHeaders.join(", ")));

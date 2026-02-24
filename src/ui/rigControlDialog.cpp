@@ -25,6 +25,7 @@
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QDialogButtonBox>
+#include <QLabel>
 #include <QMessageBox>
 
 RigControlDialog::RigControlDialog(FlrigClient* client, QWidget *parent)
@@ -121,7 +122,18 @@ void RigControlDialog::setupUi()
     statusLayout->addLayout(rigLayout);
     
     mainLayout->addWidget(statusGroup);
-    
+
+    // flrig attribution
+    QLabel *flrigLabel = new QLabel(
+        "Rig control powered by <b>flrig</b>"
+        " — <a href=\"https://www.w1hkj.org/\">https://www.w1hkj.org/</a>", this);
+    flrigLabel->setTextFormat(Qt::RichText);
+    flrigLabel->setOpenExternalLinks(true);
+    flrigLabel->setAlignment(Qt::AlignCenter);
+    flrigLabel->setStyleSheet("QLabel { color: gray; }");
+    mainLayout->addWidget(flrigLabel);
+    mainLayout->addSpacing(8);
+
     // Dialog buttons
     QDialogButtonBox *buttonBox = new QDialogButtonBox(
         QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
