@@ -4,10 +4,7 @@
  */
 
 #include "debuglogger.h"
-#include <QFile>
-#include <QTextStream>
 #include <QMutex>
-#include <QFileInfo>
 #include <QSettings>
 
 static QMutex g_logMutex;
@@ -21,28 +18,41 @@ DebugLogger& DebugLogger::instance()
 
 void DebugLogger::init()
 {
-    // Truncate the log file on startup
-    QFile logFile("clx_debug.log");
-    if (logFile.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text)) {
-        QTextStream log(&logFile);
-        log << "[" << QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss.zzz") << "] "
-            << "INFO: ContestLogX debug log started\n";
-        logFile.close();
+    QMutexLocker locker(&g_logMutex);
+    if (m_logFile.isOpen())
+        m_logFile.close();
+
+    m_logFile.setFileName("clx_debug.log");
+    m_logFile.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text);
+    m_logBytesWritten = 0;
+
+    if (m_logFile.isOpen()) {
+        QString msg = QString("[%1] INFO: ContestLogX debug log started\n")
+            .arg(QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss.zzz"));
+        QTextStream ts(&m_logFile);
+        ts << msg;
+        if (m_flushEnabled)
+            m_logFile.flush();
+        m_logBytesWritten += msg.toUtf8().size();
     }
 }
 
 void DebugLogger::loadSettings()
 {
-    // Load debug settings from Settings without logging (to avoid early log messages)
     QSettings settings(QSettings::IniFormat, QSettings::UserScope, "ContestLogX", "ContestLogX");
     m_flrigDebugEnabled = settings.value("Debug/FlrigDebug", false).toBool();
     m_mainWindowDebugEnabled = settings.value("Debug/MainWindowDebug", false).toBool();
-    m_contestEngineDebugEnabled = settings.value("Debug/ContestEngineDebug", true).toBool();
+    m_contestEngineDebugEnabled = settings.value("Debug/ContestEngineDebug", false).toBool();
     m_contestSelectDialogDebugEnabled = settings.value("Debug/ContestSelectDialogDebug", false).toBool();
     m_cwWindowDebugEnabled = settings.value("Debug/CWWindowDebug", false).toBool();
-    m_dxccDatabaseDebugEnabled = settings.value("Debug/DxccDatabaseDebug", true).toBool();
+    m_dxccDatabaseDebugEnabled = settings.value("Debug/DxccDatabaseDebug", false).toBool();
     m_scpDebugEnabled = settings.value("Debug/ScpDebug", false).toBool();
     m_multiplierWidgetDebugEnabled = settings.value("Debug/MultiplierWidgetDebug", false).toBool();
+}
+
+void DebugLogger::setFlushEnabled(bool enabled)
+{
+    m_flushEnabled = enabled;
 }
 
 void DebugLogger::setFlrigDebugEnabled(bool enabled)
@@ -149,65 +159,61 @@ void DebugLogger::setStdoutEnabled(bool enabled)
     m_stdoutEnabled = enabled;
 }
 
+void DebugLogger::rotatIfNeeded()
+{
+    // Called inside locked section. Rotate log if over size limit.
+    if (m_logBytesWritten < MAX_LOG_SIZE)
+        return;
+
+    m_logFile.close();
+    m_logFile.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text);
+    m_logBytesWritten = 0;
+
+    if (m_logFile.isOpen()) {
+        QString msg = QString("[%1] INFO: ContestLogX debug log truncated (reached 5MB limit)\n")
+            .arg(QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss.zzz"));
+        QTextStream ts(&m_logFile);
+        ts << msg;
+        m_logBytesWritten += msg.toUtf8().size();
+    }
+}
+
+void DebugLogger::writeToFile(const QString& msg)
+{
+    // Called inside locked section. File must be open.
+    if (!m_logFile.isOpen())
+        return;
+    QTextStream ts(&m_logFile);
+    ts << msg;
+    if (m_flushEnabled)
+        m_logFile.flush();
+    m_logBytesWritten += msg.toUtf8().size();
+}
+
 void DebugLogger::log(const QString& component, const QString& message)
 {
-    // Skip component-specific debug messages if disabled
-    if (!m_flrigDebugEnabled && component == "Flrig") {
-        return;
-    }
-    if (!m_mainWindowDebugEnabled && component == "MainWindow") {
-        return;
-    }
-    if (!m_contestEngineDebugEnabled && component == "ContestEngine") {
-        return;
-    }
-    if (!m_contestSelectDialogDebugEnabled && component == "ContestSelectDialog") {
-        return;
-    }
-    if (!m_cwWindowDebugEnabled && component == "CWWindow") {
-        return;
-    }
-    if (!m_dxccDatabaseDebugEnabled && component == "DxccDatabase") {
-        return;
-    }
-    if (!m_dxClusterDebugEnabled && component == "DxCluster") {
-        return;
-    }
-    if (!m_scpDebugEnabled && (component == "ScpDialog" || component == "ScpLineEdit")) {
-        return;
-    }
-    if (!m_multiplierWidgetDebugEnabled && component == "MultiplierWidget") {
-        return;
-    }
-    
+    // Fast-path guards — cheap boolean checks before any lock or allocation.
+    if (!m_flrigDebugEnabled && component == "Flrig") return;
+    if (!m_mainWindowDebugEnabled && component == "MainWindow") return;
+    if (!m_contestEngineDebugEnabled && component == "ContestEngine") return;
+    if (!m_contestSelectDialogDebugEnabled && component == "ContestSelectDialog") return;
+    if (!m_cwWindowDebugEnabled && component == "CWWindow") return;
+    if (!m_dxccDatabaseDebugEnabled && component == "DxccDatabase") return;
+    if (!m_dxClusterDebugEnabled && component == "DxCluster") return;
+    if (!m_scpDebugEnabled && (component == "ScpDialog" || component == "ScpLineEdit")) return;
+    if (!m_multiplierWidgetDebugEnabled && component == "MultiplierWidget") return;
+
     QMutexLocker locker(&g_logMutex);
-    
-    // Check log file size
-    QFileInfo logInfo("clx_debug.log");
-    if (logInfo.exists() && logInfo.size() >= MAX_LOG_SIZE) {
-        // Truncate and restart the log
-        QFile logFile("clx_debug.log");
-        if (logFile.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text)) {
-            QTextStream log(&logFile);
-            log << "[" << QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss.zzz") << "] "
-                << "INFO: ContestLogX debug log truncated (reached 5MB limit)\n";
-            logFile.close();
-        }
-    }
-    
+
+    rotatIfNeeded();
+
     QString logMsg = QString("[%1] %2: %3\n")
         .arg(QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss.zzz"))
         .arg(component)
         .arg(message);
-    
-    QFile logFile("clx_debug.log");
-    if (logFile.open(QIODevice::Append | QIODevice::Text)) {
-        QTextStream log(&logFile);
-        log << logMsg;
-        logFile.close();
-    }
-    
-    // Also write to stdout if enabled
+
+    writeToFile(logMsg);
+
     if (m_stdoutEnabled) {
         fprintf(stdout, "%s", logMsg.toLocal8Bit().constData());
         fflush(stdout);

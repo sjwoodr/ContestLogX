@@ -40,6 +40,7 @@ public:
     void updateGridSquareMultiplierCount(int row, int gridSquareMultCount);
     QsoRecord getQso(int row) const;
     void clear();
+    void replaceAll(const QList<QsoRecord>& qsos);
     void reverseQsos();
     
     // Column configuration

@@ -12,6 +12,7 @@
 #include <QString>
 #include <QList>
 #include <QSet>
+#include <QHash>
 #include "qsorecord.h"
 #include "DxccDatabase.h"
 
@@ -67,6 +68,7 @@ public:
     QsoMultiplierCredit getQsoMultiplierCredit(const QsoRecord& qso, const QList<QsoRecord>& existingQsos) const;
     bool isNewMultiplier(const QString& mult, const QString& band, const QString& mode, const QList<QsoRecord>& existingQsos) const;
     int calculateTotalScore(const QList<QsoRecord>& qsos, int& totalQsos, int& totalMults) const;
+    void rescoreAll(QList<QsoRecord>& qsos, const QString& myCallsign);
     QString getMultiplierType() const;
     QStringList getMultiplierCategories() const;
     bool getAlaskaHawaiiCountDxcc() const;
@@ -175,6 +177,7 @@ private:
     
     QString extractMultiplier(const QsoRecord& qso) const;
     int getPointsForMode(const QString& mode) const;
+    DxccEntity dxccLookup(const QString& call) const;
     
     QJsonObject m_contestDef;
     QSet<QString> m_validStates;
@@ -189,6 +192,20 @@ private:
     QMap<QString, QString> m_userPromptValues;  // Store user prompt responses (e.g., grid square)
     DxccDatabase* m_dxccDatabase;
     ContestScore m_runningScore;
+
+    // Cached contest properties — populated in loadContest(), avoids repeated JSON parsing
+    QString m_cachedMultType;
+    QString m_cachedDupeScope;
+    QStringList m_cachedMultCategories;
+    bool m_cachedDxccIsMult = false;
+    bool m_cachedCallsignIsMult = false;
+    bool m_cachedAkHiCountDxcc = true;
+    bool m_cachedUsAndCanadaCountDxcc = true;
+    bool m_cachedIncludeWaeEntities = false;
+    void cacheContestProperties();
+
+    // DXCC lookup cache — keyed by callsign, avoids repeated database scans per scoring pass
+    mutable QHash<QString, DxccEntity> m_dxccCache;
 
     // Worked named multiplier sets (persisted across updateRunningScore for widget display)
     QSet<QString> m_workedNamedMults;              // multsOnce: {"OH", "HEN", ...}

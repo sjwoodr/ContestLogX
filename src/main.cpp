@@ -132,30 +132,26 @@ int main(int argc, char *argv[])
     
     QCommandLineOption testOnlyOption("test-only", "Test mode: load log and exit after calculating score");
     parser.addOption(testOnlyOption);
-    
+
+    QCommandLineOption flushOption("flush", "Flush debug log after every write (slower, for debugging hangs)");
+    parser.addOption(flushOption);
+
     parser.process(app);
-    
+
     // Check if --debug flag is set
     debugToStdout = parser.isSet(debugOption);
-    
-    // Initialize debug logger FIRST
+
+    // Initialize debug logger FIRST — it owns clx_debug.log for the lifetime of the process
     DebugLogger::instance().init();
-    
-    // Enable stdout output if --debug flag is set
     DebugLogger::instance().setStdoutEnabled(debugToStdout);
-    
-    // Load debug settings BEFORE opening log file so filters are applied
     DebugLogger::instance().loadSettings();
-    
-    // Setup debug log file (truncate on each start)
-    logFile = new QFile("clx_debug.log");
-    if (logFile->open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text)) {
-        logStream = new QTextStream(logFile);
-        qInstallMessageHandler(debugMessageHandler);
-        DebugLogger::instance().log("INFO", QString("ContestLogX v%1 started - debug logging enabled").arg(APP_VERSION));
-    } else {
-        DebugLogger::instance().log("ERROR", "Could not open clx_debug.log for writing");
-    }
+    if (parser.isSet(flushOption))
+        DebugLogger::instance().setFlushEnabled(true);
+
+    // Route Qt framework messages (qDebug/qWarning etc.) through the same handler.
+    // They write to stdout when --debug is set; DebugLogger owns the log file.
+    qInstallMessageHandler(debugMessageHandler);
+    DebugLogger::instance().log("INFO", QString("ContestLogX v%1 started").arg(APP_VERSION));
     
     applyTheme();
 

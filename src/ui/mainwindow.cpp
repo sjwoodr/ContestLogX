@@ -1090,23 +1090,10 @@ void MainWindow::onNewLog()
                         }
                     }
                     
-                    // Clear the model first
-                    m_qsoModel->clear();
-                    
-                    // Now add all QSOs to the model once
+                    // Batch-insert all QSOs in one model reset (avoids N individual signals/repaints)
                     progressDialog->setLabelText("Loading QSOs...");
-                    progressDialog->setRange(0, loadedQsos.size());
-                    QApplication::processEvents();
-                    
-                    for (int i = 0; i < loadedQsos.size(); ++i) {
-                        m_qsoModel->addQso(loadedQsos[i]);
-                        
-                        // Update progress every 50 QSOs to avoid excessive redraws
-                        if (i % 50 == 0) {
-                            progressDialog->setValue(i);
-                            QApplication::processEvents();
-                        }
-                    }
+                    m_qsoModel->replaceAll(loadedQsos);
+                    m_qsoCountLabel->setText(QString("QSOs: %1").arg(m_qsoModel->count()));
                     progressDialog->setValue(loadedQsos.size());
                     
                     m_currentFile = selectedFile;
@@ -1718,25 +1705,12 @@ void MainWindow::onOpenLog()
             QApplication::processEvents();
         }
         
-        // Clear the model first
-        m_qsoModel->clear();
-        
-        // Now add all QSOs to the model once
+        // Batch-insert all QSOs in one model reset (avoids N individual signals/repaints)
         progressDialog->setLabelText("Loading QSOs...");
-        progressDialog->setRange(0, loadedQsos.size());
-        QApplication::processEvents();
-        
-        for (int i = 0; i < loadedQsos.size(); ++i) {
-            m_qsoModel->addQso(loadedQsos[i]);
-            
-            // Update progress every 50 QSOs to avoid excessive redraws
-            if (i % 50 == 0) {
-                progressDialog->setValue(i);
-                QApplication::processEvents();
-            }
-        }
+        m_qsoModel->replaceAll(loadedQsos);
+        m_qsoCountLabel->setText(QString("QSOs: %1").arg(m_qsoModel->count()));
         progressDialog->setValue(loadedQsos.size());
-        
+
         m_currentFile = fileName;
         m_isModified = false;
         updateWindowTitle();
@@ -2037,25 +2011,12 @@ void MainWindow::loadLogFile(const QString& filename)
             }
         }
         
-        // Clear the model first
-        m_qsoModel->clear();
-        
-        // Now add all QSOs to the model once
+        // Batch-insert all QSOs in one model reset (avoids N individual signals/repaints)
         progressDialog->setLabelText("Loading QSOs...");
-        progressDialog->setRange(0, loadedQsos.size());
-        QApplication::processEvents();
-        
-        for (int i = 0; i < loadedQsos.size(); ++i) {
-            m_qsoModel->addQso(loadedQsos[i]);
-            
-            // Update progress every 50 QSOs to avoid excessive redraws
-            if (i % 50 == 0) {
-                progressDialog->setValue(i);
-                QApplication::processEvents();
-            }
-        }
+        m_qsoModel->replaceAll(loadedQsos);
+        m_qsoCountLabel->setText(QString("QSOs: %1").arg(m_qsoModel->count()));
         progressDialog->setValue(loadedQsos.size());
-        
+
         m_currentFile = filename;
         m_isModified = false;
         updateWindowTitle();
@@ -2135,7 +2096,8 @@ void MainWindow::loadLogFile(const QString& filename)
                 // If in test mode, log the score and exit
                 if (m_testMode) {
                     auto score = m_contestEngine->getRunningScore();
-                    DebugLogger::instance().log("MainWindow", 
+                    // Use "INFO" component so this is always written regardless of MainWindow debug setting
+                    DebugLogger::instance().log("INFO",
                         QString("TEST MODE: Log fully loaded. CLAIMED_SCORE=%1").arg(score.contestScore));
                     // Exit after a brief delay to ensure log is written
                     QTimer::singleShot(100, qApp, &QCoreApplication::quit);
@@ -3364,73 +3326,19 @@ void MainWindow::onRecalculateScore()
         m_scoreWidget->resetScore();
     }
     
-    // Get all QSOs
+    // Get all QSOs, rescore them in one O(n) pass, then batch-update the model.
     QList<QsoRecord> allQsos = m_qsoModel->getAllQsos();
-    
-    // Reset contest engine
-    m_contestEngine->resetScore();
-
-    // Re-score each QSO without popups
     QString myCallsign = getSessionCallsign();
-    
-    for (int i = 0; i < allQsos.count(); ++i) {
-        QsoRecord qso = allQsos[i];
-        
-        // Check if out-of-band
-        double freqKhz = qso.getFrequency().toDouble();
-        if (!m_contestEngine->isValidBand(freqKhz)) {
-            qso.setOutOfBand(true);
-            qso.setComment("Out of band for contest");
-            qso.setPoints(0);
-            qso.setDupe(false);
-            qso.setMultiplierCount(0);
-            qso.setDxccCount(0);
-            m_qsoModel->updateQso(i, qso);
-            continue;
-        }
-        
-        // Reset dupe and out-of-band flags
-        qso.setOutOfBand(false);
-        qso.setDupe(false);
-        qso.setComment("");
-        
-        // Check for duplicates (against previously re-scored QSOs)
-        QList<QsoRecord> previousQsos = allQsos.mid(0, i);
-        bool isDupe = m_contestEngine->isDupe(qso, previousQsos);
-        
-        if (isDupe) {
-            qso.setDupe(true);
-            qso.setPoints(0);
-            qso.setMultiplierCount(0);
-            qso.setDxccCount(0);
-            QString dupeReason = m_contestEngine->getDupeReason(qso, previousQsos);
-            qso.setComment(QString("Duplicate contact for %1").arg(dupeReason));
-            m_qsoModel->updateQso(i, qso);
-            continue;
-        }
-        
-        // Calculate points
-        int points = m_contestEngine->calculatePoints(qso, myCallsign);
-        qso.setPoints(points);
-        
-        // Get per-QSO multiplier credit
-        ContestEngine::QsoMultiplierCredit credit = m_contestEngine->getQsoMultiplierCredit(qso, previousQsos);
-        qso.setMultiplierCount(credit.namedMultCount);
-        qso.setDxccCount(credit.dxccMultCount);
-        qso.setItuRegionCount(credit.ituRegionMultCount);
-        
-        m_qsoModel->updateQso(i, qso);
-    }
-    
-    // Re-calculate running score
-    allQsos = m_qsoModel->getAllQsos();
-    m_contestEngine->updateRunningScore(allQsos, myCallsign, false);  // Suppress verbose logging
-    
+
+    m_contestEngine->rescoreAll(allQsos, myCallsign);   // O(n) — no mid() copies
+    m_qsoModel->replaceAll(allQsos);                    // single model reset, one repaint
+
     // Update score widget
     if (m_scoreWidget) {
         ContestEngine::ContestScore score = m_contestEngine->getRunningScore();
         m_scoreWidget->updateScore(score);
     }
+
     // Update multiplier widget
     if (m_multiplierWidget && m_multiplierDock) {
         QString multType = m_contestEngine->getMultiplierType();

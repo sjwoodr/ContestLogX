@@ -258,6 +258,13 @@ void QsoListModel::clear()
     endResetModel();
 }
 
+void QsoListModel::replaceAll(const QList<QsoRecord>& qsos)
+{
+    beginResetModel();
+    m_qsos = qsos;
+    endResetModel();
+}
+
 void QsoListModel::reverseQsos()
 {
     if (m_qsos.isEmpty()) {

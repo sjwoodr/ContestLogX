@@ -8,15 +8,18 @@
 
 #include <QString>
 #include <QDateTime>
+#include <QFile>
+#include <QTextStream>
 
 class DebugLogger
 {
 public:
     static DebugLogger& instance();
-    
+
     void log(const QString& component, const QString& message);
     void init();
     void loadSettings();
+    void setFlushEnabled(bool enabled);
     void setFlrigDebugEnabled(bool enabled);
     bool isFlrigDebugEnabled() const;
     void setMainWindowDebugEnabled(bool enabled);
@@ -49,6 +52,13 @@ private:
     bool m_scpDebugEnabled = false;
     bool m_multiplierWidgetDebugEnabled = false;
     bool m_stdoutEnabled = false;
+    bool m_flushEnabled = false;  // true = flush after every write (--flush flag)
+
+    QFile m_logFile;
+    qint64 m_logBytesWritten = 0;
+
+    void writeToFile(const QString& msg);
+    void rotatIfNeeded();
 };
 
 #endif // DEBUGLOGGER_H

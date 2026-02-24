@@ -121,14 +121,82 @@ bool ContestEngine::loadContest(const QJsonObject& contestDef)
     DebugLogger::instance().log("ContestEngine", 
         QString("US/Canada count as DXCC: %1").arg(usCanadaDxcc ? "true" : "false"));
     
-    DebugLogger::instance().log("ContestEngine", 
+    DebugLogger::instance().log("ContestEngine",
                      QString("Contest loaded: %1, Multipliers: %2, States: %3, Provinces: %4")
                      .arg(contestName)
                      .arg(m_validMultipliers.size())
                      .arg(m_validStates.size())
                      .arg(m_validProvinces.size()));
-    
+
+    // Cache derived properties so hot-path scoring functions avoid repeated JSON parsing
+    cacheContestProperties();
+
     return true;
+}
+
+void ContestEngine::cacheContestProperties()
+{
+    m_dxccCache.clear();
+
+    // Multiplier type
+    m_cachedMultType = "multsOnce";
+    if (m_contestDef.contains("scoring")) {
+        QJsonObject scoring = m_contestDef["scoring"].toObject();
+        if (scoring.contains("multipliers")) {
+            QJsonObject mults = scoring["multipliers"].toObject();
+            m_cachedMultType = mults["type"].toString("multsOnce");
+
+            m_cachedAkHiCountDxcc       = mults["alaskaAndHawaiiCountDxcc"].toBool(true);
+            m_cachedUsAndCanadaCountDxcc = mults["usAndCanadaCountDxcc"].toBool(true);
+            m_cachedIncludeWaeEntities  = mults["includeWaeEntities"].toBool(false);
+
+            // Multiplier categories (may be station-class specific)
+            m_cachedMultCategories.clear();
+            if (!m_stationClass.isEmpty() && mults.contains("stationClassCategories")) {
+                QJsonObject scCats = mults["stationClassCategories"].toObject();
+                if (scCats.contains(m_stationClass)) {
+                    for (const QJsonValue& v : scCats[m_stationClass].toArray())
+                        m_cachedMultCategories.append(v.toString());
+                }
+            }
+            if (m_cachedMultCategories.isEmpty() && mults.contains("categories")) {
+                for (const QJsonValue& v : mults["categories"].toArray())
+                    m_cachedMultCategories.append(v.toString());
+            }
+        }
+    }
+    m_cachedDxccIsMult = m_cachedMultCategories.contains("dxcc");
+
+    // Whether the callsign itself is a multiplier
+    m_cachedCallsignIsMult = false;
+    if (m_contestDef.contains("multipliers")) {
+        QJsonObject multipliers = m_contestDef["multipliers"].toObject();
+        for (const QJsonValue& val : multipliers["sources"].toArray()) {
+            if (val.toObject()["type"].toString() == "callsign") {
+                m_cachedCallsignIsMult = true;
+                break;
+            }
+        }
+    }
+
+    // Dupe scope
+    m_cachedDupeScope = "overall";
+    if (m_contestDef.contains("dupeChecking")) {
+        QJsonValue dcv = m_contestDef["dupeChecking"];
+        if (dcv.isObject()) {
+            QString t = dcv.toObject()["type"].toString();
+            if      (t == "perBand")        m_cachedDupeScope = "per_band";
+            else if (t == "perBandAndMode") m_cachedDupeScope = "per_band_mode";
+            else if (t == "perMode")        m_cachedDupeScope = "per_mode";
+            else if (t == "overall")        m_cachedDupeScope = "overall";
+        } else if (dcv.isString()) {
+            m_cachedDupeScope = dcv.toString();
+        }
+    } else if (m_contestDef.contains("scoring")) {
+        QJsonObject scoring = m_contestDef["scoring"].toObject();
+        if (scoring.contains("dupeChecking"))
+            m_cachedDupeScope = scoring["dupeChecking"].toString();
+    }
 }
 
 QString ContestEngine::getContestName() const
@@ -524,38 +592,7 @@ QString ContestEngine::getDupeReason(const QsoRecord& qso, const QList<QsoRecord
 
 QString ContestEngine::getDupeScope() const
 {
-    // Check root-level dupeChecking object first
-    if (m_contestDef.contains("dupeChecking")) {
-        QJsonValue dupeCheckingValue = m_contestDef["dupeChecking"];
-        if (dupeCheckingValue.isObject()) {
-            QJsonObject dupeChecking = dupeCheckingValue.toObject();
-            if (dupeChecking.contains("type")) {
-                QString typeStr = dupeChecking["type"].toString();
-                // Map dupeChecking type to dupeScope
-                if (typeStr == "perBand") {
-                    return "per_band";
-                } else if (typeStr == "perBandAndMode") {
-                    return "per_band_mode";
-                } else if (typeStr == "perMode") {
-                    return "per_mode";
-                } else if (typeStr == "overall") {
-                    return "overall";
-                }
-            }
-        } else if (dupeCheckingValue.isString()) {
-            // Handle legacy string format
-            return dupeCheckingValue.toString();
-        }
-    }
-    
-    // Fallback to scoring section (legacy)
-    if (m_contestDef.contains("scoring")) {
-        QJsonObject scoring = m_contestDef["scoring"].toObject();
-        if (scoring.contains("dupeChecking")) {
-            return scoring["dupeChecking"].toString();
-        }
-    }
-    return "overall";
+    return m_cachedDupeScope;
 }
 
 int ContestEngine::calculatePoints(const QsoRecord& qso, const QString& myCallsign) const
@@ -578,8 +615,8 @@ int ContestEngine::calculatePoints(const QsoRecord& qso, const QString& myCallsi
     QString myCallForLookup = m_dxccDatabase->stripPortableSuffixes(myCallsign);
     QString theirCallForLookup = m_dxccDatabase->stripPortableSuffixes(theirCall);
     
-    DxccEntity myEntity = m_dxccDatabase->lookupCallsign(myCallForLookup);
-    DxccEntity theirEntity = m_dxccDatabase->lookupCallsign(theirCallForLookup);
+    DxccEntity myEntity = dxccLookup(myCallForLookup);
+    DxccEntity theirEntity = dxccLookup(theirCallForLookup);
     
     QString myCountry = myEntity.country;
     QString theirCountry = theirEntity.country;
@@ -774,7 +811,7 @@ QStringList ContestEngine::getMultipliers(const QsoRecord& qso) const
             if (akHiCountDxcc && dxccIsMult) {
                 // Get DXCC entity for the callsign to get the proper prefix
                 if (m_dxccDatabase) {
-                    DxccEntity entity = m_dxccDatabase->lookupCallsign(qso.getCall());
+                    DxccEntity entity = dxccLookup(qso.getCall());
                     QString dxccName = entity.country;
                     
                     // Alaska is DXCC 006, Hawaii is DXCC 110
@@ -794,7 +831,7 @@ QStringList ContestEngine::getMultipliers(const QsoRecord& qso) const
     
     // Check if we should add DXCC entity as a multiplier
     if (dxccIsMult && m_dxccDatabase) {
-        DxccEntity entity = m_dxccDatabase->lookupCallsign(qso.getCall());
+        DxccEntity entity = dxccLookup(qso.getCall());
         
         // If no state/province multiplier found (i.e., DX station), add DXCC as mult
         if (mult.isEmpty() || !m_validMultipliers.contains(mult.toUpper())) {
@@ -823,128 +860,60 @@ QStringList ContestEngine::getMultipliers(const QsoRecord& qso) const
 QList<ContestEngine::MultiplierInfo> ContestEngine::getMultipliersWithCategory(const QsoRecord& qso) const
 {
     QList<MultiplierInfo> result;
-    
-    // Check if callsign itself is a multiplier (for contests like CWops CWT)
-    bool callsignIsMult = false;
-    if (m_contestDef.contains("multipliers")) {
-        QJsonObject multipliers = m_contestDef["multipliers"].toObject();
-        if (multipliers.contains("sources")) {
-            QJsonArray sources = multipliers["sources"].toArray();
-            for (const QJsonValue& val : sources) {
-                QJsonObject source = val.toObject();
-                if (source["type"].toString() == "callsign") {
-                    callsignIsMult = true;
-                    break;
-                }
-            }
-        }
-    }
-    
-    // If callsign is the multiplier, return it
-    if (callsignIsMult) {
-        QString call = qso.getCall().toUpper();
-        result.append({call, "callsign"});
+
+    if (m_cachedCallsignIsMult) {
+        result.append({qso.getCall().toUpper(), "callsign"});
         return result;
     }
-    
-    // Otherwise, check if DXCC is a multiplier category
-    QStringList multCategories = getMultiplierCategories();
-    bool dxccIsMult = multCategories.contains("dxcc");
-    
-    // Extract multiplier from exchange (state/province)
+
+    // Extract named multiplier from exchange (state/province/DX)
     QString mult = extractMultiplier(qso);
     if (!mult.isEmpty() && m_validMultipliers.contains(mult.toUpper())) {
-        QString multUpper = mult.toUpper();
-        
-        // All named multipliers from validation.namedMults are valid
+        const QString multUpper = mult.toUpper();
         result.append({multUpper, "namedMults"});
-        
-        // Handle Alaska and Hawaii special case
-        if (multUpper == "AK" || multUpper == "HI") {
-            bool akHiCountDxcc = getAlaskaHawaiiCountDxcc();
-            DebugLogger::instance().log("ContestEngine", 
-                QString("  Found AK/HI multiplier '%1' - counts as DXCC: %2").arg(multUpper).arg(akHiCountDxcc ? "yes" : "no"));
-            
-            // If dxcc is in multiplier categories and AK/HI should count as DXCC
-            if (akHiCountDxcc && dxccIsMult && m_dxccDatabase) {
-                DxccEntity entity = m_dxccDatabase->lookupCallsign(qso.getCall());
-                if (!entity.primaryPrefix.isEmpty() || !entity.prefixes.isEmpty()) {
-                    QString dxccMult = entity.primaryPrefix.isEmpty() ? entity.prefixes.first().prefix : entity.primaryPrefix;
-                    result.append({dxccMult, "dxcc"});
-                    DebugLogger::instance().log("ContestEngine", 
-                        QString("  Added DXCC mult '%1' for AK/HI").arg(dxccMult));
-                }
-            }
-        }
-    }
-    
 
-    // Check if we should add DXCC entity as a multiplier
-    if (dxccIsMult && m_dxccDatabase) {
-        DxccEntity entity = m_dxccDatabase->lookupCallsign(qso.getCall());
-        
-        // Check if we already added DXCC due to AK/HI treatment
-        bool alreadyAddedDxcc = false;
-        QString multUpper = mult.toUpper();
-        if ((multUpper == "AK" || multUpper == "HI")) {
-            bool akHiCountDxcc = getAlaskaHawaiiCountDxcc();
-            if (akHiCountDxcc) {
-                alreadyAddedDxcc = true;
-            }
-        }
-        
-        // Determine if we should add DXCC for US/Canadian stations
-        bool shouldAddDxcc = false;
-        if (alreadyAddedDxcc) {
-            // Already handled by AK/HI special treatment
-            shouldAddDxcc = false;
-            DebugLogger::instance().log("ContestEngine", 
-                QString("  DXCC: Already added via AK/HI treatment, skipping"));
-        } else if (multUpper == "AK" || multUpper == "HI") {
-            // This is Alaska/Hawaii but didn't count as DXCC, skip
-            shouldAddDxcc = false;
-            DebugLogger::instance().log("ContestEngine", 
-                QString("  DXCC: AK/HI but alaskaAndHawaiiCountDxcc=false, skipping"));
-        } else if (!mult.isEmpty() && m_validMultipliers.contains(mult.toUpper())) {
-            // This is a US/Canadian station with a state/province
-            // Check if they also count as DXCC
-            bool usAndCanadaCountDxcc = getUsAndCanadaCountDxcc();
-            shouldAddDxcc = usAndCanadaCountDxcc;
-            DebugLogger::instance().log("ContestEngine", 
-                QString("  DXCC: US/Canadian mult '%1' - counts as DXCC: %2").arg(mult.toUpper()).arg(usAndCanadaCountDxcc ? "yes" : "no"));
-        } else {
-            // This is a DX station (no state/province), always add DXCC
-            shouldAddDxcc = true;
-            DebugLogger::instance().log("ContestEngine", 
-                QString("  DXCC: DX station, adding DXCC"));
-        }
-        
-        // Add DXCC if appropriate
-        if (shouldAddDxcc && !entity.prefixes.isEmpty()) {
-            // Skip WAE-only entities (marked with * in cty.dat) unless the contest opts in.
-            // These count in CQ/DARC-sponsored contests but NOT ARRL-sponsored contests.
-            bool includeWae = false;
-            if (!m_contestDef.isEmpty() && m_contestDef.contains("scoring")) {
-                QJsonObject scoring = m_contestDef["scoring"].toObject();
-                if (scoring.contains("multipliers")) {
-                    includeWae = scoring["multipliers"].toObject()["includeWaeEntities"].toBool(false);
-                }
-            }
-            if (entity.waeOnly && !includeWae) {
-                DebugLogger::instance().log("ContestEngine",
-                    QString("  Skipping WAE-only DXCC entity '%1' (not counted in ARRL-sponsored contests)").arg(entity.primaryPrefix));
-            } else {
-                QString dxccMult = entity.primaryPrefix.isEmpty() ? entity.prefixes.first().prefix : entity.primaryPrefix;
+        // AK/HI may also count as DXCC
+        if (m_cachedDxccIsMult && m_cachedAkHiCountDxcc
+                && (multUpper == "AK" || multUpper == "HI") && m_dxccDatabase) {
+            DxccEntity entity = dxccLookup(qso.getCall());
+            if (!entity.primaryPrefix.isEmpty() || !entity.prefixes.isEmpty()) {
+                QString dxccMult = entity.primaryPrefix.isEmpty()
+                                   ? entity.prefixes.first().prefix : entity.primaryPrefix;
                 result.append({dxccMult, "dxcc"});
-                DebugLogger::instance().log("ContestEngine",
-                    QString("  Added DXCC mult '%1'").arg(dxccMult));
             }
         }
     }
-    
-    // Check if namedCallPrefixes are a multiplier category
-    bool namedCallPrefixesMult = multCategories.contains("namedCallPrefixes");
-    if (namedCallPrefixesMult && !m_validCallPrefixes.isEmpty()) {
+
+    // DXCC multiplier
+    if (m_cachedDxccIsMult && m_dxccDatabase) {
+        const QString multUpper = mult.toUpper();
+        bool alreadyAddedDxcc = (multUpper == "AK" || multUpper == "HI") && m_cachedAkHiCountDxcc;
+
+        bool shouldAddDxcc = false;
+        if (!alreadyAddedDxcc) {
+            if (multUpper == "AK" || multUpper == "HI") {
+                // AK/HI not counting as DXCC — skip
+            } else if (!mult.isEmpty() && m_validMultipliers.contains(multUpper)) {
+                shouldAddDxcc = m_cachedUsAndCanadaCountDxcc;
+            } else {
+                shouldAddDxcc = true; // DX station
+            }
+        }
+
+        if (shouldAddDxcc) {
+            DxccEntity entity = dxccLookup(qso.getCall());
+            if (!entity.prefixes.isEmpty()) {
+                if (!entity.waeOnly || m_cachedIncludeWaeEntities) {
+                    QString dxccMult = entity.primaryPrefix.isEmpty()
+                                       ? entity.prefixes.first().prefix : entity.primaryPrefix;
+                    result.append({dxccMult, "dxcc"});
+                }
+            }
+        }
+    }
+
+    // Named call-prefix multiplier (e.g. YBDX contest)
+    if (m_cachedMultCategories.contains("namedCallPrefixes") && !m_validCallPrefixes.isEmpty()) {
         QString call = qso.getCall().toUpper();
         
         // Handle portable/slash notation: "YB1AR/2" -> YB2, "YC2DO/3" -> YC3, "YB0/KY1A" -> YB0, "W4WOD/2" -> no credit
@@ -1020,7 +989,7 @@ QList<ContestEngine::MultiplierInfo> ContestEngine::getMultipliersWithCategory(c
     }
     
     // Check if Grid Squares are a multiplier category
-    bool gridSquareIsMult = multCategories.contains("gridSquares");
+    bool gridSquareIsMult = m_cachedMultCategories.contains("gridSquares");
     if (gridSquareIsMult) {
         // Extract grid square from exchange fields (typically in "GRID" or "GRID_RCV" field)
         QString gridSquare;
@@ -1119,71 +1088,34 @@ ContestEngine::QsoMultiplierCredit ContestEngine::getQsoMultiplierCredit(const Q
 }
 
 
+DxccEntity ContestEngine::dxccLookup(const QString& call) const
+{
+    auto it = m_dxccCache.find(call);
+    if (it != m_dxccCache.end())
+        return it.value();
+    DxccEntity entity = m_dxccDatabase->lookupCallsign(call);
+    m_dxccCache.insert(call, entity);
+    return entity;
+}
+
 QString ContestEngine::getMultiplierType() const
 {
-    if (m_contestDef.contains("scoring")) {
-        QJsonObject scoring = m_contestDef["scoring"].toObject();
-        if (scoring.contains("multipliers")) {
-            QJsonObject mults = scoring["multipliers"].toObject();
-            return mults["type"].toString("multsOnce");
-        }
-    }
-    return "multsOnce";
+    return m_cachedMultType;
 }
 
 QStringList ContestEngine::getMultiplierCategories() const
 {
-    QStringList categories;
-    if (m_contestDef.contains("scoring")) {
-        QJsonObject scoring = m_contestDef["scoring"].toObject();
-        if (scoring.contains("multipliers")) {
-            QJsonObject mults = scoring["multipliers"].toObject();
-            // If the contest defines per-station-class multiplier categories, use them.
-            // This supports asymmetric contests like ARRL DX where W/VE stations count
-            // DXCC entities while DX stations count named mults (states/provinces).
-            if (!m_stationClass.isEmpty() && mults.contains("stationClassMultipliers")) {
-                QJsonObject scMults = mults["stationClassMultipliers"].toObject();
-                if (scMults.contains(m_stationClass)) {
-                    QJsonArray classCategories = scMults[m_stationClass].toArray();
-                    for (const QJsonValue& val : classCategories) {
-                        categories.append(val.toString());
-                    }
-                    return categories;
-                }
-            }
-            if (mults.contains("categories")) {
-                QJsonArray categoriesArray = mults["categories"].toArray();
-                for (const QJsonValue& val : categoriesArray) {
-                    categories.append(val.toString());
-                }
-            }
-        }
-    }
-    return categories;
+    return m_cachedMultCategories;
 }
 
 bool ContestEngine::getAlaskaHawaiiCountDxcc() const
 {
-    if (m_contestDef.contains("scoring")) {
-        QJsonObject scoring = m_contestDef["scoring"].toObject();
-        if (scoring.contains("multipliers")) {
-            QJsonObject mults = scoring["multipliers"].toObject();
-            return mults["alaskaAndHawaiiCountDxcc"].toBool(true);
-        }
-    }
-    return true; // Default: AK/HI count as both state and DXCC mults
+    return m_cachedAkHiCountDxcc;
 }
 
 bool ContestEngine::getUsAndCanadaCountDxcc() const
 {
-    if (m_contestDef.contains("scoring")) {
-        QJsonObject scoring = m_contestDef["scoring"].toObject();
-        if (scoring.contains("multipliers")) {
-            QJsonObject mults = scoring["multipliers"].toObject();
-            return mults["usAndCanadaCountDxcc"].toBool(true);
-        }
-    }
-    return true; // Default: US/Canada stations count as both state/province and DXCC
+    return m_cachedUsAndCanadaCountDxcc;
 }
 
 QStringList ContestEngine::getNamedMultiplierList() const
@@ -2086,7 +2018,7 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
         
         // Track DXCC entities (always, for informational purposes)
         if (m_dxccDatabase) {
-            DxccEntity entity = m_dxccDatabase->lookupCallsign(qso.getCall());
+            DxccEntity entity = dxccLookup(qso.getCall());
             if (entity.dxcc > 0) {
                 uniqueDxccEntities.insert(entity.dxcc);
             }
@@ -2402,6 +2334,79 @@ void ContestEngine::resetScore()
 {
     m_runningScore = ContestScore();
     DebugLogger::instance().log("ContestEngine", "Score reset");
+}
+
+void ContestEngine::rescoreAll(QList<QsoRecord>& qsos, const QString& myCallsign)
+{
+    m_dxccCache.clear();  // Fresh cache for this scoring pass
+
+    // Determine dupe scope once (avoids re-deriving it for every QSO)
+    QString dupeScope = getDupeScope();
+    if (dupeScope.isEmpty()) {
+        QString multType = getMultiplierType();
+        if (multType == "multsOnce")          dupeScope = "overall";
+        else if (multType == "multsPerBand")  dupeScope = "per_band";
+        else if (multType == "multsPerMode")  dupeScope = "per_mode";
+        else if (multType == "multsPerBandAndMode") dupeScope = "per_band_mode";
+    }
+
+    // Incremental dupe tracking: callUpper -> set of scope keys already worked.
+    // Scope key is "" for overall, band for per_band, mode for per_mode, band_mode for per_band_mode.
+    QHash<QString, QSet<QString>> workedCalls;
+
+    for (int i = 0; i < qsos.count(); ++i) {
+        QsoRecord& qso = qsos[i];
+
+        // Out-of-band check
+        if (!isValidBand(qso.getFrequency().toDouble())) {
+            qso.setOutOfBand(true);
+            qso.setDupe(false);
+            qso.setComment("Out of band for contest");
+            qso.setPoints(0);
+            qso.setMultiplierCount(0);
+            qso.setDxccCount(0);
+            continue;
+        }
+
+        qso.setOutOfBand(false);
+        qso.setDupe(false);
+        qso.setComment("");
+
+        // O(1) dupe check against the incremental hash
+        const QString callUpper = qso.getCall().toUpper();
+        QString scopeKey;
+        if (dupeScope == "per_band")           scopeKey = qso.getBand();
+        else if (dupeScope == "per_mode")      scopeKey = qso.getMode();
+        else if (dupeScope == "per_band_mode") scopeKey = qso.getBand() + "_" + qso.getMode();
+        // "overall" keeps scopeKey as ""
+
+        const bool isDupe = workedCalls.contains(callUpper)
+                            && workedCalls[callUpper].contains(scopeKey);
+
+        if (isDupe) {
+            qso.setDupe(true);
+            qso.setPoints(0);
+            qso.setMultiplierCount(0);
+            qso.setDxccCount(0);
+            QString reason;
+            if (dupeScope == "overall")         reason = "contest";
+            else if (dupeScope == "per_band")   reason = "band";
+            else if (dupeScope == "per_mode")   reason = "mode";
+            else if (dupeScope == "per_band_mode") reason = "band/mode";
+            qso.setComment(QString("Duplicate contact for %1").arg(reason));
+            continue;
+        }
+
+        // Register this QSO in the dupe tracking hash
+        workedCalls[callUpper].insert(scopeKey);
+
+        // Points — updateRunningScore will re-derive this, but we set it here so
+        // the per-QSO column in the table is correct after replaceAll.
+        qso.setPoints(calculatePoints(qso, myCallsign));
+    }
+
+    // One O(n) pass: sets m_workedNamedMults*, per-QSO mult counts, and final totals.
+    updateRunningScore(qsos, myCallsign, false);
 }
 
 void ContestEngine::setRestrictedMode(const QString& mode)
