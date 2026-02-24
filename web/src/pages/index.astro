@@ -9,17 +9,17 @@ import Layout from '../layouts/Layout.astro';
     <header class="max-w-4xl mb-0">
       <!-- Logo section with images and text side by side -->
       <div class="flex items-center justify-center gap-8 mb-6">
-        <!-- Left: Images side by side -->
-        <div class="flex gap-4 items-center">
-          <img src="/radio.png" alt="Radio" style="height: 120px; width: auto;" />
-          <img src="/antenna.png" alt="Antenna" style="height: 120px; width: auto;" />
-        </div>
+        <!-- Left: Antenna -->
+        <img src="/antenna.png" alt="Antenna" style="height: 120px; width: auto;" />
 
-        <!-- Right: Text -->
+        <!-- Center: Text -->
         <div class="text-left">
           <h1 class="text-5xl font-bold mb-2" style="letter-spacing: -0.02em;">ContestLogX</h1>
           <h2 class="text-xl font-semibold opacity-70" style="letter-spacing: 0.1em;">HAM RADIO CONTEST LOGGER</h2>
         </div>
+
+        <!-- Right: Radio -->
+        <img src="/radio.png" alt="Radio" style="height: 120px; width: auto;" />
       </div>
 
       <p class="text-lg opacity-80 mb-0">
@@ -59,9 +59,9 @@ import Layout from '../layouts/Layout.astro';
 
     <!-- Beta Invite -->
     <section class="max-w-3xl mt-0 px-5 py-8 rounded-lg border" style="background-color: #161b22; border-color: #30363d;">
-      <h2 class="text-2xl mb-0">Linux Beta Program</h2>
+      <h2 class="text-2xl mb-0">Linux &amp; macOS Beta Program</h2>
       <p>
-        We're looking for experienced operators to help test ContestLogX on Linux.
+        We're looking for experienced operators to help test ContestLogX on Linux and macOS.
         If you're interested in joining the beta, reach out to
         <a href="mailto:beta@contestlogx.com" class="underline" style="color: #58a6ff;">
           beta@contestlogx.com
