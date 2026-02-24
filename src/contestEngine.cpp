@@ -630,12 +630,30 @@ int ContestEngine::calculatePoints(const QsoRecord& qso, const QString& myCallsi
             .arg(myCallsign).arg(theirCall)
             .arg(myCountry).arg(myContinent).arg(myDxcc)
             .arg(theirCountry).arg(theirContinent).arg(theirDxcc));
-    
+
     if (m_contestDef.contains("scoring")) {
         QJsonObject scoring = m_contestDef["scoring"].toObject();
+
+        // Check if the partner station is an invalid contact for this station class
+        // (e.g., W/VE stations may not work other W/VE stations in ARRL DX)
+        if (!m_stationClass.isEmpty() && scoring.contains("invalidPartners")) {
+            QJsonObject invalidPartners = scoring["invalidPartners"].toObject();
+            if (invalidPartners.contains(m_stationClass)) {
+                QString theirPrefix = theirEntity.primaryPrefix;
+                for (const QJsonValue& v : invalidPartners[m_stationClass].toArray()) {
+                    if (v.toString() == theirPrefix) {
+                        DebugLogger::instance().log("ContestEngine",
+                            QString("  Partner %1 (%2) is invalid for station class %3 - 0 points")
+                                .arg(theirCall).arg(theirPrefix).arg(m_stationClass));
+                        return 0;
+                    }
+                }
+            }
+        }
+
         if (scoring.contains("points")) {
             QJsonObject points = scoring["points"].toObject();
-            
+
             // Check for simple perQso scoring first
             if (points.contains("perQso")) {
                 int pts = points["perQso"].toInt();
@@ -861,6 +879,26 @@ QList<ContestEngine::MultiplierInfo> ContestEngine::getMultipliersWithCategory(c
 {
     QList<MultiplierInfo> result;
 
+    // Check if the partner station is invalid for this station class (no mults awarded)
+    if (!m_stationClass.isEmpty() && m_cachedDxccIsMult && m_dxccDatabase) {
+        QJsonObject scoring = m_contestDef["scoring"].toObject();
+        if (scoring.contains("invalidPartners")) {
+            QJsonObject invalidPartners = scoring["invalidPartners"].toObject();
+            if (invalidPartners.contains(m_stationClass)) {
+                DxccEntity theirEntity = dxccLookup(qso.getCall());
+                QString theirPrefix = theirEntity.primaryPrefix;
+                for (const QJsonValue& v : invalidPartners[m_stationClass].toArray()) {
+                    if (v.toString() == theirPrefix) {
+                        DebugLogger::instance().log("ContestEngine",
+                            QString("  Partner %1 (%2) is invalid for station class %3 - no mults")
+                                .arg(qso.getCall()).arg(theirPrefix).arg(m_stationClass));
+                        return result;  // empty
+                    }
+                }
+            }
+        }
+    }
+
     if (m_cachedCallsignIsMult) {
         result.append({qso.getCall().toUpper(), "callsign"});
         return result;
@@ -896,7 +934,18 @@ QList<ContestEngine::MultiplierInfo> ContestEngine::getMultipliersWithCategory(c
             } else if (!mult.isEmpty() && m_validMultipliers.contains(multUpper)) {
                 shouldAddDxcc = m_cachedUsAndCanadaCountDxcc;
             } else {
-                shouldAddDxcc = true; // DX station
+                // Exchange not a named mult. If usAndCanadaCountDxcc is false, still check
+                // whether the callsign itself resolves to a US/Canada entity — e.g., a VE
+                // station sending power (not a state/province) in ARRL DX W/VE class.
+                if (!m_cachedUsAndCanadaCountDxcc) {
+                    DxccEntity callEntity = dxccLookup(qso.getCall());
+                    QString prefix = callEntity.primaryPrefix.isEmpty() && !callEntity.prefixes.isEmpty()
+                                     ? callEntity.prefixes.first().prefix : callEntity.primaryPrefix;
+                    bool isUsOrCanada = (prefix == "K" || prefix == "VE");
+                    shouldAddDxcc = !isUsOrCanada;
+                } else {
+                    shouldAddDxcc = true; // DX station
+                }
             }
         }
 

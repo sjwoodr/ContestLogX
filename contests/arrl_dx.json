@@ -257,6 +257,10 @@
         "DX": ["namedMults"]
       }
     },
+    "invalidPartners": {
+      "W_VE": ["K", "VE"],
+      "__comment": "W/VE stations may only work non-US/Canada (DX) stations. Contacts with K (USA) or VE (Canada) entities score 0 pts and don't count as mults."
+    },
     "finalScore": "SUM(points) * (namedMults + dxccMultipliers)"
   },
   "dupeChecking": {
