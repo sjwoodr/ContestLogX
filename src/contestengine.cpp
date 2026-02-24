@@ -1026,20 +1026,9 @@ ContestEngine::QsoMultiplierCredit ContestEngine::getQsoMultiplierCredit(const Q
     // Get all multiplier info for this QSO
     QList<MultiplierInfo> multsWithCategory = getMultipliersWithCategory(qso);
     
-    // Get the multiplier type to determine how to track
-    QString multType = getMultiplierType();
-    
     for (const MultiplierInfo& multInfo : multsWithCategory) {
-        QString trackingKey = multInfo.value;
-        
-        if (multType == "multsPerBandAndMode") {
-            trackingKey = QString("%1_%2_%3").arg(multInfo.value, qso.getBand(), qso.getMode());
-        } else if (multType == "multsPerBand") {
-            trackingKey = QString("%1_%2").arg(multInfo.value, qso.getBand());
-        } else if (multType == "multsPerMode") {
-            trackingKey = QString("%1_%2").arg(multInfo.value, qso.getMode());
-        }
-        
+        const QString trackingKey = buildMultTrackingKey(multInfo.value, qso.getBand(), qso.getMode());
+
         // Check if this multiplier (not the call, but the actual mult value) was already worked with this tracking method
         bool isNew = true;
         for (const QsoRecord& existingQso : existingQsos) {
@@ -1047,22 +1036,12 @@ ContestEngine::QsoMultiplierCredit ContestEngine::getQsoMultiplierCredit(const Q
             if (existingQso.isDupe() || existingQso.isOutOfBand()) {
                 continue;
             }
-            
+
             QList<MultiplierInfo> existingMults = getMultipliersWithCategory(existingQso);
             for (const MultiplierInfo& existingMult : existingMults) {
                 // Check if this is the same mult value and category
                 if (existingMult.value == multInfo.value && existingMult.category == multInfo.category) {
-                    QString existingKey = existingMult.value;
-                    
-                    if (multType == "multsPerBandAndMode") {
-                        existingKey = QString("%1_%2_%3").arg(existingMult.value, existingQso.getBand(), existingQso.getMode());
-                    } else if (multType == "multsPerBand") {
-                        existingKey = QString("%1_%2").arg(existingMult.value, existingQso.getBand());
-                    } else if (multType == "multsPerMode") {
-                        existingKey = QString("%1_%2").arg(existingMult.value, existingQso.getMode());
-                    }
-                    
-                    if (trackingKey == existingKey) {
+                    if (trackingKey == buildMultTrackingKey(existingMult.value, existingQso.getBand(), existingQso.getMode())) {
                         isNew = false;
                         break;
                     }
@@ -1096,6 +1075,14 @@ DxccEntity ContestEngine::dxccLookup(const QString& call) const
     DxccEntity entity = m_dxccDatabase->lookupCallsign(call);
     m_dxccCache.insert(call, entity);
     return entity;
+}
+
+QString ContestEngine::buildMultTrackingKey(const QString& multValue, const QString& band, const QString& mode) const
+{
+    if (m_cachedMultType == "multsPerBandAndMode") return multValue + "_" + band + "_" + mode;
+    if (m_cachedMultType == "multsPerBand")        return multValue + "_" + band;
+    if (m_cachedMultType == "multsPerMode")        return multValue + "_" + mode;
+    return multValue; // multsOnce or unrecognised type
 }
 
 QString ContestEngine::getMultiplierType() const
@@ -2063,7 +2050,7 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
                         QString("  Mult tracking (once): %1 [%2] %3").arg(mult).arg(category).arg(isNew ? "NEW" : "DUPE"));
                 }
             } else if (multType == "multsPerBand") {
-                QString key = QString("%1_%2").arg(mult).arg(band);
+                QString key = buildMultTrackingKey(mult, band, modeCategory);
                 if (!multPerBand.contains(key)) {
                     isNew = true;
                     multPerBand.insert(key);
@@ -2085,7 +2072,7 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
                         QString("  Mult tracking (per band): %1 [%2] %3").arg(key).arg(category).arg(isNew ? "NEW" : "DUPE"));
                 }
             } else if (multType == "multsPerMode") {
-                QString key = QString("%1_%2").arg(mult).arg(modeCategory);
+                QString key = buildMultTrackingKey(mult, band, modeCategory);
                 if (!multPerMode.contains(key)) {
                     isNew = true;
                     multPerMode.insert(key);
@@ -2117,7 +2104,7 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
                         QString("  Mult tracking (per mode): %1 [%2] %3").arg(key).arg(category).arg(isNew ? "NEW" : "DUPE"));
                 }
             } else if (multType == "multsPerBandAndMode") {
-                QString key = QString("%1_%2_%3").arg(mult).arg(band).arg(modeCategory);
+                QString key = buildMultTrackingKey(mult, band, modeCategory);
                 if (!multPerBandAndMode.contains(key)) {
                     isNew = true;
                     multPerBandAndMode.insert(key);

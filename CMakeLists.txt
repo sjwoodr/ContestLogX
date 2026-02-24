@@ -67,7 +67,7 @@ set(SOURCES
     src/utils/callsignutils.cpp
     src/utils/ttsmanager.cpp
     src/utils/pipermanager.cpp
-    src/DxccDatabase.cpp
+    src/database/dxccDatabase.cpp
     src/qrzcqapi.cpp
 )
 
@@ -114,7 +114,7 @@ set(HEADERS
      include/pipermanager.h
      src/utils/bandplan.h
      src/utils/callsignutils.h
-     include/DxccDatabase.h
+     include/dxccDatabase.h
      include/qrzcqapi.h
 )
 

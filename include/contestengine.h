@@ -14,7 +14,7 @@
 #include <QSet>
 #include <QHash>
 #include "qsorecord.h"
-#include "DxccDatabase.h"
+#include "dxccDatabase.h"
 
 class ContestEngine : public QObject
 {
@@ -178,6 +178,7 @@ private:
     QString extractMultiplier(const QsoRecord& qso) const;
     int getPointsForMode(const QString& mode) const;
     DxccEntity dxccLookup(const QString& call) const;
+    QString buildMultTrackingKey(const QString& multValue, const QString& band, const QString& mode) const;
     
     QJsonObject m_contestDef;
     QSet<QString> m_validStates;

@@ -7,6 +7,8 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QProgressDialog>
+#include <QSplitter>
 #include <QTableView>
 #include <QLineEdit>
 #include <QLabel>
@@ -122,8 +124,10 @@ protected:
 
 private:
     void setupUi();
+    void setupDocks(QSplitter* mainSplitter);
     void setupMenus();
     void createConnections();
+    void loadQsosIntoModel(const QList<QsoRecord>& qsos, QProgressDialog* progressDialog);
     void loadCWMemories();
     void loadSsbMemories();
     void flashDupeWarning();

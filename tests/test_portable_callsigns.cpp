@@ -1,5 +1,5 @@
 #include <QtTest>
-#include "DxccDatabase.h"
+#include "dxccDatabase.h"
 
 class TestPortableCallsigns : public QObject
 {

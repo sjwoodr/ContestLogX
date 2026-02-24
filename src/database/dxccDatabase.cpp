@@ -1,4 +1,4 @@
-#include "DxccDatabase.h"
+#include "dxccDatabase.h"
 #include "debuglogger.h"
 #include "settings.h"
 #include <QFile>

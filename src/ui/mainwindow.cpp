@@ -30,7 +30,7 @@
 #include "ttsmanager.h"
 #include "../utils/bandplan.h"
 #include "debuglogger.h"
-#include "DxccDatabase.h"
+#include "dxccDatabase.h"
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QFile>
@@ -512,7 +512,14 @@ void MainWindow::setupUi()
     leftLayout->addWidget(entryPanel, 0);
     
     mainSplitter->addWidget(leftPanel);
-    
+
+    setupDocks(mainSplitter);
+
+    mainLayout->addWidget(mainSplitter);
+}
+
+void MainWindow::setupDocks(QSplitter* mainSplitter)
+{
     // Convert all right side panels to QDockWidgets for flexibility
     
     // DX Cluster Panel as QDockWidget
@@ -669,11 +676,7 @@ void MainWindow::setupUi()
             if (!m_restoringState) m_dockStateSaveTimer->start();
         });
     }
-    
-    mainLayout->addWidget(mainSplitter);
 }
-
-
 
 void MainWindow::setupMenus()
 {
@@ -878,6 +881,14 @@ void MainWindow::setupMenus()
     
     QAction *aboutAction = helpMenu->addAction("&About");
     connect(aboutAction, &QAction::triggered, this, &MainWindow::onAbout);
+}
+
+void MainWindow::loadQsosIntoModel(const QList<QsoRecord>& qsos, QProgressDialog* progressDialog)
+{
+    progressDialog->setLabelText("Loading QSOs...");
+    m_qsoModel->replaceAll(qsos);
+    m_qsoCountLabel->setText(QString("QSOs: %1").arg(m_qsoModel->count()));
+    progressDialog->setValue(qsos.size());
 }
 
 void MainWindow::createConnections()
@@ -1091,10 +1102,7 @@ void MainWindow::onNewLog()
                     }
                     
                     // Batch-insert all QSOs in one model reset (avoids N individual signals/repaints)
-                    progressDialog->setLabelText("Loading QSOs...");
-                    m_qsoModel->replaceAll(loadedQsos);
-                    m_qsoCountLabel->setText(QString("QSOs: %1").arg(m_qsoModel->count()));
-                    progressDialog->setValue(loadedQsos.size());
+                    loadQsosIntoModel(loadedQsos, progressDialog);
                     
                     m_currentFile = selectedFile;
                     m_isModified = false;
@@ -1706,10 +1714,7 @@ void MainWindow::onOpenLog()
         }
         
         // Batch-insert all QSOs in one model reset (avoids N individual signals/repaints)
-        progressDialog->setLabelText("Loading QSOs...");
-        m_qsoModel->replaceAll(loadedQsos);
-        m_qsoCountLabel->setText(QString("QSOs: %1").arg(m_qsoModel->count()));
-        progressDialog->setValue(loadedQsos.size());
+        loadQsosIntoModel(loadedQsos, progressDialog);
 
         m_currentFile = fileName;
         m_isModified = false;
@@ -2012,10 +2017,7 @@ void MainWindow::loadLogFile(const QString& filename)
         }
         
         // Batch-insert all QSOs in one model reset (avoids N individual signals/repaints)
-        progressDialog->setLabelText("Loading QSOs...");
-        m_qsoModel->replaceAll(loadedQsos);
-        m_qsoCountLabel->setText(QString("QSOs: %1").arg(m_qsoModel->count()));
-        progressDialog->setValue(loadedQsos.size());
+        loadQsosIntoModel(loadedQsos, progressDialog);
 
         m_currentFile = filename;
         m_isModified = false;
