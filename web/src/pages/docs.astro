@@ -164,14 +164,14 @@ import Layout from '../layouts/Layout.astro';
             SSB messages use the system text-to-speech (TTS) engine — no audio recordings to manage.
           </p>
 
-          <h3 class="text-lg font-semibold mb-2">SSB Token Substitution</h3>
-          <p class="opacity-80 mb-2">SSB memories support token substitution before the text is sent to TTS. Callsigns are automatically converted to NATO phonetics.</p>
+          <h3 class="text-lg font-semibold mb-2">Token Substitution</h3>
+          <p class="opacity-80 mb-2">Both CW and SSB memories support token substitution. The following tokens are expanded at send time:</p>
           <ul class="list-disc list-inside space-y-1 opacity-80">
-            <li><code>{"{"+"CALL}"}</code> — callsign in the entry field, spoken as NATO phonetics (e.g., "Kilo One Alpha Bravo Charlie")</li>
-            <li><code>{"{"+"MYCALL}"}</code> — your station callsign, spoken as NATO phonetics</li>
+            <li><code>{"{"+"CALL}"}</code> — callsign in the entry field</li>
+            <li><code>{"{"+"MYCALL}"}</code> — your station callsign</li>
             <li><code>{"{"+"SN}"}</code> / <code>{"{"+"SNs}"}</code> / <code>{"{"+"serial}"}</code> — next outgoing serial number</li>
           </ul>
-          <p class="opacity-80 mt-2">CW memories are sent verbatim — no token substitution is applied.</p>
+          <p class="opacity-80 mt-2">For SSB memories, <code>{"{"+"CALL}"}</code> and <code>{"{"+"MYCALL}"}</code> are automatically converted to NATO phonetics before being sent to TTS (e.g., "Kilo One Alpha Bravo Charlie"). CW memories send the expanded text literally.</p>
 
           <h3 class="text-lg font-semibold mb-2 mt-4">Typical Memory Layout</h3>
           <pre class="rounded p-4 text-sm overflow-x-auto" style="background-color: #0d1117; color: #e6edf3;">{`F1  CQ TEST N9OH N9OH
