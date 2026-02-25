@@ -47,6 +47,7 @@ set(SOURCES
     src/ui/scpDialog.cpp
     src/ui/scpWidget.cpp
     src/ui/scpLineEdit.cpp
+    src/ui/termsDialog.cpp
     src/contestEngine.cpp
     src/core/qsoRecord.cpp
     src/core/qsoListModel.cpp
@@ -90,6 +91,7 @@ set(HEADERS
     include/scpDialog.h
     include/scpWidget.h
     include/scpLineEdit.h
+    include/termsDialog.h
     include/qsoEditDialog.h
     include/contestEngine.h
     include/scoreWidget.h

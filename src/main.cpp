@@ -22,6 +22,7 @@
 #include "debugLogger.h"
 #include "theme.h"
 #include "settings.h"
+#include "termsDialog.h"
 #include <QApplication>
 #include <QCommandLineParser>
 #include <QFile>
@@ -169,6 +170,20 @@ int main(int argc, char *argv[])
     DebugLogger::instance().log("INFO", QString("ContestLogX v%1 started").arg(APP_VERSION));
     
     applyTheme();
+
+    // Show terms of use on first run (or when settings are reset)
+    if (!parser.isSet(testOnlyOption) && !Settings::instance().getTermsAccepted()) {
+        DebugLogger::instance().log("INFO", "Terms of use not yet accepted — showing dialog");
+        TermsDialog terms;
+        if (terms.exec() != QDialog::Accepted) {
+            DebugLogger::instance().log("INFO", "User declined terms of use — exiting");
+            return 1;
+        }
+        DebugLogger::instance().log("INFO", "User accepted terms of use");
+        Settings::instance().setTermsAccepted(true);
+    } else if (!parser.isSet(testOnlyOption)) {
+        DebugLogger::instance().log("INFO", "Terms of use previously accepted — skipping dialog");
+    }
 
     MainWindow window;
     window.show();

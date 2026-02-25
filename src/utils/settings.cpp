@@ -1261,6 +1261,17 @@ void Settings::setTheme(const QString& theme)
     save();
 }
 
+bool Settings::getTermsAccepted() const
+{
+    return m_settings["termsAccepted"].toBool(false);
+}
+
+void Settings::setTermsAccepted(bool accepted)
+{
+    m_settings["termsAccepted"] = accepted;
+    save();
+}
+
 QFont Settings::getPanelFont(const QString& panelKey) const
 {
     QJsonObject fontObj = m_settings["fonts"].toObject()[panelKey].toObject();
