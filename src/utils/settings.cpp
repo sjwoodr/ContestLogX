@@ -651,6 +651,19 @@ void Settings::setScpDebugEnabled(bool enabled)
     save();
 }
 
+bool Settings::getCallsignLookupDebugEnabled() const
+{
+    return m_settings["debug"].toObject()["callsignLookupDebugEnabled"].toBool(false);
+}
+
+void Settings::setCallsignLookupDebugEnabled(bool enabled)
+{
+    QJsonObject debug = m_settings["debug"].toObject();
+    debug["callsignLookupDebugEnabled"] = enabled;
+    m_settings["debug"] = debug;
+    save();
+}
+
 bool Settings::getMultiplierWidgetDebugEnabled() const
 {
     return m_settings["debug"].toObject()["multiplierWidgetDebugEnabled"].toBool(false);
@@ -955,6 +968,19 @@ void Settings::setScpEnabled(bool enabled)
     m_modified = true;
 }
 
+QString Settings::getCallsignLookupService() const
+{
+    return m_settings["callsignLookup"].toObject()["service"].toString("none");
+}
+
+void Settings::setCallsignLookupService(const QString& service)
+{
+    QJsonObject obj = m_settings["callsignLookup"].toObject();
+    obj["service"] = service;
+    m_settings["callsignLookup"] = obj;
+    m_modified = true;
+}
+
 bool Settings::getQrzcqAutoLookupEnabled() const
 {
     return m_settings["qrzcq"].toObject()["autoLookupEnabled"].toBool(false);
@@ -1028,6 +1054,59 @@ void Settings::setQrzcqCredentials(const QString& username, const QString& passw
     }
     
     m_settings["qrzcq"] = qrzcq;
+    m_modified = true;
+}
+
+QString Settings::getQrzUsername() const
+{
+    QString encrypted = m_settings["qrz"].toObject()["username"].toString();
+    if (encrypted.isEmpty()) return "";
+    QByteArray decoded = QByteArray::fromBase64(encrypted.toLatin1());
+    const char key[] = "ContestLogX";
+    QByteArray result;
+    for (int i = 0; i < decoded.length(); ++i)
+        result.append(decoded[i] ^ key[i % strlen(key)]);
+    return QString::fromLatin1(result);
+}
+
+QString Settings::getQrzPassword() const
+{
+    QString encrypted = m_settings["qrz"].toObject()["password"].toString();
+    if (encrypted.isEmpty()) return "";
+    QByteArray decoded = QByteArray::fromBase64(encrypted.toLatin1());
+    const char key[] = "ContestLogX";
+    QByteArray result;
+    for (int i = 0; i < decoded.length(); ++i)
+        result.append(decoded[i] ^ key[i % strlen(key)]);
+    return QString::fromLatin1(result);
+}
+
+void Settings::setQrzCredentials(const QString& username, const QString& password)
+{
+    QJsonObject qrz = m_settings["qrz"].toObject();
+    const char key[] = "ContestLogX";
+
+    if (!username.isEmpty()) {
+        QByteArray userBytes = username.toLatin1();
+        QByteArray encrypted;
+        for (int i = 0; i < userBytes.length(); ++i)
+            encrypted.append(userBytes[i] ^ key[i % strlen(key)]);
+        qrz["username"] = QString::fromLatin1(encrypted.toBase64());
+    } else {
+        qrz["username"] = "";
+    }
+
+    if (!password.isEmpty()) {
+        QByteArray passBytes = password.toLatin1();
+        QByteArray encrypted;
+        for (int i = 0; i < passBytes.length(); ++i)
+            encrypted.append(passBytes[i] ^ key[i % strlen(key)]);
+        qrz["password"] = QString::fromLatin1(encrypted.toBase64());
+    } else {
+        qrz["password"] = "";
+    }
+
+    m_settings["qrz"] = qrz;
     m_modified = true;
 }
 

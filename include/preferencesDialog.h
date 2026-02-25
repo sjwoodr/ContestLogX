@@ -24,6 +24,8 @@
 #include <QDialog>
 #include <QComboBox>
 #include <QCheckBox>
+#include <QRadioButton>
+#include <QGroupBox>
 #include <QLineEdit>
 #include <QPushButton>
 #include <QFontComboBox>
@@ -32,6 +34,7 @@
 #include <QList>
 
 class QrzcqApi;
+class QrzApi;
 class ShortcutsWidget;
 
 class PreferencesDialog : public QDialog
@@ -44,7 +47,7 @@ public:
 
     bool stationChanged() const { return m_stationChanged; }
     bool themeChanged() const { return m_themeChanged; }
-    bool qrzcqChanged() const { return m_qrzcqChanged; }
+    bool lookupChanged() const { return m_lookupChanged; }
     bool fontsChanged() const { return m_fontsChanged; }
 
 private slots:
@@ -52,9 +55,13 @@ private slots:
     void onCallsignTextChanged(const QString& text);
     void onGridTextChanged(const QString& text);
     void onStateTextChanged(const QString& text);
+    void onLookupServiceChanged();
     void onTestQrzcqConnection();
     void onQrzcqSessionObtained(const QString& token);
     void onQrzcqSessionError(const QString& error);
+    void onTestQrzConnection();
+    void onQrzSessionObtained(const QString& token);
+    void onQrzSessionError(const QString& error);
 
 private:
     void setupUi();
@@ -74,13 +81,22 @@ private:
     QString m_originalTheme;
     bool m_themeChanged;
 
-    // QRZCQ tab
+    // Callsign Lookup tab
+    class QRadioButton *m_lookupNoneRadio;
+    class QRadioButton *m_lookupQrzcqRadio;
+    class QRadioButton *m_lookupQrzRadio;
     QCheckBox *m_qrzcqAutoLookupCheckbox;
+    class QGroupBox *m_qrzcqCredsGroup;
     QLineEdit *m_qrzcqUsernameEdit;
     QLineEdit *m_qrzcqPasswordEdit;
     QPushButton *m_qrzcqTestButton;
-    bool m_qrzcqChanged;
+    class QGroupBox *m_qrzCredsGroup;
+    QLineEdit *m_qrzUsernameEdit;
+    QLineEdit *m_qrzPasswordEdit;
+    QPushButton *m_qrzTestButton;
+    bool m_lookupChanged;
     QrzcqApi *m_qrzcqApi;
+    QrzApi   *m_qrzApi;
 
     // Fonts tab
     struct FontRow {

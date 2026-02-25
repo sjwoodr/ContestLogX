@@ -95,6 +95,15 @@ public:
     void setOutOfBand(bool outOfBand) { m_outOfBand = outOfBand; }
     void setGridSquareMultiplier(const QString& grid) { m_gridSquareMult = grid; }
 
+    // Station info — lookup-derived facts about the worked station,
+    // keyed by standard ADIF field names (NAME, QTH, GRIDSQUARE, COUNTRY,
+    // DXCC, CONT, CQZ, ITUZ).  Not shown as log columns but saved to CLX
+    // and exported to ADIF.
+    QString getStationInfo(const QString& key) const { return m_stationInfo.value(key); }
+    void setStationInfo(const QString& key, const QString& value) { if (!value.isEmpty()) m_stationInfo[key] = value; }
+    const QMap<QString, QString>& getStationInfoMap() const { return m_stationInfo; }
+    void setStationInfoMap(const QMap<QString, QString>& info) { m_stationInfo = info; }
+
     // Validation
     bool isValid() const;
     QString validationError() const;
@@ -111,6 +120,7 @@ private:
     bool m_dupe = false;
     bool m_outOfBand = false;
     QMap<QString, QString> m_exchangeFields;  // Individual exchange fields
+    QMap<QString, QString> m_stationInfo;    // Lookup-derived station metadata (ADIF-keyed)
     int m_multiplierCount = 0;
     int m_dxccCount = 0;
     int m_ituRegionCount = 0;

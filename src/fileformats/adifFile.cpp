@@ -24,6 +24,7 @@
 #include <QFile>
 #include <QTextStream>
 #include <QRegularExpression>
+#include <QSet>
 #include <QDebug>
 
 AdifFile::AdifFile()
@@ -188,28 +189,45 @@ bool AdifFile::save(const QString& filename, const QList<QsoRecord>& qsos)
         if (!m_stationCallsign.isEmpty())
             out << "    <STATION_CALLSIGN:" << m_stationCallsign.length() << ">" << m_stationCallsign << "\n";
 
-        // Write exchange fields — map known fields to standard ADIF tags,
-        // everything else as APP_CLX_ tags
+        // Map ContestLogX exchange field names to standard ADIF tags.
+        // Fields not in this map are written as APP_CLX_ vendor tags.
+        static const QMap<QString, QString> exchToAdif = {
+            {"SNS",    "STX"},
+            {"SNR",    "SRX"},
+            {"NAMER",  "NAME"},
+            {"NAMES",  "MY_NAME"},
+            {"EXCHR",  "QTH"},
+            {"NOTES",  "COMMENT"},
+            {"GRIDR",  "GRIDSQUARE"},
+            {"GRIDS",  "MY_GRIDSQUARE"},
+            {"STATER", "STATE"},
+        };
+
+        // Track which ADIF tags we've already written (to avoid duplicates
+        // when station_info covers the same field).
+        QSet<QString> writtenTags;
+
         QMap<QString, QString> exchFields = qso.getExchangeFields();
         for (auto it = exchFields.constBegin(); it != exchFields.constEnd(); ++it) {
-            if (it.value().isEmpty())
-                continue;
+            if (it.value().isEmpty()) continue;
             QString key = it.key().toUpper();
-            QString adifTag;
-            if (key == "RSTS" || key == "RSTR" || key == "CALL")
-                continue;
-            if (key == "SNS")        adifTag = "STX";
-            else if (key == "SNR")   adifTag = "SRX";
-            else if (key == "NAMER") adifTag = "NAME";
-            else if (key == "EXCHR") adifTag = "QTH";
-            else if (key == "NOTES") adifTag = "NOTES";
-            else if (key == "GRIDR") adifTag = "GRIDSQUARE";
-            else if (key == "GRIDS") adifTag = "MY_GRIDSQUARE";
+            if (key == "RSTS" || key == "RSTR" || key == "CALL") continue;
 
-            if (!adifTag.isEmpty())
+            QString adifTag = exchToAdif.value(key);
+            if (!adifTag.isEmpty()) {
                 out << "    <" << adifTag << ":" << it.value().length() << ">" << it.value() << "\n";
-            else
+                writtenTags.insert(adifTag);
+            } else {
                 out << "    <APP_CLX_" << key << ":" << it.value().length() << ">" << it.value() << "\n";
+            }
+        }
+
+        // Write station_info fields using their ADIF keys directly,
+        // skipping any already written from exchange fields.
+        const QMap<QString, QString>& stInfo = qso.getStationInfoMap();
+        for (auto it = stInfo.constBegin(); it != stInfo.constEnd(); ++it) {
+            if (it.value().isEmpty() || writtenTags.contains(it.key())) continue;
+            out << "    <" << it.key() << ":" << it.value().length() << ">" << it.value() << "\n";
         }
 
         out << "<EOR>\n";

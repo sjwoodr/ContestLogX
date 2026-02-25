@@ -132,6 +132,7 @@ MainWindow::MainWindow(QWidget *parent)
     , m_lastMode("USB")
     , m_lastWpm(28)
     , m_qrzcqApi(new QrzcqApi(this))
+    , m_qrzApi(new QrzApi(this))
     , m_ttsManager(new TtsManager(this))
     , m_contextMenuRow(-1)
 {
@@ -379,17 +380,11 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
             // Check if this field is in our entry field list
             int currentIndex = m_entryFieldOrder.indexOf(lineEdit);
             if (currentIndex >= 0) {
-                // If leaving the call field, trigger QRZCQ lookup
+                // If leaving the call field, trigger auto-lookup via active service
                 if (lineEdit == m_callEdit && !m_callEdit->text().isEmpty()) {
                     QString callsign = m_callEdit->text().trimmed().toUpper();
-                    // Check if it's a reasonable callsign length (at least 2 chars)
-                    // Try lookup if we have a valid session OR have credentials for fallback scraping
-                    if (callsign.length() >= 2 && m_qrzcqApi && 
-                        (m_qrzcqApi->hasValidSession() || 
-                         Settings::instance().getQrzcqAutoLookupEnabled())) {
-                        m_pendingQrzcqCall = callsign;
-                        m_qrzcqApi->lookupCallsign(callsign);
-                    }
+                    if (callsign.length() >= 2)
+                        triggerAutoLookup(callsign);
                 }
                 
                 // Move to next field, wrapping to first field if at the end
@@ -969,6 +964,13 @@ void MainWindow::setupMenus()
     DebugLogger::instance().setMultiplierWidgetDebugEnabled(multiplierWidgetDebugEnabled);
     connect(m_multiplierWidgetDebugAction, &QAction::triggered, this, &MainWindow::onToggleMultiplierWidgetDebug);
 
+    m_callsignLookupDebugAction = debugMenu->addAction("Enable &Callsign Lookup Debug Logging");
+    m_callsignLookupDebugAction->setCheckable(true);
+    bool callsignLookupDebugEnabled = Settings::instance().getCallsignLookupDebugEnabled();
+    m_callsignLookupDebugAction->setChecked(callsignLookupDebugEnabled);
+    DebugLogger::instance().setCallsignLookupDebugEnabled(callsignLookupDebugEnabled);
+    connect(m_callsignLookupDebugAction, &QAction::triggered, this, &MainWindow::onToggleCallsignLookupDebug);
+
     // Help menu
     QMenu *helpMenu = menuBar()->addMenu("&Help");
     
@@ -1085,20 +1087,20 @@ void MainWindow::createConnections()
     connect(m_qrzcqApi, &QrzcqApi::callsignNotFound, this, &MainWindow::onQrzcqCallsignNotFound);
     connect(m_qrzcqApi, &QrzcqApi::lookupError, this, &MainWindow::onQrzcqLookupError);
 
+    // QRZ API connections
+    connect(m_qrzApi, &QrzApi::sessionObtained, this, &MainWindow::onQrzSessionObtained);
+    connect(m_qrzApi, &QrzApi::sessionError, this, &MainWindow::onQrzSessionError);
+    connect(m_qrzApi, &QrzApi::callsignFound, this, &MainWindow::onQrzCallsignFound);
+    connect(m_qrzApi, &QrzApi::callsignNotFound, this, &MainWindow::onQrzCallsignNotFound);
+    connect(m_qrzApi, &QrzApi::lookupError, this, &MainWindow::onQrzLookupError);
+
     // TTS Manager connections
     connect(m_ttsManager, &TtsManager::finished, this, &MainWindow::onTtsFinished);
     connect(m_ttsManager, &TtsManager::error, this, &MainWindow::onTtsError);
     m_ttsManager->setFlrigClient(m_flrigClient);
 
-    // Initialize QRZCQ session if credentials are saved
-    Settings& settings = Settings::instance();
-    QString username = settings.getQrzcqUsername();
-    QString password = settings.getQrzcqPassword();
-    
-    if (!username.isEmpty() && !password.isEmpty()) {
-        m_qrzcqApi->setCredentials(username, password);
-        m_qrzcqApi->getSession();
-    }
+    // Initialize the configured callsign lookup API
+    initCallsignLookup();
 }
 
 void MainWindow::onNewLog()
@@ -2420,15 +2422,8 @@ void MainWindow::onPreferences()
         if (dialog.fontsChanged()) {
             applyFontSettings();
         }
-        if (dialog.qrzcqChanged()) {
-            Settings& settings = Settings::instance();
-            QString username = settings.getQrzcqUsername();
-            QString password = settings.getQrzcqPassword();
-
-            if (!username.isEmpty() && !password.isEmpty()) {
-                m_qrzcqApi->setCredentials(username, password);
-                m_qrzcqApi->getSession();
-            }
+        if (dialog.lookupChanged()) {
+            initCallsignLookup();
         }
     }
 }
@@ -3066,7 +3061,10 @@ void MainWindow::onLogQso()
         }
     }
     
-     // Add the QSO first so it's included in score calculations
+    // Attach station info from the most recent callsign lookup if it matches
+    applyPendingStationInfo(qso, callsign);
+
+    // Add the QSO first so it's included in score calculations
     m_qsoModel->addQso(qso);
     
     // Remove the spot from DX cluster if it's there
@@ -3158,11 +3156,17 @@ void MainWindow::onQrzLookup()
         }
     }
     
-    // Open QRZCQ webpage in default browser
-    QString url = QString("https://www.qrzcq.com/call/%1").arg(callsign);
+    // Open the appropriate callsign lookup website in the default browser
+    QString service = Settings::instance().getCallsignLookupService();
+    QString url;
+    if (service == "qrz")
+        url = QString("https://www.qrz.com/db/%1").arg(callsign);
+    else
+        url = QString("https://www.qrzcq.com/call/%1").arg(callsign);
     QDesktopServices::openUrl(QUrl(url));
-    
-    DebugLogger::instance().log("MainWindow", QString("Opening QRZCQ lookup for %1").arg(callsign));
+
+    DebugLogger::instance().log("CallsignLookup",
+        QString("Opening %1 lookup for %2").arg(service == "qrz" ? "QRZ.com" : "QRZCQ.com", callsign));
 }
 
 void MainWindow::onRigControl()
@@ -3654,6 +3658,13 @@ void MainWindow::onToggleMultiplierWidgetDebug(bool checked)
     DebugLogger::instance().setMultiplierWidgetDebugEnabled(checked);
     Settings::instance().setMultiplierWidgetDebugEnabled(checked);
     m_statusLabel->setText(checked ? "Multiplier Widget debug logging enabled" : "Multiplier Widget debug logging disabled");
+}
+
+void MainWindow::onToggleCallsignLookupDebug(bool checked)
+{
+    DebugLogger::instance().setCallsignLookupDebugEnabled(checked);
+    Settings::instance().setCallsignLookupDebugEnabled(checked);
+    m_statusLabel->setText(checked ? "Callsign Lookup debug logging enabled" : "Callsign Lookup debug logging disabled");
 }
 
 void MainWindow::onContestSetup()
@@ -4286,52 +4297,174 @@ void MainWindow::onDupeFlashTimeout()
     m_dupeFlashTimer->stop();
 }
 
+void MainWindow::initCallsignLookup()
+{
+    Settings& s = Settings::instance();
+    QString service = s.getCallsignLookupService();
+
+    if (service == "qrzcq") {
+        QString user = s.getQrzcqUsername();
+        QString pass = s.getQrzcqPassword();
+        if (!user.isEmpty() && !pass.isEmpty()) {
+            m_qrzcqApi->setCredentials(user, pass);
+            m_qrzcqApi->getSession();
+        }
+    } else if (service == "qrz") {
+        QString user = s.getQrzUsername();
+        QString pass = s.getQrzPassword();
+        if (!user.isEmpty() && !pass.isEmpty()) {
+            m_qrzApi->setCredentials(user, pass);
+            m_qrzApi->getSession();
+        }
+    }
+    // "none" → do nothing
+
+    // Update lookup button tooltip
+    if (m_qrzButton) {
+        if (service == "qrz")
+            m_qrzButton->setToolTip("Look up callsign on QRZ.com");
+        else
+            m_qrzButton->setToolTip("Look up callsign on QRZCQ.com");
+    }
+}
+
+void MainWindow::triggerAutoLookup(const QString& callsign)
+{
+    QString service = Settings::instance().getCallsignLookupService();
+    if (service == "qrzcq" && m_qrzcqApi->hasValidSession())
+        m_qrzcqApi->lookupCallsign(callsign);
+    else if (service == "qrzcq" && Settings::instance().getQrzcqAutoLookupEnabled())
+        m_qrzcqApi->lookupCallsign(callsign);  // scraping fallback
+    else if (service == "qrz" && m_qrzApi->hasValidSession())
+        m_qrzApi->lookupCallsign(callsign);
+}
+
+void MainWindow::applyPendingStationInfo(QsoRecord& qso, const QString& callsign)
+{
+    if (m_pendingLookupCallsign.isEmpty() || m_pendingLookupCallsign != callsign)
+        return;
+    for (auto it = m_pendingStationInfo.constBegin(); it != m_pendingStationInfo.constEnd(); ++it)
+        qso.setStationInfo(it.key(), it.value());
+    DebugLogger::instance().log("CallsignLookup",
+        QString("Applied station info from lookup to QSO with %1").arg(callsign));
+}
+
 void MainWindow::onQrzcqSessionObtained(const QString& token)
 {
-    DebugLogger::instance().log("MainWindow", 
+    DebugLogger::instance().log("CallsignLookup",
         QString("QRZCQ session obtained: %1...").arg(token.left(10)));
 }
 
 void MainWindow::onQrzcqSessionError(const QString& error)
 {
-    DebugLogger::instance().log("MainWindow", 
+    DebugLogger::instance().log("CallsignLookup",
         QString("QRZCQ session error: %1").arg(error));
 }
 
 void MainWindow::onQrzcqCallsignFound(const QrzcqCallsignData& data)
 {
-    // Format the status bar message: <call> <name> <city> <qth> <country>
-    QString statusMessage = data.call;
-    if (!data.name.isEmpty()) {
-        statusMessage += " " + data.name;
-    }
-    if (!data.city.isEmpty()) {
-        statusMessage += " " + data.city;
-    }
-    if (!data.qth.isEmpty()) {
-        statusMessage += " " + data.qth;
-    }
-    if (!data.country.isEmpty()) {
-        statusMessage += " " + data.country;
-    }
-    
-    m_statusLabel->setText(statusMessage);
-    DebugLogger::instance().log("MainWindow", 
-        QString("QRZCQ lookup found: %1").arg(statusMessage));
+    // Cache station info for when the QSO is logged
+    m_pendingLookupCallsign = data.call.toUpper();
+    m_pendingStationInfo.clear();
+    m_pendingStationInfo["NAME"]       = data.name;
+    m_pendingStationInfo["QTH"]        = data.city.isEmpty() ? data.qth : data.city;
+    m_pendingStationInfo["GRIDSQUARE"] = data.locator;
+    m_pendingStationInfo["COUNTRY"]    = data.country;
+    m_pendingStationInfo["CONT"]       = data.continent;
+    if (data.dxcc > 0) m_pendingStationInfo["DXCC"] = QString::number(data.dxcc);
+    if (data.cq  > 0) m_pendingStationInfo["CQZ"]  = QString::number(data.cq);
+    if (data.itu > 0) m_pendingStationInfo["ITUZ"] = QString::number(data.itu);
+
+    // Status bar: call name city/qth country
+    QString status = data.call;
+    if (!data.name.isEmpty())   status += " " + data.name;
+    if (!data.city.isEmpty())   status += " " + data.city;
+    else if (!data.qth.isEmpty()) status += " " + data.qth;
+    if (!data.country.isEmpty()) status += " " + data.country;
+    m_statusLabel->setText(status);
+
+    DebugLogger::instance().log("CallsignLookup",
+        QString("QRZCQ lookup found: %1 (grid=%2 dxcc=%3 cq=%4 itu=%5 cont=%6)")
+            .arg(status).arg(data.locator).arg(data.dxcc)
+            .arg(data.cq).arg(data.itu).arg(data.continent));
 }
 
 void MainWindow::onQrzcqCallsignNotFound(const QString& callsign)
 {
+    m_pendingLookupCallsign.clear();
+    m_pendingStationInfo.clear();
     m_statusLabel->setText(QString("Callsign %1 not found in QRZCQ").arg(callsign));
-    DebugLogger::instance().log("MainWindow", 
+    DebugLogger::instance().log("CallsignLookup",
         QString("QRZCQ lookup: %1 not found").arg(callsign));
 }
 
 void MainWindow::onQrzcqLookupError(const QString& error)
 {
-    // Only show brief error, don't break the workflow
-    DebugLogger::instance().log("MainWindow", 
+    DebugLogger::instance().log("CallsignLookup",
         QString("QRZCQ lookup error: %1").arg(error));
+}
+
+// ----- QRZ.com handlers -----
+
+void MainWindow::onQrzSessionObtained(const QString& token)
+{
+    DebugLogger::instance().log("CallsignLookup",
+        QString("QRZ session obtained: %1...").arg(token.left(10)));
+}
+
+void MainWindow::onQrzSessionError(const QString& error)
+{
+    DebugLogger::instance().log("CallsignLookup",
+        QString("QRZ session error: %1").arg(error));
+}
+
+void MainWindow::onQrzCallsignFound(const QrzCallsignData& data)
+{
+    // Build full name from first + last
+    QString fullName = data.fname;
+    if (!data.name.isEmpty())
+        fullName = fullName.isEmpty() ? data.name : fullName + " " + data.name;
+
+    // Cache station info for when the QSO is logged
+    m_pendingLookupCallsign = data.call.toUpper();
+    m_pendingStationInfo.clear();
+    m_pendingStationInfo["NAME"]       = fullName;
+    m_pendingStationInfo["QTH"]        = data.addr2;   // city
+    m_pendingStationInfo["STATE"]      = data.state;
+    m_pendingStationInfo["COUNTRY"]    = data.country;
+    m_pendingStationInfo["GRIDSQUARE"] = data.grid;
+    if (data.dxcc    > 0) m_pendingStationInfo["DXCC"] = QString::number(data.dxcc);
+    if (data.cqzone  > 0) m_pendingStationInfo["CQZ"]  = QString::number(data.cqzone);
+    if (data.ituzone > 0) m_pendingStationInfo["ITUZ"] = QString::number(data.ituzone);
+    if (!data.iota.isEmpty()) m_pendingStationInfo["IOTA"] = data.iota;
+
+    // Status bar: call name city state country
+    QString status = data.call;
+    if (!fullName.isEmpty())    status += " " + fullName;
+    if (!data.addr2.isEmpty())  status += " " + data.addr2;
+    if (!data.state.isEmpty())  status += " " + data.state;
+    if (!data.country.isEmpty()) status += " " + data.country;
+    m_statusLabel->setText(status);
+
+    DebugLogger::instance().log("CallsignLookup",
+        QString("QRZ lookup found: %1 (grid=%2 dxcc=%3 cq=%4 itu=%5)")
+            .arg(status).arg(data.grid).arg(data.dxcc)
+            .arg(data.cqzone).arg(data.ituzone));
+}
+
+void MainWindow::onQrzCallsignNotFound(const QString& callsign)
+{
+    m_pendingLookupCallsign.clear();
+    m_pendingStationInfo.clear();
+    m_statusLabel->setText(QString("Callsign %1 not found in QRZ").arg(callsign));
+    DebugLogger::instance().log("CallsignLookup",
+        QString("QRZ lookup: %1 not found").arg(callsign));
+}
+
+void MainWindow::onQrzLookupError(const QString& error)
+{
+    DebugLogger::instance().log("CallsignLookup",
+        QString("QRZ lookup error: %1").arg(error));
 }
 
 void MainWindow::onToggleDxCluster(bool checked)

@@ -22,6 +22,7 @@
 #include "shortcutsDialog.h"
 #include "settings.h"
 #include "qrzcqApi.h"
+#include "qrzApi.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QFormLayout>
@@ -36,8 +37,9 @@ PreferencesDialog::PreferencesDialog(QWidget *parent)
     : QDialog(parent)
     , m_stationChanged(false)
     , m_themeChanged(false)
-    , m_qrzcqChanged(false)
+    , m_lookupChanged(false)
     , m_qrzcqApi(new QrzcqApi(this))
+    , m_qrzApi(new QrzApi(this))
     , m_fontsChanged(false)
 {
     m_originalTheme = Settings::instance().getTheme();
@@ -45,6 +47,8 @@ PreferencesDialog::PreferencesDialog(QWidget *parent)
 
     connect(m_qrzcqApi, &QrzcqApi::sessionObtained, this, &PreferencesDialog::onQrzcqSessionObtained);
     connect(m_qrzcqApi, &QrzcqApi::sessionError, this, &PreferencesDialog::onQrzcqSessionError);
+    connect(m_qrzApi, &QrzApi::sessionObtained, this, &PreferencesDialog::onQrzSessionObtained);
+    connect(m_qrzApi, &QrzApi::sessionError, this, &PreferencesDialog::onQrzSessionError);
 }
 
 PreferencesDialog::~PreferencesDialog()
@@ -105,47 +109,84 @@ void PreferencesDialog::setupUi()
     m_shortcutsWidget = new ShortcutsWidget(this);
     tabWidget->addTab(m_shortcutsWidget, "Shortcuts");
 
-    // QRZCQ tab
-    QWidget *qrzcqTab = new QWidget(this);
-    QVBoxLayout *qrzcqLayout = new QVBoxLayout(qrzcqTab);
+    // Callsign Lookup tab
+    QWidget *lookupTab = new QWidget(this);
+    QVBoxLayout *lookupLayout = new QVBoxLayout(lookupTab);
 
-    QGroupBox *autoLookupGroup = new QGroupBox("Auto Callsign Lookup", this);
-    QVBoxLayout *autoLayout = new QVBoxLayout(autoLookupGroup);
-    m_qrzcqAutoLookupCheckbox = new QCheckBox("Enable automatic QRZCQ lookups when entering callsigns", this);
-    autoLayout->addWidget(m_qrzcqAutoLookupCheckbox);
-    qrzcqLayout->addWidget(autoLookupGroup);
+    // Service selector
+    QGroupBox *serviceGroup = new QGroupBox("Lookup Service", this);
+    QVBoxLayout *serviceLayout = new QVBoxLayout(serviceGroup);
+    m_lookupNoneRadio  = new QRadioButton("None (disabled)", this);
+    m_lookupQrzcqRadio = new QRadioButton("QRZCQ.com", this);
+    m_lookupQrzRadio   = new QRadioButton("QRZ.com (requires Logbook Data subscription)", this);
+    serviceLayout->addWidget(m_lookupNoneRadio);
+    serviceLayout->addWidget(m_lookupQrzcqRadio);
+    serviceLayout->addWidget(m_lookupQrzRadio);
+    lookupLayout->addWidget(serviceGroup);
 
-    QGroupBox *credsGroup = new QGroupBox("QRZCQ.com Credentials", this);
-    QVBoxLayout *credsLayout = new QVBoxLayout(credsGroup);
+    // Auto-lookup checkbox (applies to both services)
+    m_qrzcqAutoLookupCheckbox = new QCheckBox("Enable automatic lookup when moving off the callsign field", this);
+    lookupLayout->addWidget(m_qrzcqAutoLookupCheckbox);
 
-    QLabel *userLabel = new QLabel("Username:", this);
+    // QRZCQ credentials group
+    m_qrzcqCredsGroup = new QGroupBox("QRZCQ.com Credentials", this);
+    QVBoxLayout *qrzcqCredsLayout = new QVBoxLayout(m_qrzcqCredsGroup);
+    QHBoxLayout *qrzcqUserLayout = new QHBoxLayout();
+    qrzcqUserLayout->addWidget(new QLabel("Username:", this));
     m_qrzcqUsernameEdit = new QLineEdit(this);
-    QHBoxLayout *userLayout = new QHBoxLayout();
-    userLayout->addWidget(userLabel);
-    userLayout->addWidget(m_qrzcqUsernameEdit);
-    credsLayout->addLayout(userLayout);
-
-    QLabel *passLabel = new QLabel("Password:", this);
+    qrzcqUserLayout->addWidget(m_qrzcqUsernameEdit);
+    qrzcqCredsLayout->addLayout(qrzcqUserLayout);
+    QHBoxLayout *qrzcqPassLayout = new QHBoxLayout();
+    qrzcqPassLayout->addWidget(new QLabel("Password:", this));
     m_qrzcqPasswordEdit = new QLineEdit(this);
     m_qrzcqPasswordEdit->setEchoMode(QLineEdit::Password);
-    QHBoxLayout *passLayout = new QHBoxLayout();
-    passLayout->addWidget(passLabel);
-    passLayout->addWidget(m_qrzcqPasswordEdit);
-    credsLayout->addLayout(passLayout);
-
+    qrzcqPassLayout->addWidget(m_qrzcqPasswordEdit);
+    qrzcqCredsLayout->addLayout(qrzcqPassLayout);
     m_qrzcqTestButton = new QPushButton("Test Connection", this);
     connect(m_qrzcqTestButton, &QPushButton::clicked, this, &PreferencesDialog::onTestQrzcqConnection);
-    credsLayout->addWidget(m_qrzcqTestButton);
+    qrzcqCredsLayout->addWidget(m_qrzcqTestButton);
+    lookupLayout->addWidget(m_qrzcqCredsGroup);
 
-    qrzcqLayout->addWidget(credsGroup);
-    qrzcqLayout->addStretch();
+    // QRZ credentials group
+    m_qrzCredsGroup = new QGroupBox("QRZ.com Credentials", this);
+    QVBoxLayout *qrzCredsLayout = new QVBoxLayout(m_qrzCredsGroup);
+    QHBoxLayout *qrzUserLayout = new QHBoxLayout();
+    qrzUserLayout->addWidget(new QLabel("Username:", this));
+    m_qrzUsernameEdit = new QLineEdit(this);
+    qrzUserLayout->addWidget(m_qrzUsernameEdit);
+    qrzCredsLayout->addLayout(qrzUserLayout);
+    QHBoxLayout *qrzPassLayout = new QHBoxLayout();
+    qrzPassLayout->addWidget(new QLabel("Password:", this));
+    m_qrzPasswordEdit = new QLineEdit(this);
+    m_qrzPasswordEdit->setEchoMode(QLineEdit::Password);
+    qrzPassLayout->addWidget(m_qrzPasswordEdit);
+    qrzCredsLayout->addLayout(qrzPassLayout);
+    m_qrzTestButton = new QPushButton("Test Connection", this);
+    connect(m_qrzTestButton, &QPushButton::clicked, this, &PreferencesDialog::onTestQrzConnection);
+    qrzCredsLayout->addWidget(m_qrzTestButton);
+    lookupLayout->addWidget(m_qrzCredsGroup);
 
-    // Load current QRZCQ settings
+    lookupLayout->addStretch();
+
+    // Load current settings and set initial state
+    {
+        QString svc = settings.getCallsignLookupService();
+        if (svc == "qrz")       m_lookupQrzRadio->setChecked(true);
+        else if (svc == "qrzcq") m_lookupQrzcqRadio->setChecked(true);
+        else                     m_lookupNoneRadio->setChecked(true);
+    }
     m_qrzcqAutoLookupCheckbox->setChecked(settings.getQrzcqAutoLookupEnabled());
     m_qrzcqUsernameEdit->setText(settings.getQrzcqUsername());
     m_qrzcqPasswordEdit->setText(settings.getQrzcqPassword());
+    m_qrzUsernameEdit->setText(settings.getQrzUsername());
+    m_qrzPasswordEdit->setText(settings.getQrzPassword());
 
-    tabWidget->addTab(qrzcqTab, "QRZCQ");
+    connect(m_lookupNoneRadio,  &QRadioButton::toggled, this, &PreferencesDialog::onLookupServiceChanged);
+    connect(m_lookupQrzcqRadio, &QRadioButton::toggled, this, &PreferencesDialog::onLookupServiceChanged);
+    connect(m_lookupQrzRadio,   &QRadioButton::toggled, this, &PreferencesDialog::onLookupServiceChanged);
+    onLookupServiceChanged();  // set initial visibility
+
+    tabWidget->addTab(lookupTab, "Callsign Lookup");
 
     // Fonts tab
     QWidget *fontsTab = new QWidget(this);
@@ -256,16 +297,24 @@ void PreferencesDialog::onAccept()
         }
     }
 
-    // QRZCQ
-    bool autoChanged = m_qrzcqAutoLookupCheckbox->isChecked() != settings.getQrzcqAutoLookupEnabled();
-    bool userChanged = m_qrzcqUsernameEdit->text() != settings.getQrzcqUsername();
-    bool passChanged = m_qrzcqPasswordEdit->text() != settings.getQrzcqPassword();
+    // Callsign Lookup
+    QString newService = m_lookupQrzRadio->isChecked()   ? "qrz"   :
+                         m_lookupQrzcqRadio->isChecked() ? "qrzcq" : "none";
+    bool svcChanged  = (newService != settings.getCallsignLookupService());
+    bool autoChanged = (m_qrzcqAutoLookupCheckbox->isChecked() != settings.getQrzcqAutoLookupEnabled());
+    bool qrzcqUserChanged = (m_qrzcqUsernameEdit->text() != settings.getQrzcqUsername());
+    bool qrzcqPassChanged = (m_qrzcqPasswordEdit->text() != settings.getQrzcqPassword());
+    bool qrzUserChanged   = (m_qrzUsernameEdit->text()   != settings.getQrzUsername());
+    bool qrzPassChanged   = (m_qrzPasswordEdit->text()   != settings.getQrzPassword());
 
-    if (autoChanged || userChanged || passChanged) {
+    if (svcChanged || autoChanged || qrzcqUserChanged || qrzcqPassChanged ||
+        qrzUserChanged || qrzPassChanged) {
+        settings.setCallsignLookupService(newService);
         settings.setQrzcqAutoLookupEnabled(m_qrzcqAutoLookupCheckbox->isChecked());
         settings.setQrzcqCredentials(m_qrzcqUsernameEdit->text(), m_qrzcqPasswordEdit->text());
+        settings.setQrzCredentials(m_qrzUsernameEdit->text(), m_qrzPasswordEdit->text());
         settings.save();
-        m_qrzcqChanged = true;
+        m_lookupChanged = true;
     }
 
     accept();
@@ -335,4 +384,49 @@ void PreferencesDialog::onStateTextChanged(const QString& text)
         m_stateEdit->setText(upper);
         m_stateEdit->setCursorPosition(pos);
     }
+}
+
+void PreferencesDialog::onLookupServiceChanged()
+{
+    bool qrzcqSelected = m_lookupQrzcqRadio->isChecked();
+    bool qrzSelected   = m_lookupQrzRadio->isChecked();
+    m_qrzcqCredsGroup->setVisible(qrzcqSelected);
+    m_qrzCredsGroup->setVisible(qrzSelected);
+    m_qrzcqAutoLookupCheckbox->setEnabled(qrzcqSelected || qrzSelected);
+}
+
+void PreferencesDialog::onTestQrzConnection()
+{
+    QString username = m_qrzUsernameEdit->text().trimmed();
+    QString password = m_qrzPasswordEdit->text();
+
+    if (username.isEmpty() || password.isEmpty()) {
+        QMessageBox::warning(this, "Missing Credentials",
+                             "Please enter both username and password.");
+        return;
+    }
+
+    m_qrzTestButton->setEnabled(false);
+    m_qrzTestButton->setText("Testing...");
+
+    m_qrzApi->setCredentials(username, password);
+    m_qrzApi->setUserAgent("ContestLogX/1.0");
+    m_qrzApi->getSession();
+}
+
+void PreferencesDialog::onQrzSessionObtained(const QString& token)
+{
+    Q_UNUSED(token);
+    m_qrzTestButton->setEnabled(true);
+    m_qrzTestButton->setText("Test Connection");
+    QMessageBox::information(this, "Connection Successful",
+                             "Successfully connected to QRZ.com and obtained session token.");
+}
+
+void PreferencesDialog::onQrzSessionError(const QString& error)
+{
+    m_qrzTestButton->setEnabled(true);
+    m_qrzTestButton->setText("Test Connection");
+    QMessageBox::critical(this, "Connection Failed",
+                          QString("Failed to connect to QRZ.com:\n%1").arg(error));
 }

@@ -170,7 +170,14 @@ bool ClxFile::loadJson(const QJsonObject& json)
                     qso.setExchangeField(it.key(), it.value().toString());
                 }
             }
-            
+
+            // Load station info (lookup-derived metadata)
+            if (qsoJson.contains("station_info")) {
+                QJsonObject stInfo = qsoJson["station_info"].toObject();
+                for (auto it = stInfo.begin(); it != stInfo.end(); ++it)
+                    qso.setStationInfo(it.key(), it.value().toString());
+            }
+
             m_qsos.append(qso);
         }
     }
@@ -268,6 +275,15 @@ QJsonObject ClxFile::toJson() const
         // Comment
         if (!qso.getComment().isEmpty()) {
             qsoJson["comment"] = qso.getComment();
+        }
+
+        // Station info (lookup-derived metadata, ADIF-keyed)
+        const QMap<QString, QString>& stInfo = qso.getStationInfoMap();
+        if (!stInfo.isEmpty()) {
+            QJsonObject stInfoJson;
+            for (auto it = stInfo.constBegin(); it != stInfo.constEnd(); ++it)
+                stInfoJson[it.key()] = it.value();
+            qsoJson["station_info"] = stInfoJson;
         }
         
         qsos.append(qsoJson);

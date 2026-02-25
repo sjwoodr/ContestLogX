@@ -186,6 +186,9 @@ public:
     bool getMultiplierWidgetDebugEnabled() const;
     void setMultiplierWidgetDebugEnabled(bool enabled);
 
+    bool getCallsignLookupDebugEnabled() const;
+    void setCallsignLookupDebugEnabled(bool enabled);
+
     // Splitter states (as byte arrays)
     QByteArray getMainSplitterState() const;
     void setMainSplitterState(const QByteArray& state);
@@ -210,13 +213,22 @@ public:
     bool getScpEnabled() const;
     void setScpEnabled(bool enabled);
     
+    // Callsign lookup service: "qrzcq", "qrz", or "none"
+    QString getCallsignLookupService() const;
+    void setCallsignLookupService(const QString& service);
+
     // QRZCQ API settings
     bool getQrzcqAutoLookupEnabled() const;
     void setQrzcqAutoLookupEnabled(bool enabled);
-    
+
     QString getQrzcqUsername() const;
     QString getQrzcqPassword() const;
     void setQrzcqCredentials(const QString& username, const QString& password);
+
+    // QRZ.com API settings
+    QString getQrzUsername() const;
+    QString getQrzPassword() const;
+    void setQrzCredentials(const QString& username, const QString& password);
 
     // Contest user prompts
     QString getContestUserPrompt(const QString& contestFile, const QString& promptId) const;

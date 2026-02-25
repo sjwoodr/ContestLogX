@@ -38,6 +38,7 @@
 #include "flrigClient.h"
 #include "qsoEditDialog.h"
 #include "qrzcqApi.h"
+#include "qrzApi.h"
 #include "stationInfo.h"
 #include "cwMemory.h"
 #include "ssbMemory.h"
@@ -84,6 +85,12 @@ private slots:
     void onQrzcqCallsignFound(const QrzcqCallsignData& data);
     void onQrzcqCallsignNotFound(const QString& callsign);
     void onQrzcqLookupError(const QString& error);
+
+    void onQrzSessionObtained(const QString& token);
+    void onQrzSessionError(const QString& error);
+    void onQrzCallsignFound(const QrzCallsignData& data);
+    void onQrzCallsignNotFound(const QString& callsign);
+    void onQrzLookupError(const QString& error);
     
     void onFreqModeButtonClicked();
     void onCWWindow();
@@ -114,6 +121,7 @@ private slots:
     void onToggleDxClusterDebug(bool checked);
     void onToggleScpDebug(bool checked);
     void onToggleMultiplierWidgetDebug(bool checked);
+    void onToggleCallsignLookupDebug(bool checked);
     void onDownloadCtyDat();
     void onDownloadScp();
     void onManageCallHistory();
@@ -163,6 +171,9 @@ private:
     void restorePanelState();
     QString freq2Mode(double freqMHz);
     bool loadContestDefinition(const QString& filePath, bool restoreStationClass = true);
+    void initCallsignLookup();   // Set up active lookup API from Settings
+    void triggerAutoLookup(const QString& callsign);  // Use active service
+    void applyPendingStationInfo(QsoRecord& qso, const QString& callsign);
     void updateQsoEntryFields();
     void updateLogHeaders();
     bool isSemanticVersionEqual(const QString& v1, const QString& v2);
@@ -218,6 +229,7 @@ private:
     QAction *m_dxClusterDebugAction;
     QAction *m_scpDebugAction;
     QAction *m_multiplierWidgetDebugAction;
+    QAction *m_callsignLookupDebugAction;
 
     // QSO Entry widgets
     QGroupBox *m_qsoEntryGroup;
@@ -254,9 +266,13 @@ private:
     QString m_lastMode;
     int m_lastWpm;
     
-    // QRZCQ API
+    // Callsign lookup APIs
     QrzcqApi *m_qrzcqApi;
-    QString m_pendingQrzcqCall;
+    QrzApi   *m_qrzApi;
+
+    // Most recent successful callsign lookup — cleared when QSO is logged
+    QString m_pendingLookupCallsign;
+    QMap<QString, QString> m_pendingStationInfo;  // ADIF-keyed station metadata
 
     // SSB Voice Keying
     class TtsManager *m_ttsManager;

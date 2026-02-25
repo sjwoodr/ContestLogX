@@ -63,6 +63,7 @@ void DebugLogger::loadSettings()
     m_dxccDatabaseDebugEnabled = settings.value("Debug/DxccDatabaseDebug", false).toBool();
     m_scpDebugEnabled = settings.value("Debug/ScpDebug", false).toBool();
     m_multiplierWidgetDebugEnabled = settings.value("Debug/MultiplierWidgetDebug", false).toBool();
+    m_callsignLookupDebugEnabled = settings.value("Debug/CallsignLookupDebug", false).toBool();
 }
 
 void DebugLogger::setFlushEnabled(bool enabled)
@@ -169,6 +170,17 @@ bool DebugLogger::isMultiplierWidgetDebugEnabled() const
     return m_multiplierWidgetDebugEnabled;
 }
 
+void DebugLogger::setCallsignLookupDebugEnabled(bool enabled)
+{
+    m_callsignLookupDebugEnabled = enabled;
+    log("INFO", enabled ? "Callsign Lookup debug logging enabled" : "Callsign Lookup debug logging disabled");
+}
+
+bool DebugLogger::isCallsignLookupDebugEnabled() const
+{
+    return m_callsignLookupDebugEnabled;
+}
+
 void DebugLogger::setStdoutEnabled(bool enabled)
 {
     m_stdoutEnabled = enabled;
@@ -217,6 +229,7 @@ void DebugLogger::log(const QString& component, const QString& message)
     if (!m_dxClusterDebugEnabled && component == "DxCluster") return;
     if (!m_scpDebugEnabled && (component == "ScpDialog" || component == "ScpLineEdit")) return;
     if (!m_multiplierWidgetDebugEnabled && component == "MultiplierWidget") return;
+    if (!m_callsignLookupDebugEnabled && component == "CallsignLookup") return;
 
     QMutexLocker locker(&g_logMutex);
 

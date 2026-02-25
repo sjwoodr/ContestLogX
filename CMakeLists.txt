@@ -71,6 +71,7 @@ set(SOURCES
     src/utils/piperManager.cpp
     src/database/dxccDatabase.cpp
     src/qrzcqApi.cpp
+    src/qrzApi.cpp
 )
 
 set(HEADERS
@@ -120,6 +121,7 @@ set(HEADERS
      src/utils/callsignUtils.h
      include/dxccDatabase.h
      include/qrzcqApi.h
+     include/qrzApi.h
 )
 
 # UI files
