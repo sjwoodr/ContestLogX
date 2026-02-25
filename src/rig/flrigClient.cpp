@@ -219,7 +219,6 @@ bool FlrigClient::sendCW(const QString& text)
     QString cwText = text.toUpper(); // Convert to uppercase for CW
     QString formattedText = "[" + cwText + "]";
     
-    // FIXME: if (DebugLogger::instance().isFlrigDebugEnabled()) DebugLogger::instance().log("Flrig", (">>> sendCW: Original text:" << text << "Formatted:" << formattedText).toStdString().c_str());
     DebugLogger::instance().log("CWWindow", QString("Sending CW text: \"%1\" formatted as: \"%2\"").arg(cwText).arg(formattedText));
     
     // Send using rig.cwio_text with bracket formatting
@@ -249,7 +248,7 @@ bool FlrigClient::sendCW(const QString& text)
 
 void FlrigClient::onSocketConnected()
 {
-    // FIXME: if (DebugLogger::instance().isFlrigDebugEnabled()) DebugLogger::instance().log("Flrig", ("Connected to flrig at" << m_host << ":" << m_port).toStdString().c_str());
+    if (DebugLogger::instance().isFlrigDebugEnabled()) DebugLogger::instance().log("Flrig", QString("Connected to flrig at %1:%2").arg(m_host).arg(m_port));
     emit connected();
 }
 
