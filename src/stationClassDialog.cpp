@@ -69,6 +69,10 @@ StationClassDialog::StationClassDialog(const QString& prompt, const QStringList&
     // Add buttons
     QDialogButtonBox *buttonBox = new QDialogButtonBox(
         QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
+    if (auto *btn = buttonBox->button(QDialogButtonBox::Ok))
+        btn->setIcon(style()->standardIcon(QStyle::SP_DialogOkButton));
+    if (auto *btn = buttonBox->button(QDialogButtonBox::Cancel))
+        btn->setIcon(style()->standardIcon(QStyle::SP_DialogCancelButton));
     layout->addWidget(buttonBox);
     
     connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);

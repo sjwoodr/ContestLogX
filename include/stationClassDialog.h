@@ -27,6 +27,8 @@
 #include <QVBoxLayout>
 #include <QLabel>
 #include <QDialogButtonBox>
+#include <QPushButton>
+#include <QStyle>
 #include <QStringList>
 
 class StationClassDialog : public QDialog

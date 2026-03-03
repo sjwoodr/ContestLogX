@@ -484,11 +484,8 @@ make test-logs-headless  # log tests without display (CI)
 
 ## License
 
-**To be determined**. Options include:
-- GPL v3 (strong copyleft)
-- LGPL v3 (library copyleft)
-- MIT (permissive)
-- Apache 2.0 (permissive with patent grant)
+ContestLogX is released under the **GNU General Public License v3.0 (GPL v3)**.
+See the [LICENSE](LICENSE) file for the full license text.
 
 ## Contact
 
@@ -498,10 +495,15 @@ Website: contestlogx.com
 
 ## Acknowledgments
 
-- **flrig** by Dave W1HKJ - Rig control abstraction
-- **QLog** by Ladislav Foldyna OK1MLG - UI inspiration and flrig integration examples
-- **Country Files** by Jim Reisert AD1C - CTY.DAT database
-- **Qt Project** - Cross-platform framework
+- **[flrig](http://www.w1hkj.com/flrig-help/)** by Dave Freese W1HKJ — rig control abstraction layer used for radio integration
+
+- **[QLog](https://github.com/foldynl/QLog)** by Ladislav Foldyna OK1MLG — open-source amateur radio logging application (GPL v3) that served as UI inspiration and a reference for flrig/CW integration
+
+- **[Country Files](https://www.country-files.com/)** by Jim Reisert AD1C — CTY.DAT DXCC country database
+
+- **[Super Check Partial](https://supercheckpartial.com/)** by Bruce Horn WA7BNM — MASTER.SCP callsign database used for partial callsign lookup during contest logging
+
+- **[Qt](https://www.qt.io)** — cross-platform application framework, used under the GNU LGPL v3
 
 ---
 
@@ -509,4 +511,4 @@ Website: contestlogx.com
 *Amateur Radio Contest Logging Software*  
 Copyright (c) 2025-2026, by Steve Woodruff, N9OH
 
-Last Updated: December 15, 2025
+Last Updated: March 3, 2026

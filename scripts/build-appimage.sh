@@ -12,6 +12,11 @@ cmake --build build -j"$(nproc)"
 # Install into AppDir
 DESTDIR=/src/AppDir cmake --install build
 
+# Bundle license/attribution documents into AppDir
+mkdir -p AppDir/usr/share/doc/contestlogx
+cp /src/LICENSE         AppDir/usr/share/doc/contestlogx/LICENSE
+cp /src/ATTRIBUTIONS.md AppDir/usr/share/doc/contestlogx/ATTRIBUTIONS.md
+
 # Run linuxdeploy to bundle dependencies and create AppImage
 # --appimage-extract-and-run avoids needing FUSE inside Docker
 export APPIMAGE_EXTRACT_AND_RUN=1

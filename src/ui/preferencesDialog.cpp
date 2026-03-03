@@ -27,6 +27,7 @@
 #include <QHBoxLayout>
 #include <QFormLayout>
 #include <QDialogButtonBox>
+#include <QStyle>
 #include <QTabWidget>
 #include <QGroupBox>
 #include <QLabel>
@@ -251,6 +252,10 @@ void PreferencesDialog::setupUi()
 
     QDialogButtonBox *buttonBox = new QDialogButtonBox(
         QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
+    if (auto *btn = buttonBox->button(QDialogButtonBox::Ok))
+        btn->setIcon(style()->standardIcon(QStyle::SP_DialogOkButton));
+    if (auto *btn = buttonBox->button(QDialogButtonBox::Cancel))
+        btn->setIcon(style()->standardIcon(QStyle::SP_DialogCancelButton));
     connect(buttonBox, &QDialogButtonBox::accepted, this, &PreferencesDialog::onAccept);
     connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
     mainLayout->addWidget(buttonBox);

@@ -25,6 +25,8 @@
 #include <QGroupBox>
 #include <QLabel>
 #include <QDialogButtonBox>
+#include <QPushButton>
+#include <QStyle>
 #include <QButtonGroup>
 
 SsbMemoriesDialog::SsbMemoriesDialog(QWidget *parent)
@@ -102,6 +104,10 @@ void SsbMemoriesDialog::setupUi()
     // Dialog buttons
     QDialogButtonBox *buttonBox = new QDialogButtonBox(
         QDialogButtonBox::Save | QDialogButtonBox::Cancel, this);
+    if (auto *btn = buttonBox->button(QDialogButtonBox::Save))
+        btn->setIcon(style()->standardIcon(QStyle::SP_DialogSaveButton));
+    if (auto *btn = buttonBox->button(QDialogButtonBox::Cancel))
+        btn->setIcon(style()->standardIcon(QStyle::SP_DialogCancelButton));
     connect(buttonBox, &QDialogButtonBox::accepted, this, &SsbMemoriesDialog::onSave);
     connect(buttonBox, &QDialogButtonBox::rejected, this, &SsbMemoriesDialog::onCancel);
     mainLayout->addWidget(buttonBox);

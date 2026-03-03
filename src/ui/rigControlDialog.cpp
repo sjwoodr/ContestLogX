@@ -25,6 +25,7 @@
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QDialogButtonBox>
+#include <QStyle>
 #include <QLabel>
 #include <QMessageBox>
 
@@ -137,6 +138,10 @@ void RigControlDialog::setupUi()
     // Dialog buttons
     QDialogButtonBox *buttonBox = new QDialogButtonBox(
         QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
+    if (auto *btn = buttonBox->button(QDialogButtonBox::Ok))
+        btn->setIcon(style()->standardIcon(QStyle::SP_DialogOkButton));
+    if (auto *btn = buttonBox->button(QDialogButtonBox::Cancel))
+        btn->setIcon(style()->standardIcon(QStyle::SP_DialogCancelButton));
     mainLayout->addWidget(buttonBox);
     
     connect(m_connectButton, &QPushButton::clicked, this, &RigControlDialog::onConnectClicked);

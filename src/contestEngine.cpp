@@ -1423,20 +1423,24 @@ int ContestEngine::calculateTotalScore(const QList<QsoRecord>& qsos, int& totalQ
     for (const QsoRecord& qso : qsos) {
         // TODO: Pass station callsign for proper scoring
         totalPoints += calculatePoints(qso, "");
-        
-        QStringList mults = getMultipliers(qso);
+
+        QList<MultiplierInfo> mults = getMultipliersWithCategory(qso);
         QString band = qso.getBand();
         QString mode = qso.getMode();
-        
-        for (const QString& mult : mults) {
+
+        for (const MultiplierInfo& multInfo : mults) {
+            // Include category in the key so that the same exchange string in
+            // different categories (e.g. "OH" as Ohio/namedMult vs Finland/dxcc)
+            // are counted as distinct multipliers rather than deduplicated.
+            QString key = QString("%1:%2").arg(multInfo.category).arg(multInfo.value);
             if (multType == "multsOnce") {
-                uniqueMultipliers.insert(mult);
+                uniqueMultipliers.insert(key);
             } else if (multType == "multsPerBand") {
-                multPerBand.insert(QString("%1_%2").arg(mult).arg(band));
+                multPerBand.insert(QString("%1_%2").arg(key).arg(band));
             } else if (multType == "multsPerMode") {
-                multPerMode.insert(QString("%1_%2").arg(mult).arg(mode));
+                multPerMode.insert(QString("%1_%2").arg(key).arg(mode));
             } else if (multType == "multsPerBandAndMode") {
-                multPerBandAndMode.insert(QString("%1_%2_%3").arg(mult).arg(band).arg(mode));
+                multPerBandAndMode.insert(QString("%1_%2_%3").arg(key).arg(band).arg(mode));
             }
         }
     }
@@ -2221,9 +2225,10 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
             bool isNew = false;
             
             if (multType == "multsOnce") {
-                if (!uniqueMultipliers.contains(mult)) {
+                QString catMult = category + ":" + mult;
+                if (!uniqueMultipliers.contains(catMult)) {
                     isNew = true;
-                    uniqueMultipliers.insert(mult);
+                    uniqueMultipliers.insert(catMult);
                 }
                 if (category == "named" || category == "namedMults") {
                     if (!namedMultsOnce.contains(mult)) namedMultsOnce.insert(mult);
@@ -2242,7 +2247,7 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
                         QString("  Mult tracking (once): %1 [%2] %3").arg(mult).arg(category).arg(isNew ? "NEW" : "DUPE"));
                 }
             } else if (multType == "multsPerBand") {
-                QString key = buildMultTrackingKey(mult, band, modeCategory);
+                QString key = buildMultTrackingKey(category + ":" + mult, band, modeCategory);
                 if (!multPerBand.contains(key)) {
                     isNew = true;
                     multPerBand.insert(key);
@@ -2264,18 +2269,19 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
                         QString("  Mult tracking (per band): %1 [%2] %3").arg(key).arg(category).arg(isNew ? "NEW" : "DUPE"));
                 }
             } else if (multType == "multsPerMode") {
-                QString key = buildMultTrackingKey(mult, band, modeCategory);
+                QString catMult = category + ":" + mult;
+                QString key = buildMultTrackingKey(catMult, band, modeCategory);
                 if (!multPerMode.contains(key)) {
                     isNew = true;
                     multPerMode.insert(key);
-                    
+
                     // Add to mode-specific sets only for NEW multipliers
                     if (modeCategory == "CW") {
-                        cwMultipliers.insert(mult);
+                        cwMultipliers.insert(catMult);
                     } else if (modeCategory == "SSB") {
-                        ssbMultipliers.insert(mult);
+                        ssbMultipliers.insert(catMult);
                     } else if (modeCategory == "DIGITAL") {
-                        digitalMultipliers.insert(mult);
+                        digitalMultipliers.insert(catMult);
                     }
                 }
                 
@@ -2296,7 +2302,7 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
                         QString("  Mult tracking (per mode): %1 [%2] %3").arg(key).arg(category).arg(isNew ? "NEW" : "DUPE"));
                 }
             } else if (multType == "multsPerBandAndMode") {
-                QString key = buildMultTrackingKey(mult, band, modeCategory);
+                QString key = buildMultTrackingKey(category + ":" + mult, band, modeCategory);
                 if (!multPerBandAndMode.contains(key)) {
                     isNew = true;
                     multPerBandAndMode.insert(key);

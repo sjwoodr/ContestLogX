@@ -1282,6 +1282,10 @@ void MainWindow::onNewLog()
                             callEdit.setText(defaultCall);
                             callEdit.selectAll();
                             QDialogButtonBox callButtons(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+                            if (auto *btn = callButtons.button(QDialogButtonBox::Ok))
+                                btn->setIcon(style()->standardIcon(QStyle::SP_DialogOkButton));
+                            if (auto *btn = callButtons.button(QDialogButtonBox::Cancel))
+                                btn->setIcon(style()->standardIcon(QStyle::SP_DialogCancelButton));
                             callLayout.addWidget(&callLabel);
                             callLayout.addWidget(&callEdit);
                             callLayout.addWidget(&callButtons);
@@ -1323,7 +1327,10 @@ void MainWindow::onNewLog()
                                 QLabel label(namePrompt.isEmpty() ? "Enter your first name:" : namePrompt);
                                 QLineEdit nameEdit;
                                 QDialogButtonBox buttonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
-                                
+                                if (auto *btn = buttonBox.button(QDialogButtonBox::Ok))
+                                    btn->setIcon(style()->standardIcon(QStyle::SP_DialogOkButton));
+                                if (auto *btn = buttonBox.button(QDialogButtonBox::Cancel))
+                                    btn->setIcon(style()->standardIcon(QStyle::SP_DialogCancelButton));
                                 layout.addWidget(&label);
                                 layout.addWidget(&nameEdit);
                                 layout.addWidget(&buttonBox);
@@ -1375,7 +1382,10 @@ void MainWindow::onNewLog()
                                 QLabel label(idPrompt.isEmpty() ? "Enter ID or location:" : idPrompt);
                                 QLineEdit idEdit;
                                 QDialogButtonBox buttonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
-                                
+                                if (auto *btn = buttonBox.button(QDialogButtonBox::Ok))
+                                    btn->setIcon(style()->standardIcon(QStyle::SP_DialogOkButton));
+                                if (auto *btn = buttonBox.button(QDialogButtonBox::Cancel))
+                                    btn->setIcon(style()->standardIcon(QStyle::SP_DialogCancelButton));
                                 layout.addWidget(&label);
                                 layout.addWidget(&idEdit);
                                 layout.addWidget(&buttonBox);
@@ -1476,7 +1486,10 @@ void MainWindow::onNewLog()
                                     QLabel label(question);
                                     QLineEdit edit;
                                     QDialogButtonBox buttonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
-                                    
+                                    if (auto *btn = buttonBox.button(QDialogButtonBox::Ok))
+                                        btn->setIcon(style()->standardIcon(QStyle::SP_DialogOkButton));
+                                    if (auto *btn = buttonBox.button(QDialogButtonBox::Cancel))
+                                        btn->setIcon(style()->standardIcon(QStyle::SP_DialogCancelButton));
                                     layout.addWidget(&label);
                                     layout.addWidget(&edit);
                                     layout.addWidget(&buttonBox);
@@ -1579,8 +1592,12 @@ void MainWindow::onNewLog()
                                     
                                     dialogLayout.addSpacing(10);
                                     QDialogButtonBox buttonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+                                    if (auto *btn = buttonBox.button(QDialogButtonBox::Ok))
+                                        btn->setIcon(style()->standardIcon(QStyle::SP_DialogOkButton));
+                                    if (auto *btn = buttonBox.button(QDialogButtonBox::Cancel))
+                                        btn->setIcon(style()->standardIcon(QStyle::SP_DialogCancelButton));
                                     dialogLayout.addWidget(&buttonBox);
-                                    
+
                                     connect(&buttonBox, &QDialogButtonBox::accepted, &checkboxDialog, &QDialog::accept);
                                     connect(&buttonBox, &QDialogButtonBox::rejected, &checkboxDialog, &QDialog::reject);
                                     
@@ -3906,6 +3923,12 @@ void MainWindow::onAbout()
         "<a href=\"https://contestlogx.com\">https://contestlogx.com</a><br><br>"
         "<a href=\"https://github.com/sjwoodr/ContestLogX\">"
         "https://github.com/sjwoodr/ContestLogX</a>"
+        "<br><br>"
+        "<b>Third-Party Libraries</b><br>"
+        "This application uses Qt " + QString(qVersion()) + ", licensed under the "
+        "<a href=\"https://www.gnu.org/licenses/lgpl-3.0.html\">GNU LGPL v3</a>.<br>"
+        "Qt is a trademark of The Qt Company Ltd. "
+        "Source: <a href=\"https://www.qt.io\">https://www.qt.io</a>"
     );
     msgBox.exec();
 }
@@ -5740,6 +5763,9 @@ QString MainWindow::generateSummaryString()
     } else if (multTypes.size() == 1) {
         out << "Score Calculation:\n";
         out << "  " << score.contactScore << " points × " << score.multipliers << " multipliers";
+        if (score.scoreMultiplier > 1) {
+            out << " × " << score.scoreMultiplier << " (power)";
+        }
         if (score.bonusPoints > 0) {
             out << " + " << score.bonusPoints << " bonus";
         }
@@ -5748,6 +5774,9 @@ QString MainWindow::generateSummaryString()
         out << "Score Calculation:\n";
         out << "  " << score.contactScore << " points × " << score.multipliers << " multipliers";
         out << " (" << multTypes.join(" + ") << ")";
+        if (score.scoreMultiplier > 1) {
+            out << " × " << score.scoreMultiplier << " (power)";
+        }
         if (score.bonusPoints > 0) {
             out << " + " << score.bonusPoints << " bonus";
         }

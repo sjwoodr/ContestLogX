@@ -89,6 +89,11 @@
       "name": "NAQP RTTY Large Log (10,050 QSOs) - Performance Regression Test",
       "log_file": "test_naqp_rtty_huge_log.clx",
       "expected_score": 3246425
+    },
+    {
+      "name": "FQP Florida In-State (QRP, multsPerMode, Named+DXCC)",
+      "log_file": "test_fqp_florida.clx",
+      "expected_score": 107712
     }
   ]
 }

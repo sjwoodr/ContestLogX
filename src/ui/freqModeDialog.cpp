@@ -24,6 +24,8 @@
 #include <QFormLayout>
 #include <QLabel>
 #include <QDialogButtonBox>
+#include <QPushButton>
+#include <QStyle>
 
 FreqModeDialog::FreqModeDialog(QWidget *parent)
     : QDialog(parent)
@@ -55,6 +57,10 @@ void FreqModeDialog::setupUi()
     // Buttons
     QDialogButtonBox* buttonBox = new QDialogButtonBox(
         QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
+    if (auto *btn = buttonBox->button(QDialogButtonBox::Ok))
+        btn->setIcon(style()->standardIcon(QStyle::SP_DialogOkButton));
+    if (auto *btn = buttonBox->button(QDialogButtonBox::Cancel))
+        btn->setIcon(style()->standardIcon(QStyle::SP_DialogCancelButton));
     connect(buttonBox, &QDialogButtonBox::accepted, this, &FreqModeDialog::onOkClicked);
     connect(buttonBox, &QDialogButtonBox::rejected, this, &FreqModeDialog::onCancelClicked);
     
