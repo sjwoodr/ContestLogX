@@ -1239,7 +1239,10 @@ void MainWindow::onNewLog()
                 // Clear the QSO model first so old data isn't visible
                 m_qsoModel->clear();
                 m_currentFile.clear();
-                
+
+                if (m_scoreWidget)
+                    m_scoreWidget->resetScore();
+
                 // Pass false to NOT restore the previous station class
                 loadContestDefinition(selectedFile, false);
                 
@@ -5030,6 +5033,7 @@ bool MainWindow::loadContestDefinition(const QString& filePath, bool restoreStat
                     .arg(m_contestEngine->getUserPromptValue("stationType"))
                     .arg(m_contestEngine->getEffectiveNamedMultiplierList().size())
                     .arg(m_contestEngine->getNamedMultiplierList().size()));
+            m_multiplierWidget->updateWorkedMultipliers(QSet<QString>());  // clear stale state from previous session
             m_multiplierWidget->setMultiplierList(m_contestEngine->getEffectiveNamedMultiplierList());
             m_multiplierWidget->setMultiplierType(m_contestEngine->getMultiplierType());
 
@@ -5758,6 +5762,15 @@ QString MainWindow::generateSummaryString()
     if (multType != "objectiveMultipliers") {
         out << "MULTIPLIER DETAILS\n";
         out << "-" << QString("-").repeated(63) << "-" << "\n";
+        {
+            QString multRule;
+            if      (multType == "multsOnce")         multRule = "Each multiplier counted once for the entire contest";
+            else if (multType == "multsPerBand")       multRule = "Each multiplier counted once per band";
+            else if (multType == "multsPerMode")       multRule = "Each multiplier counted once per mode";
+            else if (multType == "multsPerBandAndMode") multRule = "Each multiplier counted once per band and mode";
+            if (!multRule.isEmpty())
+                out << "Rule: " << multRule << "\n";
+        }
         out << "\n";
 
         QStringList multCategories = m_contestEngine->getMultiplierCategories();

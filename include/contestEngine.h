@@ -117,6 +117,7 @@ public:
         int gridSquareMultCount = 0;  // Grid square multipliers (for category scoring)
         int objectiveMultiplierCount = 0;  // Objective Multiplier count for WFD-style contests
         int dxccCount = 0;        // Total unique DXCC entities worked (for info)
+        int scoreMultiplier = 1;  // Power/category multiplier applied to contestScore (e.g., ×3 QRP)
         int bonusPoints = 0;
         int contestScore = 0;
         QMap<QString, int> objectiveMultiplierDetails;  // Maps OM code to point value (e.g., "ALT_POWER" -> 1)
@@ -191,10 +192,19 @@ private:
     bool isFieldRequired(const QString& fieldName) const;
     
     QString extractMultiplier(const QsoRecord& qso) const;
+    QString applyMultAlias(const QString& rawMult) const;
     int getPointsForMode(const QString& mode) const;
     DxccEntity dxccLookup(const QString& call) const;
     QString buildMultTrackingKey(const QString& multValue, const QString& band, const QString& mode) const;
     
+    struct MultAlias {
+        QString promptId;
+        QString promptValue;
+        QString sourceList;  // "inStateMults" or "namedMults"
+        QString mapsTo;
+    };
+    QList<MultAlias> m_multAliases;
+
     QJsonObject m_contestDef;
     QSet<QString> m_validStates;
     QSet<QString> m_validProvinces;
@@ -210,6 +220,8 @@ private:
     ContestScore m_runningScore;
 
     // Cached contest properties — populated in loadContest(), avoids repeated JSON parsing
+    QString m_cachedScoreMultiplierPromptId;
+    QMap<QString, int> m_cachedScoreMultiplierValues;
     QString m_cachedMultType;
     QString m_cachedDupeScope;
     QStringList m_cachedMultCategories;

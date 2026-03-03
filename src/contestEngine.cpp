@@ -66,6 +66,7 @@ bool ContestEngine::loadContest(const QJsonObject& contestDef)
     m_validProvinces.clear();
     m_validCallPrefixes.clear();
     m_inStateMults.clear();
+    m_multAliases.clear();
     
     // Load from validation.namedMults array (this is the single source of truth)
     if (contestDef.contains("validation")) {
@@ -108,7 +109,26 @@ bool ContestEngine::loadContest(const QJsonObject& contestDef)
     } else {
         DebugLogger::instance().log("ContestEngine", "No validation section found");
     }
-    
+
+    // Load multAliases — maps received exchange values to a different mult value
+    // based on the operator's userPrompt answer (e.g., FL county → "FL" for in-state ops)
+    if (contestDef.contains("multAliases")) {
+        QJsonArray aliases = contestDef["multAliases"].toArray();
+        for (const QJsonValue& v : aliases) {
+            QJsonObject obj = v.toObject();
+            MultAlias alias;
+            alias.promptId    = obj["promptId"].toString();
+            alias.promptValue = obj["promptValue"].toString();
+            alias.sourceList  = obj["sourceList"].toString();
+            alias.mapsTo      = obj["mapsTo"].toString().toUpper();
+            if (!alias.promptId.isEmpty() && !alias.mapsTo.isEmpty()) {
+                m_multAliases.append(alias);
+            }
+        }
+        DebugLogger::instance().log("ContestEngine",
+            QString("Loaded %1 mult alias rule(s)").arg(m_multAliases.size()));
+    }
+
     // Validate precedence array covers all defined scoring rules
     if (contestDef.contains("scoring")) {
         QJsonObject scoring = contestDef["scoring"].toObject();
@@ -147,6 +167,10 @@ bool ContestEngine::loadContest(const QJsonObject& contestDef)
                      .arg(m_validMultipliers.size())
                      .arg(m_validStates.size())
                      .arg(m_validProvinces.size()));
+
+    // Reset score and worked-mult tracking so a freshly loaded contest starts clean.
+    // For log-file loads, updateRunningScore() will repopulate these immediately after.
+    resetScore();
 
     // Cache derived properties so hot-path scoring functions avoid repeated JSON parsing
     cacheContestProperties();
@@ -192,6 +216,20 @@ void ContestEngine::cacheContestProperties()
         }
     }
     m_cachedDxccIsMult = m_cachedMultCategories.contains("dxcc");
+
+    // Score multiplier (e.g., power category: QRP ×3, Low ×2, High ×1)
+    m_cachedScoreMultiplierPromptId.clear();
+    m_cachedScoreMultiplierValues.clear();
+    if (m_contestDef.contains("scoring")) {
+        QJsonObject scoring = m_contestDef["scoring"].toObject();
+        if (scoring.contains("scoreMultiplier")) {
+            QJsonObject sm = scoring["scoreMultiplier"].toObject();
+            m_cachedScoreMultiplierPromptId = sm["promptId"].toString();
+            QJsonObject vals = sm["values"].toObject();
+            for (auto it = vals.begin(); it != vals.end(); ++it)
+                m_cachedScoreMultiplierValues[it.key()] = it.value().toInt(1);
+        }
+    }
 
     // Whether the callsign itself is a multiplier
     m_cachedCallsignIsMult = false;
@@ -458,6 +496,35 @@ bool ContestEngine::validateExchange(const QString& fieldName, const QString& va
                     DebugLogger::instance().log("ContestEngine",
                         QString("  '%1' is a valid exchange").arg(upper));
                     return true;
+                } else if (validationType == "namedMultOrDxcc" && fieldName == "EXCHr") {
+                    // Validate received exchange against effective mults, with a DXCC prefix
+                    // fallback for station types that use the full mult list (e.g., FL in-state ops
+                    // who may receive a DXCC entity prefix from a DX station).
+                    // Station types restricted to inStateMults (WVE/DX operators in FQP) do NOT
+                    // get the DXCC fallback, preventing them from entering DXCC prefixes instead
+                    // of the required FL county abbreviation.
+                    QString upper = value.toUpper();
+                    QSet<QString> effectiveMults = getEffectiveValidMults();
+                    if (effectiveMults.contains(upper)) {
+                        DebugLogger::instance().log("ContestEngine",
+                            QString("  '%1' is a valid named mult").arg(upper));
+                        return true;
+                    }
+                    // DXCC fallback — only for unrestricted operators (full namedMults).
+                    // Uses exact prefix lookup (not fuzzy callsign matching) so that
+                    // strings like "MOO" don't accidentally match via prefix stripping.
+                    if (effectiveMults == m_validMultipliers &&
+                        m_dxccDatabase && m_dxccDatabase->isLoaded()) {
+                        if (m_dxccDatabase->isKnownPrefix(upper)) {
+                            DebugLogger::instance().log("ContestEngine",
+                                QString("  '%1' is a known DXCC prefix").arg(upper));
+                            return true;
+                        }
+                    }
+                    errorMsg = QString("Invalid exchange: %1").arg(value);
+                    DebugLogger::instance().log("ContestEngine",
+                        QString("  '%1' not in effective mults and not a known DXCC prefix").arg(upper));
+                    return false;
                 }
             }
         }
@@ -1235,17 +1302,47 @@ QStringList ContestEngine::getEffectiveNamedMultiplierList() const
     }
 
     QSet<QString> effective = getEffectiveValidMults();
-    if (effective == m_validMultipliers) {
-        return getNamedMultiplierList();
+    if (effective != m_validMultipliers) {
+        // Operator is restricted to inStateMults (e.g., WVE/DX in FQP, out-of-state in MNQP)
+        QStringList result;
+        if (m_contestDef.contains("validation")) {
+            QJsonObject validation = m_contestDef["validation"].toObject();
+            if (validation.contains("inStateMults")) {
+                QJsonArray inStateList = validation["inStateMults"].toArray();
+                for (const QJsonValue& val : inStateList)
+                    result.append(val.toString().toUpper());
+            }
+        }
+        return result;
     }
-    // Return inStateMults in order from the JSON array
+
+    // Full namedMults path. If a multAlias is active for this operator, exclude the
+    // aliased-source values from the display — they map to something else and would
+    // just clutter the widget (e.g., FL counties shown to FL in-state ops who only
+    // earn credit for the aliased "FL" state mult, not individual county entries).
+    QSet<QString> aliasedSources;
+    for (const MultAlias& alias : m_multAliases) {
+        if (getUserPromptValue(alias.promptId) == alias.promptValue) {
+            if (alias.sourceList == "inStateMults")
+                aliasedSources += m_inStateMults;
+            else if (alias.sourceList == "namedMults")
+                aliasedSources += m_validMultipliers;
+        }
+    }
+
+    if (aliasedSources.isEmpty())
+        return getNamedMultiplierList();
+
+    // Return namedMults in JSON order, skipping anything covered by an active alias
     QStringList result;
     if (m_contestDef.contains("validation")) {
         QJsonObject validation = m_contestDef["validation"].toObject();
-        if (validation.contains("inStateMults")) {
-            QJsonArray inStateList = validation["inStateMults"].toArray();
-            for (const QJsonValue& val : inStateList) {
-                result.append(val.toString().toUpper());
+        if (validation.contains("namedMults")) {
+            QJsonArray multList = validation["namedMults"].toArray();
+            for (const QJsonValue& val : multList) {
+                QString upper = val.toString().toUpper();
+                if (!aliasedSources.contains(upper))
+                    result.append(upper);
             }
         }
     }
@@ -1594,9 +1691,11 @@ QString ContestEngine::extractMultiplier(const QsoRecord& qso) const
     for (const QString& word : words) {
         QString cleanWord = word.trimmed();
         if (!cleanWord.isEmpty() && m_validMultipliers.contains(cleanWord)) {
-            DebugLogger::instance().log("ContestEngine", 
-                QString("Found multiplier: '%1'").arg(cleanWord));
-            return cleanWord;
+            QString resolved = applyMultAlias(cleanWord);
+            DebugLogger::instance().log("ContestEngine",
+                QString("Found multiplier: '%1'%2").arg(cleanWord,
+                    resolved != cleanWord ? QString(" -> aliased to '%1'").arg(resolved) : QString()));
+            return resolved;
         }
     }
     
@@ -1604,6 +1703,24 @@ QString ContestEngine::extractMultiplier(const QsoRecord& qso) const
         QString("No multiplier found in exchange (checked %1 valid mults)").arg(m_validMultipliers.size()));
     
     return QString();
+}
+
+QString ContestEngine::applyMultAlias(const QString& rawMult) const
+{
+    for (const MultAlias& alias : m_multAliases) {
+        if (getUserPromptValue(alias.promptId) != alias.promptValue)
+            continue;
+
+        const QSet<QString>* sourceSet = nullptr;
+        if (alias.sourceList == "inStateMults")
+            sourceSet = &m_inStateMults;
+        else if (alias.sourceList == "namedMults")
+            sourceSet = &m_validMultipliers;
+
+        if (sourceSet && sourceSet->contains(rawMult))
+            return alias.mapsTo;
+    }
+    return rawMult;
 }
 
 int ContestEngine::getPointsForMode(const QString& mode) const
@@ -2367,8 +2484,19 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
         m_runningScore.contestScore = m_runningScore.contactScore + m_runningScore.bonusPoints;
     }
     
-    DebugLogger::instance().log("ContestEngine", 
-        QString("Running score updated: %1 QSOs, %2 points, %3 mults (%4 named+%5 dxcc+%6 itu+%7 prefixes) = %8 score")
+    // Apply prompt-driven score multiplier (e.g., power category: QRP ×3, Low ×2, High ×1)
+    m_runningScore.scoreMultiplier = 1;
+    if (!m_cachedScoreMultiplierPromptId.isEmpty()) {
+        QString promptValue = getUserPromptValue(m_cachedScoreMultiplierPromptId);
+        if (m_cachedScoreMultiplierValues.contains(promptValue)) {
+            m_runningScore.scoreMultiplier = m_cachedScoreMultiplierValues[promptValue];
+            if (m_runningScore.scoreMultiplier != 1)
+                m_runningScore.contestScore *= m_runningScore.scoreMultiplier;
+        }
+    }
+
+    DebugLogger::instance().log("ContestEngine",
+        QString("Running score updated: %1 QSOs, %2 points, %3 mults (%4 named+%5 dxcc+%6 itu+%7 prefixes) × %8 power = %9 score")
             .arg(validQsoCount)
             .arg(m_runningScore.contactScore)
             .arg(m_runningScore.multipliers)
@@ -2376,6 +2504,7 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
             .arg(m_runningScore.dxccMultCount)
             .arg(m_runningScore.ituRegionMultCount)
             .arg(m_runningScore.namedCallPrefixCount)
+            .arg(m_runningScore.scoreMultiplier)
             .arg(m_runningScore.contestScore));
     
     // Debug: Log band stats
@@ -2395,6 +2524,10 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
 void ContestEngine::resetScore()
 {
     m_runningScore = ContestScore();
+    m_workedNamedMults.clear();
+    m_workedNamedMultsPerBand.clear();
+    m_workedNamedMultsPerMode.clear();
+    m_workedNamedMultsPerBandAndMode.clear();
     DebugLogger::instance().log("ContestEngine", "Score reset");
 }
 

@@ -75,6 +75,7 @@ public:
     int mapItuZoneToRegion(int ituZone) const;
     
     bool isLoaded() const { return m_loaded; }
+    bool isKnownPrefix(const QString& prefix) const { return m_prefixMap.contains(prefix.toUpper()); }
     QString getDataPath() const;
     QString stripPortableSuffixes(const QString &callsign) const;
 

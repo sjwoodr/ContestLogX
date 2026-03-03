@@ -186,6 +186,7 @@ void ScoreWidget::clear()
     
     m_finalScore = 0;
     m_contestScoreLabel->setText("0");
+    m_multsSummaryLabel->clear();
 }
 
 void ScoreWidget::resetScore()
@@ -238,7 +239,10 @@ void ScoreWidget::updateMultsSummary(const ContestEngine::ContestScore& score)
     if (m_multCategories.contains("ituRegions") && score.ituRegionMultCount > 0) {
         parts.append(QString("ITU: %1").arg(score.ituRegionMultCount));
     }
-    
+    if (score.scoreMultiplier > 1) {
+        parts.append(QString("×%1 Power").arg(score.scoreMultiplier));
+    }
+
     QString summary = parts.join(" | ");
     m_multsSummaryLabel->setText(summary);
 }

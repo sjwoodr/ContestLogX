@@ -1,0 +1,273 @@
+{
+  "contest": {
+    "name": "Florida QSO Party",
+    "abbreviation": "FQP",
+    "version": "1.0.0",
+    "sponsor": "Florida Contest Group (FCG)",
+    "description": "Annual Florida state QSO party. Non-FL stations work as many FL counties as possible. FL stations work everyone inside and outside Florida.",
+    "startDate": "Last full weekend of April (2026: April 25-26, 1200 UTC Sat – 1959 UTC Sun)",
+    "duration": 32,
+    "offTimeGapMinutes": 0,
+    "modes": ["CW", "SSB"],
+    "bands": ["40m", "20m", "15m", "10m"],
+    "url": "https://floridaqsoparty.org/",
+    "categories": {
+      "stations": ["SINGLE_OP", "SINGLE_OP_ASSISTED", "MULTI_SINGLE", "MULTI_MULTI", "MOBILE", "EXPEDITION"],
+      "power": ["QRP", "LOW_POWER", "HIGH_POWER"],
+      "modes": ["MIXED", "CW", "PHONE"]
+    }
+  },
+
+  "frequencies": {
+    "40m": {
+      "start": 7000,
+      "end": 7300,
+      "cw":    {"start": 7025, "end": 7055},
+      "phone": {"start": 7185, "end": 7285}
+    },
+    "20m": {
+      "start": 14000,
+      "end": 14350,
+      "cw":    {"start": 14025, "end": 14055},
+      "phone": {"start": 14225, "end": 14325}
+    },
+    "15m": {
+      "start": 21000,
+      "end": 21450,
+      "cw":    {"start": 21025, "end": 21055},
+      "phone": {"start": 21300, "end": 21400}
+    },
+    "10m": {
+      "start": 28000,
+      "end": 29700,
+      "cw":    {"start": 28025, "end": 28055},
+      "phone": {"start": 28400, "end": 28500}
+    }
+  },
+
+  "stationClasses": {
+    "enabled": false
+  },
+
+  "userPrompts": [
+    {
+      "id": "stationType",
+      "question": "Select your station location",
+      "type": "select",
+      "options": [
+        {"value": "FL",  "label": "Florida (in-state) — send FL county abbreviation"},
+        {"value": "WVE", "label": "W/VE (US or Canada outside FL) — send state or province"},
+        {"value": "DX",  "label": "DX (outside US/Canada, including KP4) — send DXCC entity prefix"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "Determines your sent exchange and which multipliers are counted."
+    },
+    {
+      "id": "operatingClass",
+      "question": "Select your operating class",
+      "type": "select",
+      "options": [
+        {"value": "FL_SO",         "label": "FL: Single Op (no spotting assistance)"},
+        {"value": "FL_SOA",        "label": "FL: Single Op Assisted"},
+        {"value": "FL_MS",         "label": "FL: Multi-Single"},
+        {"value": "FL_MM",         "label": "FL: Multi-Multi"},
+        {"value": "FL_MOB_SOLO",   "label": "FL: Mobile – Single Op No Driver"},
+        {"value": "FL_MOB_DRIVER", "label": "FL: Mobile – Single Op with Driver"},
+        {"value": "FL_MOB_MS",     "label": "FL: Mobile – Multi-Single"},
+        {"value": "FL_MOB_MM",     "label": "FL: Mobile – Multi-Multi"},
+        {"value": "FL_EXP",        "label": "FL: Expedition (portable, 2+ counties)"},
+        {"value": "OUT_SO",        "label": "Out-of-State: Single Op (no spotting)"},
+        {"value": "OUT_SOA",       "label": "Out-of-State: Single Op Assisted"},
+        {"value": "OUT_MS",        "label": "Out-of-State: Multi-Single"},
+        {"value": "OUT_MM",        "label": "Out-of-State: Multi-Multi"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "FL Mobile/Expedition: must operate from 2+ counties. Moving to a new county = new station (re-workable for QSO and mult credit)."
+    },
+    {
+      "id": "powerCategory",
+      "question": "Select your power level",
+      "type": "select",
+      "options": [
+        {"value": "QRP",  "label": "QRP — 5 watts or less (Power Multiplier ×3)"},
+        {"value": "LOW",  "label": "Low Power — greater than 5W and less than 100W (Power Multiplier ×2)"},
+        {"value": "HIGH", "label": "High Power — 100 watts or more (no Power Multiplier)"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "All QSOs must be at or below this power. Apply the Power Multiplier manually when submitting: multiply (QSO pts × mults) by ×3 (QRP), ×2 (Low), or ×1 (High). No power indicated defaults to High Power."
+    },
+    {
+      "id": "myExchange",
+      "question": "Enter your exchange (FL county abbrev e.g. HIL, state e.g. WI, province e.g. ON, or DXCC prefix e.g. G)",
+      "type": "text",
+      "required": true,
+      "forceUppercase": true,
+      "storeInMeta": true,
+      "description": "FL county abbreviation for FL stations; 2-letter state or province for W/VE; DXCC entity prefix for DX. Maritime mobile: enter ITU region (R1, R2, or R3).",
+      "exchangeFieldMapping": {
+        "myExchange": "EXCHs"
+      }
+    }
+  ],
+
+  "exchangeFields": {
+    "sent": [
+      {
+        "name": "RSTs",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report sent (RS on phone, RST on CW)"
+      },
+      {
+        "name": "EXCHs",
+        "type": "string",
+        "required": true,
+        "description": "FL county (FL stations), state/province (W/VE), or DXCC prefix (DX)"
+      }
+    ],
+    "received": [
+      {
+        "name": "RSTr",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report received"
+      },
+      {
+        "name": "EXCHr",
+        "type": "string",
+        "required": true,
+        "description": "FL county (from FL stations), state/province (from W/VE), or DXCC prefix (from DX). Do not log FL — log the county abbreviation."
+      }
+    ]
+  },
+
+  "qsoFields": [
+    {"name": "Date",      "column": "DATE",   "type": "date",   "format": "yyyy-MM-dd", "required": true},
+    {"name": "Time",      "column": "TIME",   "type": "time",   "format": "HH:mm:ss",   "required": true},
+    {"name": "Callsign",  "column": "CALL",   "type": "string", "required": true, "uppercase": true},
+    {"name": "Frequency", "column": "FREQ",   "type": "number", "unit": "kHz",    "required": true},
+    {"name": "Mode",      "column": "MODE",   "type": "enum",   "values": ["CW", "SSB"], "required": true},
+    {"name": "RST Sent",  "column": "RSTs",   "type": "string", "required": true},
+    {"name": "RST Rcvd",  "column": "RSTr",   "type": "string", "required": true},
+    {"name": "Exch Sent", "column": "EXCHs",  "type": "string", "required": true},
+    {"name": "Exch Rcvd", "column": "EXCHr",  "type": "string", "required": true},
+    {"name": "Points",    "column": "POINTS", "type": "number", "calculated": true},
+    {"name": "Mult",      "column": "M",      "type": "string", "calculated": true}
+  ],
+
+  "scoring": {
+    "points": {
+      "phone": 1,
+      "cw":    2
+    },
+    "multipliers": {
+      "type": "multsPerMode",
+      "description": "Non-FL: 67 FL counties, counted once per mode. FL: US states + DC, 13 Canadian provinces, DXCC countries outside US/Canada, and Maritime Mobile ITU regions, counted once per mode.",
+      "categories": ["namedMults", "dxcc"],
+      "alaskaAndHawaiiCountDxcc": false,
+      "usAndCanadaCountDxcc": false
+    },
+    "finalScore": "SUM(points) * SUM(multipliers)",
+    "scoreMultiplier": {
+      "promptId": "powerCategory",
+      "values": {
+        "QRP":  3,
+        "LOW":  2,
+        "HIGH": 1
+      }
+    }
+  },
+
+  "multAliases": [
+    {
+      "promptId":    "stationType",
+      "promptValue": "FL",
+      "sourceList":  "inStateMults",
+      "mapsTo":      "FL"
+    }
+  ],
+
+  "dupeChecking": {
+    "type": "perBandAndMode",
+    "description": "Work each station once per band per mode (max 8 QSOs total: 4 bands × 2 modes). FL Mobiles and Expeditions changing to a new county are treated as a new station and may be worked again on any band/mode for QSO points and county multiplier credit."
+  },
+
+  "logging": {
+    "requiredFields": ["date", "time", "frequency", "mode", "callsign", "rstSent", "rstReceived", "exchSent", "exchReceived"],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "FQP",
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {rst_sent} {exch_sent} {call} {rst_rcvd} {exch_rcvd}",
+      "requiredHeaders": ["CONTEST", "CALLSIGN", "CATEGORY-OPERATOR", "CATEGORY-POWER", "CATEGORY-MODE", "CLAIMED-SCORE", "CREATED-BY", "NAME", "EMAIL", "CLUB"]
+    }
+  },
+
+  "callHistory": {
+    "fieldsToSave": ["EXCHr"],
+    "description": "Save county/state/province/DXCC prefix for future autofill"
+  },
+
+  "validation": {
+    "minimumQSOs": 1,
+    "maxOperatingTime": 32,
+    "offTimesRequired": false,
+    "namedMults": [
+      "ALC", "BAK", "BAY", "BRA", "BRE", "BRO", "CAH", "CHA", "CIT", "CLA",
+      "CLM", "CLR", "DAD", "DES", "DIX", "DUV", "ESC", "FLG", "FRA", "GAD",
+      "GIL", "GLA", "GUL", "HAM", "HAR", "HEN", "HER", "HIG", "HIL", "HOL",
+      "IDR", "JAC", "JEF", "LAF", "LAK", "LEE", "LEO", "LEV", "LIB", "MAD",
+      "MTE", "MAO", "MON", "MRT", "NAS", "OKA", "OKE", "ORA", "OSC", "PAL",
+      "PAS", "PIN", "POL", "PUT", "SAN", "SAR", "SEM", "STJ", "STL", "SUM",
+      "SUW", "TAY", "UNI", "VOL", "WAK", "WAL", "WAG",
+      "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL",
+      "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME",
+      "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH",
+      "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI",
+      "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY",
+      "AB", "BC", "MB", "NB", "NL", "NS", "NT", "NU", "ON", "PE", "QC", "SK", "YT",
+      "R1", "R2", "R3"
+    ],
+    "inStateMults": [
+      "ALC", "BAK", "BAY", "BRA", "BRE", "BRO", "CAH", "CHA", "CIT", "CLA",
+      "CLM", "CLR", "DAD", "DES", "DIX", "DUV", "ESC", "FLG", "FRA", "GAD",
+      "GIL", "GLA", "GUL", "HAM", "HAR", "HEN", "HER", "HIG", "HIL", "HOL",
+      "IDR", "JAC", "JEF", "LAF", "LAK", "LEE", "LEO", "LEV", "LIB", "MAD",
+      "MTE", "MAO", "MON", "MRT", "NAS", "OKA", "OKE", "ORA", "OSC", "PAL",
+      "PAS", "PIN", "POL", "PUT", "SAN", "SAR", "SEM", "STJ", "STL", "SUM",
+      "SUW", "TAY", "UNI", "VOL", "WAK", "WAL", "WAG"
+    ],
+    "exchangeValidation": {
+      "type": "namedMultOrDxcc",
+      "description": "FL county (3-letter abbrev), US state (2-letter), Canadian province (2-letter), DXCC entity prefix, or Maritime Mobile ITU region (R1/R2/R3). Non-FL stations: received exchange must be a valid FL county abbreviation."
+    },
+    "receivedExchangeFilter": {
+      "promptId": "stationType",
+      "rules": {
+        "WVE": "inStateMults",
+        "DX":  "inStateMults"
+      }
+    }
+  },
+
+  "ui": {
+    "showMultiplierPanel": true,
+    "logColumns": ["DATE", "TIME", "CALL", "FREQ", "MODE", "RSTs", "RSTr", "EXCHs", "EXCHr", "POINTS", "M", "COMMENT"],
+    "entryFields": ["CALL", "RSTr", "EXCHr"],
+    "fieldNavigation": {
+      "keys": "tab"
+    },
+    "bandMap": {
+      "enabled": true,
+      "bands": ["40m", "20m", "15m", "10m"]
+    },
+    "multiplierDisplay": {
+      "showCounties":  true,
+      "showStates":    true,
+      "showProvinces": true,
+      "showDXCC":      true
+    }
+  }
+}

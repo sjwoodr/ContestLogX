@@ -14,16 +14,16 @@ import Layout from '../layouts/Layout.astro';
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div class="rounded-lg overflow-hidden border" style="border-color: #30363d;">
-          <img src="/clx_ss_1.png" alt="ContestLogX screenshot 1" class="lightbox-trigger w-full h-auto cursor-zoom-in" />
+          <img src="/clx_ss_1.png" alt="ContestLogX screenshot 1" class="lightbox-trigger w-full h-auto cursor-zoom-in" data-index="0" />
         </div>
         <div class="rounded-lg overflow-hidden border" style="border-color: #30363d;">
-          <img src="/clx_ss_2.png" alt="ContestLogX screenshot 2" class="lightbox-trigger w-full h-auto cursor-zoom-in" />
+          <img src="/clx_ss_2.png" alt="ContestLogX screenshot 2" class="lightbox-trigger w-full h-auto cursor-zoom-in" data-index="1" />
         </div>
         <div class="rounded-lg overflow-hidden border" style="border-color: #30363d;">
-          <img src="/clx_ss_3.png" alt="ContestLogX screenshot 3" class="lightbox-trigger w-full h-auto cursor-zoom-in" />
+          <img src="/clx_ss_3.png" alt="ContestLogX screenshot 3" class="lightbox-trigger w-full h-auto cursor-zoom-in" data-index="2" />
         </div>
         <div class="rounded-lg overflow-hidden border" style="border-color: #30363d;">
-          <img src="/clx_ss_4.png" alt="ContestLogX screenshot 4" class="lightbox-trigger w-full h-auto cursor-zoom-in" />
+          <img src="/clx_ss_4.png" alt="ContestLogX screenshot 4" class="lightbox-trigger w-full h-auto cursor-zoom-in" data-index="3" />
         </div>
       </div>
     </div>
@@ -32,34 +32,83 @@ import Layout from '../layouts/Layout.astro';
 
   <!-- Lightbox overlay -->
   <div id="lightbox" class="fixed inset-0 z-50 hidden items-center justify-center" style="background-color: rgba(0,0,0,0.85);">
-    <img id="lightbox-img" src="" alt="" class="max-w-[90vw] max-h-[90vh] rounded-lg shadow-2xl object-contain" />
+    <!-- Prev button -->
+    <button id="lightbox-prev" aria-label="Previous" class="absolute left-4 top-1/2 -translate-y-1/2 flex items-center justify-center w-11 h-11 rounded-full text-white transition-colors" style="background-color: rgba(255,255,255,0.1);">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+      </svg>
+    </button>
+
+    <!-- Image -->
+    <img id="lightbox-img" src="" alt="" class="max-w-[80vw] max-h-[90vh] rounded-lg shadow-2xl object-contain" />
+
+    <!-- Next button -->
+    <button id="lightbox-next" aria-label="Next" class="absolute right-4 top-1/2 -translate-y-1/2 flex items-center justify-center w-11 h-11 rounded-full text-white transition-colors" style="background-color: rgba(255,255,255,0.1);">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+      </svg>
+    </button>
+
+    <!-- Counter -->
+    <div id="lightbox-counter" class="absolute bottom-4 left-1/2 -translate-x-1/2 text-sm text-white opacity-60"></div>
+
+    <!-- Close button -->
+    <button id="lightbox-close" aria-label="Close" class="absolute top-4 right-4 flex items-center justify-center w-9 h-9 rounded-full text-white transition-colors" style="background-color: rgba(255,255,255,0.1);">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
   </div>
 </Layout>
 
 <script>
-  const lightbox = document.getElementById('lightbox')!;
+  const lightbox    = document.getElementById('lightbox')!;
   const lightboxImg = document.getElementById('lightbox-img') as HTMLImageElement;
+  const counter     = document.getElementById('lightbox-counter')!;
+  const prevBtn     = document.getElementById('lightbox-prev')!;
+  const nextBtn     = document.getElementById('lightbox-next')!;
+  const closeBtn    = document.getElementById('lightbox-close')!;
 
-  document.querySelectorAll('.lightbox-trigger').forEach(img => {
-    img.addEventListener('click', () => {
-      const src = (img as HTMLImageElement).src;
-      const alt = (img as HTMLImageElement).alt;
-      lightboxImg.src = src;
-      lightboxImg.alt = alt;
-      lightbox.classList.remove('hidden');
-      lightbox.classList.add('flex');
-    });
-  });
+  const triggers = Array.from(document.querySelectorAll<HTMLImageElement>('.lightbox-trigger'));
+  let currentIndex = 0;
 
-  lightbox.addEventListener('click', () => {
+  function open(index: number) {
+    currentIndex = index;
+    const img = triggers[currentIndex]!;
+    lightboxImg.src = img.src;
+    lightboxImg.alt = img.alt;
+    counter.textContent = `${currentIndex + 1} / ${triggers.length}`;
+    lightbox.classList.remove('hidden');
+    lightbox.classList.add('flex');
+  }
+
+  function close() {
     lightbox.classList.add('hidden');
     lightbox.classList.remove('flex');
+  }
+
+  function prev() {
+    open((currentIndex - 1 + triggers.length) % triggers.length);
+  }
+
+  function next() {
+    open((currentIndex + 1) % triggers.length);
+  }
+
+  triggers.forEach((img, i) => {
+    img.addEventListener('click', () => open(i));
   });
 
+  prevBtn.addEventListener('click', (e) => { e.stopPropagation(); prev(); });
+  nextBtn.addEventListener('click', (e) => { e.stopPropagation(); next(); });
+  closeBtn.addEventListener('click', (e) => { e.stopPropagation(); close(); });
+
+  lightbox.addEventListener('click', close);
+
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-      lightbox.classList.add('hidden');
-      lightbox.classList.remove('flex');
-    }
+    if (!lightbox.classList.contains('flex')) return;
+    if (e.key === 'Escape')      close();
+    if (e.key === 'ArrowLeft')   prev();
+    if (e.key === 'ArrowRight')  next();
   });
 </script>
