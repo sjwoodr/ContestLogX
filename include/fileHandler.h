@@ -98,6 +98,13 @@ public:
     void setContestSsbMemories(const QList<SsbMemory>& memories) { m_contestSsbMemories = memories; }
     void setUseContestMemories(bool use) { m_useContestMemories = use; }
 
+    // Computed score from the contest engine (contactScore = raw points, finalScore = after mults/power)
+    void setComputedScore(int contactScore, int finalScore) {
+        m_contactScore = contactScore;
+        m_finalScore   = finalScore;
+        m_scoreSet     = true;
+    }
+
     QString lastError() const { return m_lastError; }
 
 private:
@@ -107,6 +114,9 @@ private:
     QList<CwMemory> m_contestCwMemories;
     QList<SsbMemory> m_contestSsbMemories;
     bool m_useContestMemories = false;
+    int  m_contactScore = 0;
+    int  m_finalScore   = 0;
+    bool m_scoreSet     = false;
 };
 
 #endif // FILEHANDLER_H

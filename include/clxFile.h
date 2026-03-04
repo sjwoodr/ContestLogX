@@ -76,14 +76,21 @@ public:
     int totalPoints() const;
     int totalMultipliers() const;
     int score() const;
-    
+
+    // Override statistics with values computed by the contest engine
+    void setComputedScore(int contactPoints, int finalScore) {
+        m_contactPoints = contactPoints;
+        m_finalScore    = finalScore;
+        m_scoreSet      = true;
+    }
+
     // Error handling
     QString lastError() const { return m_lastError; }
-    
+
 private:
     bool loadJson(const QJsonObject& json);
     QJsonObject toJson() const;
-    
+
     QString m_version;
     QDateTime m_created;
     QDateTime m_modified;
@@ -94,6 +101,9 @@ private:
     QList<CwMemory> m_cwMemories;
     QList<SsbMemory> m_ssbMemories;
     bool m_useContestMemories = false;
+    int  m_contactPoints = 0;
+    int  m_finalScore    = 0;
+    bool m_scoreSet      = false;
     QString m_lastError;
 };
 

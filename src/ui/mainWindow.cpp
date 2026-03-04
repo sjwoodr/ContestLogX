@@ -72,6 +72,7 @@
 #include <QMessageBox>
 #include <QDialog>
 #include <QDialogButtonBox>
+#include <QFormLayout>
 #include <QInputDialog>
 #include <QRegularExpressionValidator>
 #include <QFileDialog>
@@ -844,7 +845,10 @@ void MainWindow::setupMenus()
     
     QAction *setupAction = contestMenu->addAction("Contest &Setup...");
     connect(setupAction, &QAction::triggered, this, &MainWindow::onContestSetup);
-    
+
+    QAction *operatorCallAction = contestMenu->addAction("&Station info...");
+    connect(operatorCallAction, &QAction::triggered, this, &MainWindow::onOperatorCallDialog);
+
     contestMenu->addSeparator();
     
     QAction *scpAction = contestMenu->addAction("&Super Check Partial...");
@@ -1002,6 +1006,95 @@ void MainWindow::applyRestrictedModeFromUserPrompts()
                 DebugLogger::instance().log("MainWindow",
                     QString("Applied restricted mode '%1' from userPrompt '%2'").arg(modeValue, id));
             }
+        }
+    }
+}
+
+void MainWindow::promptForMissingUserPrompts()
+{
+    if (!m_contestEngine || m_contestDefinition.isEmpty()) return;
+    if (!m_contestDefinition.contains("userPrompts")) return;
+
+    QJsonArray prompts = m_contestDefinition["userPrompts"].toArray();
+    bool anyPrompted = false;
+
+    for (const QJsonValue& promptVal : prompts) {
+        QJsonObject p = promptVal.toObject();
+        QString promptId = p["id"].toString();
+        bool required    = p["required"].toBool(false);
+
+        // Skip if already answered
+        if (!m_contestEngine->getUserPromptValue(promptId).isEmpty()) continue;
+        // Skip non-required prompts that are missing — don't bother the user
+        if (!required) continue;
+
+        anyPrompted = true;
+        QString question = p["question"].toString();
+        QString type     = p["type"].toString();
+
+        if (type == "select") {
+            QStringList labels, values;
+            for (const QJsonValue& optVal : p["options"].toArray()) {
+                QJsonObject opt = optVal.toObject();
+                labels.append(opt["label"].toString());
+                values.append(opt["value"].toString());
+            }
+            bool ok = false;
+            QString selectedLabel = QInputDialog::getItem(this,
+                tr("Contest Information"), question, labels, 0, false, &ok);
+            if (!ok) return;  // User cancelled — leave rest of prompts unset
+            int idx = labels.indexOf(selectedLabel);
+            if (idx >= 0 && idx < values.size())
+                m_contestEngine->setUserPromptValue(promptId, values[idx]);
+
+        } else if (type == "text") {
+            bool forceUppercase = p.value("forceUppercase").toBool(true);
+            QString value;
+            while (value.isEmpty()) {
+                QDialog dlg(this);
+                dlg.setWindowTitle(tr("Contest Information"));
+                QVBoxLayout layout(&dlg);
+                QLabel label(question, &dlg);
+                QLineEdit edit(&dlg);
+                QDialogButtonBox buttons(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dlg);
+                if (auto *btn = buttons.button(QDialogButtonBox::Ok))
+                    btn->setIcon(style()->standardIcon(QStyle::SP_DialogOkButton));
+                if (auto *btn = buttons.button(QDialogButtonBox::Cancel))
+                    btn->setIcon(style()->standardIcon(QStyle::SP_DialogCancelButton));
+                layout.addWidget(&label);
+                layout.addWidget(&edit);
+                layout.addWidget(&buttons);
+                connect(&buttons, &QDialogButtonBox::accepted, &dlg, &QDialog::accept);
+                connect(&buttons, &QDialogButtonBox::rejected, &dlg, &QDialog::reject);
+                if (forceUppercase) {
+                    connect(&edit, &QLineEdit::textChanged, &edit, [&edit](const QString& text) {
+                        QString upper = text.toUpper();
+                        if (upper != text) {
+                            int pos = edit.cursorPosition();
+                            edit.setText(upper);
+                            edit.setCursorPosition(pos);
+                        }
+                    });
+                }
+                if (dlg.exec() != QDialog::Accepted) return;
+                value = edit.text().trimmed();
+                if (value.isEmpty())
+                    QMessageBox::warning(this, tr("Input Required"), question + tr(" cannot be empty."));
+            }
+            m_contestEngine->setUserPromptValue(promptId, forceUppercase ? value.toUpper() : value);
+        }
+
+        DebugLogger::instance().log("MainWindow",
+            QString("promptForMissingUserPrompts: '%1' = '%2'")
+                .arg(promptId, m_contestEngine->getUserPromptValue(promptId)));
+    }
+
+    if (anyPrompted) {
+        applyRestrictedModeFromUserPrompts();
+        // Refresh multiplier widget — effective list may depend on prompts (e.g. stationType)
+        if (m_multiplierWidget && m_contestDefinition.contains("ui")) {
+            if (m_contestDefinition["ui"].toObject()["showMultiplierPanel"].toBool(false))
+                m_multiplierWidget->setMultiplierList(m_contestEngine->getEffectiveNamedMultiplierList());
         }
     }
 }
@@ -1796,6 +1889,9 @@ void MainWindow::onOpenLog()
                         applyRestrictedModeFromUserPrompts();
                     }
 
+                    // Prompt for any required userPrompts not present in the loaded file
+                    promptForMissingUserPrompts();
+
                     // If we loaded a mode from the CLX file, restrict to that mode
                     if (!loadedMode.isEmpty()) {
                         m_contestEngine->setRestrictedMode(loadedMode);
@@ -2150,6 +2246,9 @@ void MainWindow::loadLogFile(const QString& filename)
                         }
                     }
 
+                    // Prompt for any required userPrompts not present in the loaded file
+                    promptForMissingUserPrompts();
+
                     // If we loaded a mode from the CLX file, restrict to that mode
                     if (!loadedMode.isEmpty()) {
                         m_contestEngine->setRestrictedMode(loadedMode);
@@ -2301,6 +2400,12 @@ void MainWindow::onSaveLog()
         fileHandler.setUseContestMemories(m_useContestMemories);
         fileHandler.setContestCwMemories(m_contestCwMemories);
         fileHandler.setContestSsbMemories(m_contestSsbMemories);
+
+        // Pass the computed score so the statistics block is accurate
+        if (m_contestEngine) {
+            const ContestEngine::ContestScore& cs = m_contestEngine->getRunningScore();
+            fileHandler.setComputedScore(cs.contactScore, cs.contestScore);
+        }
 
         success = fileHandler.saveClxWithContest(m_currentFile, m_qsoModel->getQsos(), m_contestFile, m_contestDefinition, stationClass, stationClassExchangeName, stationClassExchangeId, userPromptValues, *m_sessionStationInfo);
     } else {
@@ -2876,20 +2981,20 @@ void MainWindow::onLogQso()
     }
     
     // Get exchange sent from contest class and station settings
-    QString stationQth = Settings::instance().getState();
-    
+    QString stationQth = m_sessionStationInfo->state();
+
     // Try to get split NAME and EXCH from contest engine
     QString sentName = m_contestEngine->getSentExchangeName();
     QString sentExch = m_contestEngine->getSentExchangeId();
-    
-    // If name is not set from contest engine, try getting it from Settings
+
+    // If name is not set from contest engine, fall back to session station info
     if (sentName.isEmpty()) {
-        sentName = Settings::instance().getOperatorName();
+        sentName = m_sessionStationInfo->operatorName();
     }
-    
-    // If exchange is not set from contest engine, try getting it from Settings
+
+    // If exchange is not set from contest engine, fall back to session station info
     if (sentExch.isEmpty()) {
-        sentExch = Settings::instance().getState();
+        sentExch = m_sessionStationInfo->state();
     }
     
     // If we have split fields, set them individually
@@ -3687,6 +3792,68 @@ void MainWindow::onToggleCallsignLookupDebug(bool checked)
     m_statusLabel->setText(checked ? "Callsign Lookup debug logging enabled" : "Callsign Lookup debug logging disabled");
 }
 
+void MainWindow::onOperatorCallDialog()
+{
+    QDialog dlg(this);
+    dlg.setWindowTitle(tr("Station Info"));
+    dlg.setMinimumWidth(320);
+
+    auto *form = new QFormLayout(&dlg);
+    form->setRowWrapPolicy(QFormLayout::DontWrapRows);
+    form->setFieldGrowthPolicy(QFormLayout::ExpandingFieldsGrow);
+
+    auto *callEdit  = new QLineEdit(m_sessionStationInfo->callsign(), &dlg);
+    auto *nameEdit  = new QLineEdit(m_sessionStationInfo->operatorName(), &dlg);
+    auto *gridEdit  = new QLineEdit(m_sessionStationInfo->grid(), &dlg);
+    auto *stateEdit = new QLineEdit(m_sessionStationInfo->state(), &dlg);
+
+    // Enforce uppercase on fields that need it
+    auto forceUpper = [](QLineEdit *le) {
+        QObject::connect(le, &QLineEdit::textChanged, le, [le](const QString& text) {
+            QString upper = text.toUpper();
+            if (upper != text) {
+                int pos = le->cursorPosition();
+                le->setText(upper);
+                le->setCursorPosition(pos);
+            }
+        });
+    };
+    forceUpper(callEdit);
+    forceUpper(gridEdit);
+    forceUpper(stateEdit);
+
+    form->addRow(tr("Callsign:"),       callEdit);
+    form->addRow(tr("Operator name:"),  nameEdit);
+    form->addRow(tr("Grid square:"),    gridEdit);
+    form->addRow(tr("State/Province:"), stateEdit);
+
+    auto *buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dlg);
+    if (auto *btn = buttons->button(QDialogButtonBox::Ok))
+        btn->setIcon(style()->standardIcon(QStyle::SP_DialogOkButton));
+    if (auto *btn = buttons->button(QDialogButtonBox::Cancel))
+        btn->setIcon(style()->standardIcon(QStyle::SP_DialogCancelButton));
+    connect(buttons, &QDialogButtonBox::accepted, &dlg, &QDialog::accept);
+    connect(buttons, &QDialogButtonBox::rejected, &dlg, &QDialog::reject);
+    form->addRow(buttons);
+
+    if (dlg.exec() != QDialog::Accepted) return;
+
+    m_sessionStationInfo->setCallsign(callEdit->text().trimmed().toUpper());
+    m_sessionStationInfo->setOperatorName(nameEdit->text().trimmed());
+    m_sessionStationInfo->setGrid(gridEdit->text().trimmed().toUpper());
+    m_sessionStationInfo->setState(stateEdit->text().trimmed().toUpper());
+
+    DebugLogger::instance().log("MainWindow",
+        QString("Station info updated: call=%1 name=%2 grid=%3 state=%4")
+            .arg(m_sessionStationInfo->callsign())
+            .arg(m_sessionStationInfo->operatorName())
+            .arg(m_sessionStationInfo->grid())
+            .arg(m_sessionStationInfo->state()));
+
+    // Mark the log as modified so the updated info is persisted on next save
+    setWindowModified(true);
+}
+
 void MainWindow::onContestSetup()
 {
     DebugLogger::instance().log("MainWindow", 
@@ -3917,7 +4084,7 @@ void MainWindow::onAbout()
     msgBox.setTextFormat(Qt::RichText);
     msgBox.setTextInteractionFlags(Qt::TextBrowserInteraction);
     msgBox.setText(
-        "<b>ContestLogX - Version 0.6.1 (Beta)</b><br><br>"
+        "<b>ContestLogX - Version 0.6.2 (Beta)</b><br><br>"
         "Cross-platform amateur radio contest logging software<br><br>"
         "Copyright &copy; 2025-2026, by Steve Woodruff, N9OH<br><br>"
         "<a href=\"https://contestlogx.com\">https://contestlogx.com</a><br><br>"

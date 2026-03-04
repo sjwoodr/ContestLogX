@@ -97,6 +97,7 @@ private slots:
     void onEditCWMemories();
     void onRecalculateScore();
     void onContestSetup();
+    void onOperatorCallDialog();
     void onExportCabrillo();
     void onCreateSummarySheet();
     void onAbout();
@@ -152,6 +153,7 @@ private:
     void createConnections();
     void loadQsosIntoModel(const QList<QsoRecord>& qsos, QProgressDialog* progressDialog);
     void applyRestrictedModeFromUserPrompts();
+    void promptForMissingUserPrompts();
     void loadCWMemories();
     void loadSsbMemories();
     void flashDupeWarning();

@@ -1,0 +1,71 @@
+{
+    "contest": {
+        "categories": {
+            "userPrompt_myExchange": "NC",
+            "userPrompt_operatingClass": "OUT_SOA",
+            "userPrompt_powerCategory": "LOW",
+            "userPrompt_stationType": "WVE"
+        },
+        "contest_file": "fqp.json",
+        "mode": "",
+        "name": "Florida QSO Party",
+        "type": "Florida QSO Party",
+        "version": "1.0.0",
+        "year": 2026
+    },
+    "created": "2026-03-03T19:21:44",
+    "exchange_fields": [
+    ],
+    "format": "ContestLogX",
+    "format_version": "1.0",
+    "modified": "2026-03-03T19:21:44",
+    "qsos": [
+        {
+            "band": "20m",
+            "callsign": "N9OH",
+            "duplicate": false,
+            "dxcc_count": 0,
+            "exchange_fields": {
+                "CALL": "N9OH",
+                "EXCHr": "CLR",
+                "EXCHs": "NC",
+                "NAMEs": "Steve Woodruff",
+                "RSTr": "59",
+                "RSTs": "59",
+                "SNs": "1"
+            },
+            "frequency": 14250,
+            "grid_square_count": 0,
+            "id": 1,
+            "mode": "USB",
+            "multiplier_count": 1,
+            "points": 1,
+            "rst_received": "59",
+            "rst_sent": "59",
+            "serial": 1,
+            "station_info": {
+                "COUNTRY": "United States",
+                "NAME": "Steven J Woodruff",
+                "QTH": "Naples",
+                "STATE": "FL"
+            },
+            "timestamp": "2026-03-04T00:06:42Z"
+        }
+    ],
+    "station": {
+        "callsign": "W4WOD",
+        "equipment": {
+            "power": 100
+        },
+        "location": {
+            "grid": "EM82",
+            "state": "NC"
+        },
+        "operator": "Sam Woodruff"
+    },
+    "statistics": {
+        "score": 2,
+        "total_points": 1,
+        "total_qsos": 1
+    }
+}

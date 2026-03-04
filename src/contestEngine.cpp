@@ -2248,21 +2248,22 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
                 }
             } else if (multType == "multsPerBand") {
                 QString key = buildMultTrackingKey(category + ":" + mult, band, modeCategory);
+                QString oldKey = buildMultTrackingKey(mult, band, modeCategory);
                 if (!multPerBand.contains(key)) {
                     isNew = true;
                     multPerBand.insert(key);
                 }
                 if (category == "named" || category == "namedMults") {
-                    if (!namedMultsPerBand.contains(key)) namedMultsPerBand.insert(key);
-                    m_workedNamedMultsPerBand.insert(key);
+                    if (!namedMultsPerBand.contains(oldKey)) namedMultsPerBand.insert(oldKey);
+                    m_workedNamedMultsPerBand.insert(oldKey);
                 } else if (category == "dxcc") {
-                    if (!dxccMultsPerBand.contains(key)) dxccMultsPerBand.insert(key);
+                    if (!dxccMultsPerBand.contains(oldKey)) dxccMultsPerBand.insert(oldKey);
                 } else if (category == "ituRegions") {
-                    if (!ituRegionMultsPerBand.contains(key)) ituRegionMultsPerBand.insert(key);
+                    if (!ituRegionMultsPerBand.contains(oldKey)) ituRegionMultsPerBand.insert(oldKey);
                 } else if (category == "namedCallPrefixes") {
-                    if (!namedCallPrefixesPerBand.contains(key)) namedCallPrefixesPerBand.insert(key);
+                    if (!namedCallPrefixesPerBand.contains(oldKey)) namedCallPrefixesPerBand.insert(oldKey);
                 } else if (category == "gridSquares") {
-                    if (!gridSquaresPerBand.contains(key)) gridSquaresPerBand.insert(key);
+                    if (!gridSquaresPerBand.contains(oldKey)) gridSquaresPerBand.insert(oldKey);
                 }
                 if (verbose) {
                     DebugLogger::instance().log("ContestEngine",
@@ -2271,6 +2272,7 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
             } else if (multType == "multsPerMode") {
                 QString catMult = category + ":" + mult;
                 QString key = buildMultTrackingKey(catMult, band, modeCategory);
+                QString oldKey = buildMultTrackingKey(mult, band, modeCategory);
                 if (!multPerMode.contains(key)) {
                     isNew = true;
                     multPerMode.insert(key);
@@ -2284,18 +2286,18 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
                         digitalMultipliers.insert(catMult);
                     }
                 }
-                
+
                 if (category == "named" || category == "namedMults") {
-                    if (!namedMultsPerMode.contains(key)) namedMultsPerMode.insert(key);
-                    m_workedNamedMultsPerMode.insert(key);
+                    if (!namedMultsPerMode.contains(oldKey)) namedMultsPerMode.insert(oldKey);
+                    m_workedNamedMultsPerMode.insert(oldKey);
                 } else if (category == "dxcc") {
-                    if (!dxccMultsPerMode.contains(key)) dxccMultsPerMode.insert(key);
+                    if (!dxccMultsPerMode.contains(oldKey)) dxccMultsPerMode.insert(oldKey);
                 } else if (category == "ituRegions") {
-                    if (!ituRegionMultsPerMode.contains(key)) ituRegionMultsPerMode.insert(key);
+                    if (!ituRegionMultsPerMode.contains(oldKey)) ituRegionMultsPerMode.insert(oldKey);
                 } else if (category == "namedCallPrefixes") {
-                    if (!namedCallPrefixesPerMode.contains(key)) namedCallPrefixesPerMode.insert(key);
+                    if (!namedCallPrefixesPerMode.contains(oldKey)) namedCallPrefixesPerMode.insert(oldKey);
                 } else if (category == "gridSquares") {
-                    if (!gridSquaresPerMode.contains(key)) gridSquaresPerMode.insert(key);
+                    if (!gridSquaresPerMode.contains(oldKey)) gridSquaresPerMode.insert(oldKey);
                 }
                 if (verbose) {
                     DebugLogger::instance().log("ContestEngine",
@@ -2303,21 +2305,22 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
                 }
             } else if (multType == "multsPerBandAndMode") {
                 QString key = buildMultTrackingKey(category + ":" + mult, band, modeCategory);
+                QString oldKey = buildMultTrackingKey(mult, band, modeCategory);
                 if (!multPerBandAndMode.contains(key)) {
                     isNew = true;
                     multPerBandAndMode.insert(key);
                 }
                 if (category == "named" || category == "namedMults") {
-                    if (!namedMultsPerBandAndMode.contains(key)) namedMultsPerBandAndMode.insert(key);
-                    m_workedNamedMultsPerBandAndMode.insert(key);
+                    if (!namedMultsPerBandAndMode.contains(oldKey)) namedMultsPerBandAndMode.insert(oldKey);
+                    m_workedNamedMultsPerBandAndMode.insert(oldKey);
                 } else if (category == "dxcc") {
-                    if (!dxccMultsPerBandAndMode.contains(key)) dxccMultsPerBandAndMode.insert(key);
+                    if (!dxccMultsPerBandAndMode.contains(oldKey)) dxccMultsPerBandAndMode.insert(oldKey);
                 } else if (category == "ituRegions") {
-                    if (!ituRegionMultsPerBandAndMode.contains(key)) ituRegionMultsPerBandAndMode.insert(key);
+                    if (!ituRegionMultsPerBandAndMode.contains(oldKey)) ituRegionMultsPerBandAndMode.insert(oldKey);
                 } else if (category == "namedCallPrefixes") {
-                    if (!namedCallPrefixesPerBandAndMode.contains(key)) namedCallPrefixesPerBandAndMode.insert(key);
+                    if (!namedCallPrefixesPerBandAndMode.contains(oldKey)) namedCallPrefixesPerBandAndMode.insert(oldKey);
                 } else if (category == "gridSquares") {
-                    if (!gridSquaresPerBandAndMode.contains(key)) gridSquaresPerBandAndMode.insert(key);
+                    if (!gridSquaresPerBandAndMode.contains(oldKey)) gridSquaresPerBandAndMode.insert(oldKey);
                 }
                 if (verbose) {
                     DebugLogger::instance().log("ContestEngine",

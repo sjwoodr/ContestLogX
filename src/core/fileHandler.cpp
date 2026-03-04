@@ -350,6 +350,7 @@ bool FileHandler::saveClxWithContest(const QString& filename, const QList<QsoRec
     }
 
     for (const QsoRecord& qso : qsos) clxFile.addQso(qso);
+    if (m_scoreSet) clxFile.setComputedScore(m_contactScore, m_finalScore);
     if (!clxFile.save(filename)) { m_lastError = clxFile.lastError(); return false; }
     return true;
 }
