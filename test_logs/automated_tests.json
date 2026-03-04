@@ -94,6 +94,11 @@
       "name": "FQP Florida In-State (QRP, multsPerMode, Named+DXCC)",
       "log_file": "test_fqp_florida.clx",
       "expected_score": 107712
+    },
+    {
+      "name": "FQP W/VE Out-of-State NC (LOW, multsPerMode, 147 QSOs w/dupes+OOB)",
+      "log_file": "test_fqp_wve_low.clx",
+      "expected_score": 33496
     }
   ]
 }
