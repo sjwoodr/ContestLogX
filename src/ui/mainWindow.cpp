@@ -344,6 +344,9 @@ void MainWindow::closeEvent(QCloseEvent *event)
         } else if (reply == QMessageBox::Cancel) {
             event->ignore();
             return;
+        } else {
+            // Discard — remove crash backup so it doesn't reappear
+            removeBackup();
         }
     }
 
@@ -3209,7 +3212,7 @@ void MainWindow::onLogQso()
 
     // Initialize backup on first logged QSO of the session; write on every QSO
     if (m_backupPath.isEmpty() && m_backupEnabled)
-        initializeBackup(qso);
+        initializeBackup();
     writeBackup();
 
     // Remove the spot from DX cluster if it's there
@@ -4316,7 +4319,9 @@ bool MainWindow::maybeSave()
     } else if (ret == QMessageBox::Cancel) {
         return false;
     }
-    
+
+    // Discard — remove crash backup so it doesn't reappear next session
+    removeBackup();
     return true;
 }
 
@@ -5748,6 +5753,8 @@ void MainWindow::onEditQso()
 
         // Recalculate score
         onRecalculateScore();
+        if (m_backupPath.isEmpty() && m_backupEnabled)
+            initializeBackup();
         writeBackup();
     }
 }
@@ -5775,6 +5782,8 @@ void MainWindow::onDeleteQso()
         m_qsoModel->removeQso(m_contextMenuRow);
         m_isModified = true;
         onRecalculateScore();
+        if (m_backupPath.isEmpty() && m_backupEnabled)
+            initializeBackup();
         writeBackup();
     }
 }
@@ -5813,14 +5822,14 @@ void MainWindow::resetBackupState()
     m_backupEnabled = true;
 }
 
-void MainWindow::initializeBackup(const QsoRecord& firstQso)
+void MainWindow::initializeBackup()
 {
     if (!m_contestEngine || m_contestDefinition.isEmpty())
         return;
 
     QString callsign    = sanitizeForFilename(getSessionCallsign());
     QString contestName = sanitizeForFilename(m_contestEngine->getContestName());
-    QString timestamp   = firstQso.getDateTime().toString("yyyyMMdd_HHmmss");
+    QString timestamp   = QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss");
 
     if (callsign.isEmpty())    callsign    = "UNKNOWN";
     if (contestName.isEmpty()) contestName = "CONTEST";
@@ -5971,14 +5980,32 @@ void MainWindow::checkForCrashBackups()
     fh.loadClxWithContest(selectedPath, restoredQsos, contestFile, stationClass, contestVersion,
                           stationClassExchangeName, stationClassExchangeId, userPromptValues);
 
+    // Restore station class and exchange data into the contest engine
+    if (m_contestEngine) {
+        if (!stationClass.isEmpty())
+            m_contestEngine->setStationClass(stationClass);
+        if (!stationClassExchangeName.isEmpty())
+            m_contestEngine->setStationClassExchangeName(stationClassExchangeName);
+        if (!stationClassExchangeId.isEmpty())
+            m_contestEngine->setStationClassExchangeId(stationClassExchangeId);
+        if (!userPromptValues.isEmpty()) {
+            for (auto it = userPromptValues.constBegin(); it != userPromptValues.constEnd(); ++it)
+                m_contestEngine->setUserPromptValue(it.key(), it.value());
+            applyRestrictedModeFromUserPrompts();
+        }
+    }
+
+    // Restore restricted mode from the CLX metadata
+    ClxFile clxRestore;
+    if (clxRestore.load(selectedPath)) {
+        QString loadedMode = clxRestore.contest().mode();
+        if (!loadedMode.isEmpty() && m_contestEngine)
+            m_contestEngine->setRestrictedMode(loadedMode);
+    }
+
     m_qsoModel->clear();
     for (const QsoRecord& q : restoredQsos)
         m_qsoModel->addQso(q);
-
-    if (!userPromptValues.isEmpty() && m_contestEngine) {
-        for (auto it = userPromptValues.constBegin(); it != userPromptValues.constEnd(); ++it)
-            m_contestEngine->setUserPromptValue(it.key(), it.value());
-    }
 
     m_isModified = true;
     updateWindowTitle();

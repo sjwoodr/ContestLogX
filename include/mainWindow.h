@@ -183,7 +183,7 @@ private:
     void generateSummaryToDebugLog();
 
     // Crash-recovery backup
-    void initializeBackup(const QsoRecord& firstQso);
+    void initializeBackup();
     void writeBackup();
     void removeBackup();
     void checkForCrashBackups();
