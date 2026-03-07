@@ -3207,8 +3207,8 @@ void MainWindow::onLogQso()
     // Add the QSO first so it's included in score calculations
     m_qsoModel->addQso(qso);
 
-    // Initialize backup on first QSO; write on every QSO
-    if (m_qsoModel->count() == 1)
+    // Initialize backup on first logged QSO of the session; write on every QSO
+    if (m_backupPath.isEmpty() && m_backupEnabled)
         initializeBackup(qso);
     writeBackup();
 
