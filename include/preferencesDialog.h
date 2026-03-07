@@ -32,6 +32,7 @@
 #include <QSpinBox>
 #include <QFont>
 #include <QList>
+#include <QListWidget>
 
 class QrzcqApi;
 class QrzApi;
@@ -62,6 +63,9 @@ private slots:
     void onTestQrzConnection();
     void onQrzSessionObtained(const QString& token);
     void onQrzSessionError(const QString& error);
+    void onAddDxCluster();
+    void onEditDxCluster();
+    void onDeleteDxCluster();
 
 private:
     void setupUi();
@@ -97,6 +101,12 @@ private:
     bool m_lookupChanged;
     QrzcqApi *m_qrzcqApi;
     QrzApi   *m_qrzApi;
+
+    // DX Cluster tab
+    QListWidget *m_dxClusterList;
+    QPushButton *m_dxClusterAddButton;
+    QPushButton *m_dxClusterEditButton;
+    QPushButton *m_dxClusterDeleteButton;
 
     // Fonts tab
     struct FontRow {

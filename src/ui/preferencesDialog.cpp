@@ -33,6 +33,8 @@
 #include <QLabel>
 #include <QMessageBox>
 #include <QApplication>
+#include <QInputDialog>
+#include <QListWidget>
 
 PreferencesDialog::PreferencesDialog(QWidget *parent)
     : QDialog(parent)
@@ -189,6 +191,34 @@ void PreferencesDialog::setupUi()
 
     tabWidget->addTab(lookupTab, "Callsign Lookup");
 
+    // DX Cluster tab
+    QWidget *dxClusterTab = new QWidget(this);
+    QVBoxLayout *dxClusterLayout = new QVBoxLayout(dxClusterTab);
+
+    QLabel *dxClusterLabel = new QLabel("DX Cluster servers (host:port):", this);
+    dxClusterLayout->addWidget(dxClusterLabel);
+
+    m_dxClusterList = new QListWidget(this);
+    for (const QString& srv : settings.getDxClusterServers())
+        m_dxClusterList->addItem(srv);
+    dxClusterLayout->addWidget(m_dxClusterList);
+
+    QHBoxLayout *dxClusterButtonLayout = new QHBoxLayout();
+    m_dxClusterAddButton = new QPushButton("Add", this);
+    m_dxClusterEditButton = new QPushButton("Edit", this);
+    m_dxClusterDeleteButton = new QPushButton("Delete", this);
+    dxClusterButtonLayout->addWidget(m_dxClusterAddButton);
+    dxClusterButtonLayout->addWidget(m_dxClusterEditButton);
+    dxClusterButtonLayout->addWidget(m_dxClusterDeleteButton);
+    dxClusterButtonLayout->addStretch();
+    dxClusterLayout->addLayout(dxClusterButtonLayout);
+
+    connect(m_dxClusterAddButton,    &QPushButton::clicked, this, &PreferencesDialog::onAddDxCluster);
+    connect(m_dxClusterEditButton,   &QPushButton::clicked, this, &PreferencesDialog::onEditDxCluster);
+    connect(m_dxClusterDeleteButton, &QPushButton::clicked, this, &PreferencesDialog::onDeleteDxCluster);
+
+    tabWidget->addTab(dxClusterTab, "DX Cluster");
+
     // Fonts tab
     QWidget *fontsTab = new QWidget(this);
     QVBoxLayout *fontsVLayout = new QVBoxLayout(fontsTab);
@@ -300,6 +330,14 @@ void PreferencesDialog::onAccept()
             settings.setPanelFont(row.panelKey, font);
             m_fontsChanged = true;
         }
+    }
+
+    // DX Cluster servers
+    {
+        QStringList servers;
+        for (int i = 0; i < m_dxClusterList->count(); ++i)
+            servers.append(m_dxClusterList->item(i)->text());
+        settings.setDxClusterServers(servers);
     }
 
     // Callsign Lookup
@@ -434,4 +472,39 @@ void PreferencesDialog::onQrzSessionError(const QString& error)
     m_qrzTestButton->setText("Test Connection");
     QMessageBox::critical(this, "Connection Failed",
                           QString("Failed to connect to QRZ.com:\n%1").arg(error));
+}
+
+void PreferencesDialog::onAddDxCluster()
+{
+    bool ok;
+    QString server = QInputDialog::getText(this, "Add DX Cluster",
+                                           "Server (host:port):", QLineEdit::Normal,
+                                           QString(), &ok);
+    server = server.trimmed();
+    if (!ok || server.isEmpty())
+        return;
+    m_dxClusterList->addItem(server);
+}
+
+void PreferencesDialog::onEditDxCluster()
+{
+    QListWidgetItem *item = m_dxClusterList->currentItem();
+    if (!item)
+        return;
+    bool ok;
+    QString server = QInputDialog::getText(this, "Edit DX Cluster",
+                                           "Server (host:port):", QLineEdit::Normal,
+                                           item->text(), &ok);
+    server = server.trimmed();
+    if (!ok || server.isEmpty())
+        return;
+    item->setText(server);
+}
+
+void PreferencesDialog::onDeleteDxCluster()
+{
+    QListWidgetItem *item = m_dxClusterList->currentItem();
+    if (!item)
+        return;
+    delete m_dxClusterList->takeItem(m_dxClusterList->row(item));
 }

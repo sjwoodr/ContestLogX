@@ -479,6 +479,43 @@ void Settings::setDxClusterServer(const QString& server)
     save();
 }
 
+QStringList Settings::getDxClusterServers() const
+{
+    QJsonObject dxCluster = m_settings["dxCluster"].toObject();
+    if (dxCluster.contains("servers")) {
+        QStringList servers;
+        for (const QJsonValue& v : dxCluster["servers"].toArray())
+            servers.append(v.toString());
+        return servers;
+    }
+
+    // Key not yet present — seed from default_dxclusters.json
+    QString defaultPath = getDataPath() + "/default_dxclusters.json";
+    QFile f(defaultPath);
+    if (f.open(QIODevice::ReadOnly)) {
+        QJsonDocument doc = QJsonDocument::fromJson(f.readAll());
+        f.close();
+        if (doc.isObject()) {
+            QStringList servers;
+            for (const QJsonValue& v : doc.object()["servers"].toArray())
+                servers.append(v.toString());
+            return servers;
+        }
+    }
+    return {};
+}
+
+void Settings::setDxClusterServers(const QStringList& servers)
+{
+    QJsonArray arr;
+    for (const QString& s : servers)
+        arr.append(s);
+    QJsonObject dxCluster = m_settings["dxCluster"].toObject();
+    dxCluster["servers"] = arr;
+    m_settings["dxCluster"] = dxCluster;
+    save();
+}
+
 QString Settings::getDxClusterCallsign() const
 {
     return m_settings["dxCluster"].toObject()["callsign"].toString("");

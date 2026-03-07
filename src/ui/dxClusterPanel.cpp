@@ -87,9 +87,10 @@ void DxClusterPanel::setupUi()
     QLabel *titleLabel = new QLabel("<b>DX Cluster</b>");
     headerLayout->addWidget(titleLabel);
     
-    m_clusterEdit = new QLineEdit(this);
-    m_clusterEdit->setPlaceholderText("server:port");
-    m_clusterEdit->setMaximumWidth(200);
+    m_clusterEdit = new QComboBox(this);
+    m_clusterEdit->setEditable(true);
+    m_clusterEdit->setMinimumWidth(200);
+    m_clusterEdit->setMaximumWidth(260);
     headerLayout->addWidget(m_clusterEdit);
     
     m_connectButton = new QPushButton("Connect", this);
@@ -176,7 +177,7 @@ void DxClusterPanel::onConnect()
         return;
     }
     
-    QString cluster = m_clusterEdit->text().trimmed();
+    QString cluster = m_clusterEdit->currentText().trimmed();
     if (cluster.isEmpty()) {
         QMessageBox::warning(this, "DX Cluster", "Please enter a cluster address (host:port)");
         return;
@@ -473,19 +474,29 @@ void DxClusterPanel::sendLoginAndCommands()
 void DxClusterPanel::loadSettings()
 {
     Settings& settings = Settings::instance();
-    
-    QString server = settings.getDxClusterServer();
-    if (!server.isEmpty()) {
-        m_clusterEdit->setText(server);
+
+    m_clusterEdit->clear();
+    const QStringList servers = settings.getDxClusterServers();
+    for (const QString& srv : servers)
+        m_clusterEdit->addItem(srv);
+
+    // Restore last-used server as current selection
+    QString lastServer = settings.getDxClusterServer();
+    if (!lastServer.isEmpty()) {
+        int idx = m_clusterEdit->findText(lastServer);
+        if (idx >= 0)
+            m_clusterEdit->setCurrentIndex(idx);
+        else
+            m_clusterEdit->setCurrentText(lastServer);
     }
-    
+
     m_callsign = settings.getDxClusterCallsign();
 }
 
 void DxClusterPanel::saveSettings()
 {
     Settings& settings = Settings::instance();
-    settings.setDxClusterServer(m_clusterEdit->text());
+    settings.setDxClusterServer(m_clusterEdit->currentText());
     settings.setDxClusterCallsign(m_callsign);
 }
 

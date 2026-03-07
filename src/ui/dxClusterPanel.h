@@ -74,7 +74,7 @@ private:
     
     QTableWidget *m_spotTable;
     QTextEdit *m_consoleText;
-    QLineEdit *m_clusterEdit;
+    QComboBox *m_clusterEdit;
     QLineEdit *m_commandEdit;
     QPushButton *m_connectButton;
     QComboBox *m_viewCombo;

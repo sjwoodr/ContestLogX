@@ -147,7 +147,10 @@ public:
     // DX Cluster settings
     QString getDxClusterServer() const;
     void setDxClusterServer(const QString& server);
-    
+
+    QStringList getDxClusterServers() const;
+    void setDxClusterServers(const QStringList& servers);
+
     QString getDxClusterCallsign() const;
     void setDxClusterCallsign(const QString& callsign);
     
