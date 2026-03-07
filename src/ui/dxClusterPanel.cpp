@@ -91,6 +91,8 @@ void DxClusterPanel::setupUi()
     m_clusterEdit->setEditable(true);
     m_clusterEdit->setMinimumWidth(200);
     m_clusterEdit->setMaximumWidth(260);
+    connect(m_clusterEdit, &QComboBox::currentTextChanged,
+            this, &DxClusterPanel::onClusterSelectionChanged);
     headerLayout->addWidget(m_clusterEdit);
     
     m_connectButton = new QPushButton("Connect", this);
@@ -193,6 +195,7 @@ void DxClusterPanel::onConnect()
     int port = parts[1].toInt();
     
     DebugLogger::instance().log("DxCluster", QString("Connecting to DX Cluster: %1:%2").arg(host).arg(port));
+    m_connectedServer = cluster;
     m_socket->connectToHost(host, port);
     m_connectButton->setEnabled(false);
     m_connectButton->setText("Connecting...");
@@ -205,6 +208,7 @@ void DxClusterPanel::onDisconnect()
     }
     m_isConnected = false;
     m_loginSent = false;
+    m_connectedServer.clear();
     m_propagationTimer->stop();
     m_connectButton->setText("Connect");
     m_connectButton->setEnabled(true);
@@ -216,6 +220,7 @@ void DxClusterPanel::onSocketConnected()
     m_isConnected = true;
     m_loginSent = false;
     m_loginBuffer.clear();
+    m_spotTable->setRowCount(0);
     m_connectButton->setText("Disconnect");
     m_connectButton->setEnabled(true);
     
@@ -469,6 +474,14 @@ void DxClusterPanel::sendLoginAndCommands()
             m_propagationTimer->start();
         }
     });
+}
+
+void DxClusterPanel::onClusterSelectionChanged(const QString& text)
+{
+    if (m_isConnected && text.trimmed() != m_connectedServer) {
+        DebugLogger::instance().log("DxCluster", "Server selection changed while connected — disconnecting");
+        onDisconnect();
+    }
 }
 
 void DxClusterPanel::loadSettings()

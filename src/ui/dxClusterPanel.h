@@ -56,6 +56,7 @@ private slots:
     void onSpotClicked(int row, int column);
     void onConnect();
     void onDisconnect();
+    void onClusterSelectionChanged(const QString& text);
     void onSocketConnected();
     void onSocketDisconnected();
     void onSocketReadyRead();
@@ -86,6 +87,7 @@ private:
     bool m_loginSent;
     QString m_loginBuffer;
     QString m_callsign;
+    QString m_connectedServer;
 };
 
 #endif // DXCLUSTERPANEL_H
