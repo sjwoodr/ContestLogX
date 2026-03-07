@@ -3874,7 +3874,8 @@ void MainWindow::onOperatorCallDialog()
             .arg(m_sessionStationInfo->state()));
 
     // Mark the log as modified so the updated info is persisted on next save
-    setWindowModified(true);
+    m_isModified = true;
+    updateWindowTitle();
 }
 
 void MainWindow::onContestSetup()
