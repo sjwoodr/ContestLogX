@@ -10,6 +10,7 @@ import subprocess
 import sys
 import os
 import re
+import time
 from pathlib import Path
 
 def load_test_config(config_file):
@@ -200,7 +201,8 @@ def main():
     passed = 0
     failed = 0
     errors = 0
-    
+    suite_start = time.monotonic()
+
     print("=" * 70)
     print("ContestLogX Automated Contest Log Tests")
     print("=" * 70)
@@ -229,7 +231,9 @@ def main():
         print(f"  Expected score: {expected_score}")
 
         # Run the test
+        t_start = time.monotonic()
         actual_score, mult_valid = run_test(str(clx_path), str(log_path), test_name)
+        elapsed = time.monotonic() - t_start
 
         if actual_score is None:
             errors += 1
@@ -240,11 +244,11 @@ def main():
         score_passed = (actual_score == expected_score)
 
         if score_passed and mult_valid:
-            print(f"  ✓ PASS: Claimed score = {actual_score}")
+            print(f"  ✓ PASS: Claimed score = {actual_score}  ({elapsed:.2f}s)")
             passed += 1
         else:
             if not score_passed:
-                print(f"  ✗ FAIL: Expected score {expected_score}, got {actual_score}")
+                print(f"  ✗ FAIL: Expected score {expected_score}, got {actual_score}  ({elapsed:.2f}s)")
             if not mult_valid:
                 print(f"  ✗ FAIL: Multiplier validation failed")
             failed += 1
@@ -252,8 +256,9 @@ def main():
         print()
     
     # Print summary
+    suite_elapsed = time.monotonic() - suite_start
     print("=" * 70)
-    print(f"Test Results: {passed} passed, {failed} failed, {errors} errors")
+    print(f"Test Results: {passed} passed, {failed} failed, {errors} errors  (total {suite_elapsed:.2f}s)")
     print("=" * 70)
     
     if failed > 0 or errors > 0:
