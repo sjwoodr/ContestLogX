@@ -181,6 +181,14 @@ private:
     bool isSemanticVersionEqual(const QString& v1, const QString& v2);
     QString generateSummaryString();  // Helper: generates summary and returns as QString
     void generateSummaryToDebugLog();
+
+    // Crash-recovery backup
+    void initializeBackup(const QsoRecord& firstQso);
+    void writeBackup();
+    void removeBackup();
+    void checkForCrashBackups();
+    void resetBackupState();
+    static QString sanitizeForFilename(const QString& s);
     
     // UI Components
     QLineEdit *m_callEdit;
@@ -286,6 +294,10 @@ private:
 
     // UI state saving
 
+
+    // Crash-recovery backup
+    QString m_backupPath;
+    bool m_backupEnabled;
 
     // Context menu
     int m_contextMenuRow;

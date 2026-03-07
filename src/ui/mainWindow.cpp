@@ -94,6 +94,7 @@
 #include <QPalette>
 #include <QKeySequence>
 #include <QShortcut>
+#include <QListWidget>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -135,6 +136,7 @@ MainWindow::MainWindow(QWidget *parent)
     , m_qrzcqApi(new QrzcqApi(this))
     , m_qrzApi(new QrzApi(this))
     , m_ttsManager(new TtsManager(this))
+    , m_backupEnabled(true)
     , m_contextMenuRow(-1)
 {
     // Validate startup requirements
@@ -1200,6 +1202,7 @@ void MainWindow::onNewLog()
 {
     if (!maybeSave())
         return;
+    resetBackupState();
     
     // Show contest selection dialog
     ContestSelectDialog dialog(this);
@@ -1322,7 +1325,8 @@ void MainWindow::onNewLog()
                     
                     // Auto-recalculate score to validate and mark dupes/out-of-band
                     onRecalculateScore();
-                    
+                    checkForCrashBackups();
+
                     m_statusLabel->setText(QString("Loaded %1 QSOs").arg(loadedQsos.size()));
                 });
                 
@@ -1745,6 +1749,7 @@ void MainWindow::onNewLog()
                 updateWindowTitle();
                 clearEntryForm();
                 m_statusLabel->setText("New log created");
+                checkForCrashBackups();
             }
         }
     }
@@ -1754,6 +1759,7 @@ void MainWindow::onOpenLog()
 {
     if (!maybeSave())
         return;
+    resetBackupState();
     
     QString fileName = QFileDialog::getOpenFileName(this,
         "Open Log File", "", 
@@ -2065,24 +2071,27 @@ void MainWindow::onOpenLog()
                 if (m_callEdit) {
                     m_callEdit->setFocus();
                 }
-                
-                m_statusLabel->setText("File loaded: " + fileName + " (" + 
+
+                checkForCrashBackups();
+                m_statusLabel->setText("File loaded: " + fileName + " (" +
                     QString::number(m_qsoModel->rowCount()) + " QSOs)");
             });
-            
+
             scoringThread->start();
         } else {
             DebugLogger::instance().log("MainWindow", "Contest is still empty, not recalculating score");
-            m_statusLabel->setText("File loaded: " + fileName + " (" + 
+            checkForCrashBackups();
+            m_statusLabel->setText("File loaded: " + fileName + " (" +
                 QString::number(loadedQsos.count()) + " QSOs)");
         }
     });
-    
+
     loadThread->start();
 }
 
 void MainWindow::loadLogFile(const QString& filename)
 {
+    resetBackupState();
     if (filename.isEmpty() || !QFile::exists(filename)) {
         // Prevent duplicate dialogs
         if (m_showingLogFileNotFoundDialog) {
@@ -2338,9 +2347,11 @@ void MainWindow::loadLogFile(const QString& filename)
                         m_multiplierWidget->updateWorkedMultipliers(m_contestEngine->getWorkedNamedMultsPerBandAndMode());
                 }
 
+                if (!m_testMode)
+                    checkForCrashBackups();
                 m_statusLabel->setText("File loaded: " + filename + " (" +
                     QString::number(scoredQsos.count()) + " QSOs)");
-                
+
                 // If in debug log mode, generate summary sheet to debug log
                 if (m_debugLogMode) {
                     generateSummaryToDebugLog();
@@ -2413,14 +2424,15 @@ void MainWindow::onSaveLog()
     }
     
     if (success) {
+        removeBackup();
         m_isModified = false;
         updateWindowTitle();
-        
+
         // Update call history if auto-save is enabled
         if (CallHistory::instance().isAutoSaveEnabled()) {
             updateCallHistory();
         }
-        
+
         m_statusLabel->setText("File saved: " + m_currentFile + " (" +
             QString::number(m_qsoModel->count()) + " QSOs)");
     } else {
@@ -3194,7 +3206,12 @@ void MainWindow::onLogQso()
 
     // Add the QSO first so it's included in score calculations
     m_qsoModel->addQso(qso);
-    
+
+    // Initialize backup on first QSO; write on every QSO
+    if (m_qsoModel->count() == 1)
+        initializeBackup(qso);
+    writeBackup();
+
     // Remove the spot from DX cluster if it's there
     if (m_dxClusterPanel) {
         m_dxClusterPanel->removeSpot(qso.getCall());
@@ -5725,12 +5742,13 @@ void MainWindow::onEditQso()
         
         // Update the QSO in the model
         m_qsoModel->updateQso(m_contextMenuRow, editedQso);
-        
+
         // Mark as modified
         m_isModified = true;
-        
+
         // Recalculate score
         onRecalculateScore();
+        writeBackup();
     }
 }
 
@@ -5757,7 +5775,223 @@ void MainWindow::onDeleteQso()
         m_qsoModel->removeQso(m_contextMenuRow);
         m_isModified = true;
         onRecalculateScore();
+        writeBackup();
     }
+}
+
+// ---------------------------------------------------------------------------
+// Crash-recovery backup
+// ---------------------------------------------------------------------------
+
+QString MainWindow::sanitizeForFilename(const QString& s)
+{
+    QString result;
+    for (const QChar& c : s) {
+        if (c.isLetterOrNumber())
+            result += c.toUpper();
+        else
+            result += '_';
+    }
+    // Collapse consecutive underscores
+    while (result.contains("__"))
+        result.replace("__", "_");
+    // Trim leading/trailing underscores
+    while (result.startsWith('_')) result.remove(0, 1);
+    while (result.endsWith('_'))   result.chop(1);
+    return result;
+}
+
+void MainWindow::resetBackupState()
+{
+    // Remove the backup file from the outgoing session (if any) before starting fresh
+    if (!m_backupPath.isEmpty() && QFile::exists(m_backupPath)) {
+        QFile::remove(m_backupPath);
+        DebugLogger::instance().log("MainWindow",
+            QString("Removed previous session backup on reset: %1").arg(m_backupPath));
+    }
+    m_backupPath.clear();
+    m_backupEnabled = true;
+}
+
+void MainWindow::initializeBackup(const QsoRecord& firstQso)
+{
+    if (!m_contestEngine || m_contestDefinition.isEmpty())
+        return;
+
+    QString callsign    = sanitizeForFilename(getSessionCallsign());
+    QString contestName = sanitizeForFilename(m_contestEngine->getContestName());
+    QString timestamp   = firstQso.getDateTime().toString("yyyyMMdd_HHmmss");
+
+    if (callsign.isEmpty())    callsign    = "UNKNOWN";
+    if (contestName.isEmpty()) contestName = "CONTEST";
+
+    QString filename = callsign + "_" + contestName + "_" + timestamp + ".bak";
+    m_backupPath = QDir::tempPath() + "/" + filename;
+
+    if (QFile::exists(m_backupPath)) {
+        QMessageBox::StandardButton reply = QMessageBox::warning(
+            this, "Backup File Exists",
+            QString("A backup log file already exists:\n%1\n\n"
+                    "Delete it and create a new backup?").arg(m_backupPath),
+            QMessageBox::Yes | QMessageBox::No);
+        if (reply == QMessageBox::No) {
+            m_backupEnabled = false;
+            m_backupPath.clear();
+            QMessageBox::information(this, "No Backup",
+                "No backup log will be saved for this session.");
+            return;
+        }
+        QFile::remove(m_backupPath);
+    }
+
+    m_backupEnabled = true;
+    DebugLogger::instance().log("MainWindow",
+        QString("Backup initialized: %1").arg(m_backupPath));
+}
+
+void MainWindow::writeBackup()
+{
+    if (!m_backupEnabled || m_backupPath.isEmpty())
+        return;
+    if (!m_contestEngine || m_contestDefinition.isEmpty())
+        return;
+
+    FileHandler fileHandler;
+    fileHandler.setUseContestMemories(m_useContestMemories);
+    fileHandler.setContestCwMemories(m_contestCwMemories);
+    fileHandler.setContestSsbMemories(m_contestSsbMemories);
+
+    const ContestEngine::ContestScore& cs = m_contestEngine->getRunningScore();
+    fileHandler.setComputedScore(cs.contactScore, cs.contestScore);
+
+    fileHandler.saveClxWithContest(
+        m_backupPath, m_qsoModel->getQsos(),
+        m_contestFile, m_contestDefinition,
+        m_contestEngine->getStationClass(),
+        m_contestEngine->getStationClassExchangeName(),
+        m_contestEngine->getStationClassExchangeId(),
+        m_contestEngine->getUserPromptValues(),
+        *m_sessionStationInfo);
+
+    DebugLogger::instance().log("MainWindow",
+        QString("Backup written: %1 (%2 QSOs)").arg(m_backupPath).arg(m_qsoModel->count()));
+}
+
+void MainWindow::removeBackup()
+{
+    if (!m_backupPath.isEmpty()) {
+        if (QFile::exists(m_backupPath)) {
+            QFile::remove(m_backupPath);
+            DebugLogger::instance().log("MainWindow",
+                QString("Backup removed: %1").arg(m_backupPath));
+        }
+        m_backupPath.clear();
+    }
+    m_backupEnabled = true;
+}
+
+void MainWindow::checkForCrashBackups()
+{
+    if (!m_contestEngine || m_contestDefinition.isEmpty())
+        return;
+
+    QString callsign    = sanitizeForFilename(getSessionCallsign());
+    QString contestName = sanitizeForFilename(m_contestEngine->getContestName());
+    if (callsign.isEmpty() || contestName.isEmpty())
+        return;
+
+    QString pattern = callsign + "_" + contestName + "_*.bak";
+    QDir tempDir(QDir::tempPath());
+    QStringList bakFiles = tempDir.entryList({pattern}, QDir::Files, QDir::Time);
+
+    if (bakFiles.isEmpty())
+        return;
+
+    QStringList bakPaths;
+    for (const QString& f : bakFiles)
+        bakPaths.append(tempDir.filePath(f));
+
+    // Show restore dialog
+    QDialog dialog(this);
+    dialog.setWindowTitle("Crash Recovery Backup Found");
+    dialog.setMinimumWidth(520);
+    QVBoxLayout *layout = new QVBoxLayout(&dialog);
+    layout->addWidget(new QLabel(
+        QString("%1 backup log file(s) found for this contest.\n"
+                "Select one to restore, or choose an action below.").arg(bakFiles.count()),
+        &dialog));
+
+    QListWidget *listWidget = new QListWidget(&dialog);
+    for (const QString& path : bakPaths) {
+        QFileInfo fi(path);
+        listWidget->addItem(fi.fileName() +
+            "  (" + fi.lastModified().toString("yyyy-MM-dd HH:mm:ss") + ")");
+    }
+    if (!bakPaths.isEmpty())
+        listWidget->setCurrentRow(0);
+    layout->addWidget(listWidget);
+
+    QDialogButtonBox *buttons = new QDialogButtonBox(&dialog);
+    QPushButton *restoreBtn = buttons->addButton("Restore Selected", QDialogButtonBox::AcceptRole);
+    QPushButton *deleteBtn  = buttons->addButton("Delete All",        QDialogButtonBox::DestructiveRole);
+    QPushButton *ignoreBtn  = buttons->addButton("Ignore",            QDialogButtonBox::RejectRole);
+    layout->addWidget(buttons);
+
+    bool deleteAll  = false;
+    int  restoreIdx = -1;
+
+    connect(restoreBtn, &QPushButton::clicked, &dialog, [&]() {
+        restoreIdx = listWidget->currentRow();
+        dialog.accept();
+    });
+    connect(deleteBtn, &QPushButton::clicked, &dialog, [&]() {
+        deleteAll = true;
+        dialog.reject();
+    });
+    connect(ignoreBtn, &QPushButton::clicked, &dialog, &QDialog::reject);
+
+    dialog.exec();
+
+    if (deleteAll) {
+        for (const QString& path : bakPaths)
+            QFile::remove(path);
+        DebugLogger::instance().log("MainWindow", "Deleted all crash backup files");
+        return;
+    }
+
+    if (restoreIdx < 0 || restoreIdx >= bakPaths.size())
+        return;
+
+    // Restore from selected backup
+    QString selectedPath = bakPaths[restoreIdx];
+    FileHandler fh;
+    QList<QsoRecord> restoredQsos;
+    QString contestFile, stationClass, contestVersion, stationClassExchangeName, stationClassExchangeId;
+    QMap<QString, QString> userPromptValues;
+    fh.loadClxWithContest(selectedPath, restoredQsos, contestFile, stationClass, contestVersion,
+                          stationClassExchangeName, stationClassExchangeId, userPromptValues);
+
+    m_qsoModel->clear();
+    for (const QsoRecord& q : restoredQsos)
+        m_qsoModel->addQso(q);
+
+    if (!userPromptValues.isEmpty() && m_contestEngine) {
+        for (auto it = userPromptValues.constBegin(); it != userPromptValues.constEnd(); ++it)
+            m_contestEngine->setUserPromptValue(it.key(), it.value());
+    }
+
+    m_isModified = true;
+    updateWindowTitle();
+    onRecalculateScore();
+    m_statusLabel->setText(
+        QString("Restored %1 QSOs from backup — please save your log").arg(restoredQsos.size()));
+
+    // Delete all backup files now that we've restored
+    for (const QString& path : bakPaths)
+        QFile::remove(path);
+
+    DebugLogger::instance().log("MainWindow",
+        QString("Restored %1 QSOs from backup: %2").arg(restoredQsos.size()).arg(selectedPath));
 }
 
 QString MainWindow::generateSummaryString()
