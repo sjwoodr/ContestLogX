@@ -4108,7 +4108,7 @@ void MainWindow::onAbout()
     msgBox.setTextFormat(Qt::RichText);
     msgBox.setTextInteractionFlags(Qt::TextBrowserInteraction);
     msgBox.setText(
-        "<b>ContestLogX - Version 0.6.3 (Beta)</b><br><br>"
+        "<b>ContestLogX - Version 0.6.4 (Beta)</b><br><br>"
         "Cross-platform amateur radio contest logging software<br><br>"
         "Copyright &copy; 2025-2026, by Steve Woodruff, N9OH<br><br>"
         "<a href=\"https://contestlogx.com\">https://contestlogx.com</a><br><br>"
@@ -4452,9 +4452,15 @@ void MainWindow::onDxSpotClicked(const QString& callsign, double frequency, cons
     // Set callsign in QSO entry field
     m_callEdit->setText(callsign.toUpper());
 
-    // Clear all exchange fields EXCEPT CALL
+    // Reset all exchange fields except CALL — restore RST defaults rather than leaving them blank
     for (auto it = m_exchangeFields.begin(); it != m_exchangeFields.end(); ++it) {
-        if (it.key() != "CALL") {
+        const QString& fieldName = it.key();
+        if (fieldName == "CALL") continue;
+        if (fieldName.contains("RST", Qt::CaseSensitive)) {
+            QString defaultRst = (m_lastMode == "CW" || m_lastMode == "RTTY") ? "599" :
+                                 (m_lastMode.contains("DIGI")) ? "+0" : "59";
+            it.value()->setText(defaultRst);
+        } else {
             it.value()->clear();
         }
     }
