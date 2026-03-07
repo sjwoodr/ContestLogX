@@ -283,17 +283,43 @@ void DxClusterPanel::onSocketReadyRead()
             return;
         }
         
-        // Parse propagation data line
-        // Format: Date        Hour   SFI   A   K Forecast                              Logger
-        //         14-Dec-2025   15   122  14   1 No Storms -> No Storms                <W0MU>
-        QRegularExpression propRegex("\\d{2}-\\w{3}-\\d{4}\\s+\\d+\\s+(\\d+)\\s+(\\d+)\\s+(\\d+)\\s");
-        QRegularExpressionMatch propMatch = propRegex.match(line);
-        if (propMatch.hasMatch()) {
-            int sfi = propMatch.captured(1).toInt();
-            int aIndex = propMatch.captured(2).toInt();
-            int kIndex = propMatch.captured(3).toInt();
-            DebugLogger::instance().log("DxCluster", QString("Propagation data: SFI=%1 A=%2 K=%3").arg(sfi).arg(aIndex).arg(kIndex));
-            emit propagationDataReceived(sfi, aIndex, kIndex);
+        // Parse propagation data — two common formats:
+        // DXSpider tabular (sh/wwv):
+        //   14-Dec-2025   15   122  14   1 No Storms -> No Storms   <W0MU>
+        // WWV bulletin style (sh/wwv on many clusters):
+        //   WWV de W0MU <18Z> :   SFI=122, A=14, K=1, No Storms -> No Storms
+        {
+            int sfi = 0, aIndex = 0, kIndex = 0;
+            bool parsed = false;
+
+            // Try tabular format first
+            QRegularExpression tabRegex("\\d{1,2}-\\w{3}-\\d{4}\\s+\\d+\\s+(\\d+)\\s+(\\d+)\\s+(\\d+)\\s");
+            QRegularExpressionMatch tabMatch = tabRegex.match(line);
+            if (tabMatch.hasMatch()) {
+                sfi    = tabMatch.captured(1).toInt();
+                aIndex = tabMatch.captured(2).toInt();
+                kIndex = tabMatch.captured(3).toInt();
+                parsed = true;
+            }
+
+            // Try key=value bulletin format (WWV de ... SFI=NNN, A=NN, K=N)
+            if (!parsed && line.contains("SFI=", Qt::CaseInsensitive)) {
+                QRegularExpression kvRegex("SFI=(\\d+)[^A-Z]*A=(\\d+)[^K]*K=(\\d+)",
+                                           QRegularExpression::CaseInsensitiveOption);
+                QRegularExpressionMatch kvMatch = kvRegex.match(line);
+                if (kvMatch.hasMatch()) {
+                    sfi    = kvMatch.captured(1).toInt();
+                    aIndex = kvMatch.captured(2).toInt();
+                    kIndex = kvMatch.captured(3).toInt();
+                    parsed = true;
+                }
+            }
+
+            if (parsed) {
+                DebugLogger::instance().log("DxCluster",
+                    QString("Propagation data: SFI=%1 A=%2 K=%3").arg(sfi).arg(aIndex).arg(kIndex));
+                emit propagationDataReceived(sfi, aIndex, kIndex);
+            }
         }
         
         // Simple DX spot parsing (format: DX de SPOTTER: FREQ CALL COMMENT TIMESTAMP)
