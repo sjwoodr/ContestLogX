@@ -482,6 +482,10 @@ void DxClusterPanel::onClusterSelectionChanged(const QString& text)
         DebugLogger::instance().log("DxCluster", "Server selection changed while connected — disconnecting");
         onDisconnect();
     }
+    // Persist the current selection immediately so a crash doesn't lose it
+    Settings& settings = Settings::instance();
+    settings.setDxClusterServer(text.trimmed());
+    settings.save();
 }
 
 void DxClusterPanel::loadSettings()
@@ -511,6 +515,7 @@ void DxClusterPanel::saveSettings()
     Settings& settings = Settings::instance();
     settings.setDxClusterServer(m_clusterEdit->currentText());
     settings.setDxClusterCallsign(m_callsign);
+    settings.save();
 }
 
 void DxClusterPanel::onPropagationTimerTimeout()
