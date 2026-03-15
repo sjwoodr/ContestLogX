@@ -4067,6 +4067,8 @@ void MainWindow::onExportCabrillo()
     CabrilloFile exporter;
     QString myCallsign = getSessionCallsign();
     QString selectedMode = m_contestEngine->getStationClassMode();
+    if (selectedMode.isEmpty())
+        selectedMode = m_contestEngine->getUserPromptValue("contestMode");
     if (!exporter.exportToFile(fileName, m_qsoModel->getAllQsos(), m_contestDefinition, dialog.getHeaderData(), myCallsign, selectedMode)) {
         QMessageBox::critical(this, "Export Failed", "Failed to export Cabrillo log:\n" + exporter.lastError());
         return;
