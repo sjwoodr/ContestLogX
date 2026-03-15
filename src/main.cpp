@@ -35,7 +35,7 @@
 #include <QIcon>
 
 // Application version
-static const char* APP_VERSION = "0.6.4";
+static const char* APP_VERSION = "0.6.5";
 
 // Global log file
 static QFile *logFile = nullptr;
@@ -152,13 +152,16 @@ int main(int argc, char *argv[])
     QCommandLineOption flushOption("flush", "Flush debug log after every write (slower, for debugging hangs)");
     parser.addOption(flushOption);
 
+    QCommandLineOption debugLogOption("debug-log", "Write debug log to this file instead of clx_debug.log", "path");
+    parser.addOption(debugLogOption);
+
     parser.process(app);
 
     // Check if --debug flag is set
     debugToStdout = parser.isSet(debugOption);
 
-    // Initialize debug logger FIRST — it owns clx_debug.log for the lifetime of the process
-    DebugLogger::instance().init();
+    // Initialize debug logger FIRST — it owns the debug log file for the lifetime of the process
+    DebugLogger::instance().init(parser.value(debugLogOption));
     DebugLogger::instance().setStdoutEnabled(debugToStdout);
     DebugLogger::instance().loadSettings();
     if (parser.isSet(flushOption))

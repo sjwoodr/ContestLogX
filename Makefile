@@ -5,8 +5,9 @@
 #   make JOBS=4       - Build with 4 parallel jobs
 #   make info         - Display project statistics
 #   make test         - Run unit tests
-#   make test-logs    - Run automated contest log tests
+#   make test-logs    - Run automated contest log tests (parallel, default 4 workers)
 #   make test-logs-headless - Run automated contest log tests in headless mode (no display required)
+#   make test-logs-headless WORKERS=8 - Run with 8 parallel workers
 #   make clean        - Clean build artifacts
 #   make version      - Update version number
 #   make reset        - Reset application settings
@@ -15,6 +16,9 @@
 
 # Number of parallel build jobs (default: number of CPU cores)
 JOBS ?= $(shell nproc)
+
+# Number of parallel test log runners (default: 4)
+WORKERS ?= 4
 
 # Local desktop integration paths
 DESKTOP_DIR = $(HOME)/.local/share/applications
@@ -61,12 +65,12 @@ test: build/Makefile
 # Run automated contest log tests
 test-logs: clx
 	@echo "Running automated contest log tests..."
-	@python3 -u scripts/run_log_tests.py
+	@python3 -u scripts/run_log_tests.py --workers $(WORKERS)
 
 # Run automated contest log tests in headless mode (no display required)
 test-logs-headless: clx
 	@echo "Running automated contest log tests in headless mode..."
-	@QT_QPA_PLATFORM=offscreen python3 -u scripts/run_log_tests.py
+	@QT_QPA_PLATFORM=offscreen python3 -u scripts/run_log_tests.py --workers $(WORKERS)
 
 # Update version number across all files
 version:

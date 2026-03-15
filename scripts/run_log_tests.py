@@ -3,6 +3,9 @@
 Automated test runner for ContestLogX contest logs.
 Reads test specifications from test_logs/automated_tests.json and validates
 that CLX calculates the correct score for each test log.
+
+Runs tests in parallel using a thread pool (default: 4 workers).
+Use --workers N to control parallelism, or --workers 1 for serial execution.
 """
 
 import json
@@ -11,7 +14,11 @@ import sys
 import os
 import re
 import time
+import tempfile
+import argparse
 from pathlib import Path
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 
 def load_test_config(config_file):
     """Load automated test configuration from JSON."""
@@ -25,8 +32,12 @@ def load_test_config(config_file):
         print(f"Error: Invalid JSON in {config_file}: {e}")
         sys.exit(1)
 
+
 def validate_multipliers(log_content, test_name):
-    """Validate that multiplier details match claimed counts."""
+    """Validate that multiplier details match claimed counts.
+    Returns (passed: bool, lines: list[str])
+    """
+    lines = []
     # Remove timestamp/logger prefixes to normalize the content
     # Lines look like: [2026-01-11 11:47:05.777] MainWindow: Named Multipliers: 8
     normalized = re.sub(r'^\[.*?\]\s+\w+:\s+', '', log_content, flags=re.MULTILINE)
@@ -34,238 +45,248 @@ def validate_multipliers(log_content, test_name):
     # Extract the summary section (between "SCORING SUMMARY" and "MULTIPLIER DETAILS")
     summary_match = re.search(r'SCORING SUMMARY.*?(?=MULTIPLIER DETAILS)', normalized, re.DOTALL)
     if not summary_match:
-        print(f"  ⚠ WARNING: Could not find SCORING SUMMARY section")
-        return True  # Don't fail test, just warn
+        lines.append(f"  ⚠ WARNING: Could not find SCORING SUMMARY section")
+        return True, lines  # Don't fail test, just warn
 
     summary = summary_match.group(0)
 
     # Extract claimed multiplier counts
     claimed_mults = {}
 
-    # Look for patterns like "Named Multipliers:        8"
     named_match = re.search(r'Named Multipliers:\s+(\d+)', summary)
     if named_match:
         claimed_mults['Named Multipliers'] = int(named_match.group(1))
 
-    # Look for "DXCC Multipliers:         2"
     dxcc_match = re.search(r'DXCC Multipliers:\s+(\d+)', summary)
     if dxcc_match:
         claimed_mults['DXCC Entities'] = int(dxcc_match.group(1))
 
-    # Look for "Grid Square Multipliers:   3"
     grid_match = re.search(r'Grid Square Multipliers:\s+(\d+)', summary)
     if grid_match:
         claimed_mults['Grid Squares'] = int(grid_match.group(1))
 
-    # Look for "Call Prefix Multipliers:   5"
     prefix_match = re.search(r'Call Prefix Multipliers:\s+(\d+)', summary)
     if prefix_match:
         claimed_mults['Call Prefixes'] = int(prefix_match.group(1))
 
-    # For callsign multipliers, infer from score calculation
-    # Score = Points × Multipliers, so check if callsigns are mentioned in details
     points_match = re.search(r'Contact Points:\s+(\d+)', summary)
     score_match = re.search(r'CLAIMED SCORE:\s+(\d+)', normalized)
     if points_match and score_match and not claimed_mults:
         contact_points = int(points_match.group(1))
         claimed_score = int(score_match.group(1))
         if contact_points > 0 and claimed_score % contact_points == 0:
-            # Check if details section has "Callsigns" (meaning this is a callsign multiplier contest)
             details_check = re.search(r'MULTIPLIER DETAILS.*?Callsigns', normalized, re.DOTALL)
             if details_check:
                 inferred_mults = claimed_score // contact_points
                 claimed_mults['Callsigns'] = inferred_mults
 
     if not claimed_mults:
-        # No multiplier counts found - might be a contest without multipliers
-        return True
+        return True, lines
 
     # Extract the multiplier details section
     details_match = re.search(r'MULTIPLIER DETAILS\s*-+\s*(.*?)\s*=+', normalized, re.DOTALL)
     if not details_match:
-        print(f"  ✗ MULTIPLIER ERROR: MULTIPLIER DETAILS section not found or empty")
-        return False
+        lines.append(f"  ✗ MULTIPLIER ERROR: MULTIPLIER DETAILS section not found or empty")
+        return False, lines
 
     details = details_match.group(1)
 
-    # Count multipliers in details section
-    # Format is like: "Named Multipliers - CW (Worked: 4)"
-    # followed by "*HI  *NC  *NY  *ON"
-
     actual_mults = {}
-
-    # Find all multiplier sections
     for category_name in claimed_mults.keys():
-        # Match lines like "Named Multipliers - CW (Worked: 4)" or "Named Multipliers (Worked: 4)"
-        # Also match "DXCC Entities - SSB (Worked: 1)", "Grid Squares - 2m (Worked: 2)"
-        # Also match "Callsigns (Worked: 40)" for callsign multipliers
         pattern = rf'{re.escape(category_name)}.*?\(Worked:\s*(\d+)\)'
         matches = re.findall(pattern, details)
-
         if matches:
-            # Sum all the counts for this category (e.g., CW + SSB for multsPerMode)
-            total = sum(int(m) for m in matches)
-            actual_mults[category_name] = total
+            actual_mults[category_name] = sum(int(m) for m in matches)
 
-    # Validate that claimed counts match actual counts
     validation_passed = True
     for category, claimed_count in claimed_mults.items():
         actual_count = actual_mults.get(category, 0)
         if actual_count != claimed_count:
-            print(f"  ✗ MULTIPLIER ERROR: {category}: claimed {claimed_count}, found {actual_count} in details")
+            lines.append(f"  ✗ MULTIPLIER ERROR: {category}: claimed {claimed_count}, found {actual_count} in details")
             validation_passed = False
 
     if validation_passed:
         mult_summary = ", ".join([f"{cat}: {count}" for cat, count in claimed_mults.items()])
-        print(f"  ✓ Multipliers validated: {mult_summary}")
+        lines.append(f"  ✓ Multipliers validated: {mult_summary}")
 
-    return validation_passed
+    return validation_passed, lines
 
-def run_test(clx_path, log_file, test_name):
-    """Run CLX with a test log and extract the claimed score from debug log."""
-    debug_log = "clx_debug.log"
 
-    # Remove old debug log
-    if os.path.exists(debug_log):
-        os.remove(debug_log)
+def run_test(clx_path, log_file, test_name, index):
+    """Run CLX with a test log and return (actual_score, mult_valid, output_lines, elapsed)."""
+    lines = []
 
-    # Run CLX in test mode
-    cmd = [clx_path, "--debug", "--log", log_file, "--test-only"]
+    with tempfile.NamedTemporaryFile(suffix='.log', delete=False) as tmp:
+        debug_log = tmp.name
 
     try:
-        # Run with timeout to avoid hanging (large logs may take 20+ seconds)
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
-    except subprocess.TimeoutExpired:
-        print(f"  ✗ TIMEOUT: Test '{test_name}' exceeded 60 second timeout")
-        return None, None
-    except Exception as e:
-        print(f"  ✗ ERROR running test '{test_name}': {e}")
-        return None, None
+        cmd = [clx_path, "--debug", "--log", log_file, "--test-only", "--debug-log", debug_log]
 
-    # Extract claimed score from debug log
-    if not os.path.exists(debug_log):
-        print(f"  ✗ ERROR: No debug log generated for test '{test_name}'")
-        return None, None
+        try:
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+        except subprocess.TimeoutExpired:
+            lines.append(f"  ✗ TIMEOUT: Test '{test_name}' exceeded 60 second timeout")
+            return None, None, lines, 0
+        except Exception as e:
+            lines.append(f"  ✗ ERROR running test '{test_name}': {e}")
+            return None, None, lines, 0
 
-    try:
-        with open(debug_log, 'r') as f:
-            log_content = f.read()
-    except Exception as e:
-        print(f"  ✗ ERROR reading debug log for test '{test_name}': {e}")
-        return None, None
+        if not os.path.exists(debug_log):
+            lines.append(f"  ✗ ERROR: No debug log generated for test '{test_name}'")
+            return None, None, lines, 0
 
-    # Search for TEST MODE score line
-    pattern = r"TEST MODE: Log fully loaded\. CLAIMED_SCORE=(\d+)"
-    matches = re.findall(pattern, log_content)
+        try:
+            with open(debug_log, 'r') as f:
+                log_content = f.read()
+        except Exception as e:
+            lines.append(f"  ✗ ERROR reading debug log for test '{test_name}': {e}")
+            return None, None, lines, 0
 
-    if not matches:
-        print(f"  ✗ ERROR: Could not find CLAIMED_SCORE in debug log for test '{test_name}'")
-        print(f"     Last 500 chars of debug log:")
-        print(f"     {log_content[-500:]}")
-        return None, None
+        pattern = r"TEST MODE: Log fully loaded\. CLAIMED_SCORE=(\d+)"
+        matches = re.findall(pattern, log_content)
 
-    # Validate multipliers
-    mult_valid = validate_multipliers(log_content, test_name)
+        if not matches:
+            lines.append(f"  ✗ ERROR: Could not find CLAIMED_SCORE in debug log for test '{test_name}'")
+            lines.append(f"     Last 500 chars of debug log:")
+            lines.append(f"     {log_content[-500:]}")
+            return None, None, lines, 0
 
-    # Return the last score found (in case of multiple runs) and multiplier validation result
-    return int(matches[-1]), mult_valid
+        mult_valid, mult_lines = validate_multipliers(log_content, test_name)
+        lines.extend(mult_lines)
+
+        return int(matches[-1]), mult_valid, lines, 0
+
+    finally:
+        try:
+            os.unlink(debug_log)
+        except OSError:
+            pass
+
+
+def run_test_timed(clx_path, log_file, test_name, index):
+    """Wrapper that times the test run."""
+    t_start = time.monotonic()
+    actual_score, mult_valid, lines, _ = run_test(clx_path, log_file, test_name, index)
+    elapsed = time.monotonic() - t_start
+    return index, test_name, log_file, actual_score, mult_valid, lines, elapsed
+
 
 def main():
-    """Main test runner."""
-    # Get paths
+    parser = argparse.ArgumentParser(description="ContestLogX automated log test runner")
+    parser.add_argument("--workers", type=int, default=4,
+                        help="Number of parallel test workers (default: 4)")
+    args = parser.parse_args()
+
     script_dir = Path(__file__).parent
     repo_root = script_dir.parent
     config_file = repo_root / "test_logs" / "automated_tests.json"
     clx_path = repo_root / "clx"
-    
+
     if not clx_path.exists():
         print(f"Error: CLX executable not found: {clx_path}")
         sys.exit(1)
-    
-    # Load test configuration
+
     config = load_test_config(config_file)
-    
+
     if "tests" not in config:
         print("Error: No 'tests' array in automated_tests.json")
         sys.exit(1)
-    
+
     tests = config["tests"]
     if not tests:
         print("Error: No tests defined in automated_tests.json")
         sys.exit(1)
-    
-    # Change to repo root for relative paths
+
     os.chdir(repo_root)
-    
-    # Run tests
-    passed = 0
-    failed = 0
-    errors = 0
-    suite_start = time.monotonic()
 
     print("=" * 70)
     print("ContestLogX Automated Contest Log Tests")
+    print(f"Running {len(tests)} tests with {args.workers} worker(s)")
     print("=" * 70)
     print()
-    
+
+    # Validate test configs and build the work list
+    work = []
+    pre_errors = 0
     for i, test in enumerate(tests, 1):
         test_name = test.get("name", f"Test {i}")
         log_file = test.get("log_file")
         expected_score = test.get("expected_score")
-        
+
         if not log_file or expected_score is None:
             print(f"✗ Test {i}: Invalid test configuration (missing log_file or expected_score)")
-            errors += 1
+            pre_errors += 1
             continue
-        
-        # Resolve log file path
+
         log_path = Path("test_logs") / log_file
         if not log_path.exists():
             print(f"✗ Test {i}: {test_name}")
             print(f"  Log file not found: {log_path}")
-            errors += 1
+            print()
+            pre_errors += 1
             continue
-        
-        print(f"Test {i}: {test_name}")
-        print(f"  Log: {log_file}")
+
+        work.append((i, test_name, str(log_path), expected_score))
+
+    passed = 0
+    failed = 0
+    errors = pre_errors
+
+    suite_start = time.monotonic()
+
+    # Collect results indexed by test number so we can print in order
+    results = {}
+
+    with ThreadPoolExecutor(max_workers=args.workers) as executor:
+        futures = {
+            executor.submit(run_test_timed, str(clx_path), log_path, test_name, idx): idx
+            for (idx, test_name, log_path, expected_score) in work
+        }
+
+        for future in as_completed(futures):
+            idx, test_name, log_file, actual_score, mult_valid, extra_lines, elapsed = future.result()
+            # Find the expected score for this test
+            expected_score = next(es for (i, tn, lp, es) in work if i == idx)
+            results[idx] = (test_name, log_file, actual_score, mult_valid, extra_lines, elapsed, expected_score)
+
+    # Print results in original test order
+    for (idx, test_name, log_path, expected_score) in work:
+        test_name_r, log_file_r, actual_score, mult_valid, extra_lines, elapsed, _ = results[idx]
+
+        print(f"Test {idx}: {test_name_r}")
+        print(f"  Log: {log_file_r}")
         print(f"  Expected score: {expected_score}")
 
-        # Run the test
-        t_start = time.monotonic()
-        actual_score, mult_valid = run_test(str(clx_path), str(log_path), test_name)
-        elapsed = time.monotonic() - t_start
+        for line in extra_lines:
+            print(line)
 
         if actual_score is None:
             errors += 1
-            print()
-            continue
-
-        # Compare scores and multipliers
-        score_passed = (actual_score == expected_score)
-
-        if score_passed and mult_valid:
-            print(f"  ✓ PASS: Claimed score = {actual_score}  ({elapsed:.2f}s)")
-            passed += 1
         else:
-            if not score_passed:
-                print(f"  ✗ FAIL: Expected score {expected_score}, got {actual_score}  ({elapsed:.2f}s)")
-            if not mult_valid:
-                print(f"  ✗ FAIL: Multiplier validation failed")
-            failed += 1
+            score_passed = (actual_score == expected_score)
+            if score_passed and mult_valid:
+                print(f"  ✓ PASS: Claimed score = {actual_score}  ({elapsed:.2f}s)")
+                passed += 1
+            else:
+                if not score_passed:
+                    print(f"  ✗ FAIL: Expected score {expected_score}, got {actual_score}  ({elapsed:.2f}s)")
+                if not mult_valid:
+                    print(f"  ✗ FAIL: Multiplier validation failed")
+                failed += 1
 
         print()
-    
-    # Print summary
+
     suite_elapsed = time.monotonic() - suite_start
     print("=" * 70)
     print(f"Test Results: {passed} passed, {failed} failed, {errors} errors  (total {suite_elapsed:.2f}s)")
     print("=" * 70)
-    
+
     if failed > 0 or errors > 0:
         sys.exit(1)
     else:
         print("All tests passed!")
         sys.exit(0)
+
 
 if __name__ == "__main__":
     main()

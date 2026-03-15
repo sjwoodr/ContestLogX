@@ -31,13 +31,13 @@ DebugLogger& DebugLogger::instance()
     return logger;
 }
 
-void DebugLogger::init()
+void DebugLogger::init(const QString& logPath)
 {
     QMutexLocker locker(&g_logMutex);
     if (m_logFile.isOpen())
         m_logFile.close();
 
-    m_logFile.setFileName("clx_debug.log");
+    m_logFile.setFileName(logPath.isEmpty() ? "clx_debug.log" : logPath);
     m_logFile.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text);
     m_logBytesWritten = 0;
 

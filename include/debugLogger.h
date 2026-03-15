@@ -32,7 +32,7 @@ public:
     static DebugLogger& instance();
 
     void log(const QString& component, const QString& message);
-    void init();
+    void init(const QString& logPath = QString());
     void loadSettings();
     void setFlushEnabled(bool enabled);
     void setFlrigDebugEnabled(bool enabled);
