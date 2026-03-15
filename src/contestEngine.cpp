@@ -1832,6 +1832,29 @@ QString ContestEngine::getStationClassMode() const
     return QString();
 }
 
+QString ContestEngine::getStationClassExchangeType() const
+{
+    if (m_stationClass.isEmpty())
+        return QString();
+
+    if (m_contestDef.contains("stationClasses")) {
+        QJsonObject stationClasses = m_contestDef["stationClasses"].toObject();
+        if (stationClasses.contains("classes")) {
+            QJsonArray classes = stationClasses["classes"].toArray();
+            for (const QJsonValue& classVal : classes) {
+                QJsonObject classObj = classVal.toObject();
+                if (classObj["id"].toString() == m_stationClass) {
+                    if (classObj.contains("exchangeSent"))
+                        return classObj["exchangeSent"].toObject()["type"].toString();
+                    break;
+                }
+            }
+        }
+    }
+
+    return QString();
+}
+
 QStringList ContestEngine::getCallHistoryFieldsToSave() const
 {
     // Check if contest defines specific fields to save in call history

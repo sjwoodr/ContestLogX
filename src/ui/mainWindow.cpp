@@ -3010,9 +3010,12 @@ void MainWindow::onLogQso()
         sentName = m_sessionStationInfo->operatorName();
     }
 
-    // If exchange is not set from contest engine, fall back to session station info
+    // If exchange is not set from contest engine, fall back appropriately
     if (sentExch.isEmpty()) {
-        sentExch = m_sessionStationInfo->state();
+        if (m_contestEngine->getStationClassExchangeType() == "serial")
+            sentExch = serialSent;
+        else
+            sentExch = m_sessionStationInfo->state();
     }
     
     // If we have split fields, set them individually
@@ -4110,7 +4113,7 @@ void MainWindow::onAbout()
     msgBox.setTextFormat(Qt::RichText);
     msgBox.setTextInteractionFlags(Qt::TextBrowserInteraction);
     msgBox.setText(
-        "<b>ContestLogX - Version 0.6.4 (Beta)</b><br><br>"
+        "<b>ContestLogX - Version 0.6.5 (Beta)</b><br><br>"
         "Cross-platform amateur radio contest logging software<br><br>"
         "Copyright &copy; 2025-2026, by Steve Woodruff, N9OH<br><br>"
         "<a href=\"https://contestlogx.com\">https://contestlogx.com</a><br><br>"

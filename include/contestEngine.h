@@ -167,6 +167,7 @@ public:
     QJsonObject getStationClassInputValidation() const;  // Get input validation rules
     void resetStationClassState();  // Reset station class and exchange data
     QString getStationClassMode() const;  // Get mode from selected station class
+    QString getStationClassExchangeType() const;  // Get exchangeSent type for selected station class
     void setRestrictedMode(const QString& mode);  // Restrict logging to a specific mode
     QString getRestrictedMode() const;  // Get the restricted mode if any
     
