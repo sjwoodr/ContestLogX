@@ -3477,6 +3477,8 @@ void MainWindow::onEditCWMemories()
     dialog.setMemories(settings.getCwMemories());
     dialog.setContestMemories(m_contestCwMemories);
     dialog.setContestMode(m_useContestMemories);
+    dialog.setSnPadding(settings.getCwSnPadding());
+    dialog.setSnCutNumbers(settings.getCwSnCutNumbers());
 
     if (dialog.exec() == QDialog::Accepted) {
         QList<CwMemory> memories = dialog.getMemories();
@@ -3491,6 +3493,9 @@ void MainWindow::onEditCWMemories()
             settings.setCwMemories(memories);
             m_useContestMemories = false;
         }
+
+        settings.setCwSnPadding(dialog.getSnPadding());
+        settings.setCwSnCutNumbers(dialog.getSnCutNumbers());
 
         loadCWMemories();
         loadSsbMemories();
@@ -3603,7 +3608,25 @@ void MainWindow::onCwMemoryTriggered(int fKey, const QString& text)
     expandedText.replace("{CALL}", m_callEdit->text().trimmed(), Qt::CaseInsensitive);
     expandedText.replace("{MYCALL}", getSessionCallsign(), Qt::CaseInsensitive);
 
-    QString nextSerial = QString::number(m_qsoModel->count() + 1);
+    int serialNum = m_qsoModel->count() + 1;
+    int padding = Settings::instance().getCwSnPadding();
+    bool cutNumbers = Settings::instance().getCwSnCutNumbers();
+
+    // Apply zero-padding (only pads when serial fits within the requested width)
+    QString nextSerial = QString("%1").arg(serialNum, padding, 10, QChar('0'));
+
+    // Apply cut numbers: 0→T, 9→N, 1→A (standard CW contest cut numbers)
+    if (cutNumbers) {
+        static const QMap<QChar, QChar> cuts = {
+            {'0', 'T'}, {'9', 'N'}, {'1', 'A'}
+        };
+        QString cut;
+        for (const QChar& c : nextSerial) {
+            cut += cuts.value(c, c);
+        }
+        nextSerial = cut;
+    }
+
     expandedText.replace("{SNs}", nextSerial, Qt::CaseInsensitive);
     expandedText.replace("{SN}", nextSerial, Qt::CaseInsensitive);
     expandedText.replace("{serial}", nextSerial, Qt::CaseInsensitive);

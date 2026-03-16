@@ -119,6 +119,11 @@ public:
     QList<CwMemory> getCwMemories() const;
     void setCwMemories(const QList<CwMemory>& memories);
 
+    int getCwSnPadding() const;         // Minimum digits for {SN}: 1, 2, or 3 (default 1)
+    void setCwSnPadding(int digits);
+    bool getCwSnCutNumbers() const;     // Send cut numbers for {SN} (default false)
+    void setCwSnCutNumbers(bool enabled);
+
     // SSB settings
     QList<SsbMemory> getSsbMemories() const;
     void setSsbMemories(const QList<SsbMemory>& memories);

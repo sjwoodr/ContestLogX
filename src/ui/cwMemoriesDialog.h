@@ -25,6 +25,8 @@
 #include <QLineEdit>
 #include <QTextEdit>
 #include <QRadioButton>
+#include <QCheckBox>
+#include <QComboBox>
 #include <QList>
 #include <QPushButton>
 #include "cwMemory.h"
@@ -44,6 +46,12 @@ public:
     void setContestMemories(const QList<CwMemory>& memories);
     void setContestMode(bool contest);
     bool isContestMode() const;
+
+    // SN formatting options
+    int getSnPadding() const;       // 1, 2, or 3
+    void setSnPadding(int digits);
+    bool getSnCutNumbers() const;
+    void setSnCutNumbers(bool enabled);
 
 private slots:
     void onSave();
@@ -67,6 +75,10 @@ private:
     QList<CwMemory> m_stationMemories;
     QList<CwMemory> m_contestMemories;
     bool m_currentIsContest = false;
+
+    // SN formatting widgets
+    QComboBox *m_snPaddingCombo;
+    QCheckBox *m_snCutNumbersCheck;
 };
 
 #endif // CWMEMORIESDIALOG_H

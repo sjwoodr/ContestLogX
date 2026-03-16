@@ -28,11 +28,16 @@
 #include <QPushButton>
 #include <QStyle>
 #include <QButtonGroup>
+#include <QComboBox>
+#include <QCheckBox>
+#include <QFrame>
 
 CwMemoriesDialog::CwMemoriesDialog(QWidget *parent)
     : QDialog(parent)
     , m_stationRadio(nullptr)
     , m_contestRadio(nullptr)
+    , m_snPaddingCombo(nullptr)
+    , m_snCutNumbersCheck(nullptr)
 {
     setWindowTitle("CW Memories Editor");
     setMinimumWidth(600);
@@ -45,7 +50,7 @@ CwMemoriesDialog::~CwMemoriesDialog()
 
 void CwMemoriesDialog::setupUi()
 {
-    setFixedSize(700, 390);
+    setFixedSize(700, 460);
 
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
     mainLayout->setSpacing(8);
@@ -99,7 +104,31 @@ void CwMemoriesDialog::setupUi()
     gridLayout->setColumnStretch(2, 1); // Make message column stretch
     mainLayout->addLayout(gridLayout);
 
-    mainLayout->addStretch();
+    // Separator
+    QFrame *separator = new QFrame(this);
+    separator->setFrameShape(QFrame::HLine);
+    separator->setFrameShadow(QFrame::Sunken);
+    mainLayout->addWidget(separator);
+
+    // SN options group box
+    QGroupBox *snGroup = new QGroupBox("{SN} Serial Number Options", this);
+    QHBoxLayout *snLayout = new QHBoxLayout(snGroup);
+
+    snLayout->addWidget(new QLabel("Minimum digits:"));
+    m_snPaddingCombo = new QComboBox(this);
+    m_snPaddingCombo->addItem("1  (e.g. 7)", 1);
+    m_snPaddingCombo->addItem("2  (e.g. 07)", 2);
+    m_snPaddingCombo->addItem("3  (e.g. 007)", 3);
+    m_snPaddingCombo->setFixedWidth(130);
+    snLayout->addWidget(m_snPaddingCombo);
+
+    snLayout->addSpacing(20);
+
+    m_snCutNumbersCheck = new QCheckBox("Cut numbers  (0→T, 9→N, 1→A)", this);
+    snLayout->addWidget(m_snCutNumbersCheck);
+    snLayout->addStretch();
+
+    mainLayout->addWidget(snGroup);
 
     // Dialog buttons
     QDialogButtonBox *buttonBox = new QDialogButtonBox(
@@ -213,4 +242,26 @@ void CwMemoriesDialog::setContestMode(bool contest)
 bool CwMemoriesDialog::isContestMode() const
 {
     return m_contestRadio->isChecked();
+}
+
+int CwMemoriesDialog::getSnPadding() const
+{
+    return m_snPaddingCombo->currentData().toInt();
+}
+
+void CwMemoriesDialog::setSnPadding(int digits)
+{
+    int idx = m_snPaddingCombo->findData(digits);
+    if (idx >= 0)
+        m_snPaddingCombo->setCurrentIndex(idx);
+}
+
+bool CwMemoriesDialog::getSnCutNumbers() const
+{
+    return m_snCutNumbersCheck->isChecked();
+}
+
+void CwMemoriesDialog::setSnCutNumbers(bool enabled)
+{
+    m_snCutNumbersCheck->setChecked(enabled);
 }

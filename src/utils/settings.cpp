@@ -383,6 +383,32 @@ void Settings::setCwMemories(const QList<CwMemory>& memories)
     save();
 }
 
+int Settings::getCwSnPadding() const
+{
+    return m_settings["cw"].toObject()["snPadding"].toInt(1);
+}
+
+void Settings::setCwSnPadding(int digits)
+{
+    QJsonObject cw = m_settings["cw"].toObject();
+    cw["snPadding"] = digits;
+    m_settings["cw"] = cw;
+    save();
+}
+
+bool Settings::getCwSnCutNumbers() const
+{
+    return m_settings["cw"].toObject()["snCutNumbers"].toBool(false);
+}
+
+void Settings::setCwSnCutNumbers(bool enabled)
+{
+    QJsonObject cw = m_settings["cw"].toObject();
+    cw["snCutNumbers"] = enabled;
+    m_settings["cw"] = cw;
+    save();
+}
+
 QList<SsbMemory> Settings::getSsbMemories() const
 {
     QList<SsbMemory> memories;
