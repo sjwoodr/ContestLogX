@@ -371,9 +371,12 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
         QKeyEvent *keyEvent = static_cast<QKeyEvent*>(event);
         QLineEdit* lineEdit = qobject_cast<QLineEdit*>(obj);
 
-        // Escape halts CW sending from anywhere in the main window
-        if (keyEvent->key() == Qt::Key_Escape && m_cwConsole) {
-            m_cwConsole->onHalt();
+        // Escape halts CW and SSB sending from anywhere in the main window
+        if (keyEvent->key() == Qt::Key_Escape) {
+            if (m_cwConsole)
+                m_cwConsole->onHalt();
+            if (m_ttsManager)
+                m_ttsManager->cancel();
             // fall through so other Escape handlers (filter bar) still run
         }
 
@@ -3442,7 +3445,11 @@ void MainWindow::onUpdateRigDisplay()
         m_rigPollTimer->stop();
         return;
     }
-    
+
+    // Skip poll while TTS is active to avoid reentrant flrig socket use
+    if (m_ttsManager && m_ttsManager->isActive())
+        return;
+
     // Request frequency, mode, and WPM from rig
     // Catch errors to prevent UI lag when radio is off or unresponsive
     double freq = 0;
@@ -4227,7 +4234,7 @@ void MainWindow::onAbout()
     msgBox.setTextFormat(Qt::RichText);
     msgBox.setTextInteractionFlags(Qt::TextBrowserInteraction);
     msgBox.setText(
-        "<b>ContestLogX - Version 0.6.6 (Beta)</b><br><br>"
+        "<b>ContestLogX - Version 0.6.7 (Beta)</b><br><br>"
         "Cross-platform amateur radio contest logging software<br><br>"
         "Copyright &copy; 2025-2026, by Steve Woodruff, N9OH<br><br>"
         "<a href=\"https://contestlogx.com\">https://contestlogx.com</a><br><br>"

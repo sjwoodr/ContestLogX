@@ -35,6 +35,7 @@ TtsManager::TtsManager(QObject *parent)
     , m_ttsTimer(new QTimer(this))
     , m_audioTimer(new QTimer(this))
     , m_isActive(false)
+    , m_cancelled(false)
     , m_flrigClient(nullptr)
 {
     m_ttsTimer->setSingleShot(true);
@@ -71,6 +72,7 @@ void TtsManager::speak(const QString& text)
     DebugLogger::instance().log("TtsManager", QString("Starting TTS for text: %1").arg(text));
 
     m_isActive = true;
+    m_cancelled = false;
     startTtsProcess(text);
 }
 
@@ -78,7 +80,7 @@ void TtsManager::cancel()
 {
     DebugLogger::instance().log("TtsManager", "Cancelling TTS operation");
 
-    restoreOriginalMode();
+    m_cancelled = true;
 
     m_ttsTimer->stop();
     m_audioTimer->stop();
@@ -96,6 +98,9 @@ void TtsManager::cancel()
         m_audioProcess->deleteLater();
         m_audioProcess = nullptr;
     }
+
+    // Restore mode after processes are stopped (no concurrent flrig activity)
+    restoreOriginalMode();
 
     cleanup();
     m_isActive = false;
@@ -256,6 +261,12 @@ void TtsManager::onTtsError(QProcess::ProcessError processError)
 {
     m_ttsTimer->stop();
 
+    if (m_cancelled) {
+        cleanup();
+        m_isActive = false;
+        return;
+    }
+
     QString errorMsg;
     switch (processError) {
         case QProcess::FailedToStart:
@@ -297,6 +308,13 @@ void TtsManager::onAudioFinished(int exitCode, QProcess::ExitStatus exitStatus)
         QString("Audio finished with exit code: %1, status: %2")
         .arg(exitCode).arg(exitStatus == QProcess::NormalExit ? "normal" : "crashed"));
 
+    if (m_cancelled) {
+        // cancel() will call restoreOriginalMode() after process cleanup
+        cleanup();
+        m_isActive = false;
+        return;
+    }
+
     // Restore original mode before emitting signals
     restoreOriginalMode();
 
@@ -317,6 +335,14 @@ void TtsManager::onAudioFinished(int exitCode, QProcess::ExitStatus exitStatus)
 void TtsManager::onAudioError(QProcess::ProcessError processError)
 {
     m_audioTimer->stop();
+
+    if (m_cancelled) {
+        // cancel() will call restoreOriginalMode() after process cleanup
+        cleanup();
+        m_isActive = false;
+        return;
+    }
+
     restoreOriginalMode();
 
     QString errorMsg;

@@ -104,6 +104,7 @@ private:
     QTimer *m_audioTimer;
     QString m_currentOutputFile;
     bool m_isActive;
+    bool m_cancelled;
 
     FlrigClient *m_flrigClient;
     QString m_savedMode;
