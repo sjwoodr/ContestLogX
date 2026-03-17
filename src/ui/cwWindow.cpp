@@ -54,6 +54,7 @@ CWWindow::CWWindow(FlrigClient* rigClient, QWidget *parent)
     inputLine->setPlaceholderText("Enter CW text and press Enter to send...");
     inputLine->setFocus();
     inputLine->installEventFilter(this);
+    installEventFilter(this);
     inputLayout->addWidget(inputLine);
     
     // WPM label and spinbox
@@ -224,10 +225,16 @@ void CWWindow::setMemories(const QList<CwMemory>& mems)
 
 bool CWWindow::eventFilter(QObject *obj, QEvent *event)
 {
-    if (obj == inputLine && event->type() == QEvent::KeyPress) {
+    if (event->type() == QEvent::KeyPress) {
         QKeyEvent *keyEvent = static_cast<QKeyEvent*>(event);
-        
-        if (keyEvent->key() == Qt::Key_Return || keyEvent->key() == Qt::Key_Enter) {
+
+        if (keyEvent->key() == Qt::Key_Escape) {
+            onHalt();
+            return true;
+        }
+
+        if (obj == inputLine &&
+                (keyEvent->key() == Qt::Key_Return || keyEvent->key() == Qt::Key_Enter)) {
             onSendCW();
             return true;
         }

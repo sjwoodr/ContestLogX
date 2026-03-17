@@ -51,6 +51,7 @@ public:
 public slots:
     // Trigger a specific memory (0-7 for F1-F8)
     void onMemoryButton(int fKey);
+    void onHalt();
 
 signals:
     void wpmChanged(int wpm);
@@ -62,7 +63,6 @@ protected:
 private slots:
     void onSendCW();
     void onClear();
-    void onHalt();
     void onWpmChanged(int wpm);
 
 private:

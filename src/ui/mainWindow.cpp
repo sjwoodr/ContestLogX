@@ -56,6 +56,7 @@
 #include <QFile>
 #include <QProgressDialog>
 #include <QApplication>
+#include <QWindow>
 #include <QMenuBar>
 #include <QMenu>
 #include <QAction>
@@ -101,6 +102,8 @@ MainWindow::MainWindow(QWidget *parent)
     , m_callEdit(nullptr)
     , m_exchangeEdit(nullptr)
     , m_logButton(nullptr)
+    , m_clearButton(nullptr)
+    , m_returnToDockLabel(nullptr)
     , m_qrzButton(nullptr)
     , m_qsoTable(nullptr)
     , m_statusLabel(nullptr)
@@ -113,6 +116,7 @@ MainWindow::MainWindow(QWidget *parent)
     , m_rigStatusLabel(nullptr)
     , m_wpmLabel(nullptr)
     , m_propagationLabel(nullptr)
+    , m_entryDock(nullptr)
     , m_dxClusterPanel(nullptr)
     , m_cwConsole(nullptr)
     , m_qsoModel(new QsoListModel(this))
@@ -362,9 +366,16 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 bool MainWindow::eventFilter(QObject *obj, QEvent *event)
 {
+
     if (event->type() == QEvent::KeyPress) {
         QKeyEvent *keyEvent = static_cast<QKeyEvent*>(event);
         QLineEdit* lineEdit = qobject_cast<QLineEdit*>(obj);
+
+        // Escape halts CW sending from anywhere in the main window
+        if (keyEvent->key() == Qt::Key_Escape && m_cwConsole) {
+            m_cwConsole->onHalt();
+            // fall through so other Escape handlers (filter bar) still run
+        }
 
         // Escape in the filter bar hides it and clears the filter
         if (obj == m_filterEdit && keyEvent->key() == Qt::Key_Escape) {
@@ -541,10 +552,26 @@ void MainWindow::setupUi()
     connect(m_freqModeButton, &QPushButton::clicked, this, &MainWindow::onFreqModeButtonClicked);
     entryPanelLayout->addWidget(m_freqModeButton);
     
-    m_qsoEntryGroup = new QGroupBox("QSO Entry", this);
+    m_qsoEntryGroup = new QGroupBox(this);
     m_qsoEntryGroup->setObjectName("qsoEntryGroup");
-    m_qsoEntryLayout = new QHBoxLayout(m_qsoEntryGroup);
+
+    // Outer vertical layout: "Return to dock" bar on top, fields row below.
+    QVBoxLayout *groupVLayout = new QVBoxLayout(m_qsoEntryGroup);
+    groupVLayout->setSpacing(2);
+    groupVLayout->setContentsMargins(5, 5, 5, 2);
+
+    m_returnToDockLabel = new QLabel("<a href='dock'>Return to dock</a>");
+    m_returnToDockLabel->setTextFormat(Qt::RichText);
+    m_returnToDockLabel->setAlignment(Qt::AlignRight);
+    m_returnToDockLabel->setVisible(false);
+    connect(m_returnToDockLabel, &QLabel::linkActivated, this, [this]() {
+        m_entryDock->setFloating(false);
+    });
+    groupVLayout->addWidget(m_returnToDockLabel);
+
+    m_qsoEntryLayout = new QHBoxLayout();
     m_qsoEntryLayout->setSpacing(5);
+    groupVLayout->addLayout(m_qsoEntryLayout);
     
     m_qsoEntryLayout->addWidget(new QLabel("Call:"));
     ScpLineEdit *callEdit = new ScpLineEdit();
@@ -589,25 +616,42 @@ void MainWindow::setupUi()
     // Log QSO button
     m_logButton = new QPushButton("Log QSO");
     buttonLayout->addWidget(m_logButton);
+
+    // Clear button
+    m_clearButton = new QPushButton("Clear");
+    buttonLayout->addWidget(m_clearButton);
     buttonLayout->addStretch();
-    
+
     m_qsoEntryLayout->addLayout(buttonLayout);
-    
+
     // Set proper tab order
     setTabOrder(m_callEdit, m_exchangeEdit);
     setTabOrder(m_exchangeEdit, m_qrzButton);
     setTabOrder(m_qrzButton, m_logButton);
+    setTabOrder(m_logButton, m_clearButton);
     
     // Install event filters for Enter key handling
     m_callEdit->installEventFilter(this);
     m_exchangeEdit->installEventFilter(this);
     
     entryPanelLayout->addWidget(m_qsoEntryGroup, 1);
-    leftLayout->addWidget(entryPanel, 0);
-    
+
     mainSplitter->addWidget(leftPanel);
 
+    // QSO entry as a bottom dock — floatable but cannot be dragged to the right dock area
+    m_entryDock = new QDockWidget("QSO Entry", this);
+    m_entryDock->setObjectName("entryDock");  // Required for saveState/restoreState
+    m_entryDock->setWidget(entryPanel);
+    m_entryDock->setAllowedAreas(Qt::BottomDockWidgetArea);
+    m_entryDock->setFeatures(QDockWidget::DockWidgetFloatable | QDockWidget::DockWidgetMovable);
+    addDockWidget(Qt::BottomDockWidgetArea, m_entryDock);
+
     setupDocks(mainSplitter);
+
+    // Right dock area owns the bottom-right corner so the entry dock
+    // only spans the central widget width, not under the right-side docks.
+    // Must be set after all right-side docks exist.
+    setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
 
     mainLayout->addWidget(mainSplitter);
 }
@@ -751,6 +795,41 @@ void MainWindow::setupDocks(QSplitter* mainSplitter)
     // Save dock state when dock widgets are moved or resized
     // Use a debounce timer to avoid excessive saves during drag operations
     // Don't trigger during state restoration to avoid overwriting the restored state
+    connect(m_entryDock, &QDockWidget::dockLocationChanged, this, [this]() {
+        if (!m_restoringState) m_dockStateSaveTimer->start();
+    });
+    connect(m_entryDock, &QDockWidget::topLevelChanged, this, [this](bool floating) {
+        if (m_floatEntryAction) m_floatEntryAction->setChecked(floating);
+        if (m_returnToDockLabel) m_returnToDockLabel->setVisible(floating);
+        if (!m_restoringState) m_dockStateSaveTimer->start();
+
+        // Disconnect any previous QWindow visibility watcher
+        disconnect(m_entryWindowVisConn);
+
+        if (floating) {
+            // Defer one tick so the native QWindow is fully created, then connect directly
+            // to QWindow::visibilityChanged — this fires reliably for minimize on all platforms.
+            QTimer::singleShot(0, this, [this]() {
+                if (!m_entryDock->isFloating()) return;
+                QWindow *win = m_entryDock->window()->windowHandle();
+                if (!win) return;
+                win->setFlag(Qt::WindowMaximizeButtonHint, false);
+                m_entryWindowVisConn = connect(win, &QWindow::visibilityChanged,
+                        this, [this](QWindow::Visibility v) {
+                    if (v == QWindow::Minimized || v == QWindow::Maximized || v == QWindow::Hidden)
+                        QTimer::singleShot(0, this, [this]() { m_entryDock->setFloating(false); });
+                });
+            });
+        }
+    });
+
+    // Re-show the entry dock whenever it is hidden — this fires when the user closes
+    // the floating window via the OS title-bar X button.  We use a queued singleShot so
+    // the close event finishes processing before we re-show.
+    connect(m_entryDock, &QDockWidget::visibilityChanged, this, [this](bool visible) {
+        if (!visible && !m_restoringState)
+            QTimer::singleShot(0, m_entryDock, &QWidget::show);
+    });
     connect(m_dxClusterDock, &QDockWidget::dockLocationChanged, this, [this]() {
         if (!m_restoringState) m_dockStateSaveTimer->start();  // Restart timer (debounce)
     });
@@ -873,6 +952,17 @@ void MainWindow::setupMenus()
     // Window menu
     QMenu *windowMenu = menuBar()->addMenu("&Window");
     
+    m_floatEntryAction = windowMenu->addAction("Float &QSO Entry");
+    m_floatEntryAction->setCheckable(true);
+    m_floatEntryAction->setChecked(false);
+    m_floatEntryAction->setToolTip("Detach the QSO entry panel into a floating window");
+    connect(m_floatEntryAction, &QAction::triggered, this, [this](bool checked) {
+        if (!m_entryDock->isVisible())
+            m_entryDock->show();
+        m_entryDock->setFloating(checked);
+    });
+
+    windowMenu->addSeparator();
     m_dxClusterAction = windowMenu->addAction("DX &Cluster");
     m_dxClusterAction->setCheckable(true);
     m_dxClusterAction->setChecked(true);
@@ -1107,6 +1197,7 @@ void MainWindow::promptForMissingUserPrompts()
 void MainWindow::createConnections()
 {
     connect(m_logButton, &QPushButton::clicked, this, &MainWindow::onLogQso);
+    connect(m_clearButton, &QPushButton::clicked, this, &MainWindow::clearEntryForm);
     connect(m_qrzButton, &QPushButton::clicked, this, &MainWindow::onQrzLookup);
     connect(m_callEdit, &QLineEdit::textChanged, this, &MainWindow::onCallChanged);
     connect(m_exchangeEdit, &QLineEdit::textChanged, this, &MainWindow::onExchangeChanged);
@@ -4136,7 +4227,7 @@ void MainWindow::onAbout()
     msgBox.setTextFormat(Qt::RichText);
     msgBox.setTextInteractionFlags(Qt::TextBrowserInteraction);
     msgBox.setText(
-        "<b>ContestLogX - Version 0.6.5 (Beta)</b><br><br>"
+        "<b>ContestLogX - Version 0.6.6 (Beta)</b><br><br>"
         "Cross-platform amateur radio contest logging software<br><br>"
         "Copyright &copy; 2025-2026, by Steve Woodruff, N9OH<br><br>"
         "<a href=\"https://contestlogx.com\">https://contestlogx.com</a><br><br>"
@@ -4871,6 +4962,9 @@ void MainWindow::restorePanelState()
         // Use version 0 for compatibility
         bool success = restoreState(dockState, 0);
 
+        // Re-apply corner ownership after restore — restoreState may reflow dock areas.
+        setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
+
         // Keep blocking for 2 seconds to allow Qt's layout system to finish applying sizes
         // Unblock after layout has settled
         QTimer::singleShot(2000, this, [this]() {
@@ -5561,6 +5655,7 @@ void MainWindow::updateQsoEntryFields()
     
     // Show the log button at the end
     m_logButton->show();
+    m_clearButton->show();
     m_qrzButton->show();
     
     // Create horizontal layout for buttons (only if not already created)
@@ -5582,6 +5677,7 @@ void MainWindow::updateQsoEntryFields()
         QHBoxLayout* buttonLayout = new QHBoxLayout;
         buttonLayout->addWidget(m_qrzButton);
         buttonLayout->addWidget(m_logButton);
+        buttonLayout->addWidget(m_clearButton);
         buttonLayout->addStretch();
         m_qsoEntryLayout->addLayout(buttonLayout);
     }
@@ -5600,6 +5696,7 @@ void MainWindow::updateQsoEntryFields()
     if (lastWidget) {
         setTabOrder(lastWidget, m_qrzButton);
         setTabOrder(m_qrzButton, m_logButton);
+        setTabOrder(m_logButton, m_clearButton);
     }
 }
 

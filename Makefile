@@ -133,11 +133,17 @@ reset:
 		echo "Reset cancelled."; \
 	fi
 
-# Build AppImage via Docker (Ubuntu 22.04)
+# Build AppImage via Docker (Ubuntu 22.04), then zip with version in filename
 appimage:
 	docker build -f Dockerfile.appimage -t clx-appimage-builder .
 	mkdir -p dist
 	docker run --rm -v $(CURDIR)/dist:/output clx-appimage-builder
+	@VERSION=$$(grep -m1 'project(ContestLogX VERSION' CMakeLists.txt | sed 's/.*VERSION \([0-9.]*\).*/\1/'); \
+	APPIMAGE=dist/ContestLogX-x86_64.AppImage; \
+	ZIPFILE=dist/ContestLogX-$$VERSION-x86_64.AppImage.zip; \
+	echo "Creating $$ZIPFILE ..."; \
+	cd dist && zip -j ../$$ZIPFILE ContestLogX-x86_64.AppImage; \
+	echo "Done: $$ZIPFILE"
 
 # Build macOS app bundle (requires macOS)
 macos:

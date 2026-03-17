@@ -35,7 +35,7 @@
 #include <QIcon>
 
 // Application version
-static const char* APP_VERSION = "0.6.5";
+static const char* APP_VERSION = "0.6.6";
 
 // Global log file
 static QFile *logFile = nullptr;

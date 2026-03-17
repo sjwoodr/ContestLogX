@@ -194,7 +194,9 @@ private:
     QLineEdit *m_callEdit;
     QLineEdit *m_exchangeEdit;
     QPushButton *m_logButton;
+    QPushButton *m_clearButton;
     QPushButton *m_qrzButton;
+    QLabel *m_returnToDockLabel;
     QTableView *m_qsoTable;
     
     QLabel *m_statusLabel;
@@ -208,6 +210,9 @@ private:
     QLabel *m_wpmLabel;
     QLabel *m_propagationLabel;
     
+    // QSO entry dock (floatable, bottom area only)
+    class QDockWidget *m_entryDock;
+
     // Right side panels (now as dock widgets)
     class DxClusterPanel *m_dxClusterPanel;
     class QDockWidget *m_dxClusterDock;
@@ -224,6 +229,7 @@ private:
     class QSplitter *m_rightPanelSplitter;
 
     // Menu actions for toggleable panels
+    QAction *m_floatEntryAction;
     QAction *m_dxClusterAction;
     QAction *m_cwConsoleAction;
     QAction *m_scoreWidgetAction;
@@ -254,6 +260,7 @@ private:
     bool m_debugLogMode;  // Set when --log argument is provided, triggers auto-summary to debug log
     bool m_firstShow;  // Track first show event for geometry restoration
     bool m_restoringState;  // Block save timer during state restoration
+    QMetaObject::Connection m_entryWindowVisConn;  // QWindow::visibilityChanged for floating entry dock
 
     // Session station info - loaded from file or defaults to Settings, NOT saved to Settings
     class StationInfo *m_sessionStationInfo;
