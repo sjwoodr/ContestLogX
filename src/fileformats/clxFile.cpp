@@ -194,6 +194,7 @@ bool ClxFile::loadJson(const QJsonObject& json)
             CwMemory mem;
             mem.abbreviation = obj["abbreviation"].toString();
             mem.text = obj["text"].toString();
+            mem.role = memoryRoleFromString(obj["role"].toString());
             m_cwMemories.append(mem);
         }
     }
@@ -205,6 +206,7 @@ bool ClxFile::loadJson(const QJsonObject& json)
             SsbMemory mem;
             mem.abbreviation = obj["abbreviation"].toString();
             mem.text = obj["text"].toString();
+            mem.role = memoryRoleFromString(obj["role"].toString());
             m_ssbMemories.append(mem);
         }
     }
@@ -299,6 +301,8 @@ QJsonObject ClxFile::toJson() const
             QJsonObject obj;
             obj["abbreviation"] = mem.abbreviation;
             obj["text"] = mem.text;
+            QString roleStr = memoryRoleToString(mem.role);
+            if (!roleStr.isEmpty()) obj["role"] = roleStr;
             cwArr.append(obj);
         }
         json["cw_memories"] = cwArr;
@@ -308,6 +312,8 @@ QJsonObject ClxFile::toJson() const
             QJsonObject obj;
             obj["abbreviation"] = mem.abbreviation;
             obj["text"] = mem.text;
+            QString roleStr = memoryRoleToString(mem.role);
+            if (!roleStr.isEmpty()) obj["role"] = roleStr;
             ssbArr.append(obj);
         }
         json["ssb_memories"] = ssbArr;

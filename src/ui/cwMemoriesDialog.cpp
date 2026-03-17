@@ -19,6 +19,7 @@
  */
 
 #include "cwMemoriesDialog.h"
+#include "memoryRole.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QFormLayout>
@@ -50,7 +51,7 @@ CwMemoriesDialog::~CwMemoriesDialog()
 
 void CwMemoriesDialog::setupUi()
 {
-    setFixedSize(700, 460);
+    setFixedSize(820, 460);
 
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
     mainLayout->setSpacing(8);
@@ -79,9 +80,11 @@ void CwMemoriesDialog::setupUi()
     QLabel *keyHeader = new QLabel("<b>Key</b>");
     QLabel *titleHeader = new QLabel("<b>Title</b>");
     QLabel *messageHeader = new QLabel("<b>Message</b>");
+    QLabel *roleHeader = new QLabel("<b>Role</b>");
     gridLayout->addWidget(keyHeader, 0, 0);
     gridLayout->addWidget(titleHeader, 0, 1);
     gridLayout->addWidget(messageHeader, 0, 2);
+    gridLayout->addWidget(roleHeader, 0, 3);
 
     // Create F1-F8 memory editors in compact grid
     for (int i = 0; i < 8; i++) {
@@ -99,6 +102,16 @@ void CwMemoriesDialog::setupUi()
         m_textEdits[i]->setMaximumHeight(28);
         m_textEdits[i]->setPlaceholderText("CW message text...");
         gridLayout->addWidget(m_textEdits[i], i + 1, 2);
+
+        m_roleCombo[i] = new QComboBox(this);
+        m_roleCombo[i]->addItem("—",          static_cast<int>(MemoryRole::NoRole));
+        m_roleCombo[i]->addItem("CQ",         static_cast<int>(MemoryRole::CQ));
+        m_roleCombo[i]->addItem("My Call",    static_cast<int>(MemoryRole::MyCall));
+        m_roleCombo[i]->addItem("Run Exch",   static_cast<int>(MemoryRole::RunExchange));
+        m_roleCombo[i]->addItem("S&P Exch",   static_cast<int>(MemoryRole::SPExchange));
+        m_roleCombo[i]->addItem("TU",         static_cast<int>(MemoryRole::TU));
+        m_roleCombo[i]->setFixedWidth(100);
+        gridLayout->addWidget(m_roleCombo[i], i + 1, 3);
     }
 
     gridLayout->setColumnStretch(2, 1); // Make message column stretch
@@ -179,9 +192,12 @@ void CwMemoriesDialog::loadMemoriesToUi(const QList<CwMemory>& memories)
         if (i < memories.size()) {
             m_abbrevEdits[i]->setText(memories[i].abbreviation);
             m_textEdits[i]->setPlainText(memories[i].text);
+            int idx = m_roleCombo[i]->findData(static_cast<int>(memories[i].role));
+            m_roleCombo[i]->setCurrentIndex(idx >= 0 ? idx : 0);
         } else {
             m_abbrevEdits[i]->clear();
             m_textEdits[i]->clear();
+            m_roleCombo[i]->setCurrentIndex(0);
         }
     }
 }
@@ -193,6 +209,7 @@ QList<CwMemory> CwMemoriesDialog::getMemoriesFromUi() const
         CwMemory mem;
         mem.abbreviation = m_abbrevEdits[i]->text().trimmed();
         mem.text = m_textEdits[i]->toPlainText().trimmed();
+        mem.role = static_cast<MemoryRole>(m_roleCombo[i]->currentData().toInt());
         memories.append(mem);
     }
     return memories;

@@ -21,10 +21,12 @@ import Layout from '../layouts/Layout.astro';
           <li><a href="#logging" class="hover:underline" style="color: #58a6ff;">Logging a QSO, Sorting &amp; Filtering</a></li>
           <li><a href="#call-history" class="hover:underline" style="color: #58a6ff;">Call History &amp; Exchange Autofill</a></li>
           <li><a href="#cw-ssb-memories" class="hover:underline" style="color: #58a6ff;">CW &amp; SSB Memories</a></li>
+          <li><a href="#run-sp" class="hover:underline" style="color: #58a6ff;">Run &amp; Search and Pounce Modes</a></li>
           <li><a href="#import-export" class="hover:underline" style="color: #58a6ff;">Importing &amp; Exporting Logs</a></li>
           <li><a href="#custom-contests" class="hover:underline" style="color: #58a6ff;">Creating Custom Contest Modules</a></li>
           <li><a href="#clx-format" class="hover:underline" style="color: #58a6ff;">CLX File Format</a></li>
           <li><a href="#data-files" class="hover:underline" style="color: #58a6ff;">Data Files &amp; Storage Locations</a></li>
+
         </ol>
       </nav>
 
@@ -199,9 +201,64 @@ F7  QRZ?
 F8  N9OH`}</pre>
         </section>
 
+        <!-- Run / S&P -->
+        <section id="run-sp" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
+          <h2 class="text-2xl font-semibold mb-4">6. Run &amp; Search and Pounce Modes</h2>
+
+          <p class="opacity-80 mb-4">
+            ContestLogX supports two operating modes that change how the <strong>Enter</strong> key sequences
+            through a contact — so you can work a full QSO without touching the mouse or the F-keys.
+          </p>
+
+          <h3 class="text-lg font-semibold mb-2">Selecting a Mode</h3>
+          <p class="opacity-80 mb-2">
+            Use the <strong>RUN</strong> and <strong>S&amp;P</strong> buttons in the QSO entry bar, or assign a
+            keyboard shortcut to <em>Toggle Run / S&amp;P Operating Mode</em> in <strong>Preferences → Shortcuts</strong>.
+          </p>
+
+          <h3 class="text-lg font-semibold mb-2 mt-4">Memory Roles</h3>
+          <p class="opacity-80 mb-2">
+            For the Enter sequence to work you must assign <strong>roles</strong> to your memory slots.
+            Open the CW or SSB Memories editor and set the <strong>Role</strong> column for each relevant memory:
+          </p>
+          <ul class="list-disc list-inside space-y-1 opacity-80 mb-4">
+            <li><strong>CQ</strong> — your CQ call (e.g. <code>CQ TEST {"{MYCALL}"}</code>)</li>
+            <li><strong>My Call</strong> — your callsign, sent when answering a running station (e.g. <code>{"{MYCALL}"}</code>)</li>
+            <li><strong>Run Exch</strong> — exchange sent in Run mode; typically starts with the caller's callsign (e.g. <code>{"{CALL}"} 5NN {"{SN}"}</code>)</li>
+            <li><strong>S&amp;P Exch</strong> — exchange sent in S&amp;P mode; your part only, no callsign needed (e.g. <code>5NN {"{SN}"}</code>)</li>
+            <li><strong>TU</strong> — sign-off after logging in Run mode (e.g. <code>TU {"{MYCALL}"} TEST</code>)</li>
+          </ul>
+          <p class="opacity-80 mb-4">
+            Memories without a role work exactly as before — press the F-key to send them at any time.
+            At most one memory per role is used; if multiple are tagged with the same role the first match wins.
+          </p>
+
+          <h3 class="text-lg font-semibold mb-2">Run Mode — Enter Sequence</h3>
+          <p class="opacity-80 mb-2">Use Run mode when you are calling CQ and stations answer you.</p>
+          <ol class="list-decimal list-inside space-y-2 opacity-80 mb-4">
+            <li><strong>Call box empty → Enter</strong> sends the <em>CQ</em> memory.</li>
+            <li><strong>Call filled → Enter</strong> sends the <em>Run Exch</em> memory and waits for the caller's exchange.</li>
+            <li><strong>After receiving exchange, Enter again</strong> sends the <em>TU</em> memory and logs the QSO.</li>
+          </ol>
+
+          <h3 class="text-lg font-semibold mb-2">Search &amp; Pounce Mode — Enter Sequence</h3>
+          <p class="opacity-80 mb-2">Use S&amp;P mode when you are tuning the band and calling a running station.</p>
+          <ol class="list-decimal list-inside space-y-2 opacity-80 mb-4">
+            <li><strong>Call filled → Enter</strong> sends the <em>My Call</em> memory so the running station hears you.</li>
+            <li><strong>After copying their exchange → Enter</strong> sends your <em>S&amp;P Exch</em> memory and logs the QSO.</li>
+          </ol>
+
+          <h3 class="text-lg font-semibold mb-2 mt-2">Notes</h3>
+          <ul class="list-disc list-inside space-y-1 opacity-80">
+            <li>The Enter sequence resets each time a QSO is logged or the entry form is cleared.</li>
+            <li>You can always press F-keys directly — the mode only affects the Enter key behaviour.</li>
+            <li>If no memory is tagged with the required role for the current step, Enter does nothing for that step (a warning is written to the debug log).</li>
+          </ul>
+        </section>
+
         <!-- Import/Export -->
         <section id="import-export" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
-          <h2 class="text-2xl font-semibold mb-4">6. Importing &amp; Exporting Logs</h2>
+          <h2 class="text-2xl font-semibold mb-4">7. Importing &amp; Exporting Logs</h2>
 
           <p class="opacity-80 mb-4">ContestLogX supports both import and export for Cabrillo and ADIF formats.</p>
 
@@ -231,7 +288,7 @@ F8  N9OH`}</pre>
 
         <!-- Custom Contest Modules -->
         <section id="custom-contests" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
-          <h2 class="text-2xl font-semibold mb-4">7. Creating Custom Contest Modules</h2>
+          <h2 class="text-2xl font-semibold mb-4">8. Creating Custom Contest Modules</h2>
 
           <p class="opacity-80 mb-4">
             Every contest in ContestLogX is defined by a JSON file in the <code>contests/</code> directory.
@@ -304,7 +361,7 @@ F8  N9OH`}</pre>
 
         <!-- CLX File Format -->
         <section id="clx-format" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
-          <h2 class="text-2xl font-semibold mb-4">8. CLX File Format</h2>
+          <h2 class="text-2xl font-semibold mb-4">9. CLX File Format</h2>
 
           <p class="opacity-80 mb-4">
             ContestLogX saves logs in the <code>.clx</code> format — a human-readable JSON file that is easy to inspect,
@@ -332,7 +389,7 @@ F8  N9OH`}</pre>
 
         <!-- Data Files -->
         <section id="data-files" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
-          <h2 class="text-2xl font-semibold mb-4">9. Data Files &amp; Storage Locations</h2>
+          <h2 class="text-2xl font-semibold mb-4">10. Data Files &amp; Storage Locations</h2>
 
           <h3 class="text-lg font-semibold mb-2">User Data</h3>
           <pre class="rounded p-4 text-sm overflow-x-auto mb-4" style="background-color: #0d1117; color: #e6edf3;">Linux:   ~/.local/share/ContestLogX/

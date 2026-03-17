@@ -22,10 +22,12 @@
 #define CWMEMORY_H
 
 #include <QString>
+#include "memoryRole.h"
 
 struct CwMemory {
     QString abbreviation;  // 5 chars max for button display
     QString text;          // Full CW text to send
+    MemoryRole role = MemoryRole::NoRole;  // Optional Run/S&P role
 };
 
 #endif // CWMEMORY_H

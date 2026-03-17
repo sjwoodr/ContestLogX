@@ -428,10 +428,11 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
         
         // Check if Enter or Return was pressed in any QSO entry field
         if (keyEvent->key() == Qt::Key_Return || keyEvent->key() == Qt::Key_Enter) {
-            if (lineEdit && m_exchangeFields.values().contains(lineEdit)) {
-                // Trigger Log QSO
-                onLogQso();
-                return true; // Event handled
+            bool inEntryField = (lineEdit == m_callEdit)
+                             || (lineEdit && m_exchangeFields.values().contains(lineEdit));
+            if (inEntryField) {
+                onQsoEntryReturn();
+                return true;
             }
         }
     }
@@ -624,6 +625,28 @@ void MainWindow::setupUi()
     m_clearButton = new QPushButton("Clear");
     buttonLayout->addWidget(m_clearButton);
     buttonLayout->addStretch();
+
+    // Run / S&P / Off toggle buttons
+    m_offButton = new QPushButton("OFF");
+    m_offButton->setCheckable(true);
+    m_offButton->setChecked(true);
+    m_offButton->setToolTip("Enter key sequences disabled — logs QSO directly");
+    m_offButton->setFixedWidth(46);
+    buttonLayout->addWidget(m_offButton);
+
+    m_runButton = new QPushButton("RUN");
+    m_runButton->setCheckable(true);
+    m_runButton->setChecked(false);
+    m_runButton->setToolTip("Run mode: you are calling CQ (Enter sequences CQ → Exchange → TU+Log)");
+    m_runButton->setFixedWidth(46);
+    buttonLayout->addWidget(m_runButton);
+
+    m_spButton = new QPushButton("S&&P");
+    m_spButton->setCheckable(true);
+    m_spButton->setChecked(false);
+    m_spButton->setToolTip("Search & Pounce: you are answering a CQ (Enter sequences My Call → Exchange → Log)");
+    m_spButton->setFixedWidth(46);
+    buttonLayout->addWidget(m_spButton);
 
     m_qsoEntryLayout->addLayout(buttonLayout);
 
@@ -1202,6 +1225,20 @@ void MainWindow::createConnections()
     connect(m_logButton, &QPushButton::clicked, this, &MainWindow::onLogQso);
     connect(m_clearButton, &QPushButton::clicked, this, &MainWindow::clearEntryForm);
     connect(m_qrzButton, &QPushButton::clicked, this, &MainWindow::onQrzLookup);
+
+    // Run / S&P / Off toggle buttons
+    connect(m_offButton, &QPushButton::clicked, this, [this]() {
+        m_runMode = RunMode::Off;
+        updateRunSPButtons();
+    });
+    connect(m_runButton, &QPushButton::clicked, this, [this]() {
+        m_runMode = RunMode::Run;
+        updateRunSPButtons();
+    });
+    connect(m_spButton, &QPushButton::clicked, this, [this]() {
+        m_runMode = RunMode::SP;
+        updateRunSPButtons();
+    });
     connect(m_callEdit, &QLineEdit::textChanged, this, &MainWindow::onCallChanged);
     connect(m_exchangeEdit, &QLineEdit::textChanged, this, &MainWindow::onExchangeChanged);
     
@@ -1293,6 +1330,9 @@ void MainWindow::createConnections()
 
     // Initialize the configured callsign lookup API
     initCallsignLookup();
+
+    // Sync Run/S&P button visual state with default mode
+    updateRunSPButtons();
 }
 
 void MainWindow::onNewLog()
@@ -2787,6 +2827,9 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
                 m_filterEdit->setFocus();
                 m_filterEdit->selectAll();
                 return;
+            } else if (it.key() == "toggleRunSP") {
+                onToggleRunSP();
+                return;
             }
         }
     }
@@ -4250,6 +4293,124 @@ void MainWindow::onAbout()
     msgBox.exec();
 }
 
+// ---------------------------------------------------------------------------
+// Run / S&P helpers
+// ---------------------------------------------------------------------------
+
+void MainWindow::updateRunSPButtons()
+{
+    m_offButton->setChecked(m_runMode == RunMode::Off);
+    m_runButton->setChecked(m_runMode == RunMode::Run);
+    m_spButton->setChecked(m_runMode == RunMode::SP);
+
+    // Visual emphasis: bold text on the active button
+    QFont boldFont = m_offButton->font();
+    boldFont.setBold(true);
+    QFont normalFont = boldFont;
+    normalFont.setBold(false);
+
+    m_offButton->setFont(m_runMode == RunMode::Off ? boldFont : normalFont);
+    m_runButton->setFont(m_runMode == RunMode::Run ? boldFont : normalFont);
+    m_spButton->setFont(m_runMode == RunMode::SP  ? boldFont : normalFont);
+}
+
+void MainWindow::onToggleRunSP()
+{
+    // Cycle: Off → Run → SP → Off
+    if (m_runMode == RunMode::Off)      m_runMode = RunMode::Run;
+    else if (m_runMode == RunMode::Run) m_runMode = RunMode::SP;
+    else                                m_runMode = RunMode::Off;
+    updateRunSPButtons();
+}
+
+int MainWindow::findMemoryIndexByRole(MemoryRole role) const
+{
+    const QList<CwMemory>& cwMems = m_useContestMemories ? m_contestCwMemories
+                                                         : Settings::instance().getCwMemories();
+    const QList<SsbMemory>& ssbMems = m_useContestMemories ? m_contestSsbMemories
+                                                           : Settings::instance().getSsbMemories();
+
+    QString mode = m_lastMode.toUpper();
+    bool isCw = (mode == "CW" || mode == "CWR");
+
+    if (isCw) {
+        for (int i = 0; i < cwMems.size(); ++i)
+            if (cwMems[i].role == role) return i;
+    } else {
+        for (int i = 0; i < ssbMems.size(); ++i)
+            if (ssbMems[i].role == role) return i;
+    }
+    return -1;
+}
+
+void MainWindow::triggerMemoryByRole(MemoryRole role)
+{
+    int idx = findMemoryIndexByRole(role);
+    if (idx < 0) {
+        DebugLogger::instance().log("MainWindow",
+            QString("No memory found for role: %1").arg(memoryRoleToString(role)));
+        return;
+    }
+
+    QString mode = m_lastMode.toUpper();
+    if (mode == "CW" || mode == "CWR") {
+        if (m_cwConsole)
+            m_cwConsole->onMemoryButton(idx);
+    } else {
+        if (m_ssbMemoriesWidget)
+            m_ssbMemoriesWidget->triggerMemory(idx);
+    }
+}
+
+void MainWindow::onQsoEntryReturn()
+{
+    QString call = m_callEdit->text().trimmed();
+    bool hasExchange = false;
+    for (auto* field : m_exchangeFields.values()) {
+        if (!field->text().trimmed().isEmpty()) {
+            hasExchange = true;
+            break;
+        }
+    }
+
+    if (m_runMode == RunMode::Off) {
+        onLogQso();
+        return;
+    }
+
+    if (m_runMode == RunMode::Run) {
+        if (call.isEmpty()) {
+            // Step 1: call box empty → send CQ
+            triggerMemoryByRole(MemoryRole::CQ);
+        } else if (!m_exchangeSent) {
+            // Step 2: call filled, exchange not yet sent → send exchange
+            triggerMemoryByRole(MemoryRole::RunExchange);
+            m_exchangeSent = true;
+        } else {
+            // Step 3: exchange was sent → send TU and log
+            triggerMemoryByRole(MemoryRole::TU);
+            onLogQso();
+        }
+    } else {
+        // S&P mode
+        if (!m_exchangeSent) {
+            // Step 1: call filled → send my call; ignore Enter if call is empty
+            if (call.isEmpty()) return;
+            triggerMemoryByRole(MemoryRole::MyCall);
+            m_exchangeSent = true;
+        } else if (hasExchange) {
+            // Step 2: exchange filled → send our exchange then log
+            triggerMemoryByRole(MemoryRole::SPExchange);
+            onLogQso();
+        } else {
+            // Exchange field still empty — log directly (operator logged manually)
+            onLogQso();
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+
 void MainWindow::clearEntryForm()
 {
     // Clear all exchange fields and reset defaults
@@ -4267,7 +4428,9 @@ void MainWindow::clearEntryForm()
         }
     }
     
+    m_callEdit->clear();
     m_callEdit->setFocus();
+    m_exchangeSent = false;
 }
 
 void MainWindow::preSaveCall()

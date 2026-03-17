@@ -25,6 +25,7 @@
 #include <QLineEdit>
 #include <QTextEdit>
 #include <QRadioButton>
+#include <QComboBox>
 #include <QList>
 #include <QPushButton>
 #include "ssbMemory.h"
@@ -58,6 +59,7 @@ private:
     // F1-F8 inputs
     QLineEdit *m_abbrevEdits[8];
     QTextEdit *m_textEdits[8];
+    QComboBox *m_roleCombo[8];
 
     // Station/Contest radio buttons
     QRadioButton *m_stationRadio;

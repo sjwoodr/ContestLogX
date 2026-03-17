@@ -90,7 +90,7 @@ CWWindow::CWWindow(FlrigClient* rigClient, QWidget *parent)
     
     for (int i = 0; i < 8; i++) {
         memoryButtons[i] = new QPushButton(QString("F%1\n---").arg(i + 1), this);
-        memoryButtons[i]->setMaximumHeight(35);
+        memoryButtons[i]->setMaximumHeight(45);
         memoryButtons[i]->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
         memoryButtons[i]->setStyleSheet("QPushButton { font-size: 9pt; padding: 2px; }");
         connect(memoryButtons[i], &QPushButton::clicked, this, [this, i]() { onMemoryButton(i); });

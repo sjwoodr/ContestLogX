@@ -31,7 +31,8 @@
 const QList<ShortcutsWidget::DefaultShortcut> ShortcutsWidget::DEFAULT_SHORTCUTS = {
     {"clearQsoEntry", "Clear QSO Entry Panel", "Ctrl+W"},
     {"preSaveCall", "Save QSO Fields to Call History (without logging)", "Ctrl+S"},
-    {"qsoViewFilter", "Filter QSO Log", "Ctrl+F"}
+    {"qsoViewFilter", "Filter QSO Log", "Ctrl+F"},
+    {"toggleRunSP", "Toggle Run / S&P Operating Mode", "Ctrl+M"}
 };
 
 ShortcutsWidget::ShortcutsWidget(QWidget* parent)

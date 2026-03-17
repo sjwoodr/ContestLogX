@@ -42,6 +42,7 @@
 #include "stationInfo.h"
 #include "cwMemory.h"
 #include "ssbMemory.h"
+#include "memoryRole.h"
 
 class MainWindow : public QMainWindow
 {
@@ -136,6 +137,8 @@ private slots:
     void onDupeFlashTimeout();
     void onSsbMemoryTriggered(int memoryNumber, const QString& text);
     void onCwMemoryTriggered(int fKey, const QString& text);
+    void onToggleRunSP();
+    void onQsoEntryReturn();
     void onTtsFinished();
     void onTtsError(const QString& error);
 
@@ -160,6 +163,9 @@ private:
     
     void clearEntryForm();
     void preSaveCall();
+    void triggerMemoryByRole(MemoryRole role);
+    int findMemoryIndexByRole(MemoryRole role) const;
+    void updateRunSPButtons();
     QMap<QString, QString> getExchangeFieldsForQso();
     QString getDupeQsoDetails(const QString& callsign, const QList<QsoRecord>& allQsos);
     void updateWindowTitle();
@@ -298,6 +304,14 @@ private:
     QList<CwMemory> m_contestCwMemories;
     QList<SsbMemory> m_contestSsbMemories;
     bool m_useContestMemories = false;
+
+    // Run / S&P operating mode
+    enum class RunMode { Off, Run, SP };
+    RunMode m_runMode = RunMode::Off;
+    bool m_exchangeSent = false;   // True once Exchange memory has been sent this QSO
+    QPushButton *m_offButton = nullptr;
+    QPushButton *m_runButton = nullptr;
+    QPushButton *m_spButton = nullptr;
 
     // UI state saving
 

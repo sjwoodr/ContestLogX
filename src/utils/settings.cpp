@@ -356,6 +356,7 @@ QList<CwMemory> Settings::getCwMemories() const
         CwMemory mem;
         mem.abbreviation = obj["abbreviation"].toString();
         mem.text = obj["text"].toString();
+        mem.role = memoryRoleFromString(obj["role"].toString());
         memories.append(mem);
     }
     
@@ -374,6 +375,8 @@ void Settings::setCwMemories(const QList<CwMemory>& memories)
         QJsonObject obj;
         obj["abbreviation"] = mem.abbreviation;
         obj["text"] = mem.text;
+        QString roleStr = memoryRoleToString(mem.role);
+        if (!roleStr.isEmpty()) obj["role"] = roleStr;
         memArray.append(obj);
     }
 
@@ -419,6 +422,7 @@ QList<SsbMemory> Settings::getSsbMemories() const
         SsbMemory mem;
         mem.abbreviation = obj["abbreviation"].toString();
         mem.text = obj["text"].toString();
+        mem.role = memoryRoleFromString(obj["role"].toString());
         memories.append(mem);
     }
 
@@ -437,6 +441,8 @@ void Settings::setSsbMemories(const QList<SsbMemory>& memories)
         QJsonObject obj;
         obj["abbreviation"] = mem.abbreviation;
         obj["text"] = mem.text;
+        QString roleStr = memoryRoleToString(mem.role);
+        if (!roleStr.isEmpty()) obj["role"] = roleStr;
         memArray.append(obj);
     }
 

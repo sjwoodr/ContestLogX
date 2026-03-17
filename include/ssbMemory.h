@@ -22,10 +22,12 @@
 #define SSBMEMORY_H
 
 #include <QString>
+#include "memoryRole.h"
 
 struct SsbMemory {
     QString abbreviation;  // 6 chars max for button display
     QString text;          // Full SSB text to speak via TTS
+    MemoryRole role = MemoryRole::NoRole;  // Optional Run/S&P role
 };
 
 #endif // SSBMEMORY_H
