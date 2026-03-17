@@ -234,8 +234,7 @@ def main():
 
     suite_start = time.monotonic()
 
-    # Collect results indexed by test number so we can print in order
-    results = {}
+    expected_by_idx = {idx: es for (idx, tn, lp, es) in work}
 
     with ThreadPoolExecutor(max_workers=args.workers) as executor:
         futures = {
@@ -245,36 +244,30 @@ def main():
 
         for future in as_completed(futures):
             idx, test_name, log_file, actual_score, mult_valid, extra_lines, elapsed = future.result()
-            # Find the expected score for this test
-            expected_score = next(es for (i, tn, lp, es) in work if i == idx)
-            results[idx] = (test_name, log_file, actual_score, mult_valid, extra_lines, elapsed, expected_score)
+            expected_score = expected_by_idx[idx]
 
-    # Print results in original test order
-    for (idx, test_name, log_path, expected_score) in work:
-        test_name_r, log_file_r, actual_score, mult_valid, extra_lines, elapsed, _ = results[idx]
+            print(f"Test {idx}: {test_name}")
+            print(f"  Log: {log_file}")
+            print(f"  Expected score: {expected_score}")
 
-        print(f"Test {idx}: {test_name_r}")
-        print(f"  Log: {log_file_r}")
-        print(f"  Expected score: {expected_score}")
+            for line in extra_lines:
+                print(line)
 
-        for line in extra_lines:
-            print(line)
-
-        if actual_score is None:
-            errors += 1
-        else:
-            score_passed = (actual_score == expected_score)
-            if score_passed and mult_valid:
-                print(f"  ✓ PASS: Claimed score = {actual_score}  ({elapsed:.2f}s)")
-                passed += 1
+            if actual_score is None:
+                errors += 1
             else:
-                if not score_passed:
-                    print(f"  ✗ FAIL: Expected score {expected_score}, got {actual_score}  ({elapsed:.2f}s)")
-                if not mult_valid:
-                    print(f"  ✗ FAIL: Multiplier validation failed")
-                failed += 1
+                score_passed = (actual_score == expected_score)
+                if score_passed and mult_valid:
+                    print(f"  ✓ PASS: Claimed score = {actual_score}  ({elapsed:.2f}s)")
+                    passed += 1
+                else:
+                    if not score_passed:
+                        print(f"  ✗ FAIL: Expected score {expected_score}, got {actual_score}  ({elapsed:.2f}s)")
+                    if not mult_valid:
+                        print(f"  ✗ FAIL: Multiplier validation failed")
+                    failed += 1
 
-        print()
+            print()
 
     suite_elapsed = time.monotonic() - suite_start
     print("=" * 70)
