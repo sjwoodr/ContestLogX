@@ -43,6 +43,7 @@
 #include "cwMemory.h"
 #include "ssbMemory.h"
 #include "memoryRole.h"
+#include "rateWidget.h"
 
 class MainWindow : public QMainWindow
 {
@@ -112,6 +113,7 @@ private slots:
     void onToggleScpWidget(bool checked);
     void onToggleSsbMemoriesWidget(bool checked);
     void onToggleMultiplierWidget(bool checked);
+    void onToggleRateWidget(bool checked);
     void onShowMultipliers();
     void onResetWidgetPositions();
     void onToggleFlrigDebug(bool checked);
@@ -231,6 +233,8 @@ private:
     class SsbMemoriesWidget *m_ssbMemoriesWidget;  // SsbMemoriesWidget IS a QDockWidget
     class MultiplierWidget *m_multiplierWidget;
     class QDockWidget *m_multiplierDock;
+    RateWidget *m_rateWidget;
+    class QDockWidget *m_rateDock;
     class QSplitter *m_mainSplitter;
     class QSplitter *m_rightPanelSplitter;
 
@@ -242,6 +246,7 @@ private:
     QAction *m_scpWidgetAction;
     QAction *m_ssbMemoriesWidgetAction;
     QAction *m_multiplierWidgetAction;
+    QAction *m_rateWidgetAction;
     QAction *m_flrigDebugAction;
     QAction *m_mainWindowDebugAction;
     QAction *m_contestEngineDebugAction;

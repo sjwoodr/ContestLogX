@@ -30,6 +30,7 @@
 #include "scpWidget.h"
 #include "ssbMemoriesWidget.h"
 #include "multiplierWidget.h"
+#include "rateWidget.h"
 #include "scpLineEdit.h"
 #include "stationClassDialog.h"
 #include "contestSelectDialog.h"
@@ -771,6 +772,20 @@ void MainWindow::setupDocks(QSplitter* mainSplitter)
         }
     });
 
+    // Rate Widget
+    m_rateDock = new QDockWidget("Rate & Stats", this);
+    m_rateDock->setObjectName("rateDock");
+    m_rateWidget = new RateWidget(m_rateDock);
+    m_rateDock->setWidget(m_rateWidget);
+    m_rateDock->setAllowedAreas(Qt::AllDockWidgetAreas);
+    m_rateDock->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable | QDockWidget::DockWidgetClosable);
+    addDockWidget(Qt::RightDockWidgetArea, m_rateDock);
+    m_rateDock->hide();  // Hidden by default
+    connect(m_rateDock, &QDockWidget::visibilityChanged, this, [this](bool visible) {
+        if (m_rateWidgetAction)
+            m_rateWidgetAction->setChecked(visible);
+    });
+
     // Load SSB memories (from contest or settings)
     loadSsbMemories();
 
@@ -1019,7 +1034,18 @@ void MainWindow::setupMenus()
     m_multiplierWidgetAction->setChecked(false);  // Hidden by default
     connect(m_multiplierWidgetAction, &QAction::triggered, this, &MainWindow::onToggleMultiplierWidget);
 
+    m_rateWidgetAction = windowMenu->addAction("&Rate && Stats");
+    m_rateWidgetAction->setCheckable(true);
+    m_rateWidgetAction->setChecked(false);  // Hidden by default
+    connect(m_rateWidgetAction, &QAction::triggered, this, &MainWindow::onToggleRateWidget);
+
     windowMenu->addSeparator();
+    QAction* dockAllAction = windowMenu->addAction("&Dock All Panels");
+    connect(dockAllAction, &QAction::triggered, this, [this]() {
+        const QList<QDockWidget*> docks = findChildren<QDockWidget*>();
+        for (QDockWidget* dock : docks)
+            if (dock->isFloating()) dock->setFloating(false);
+    });
     QAction* resetLayoutAction = windowMenu->addAction("&Reset Widget Positions...");
     connect(resetLayoutAction, &QAction::triggered, this, &MainWindow::onResetWidgetPositions);
 
@@ -1242,6 +1268,8 @@ void MainWindow::createConnections()
     connect(m_callEdit, &QLineEdit::textChanged, this, &MainWindow::onCallChanged);
     connect(m_exchangeEdit, &QLineEdit::textChanged, this, &MainWindow::onExchangeChanged);
     
+    m_rateWidget->setModel(m_qsoModel);
+
     connect(m_qsoModel, &QsoListModel::qsoAdded, this, [this]() {
         m_qsoCountLabel->setText(QString("QSOs: %1").arg(m_qsoModel->count()));
         m_isModified = true;
@@ -2727,6 +2755,9 @@ void MainWindow::applyFontSettings()
     if (m_scoreWidget && !scoreFont.family().isEmpty())
         m_scoreWidget->setBaseFont(scoreFont);
 
+    if (m_rateWidget && !scoreFont.family().isEmpty())
+        m_rateWidget->setBaseFont(scoreFont);
+
     QFont cwMemFont = settings.getPanelFont("cwMemories");
     if (m_cwConsole && !cwMemFont.family().isEmpty())
         m_cwConsole->setMemoriesFont(cwMemFont);
@@ -3881,6 +3912,14 @@ void MainWindow::onToggleMultiplierWidget(bool checked)
     }
 }
 
+void MainWindow::onToggleRateWidget(bool checked)
+{
+    if (m_rateDock) {
+        m_rateDock->setVisible(checked);
+        savePanelState();
+    }
+}
+
 void MainWindow::onShowMultipliers()
 {
     // Check if a contest is loaded
@@ -4312,6 +4351,12 @@ void MainWindow::updateRunSPButtons()
     m_offButton->setFont(m_runMode == RunMode::Off ? boldFont : normalFont);
     m_runButton->setFont(m_runMode == RunMode::Run ? boldFont : normalFont);
     m_spButton->setFont(m_runMode == RunMode::SP  ? boldFont : normalFont);
+
+    switch (m_runMode) {
+        case RunMode::Off: m_statusLabel->setText("Operating mode: OFF (Enter logs directly)"); break;
+        case RunMode::Run: m_statusLabel->setText("Operating mode: RUN (Enter sequences CQ → Exchange → TU+Log)"); break;
+        case RunMode::SP:  m_statusLabel->setText("Operating mode: S&P (Enter sequences My Call → Exchange+Log)"); break;
+    }
 }
 
 void MainWindow::onToggleRunSP()

@@ -160,6 +160,9 @@ ContestLogX is a cross-platform amateur radio contest logging application built 
 - [x] QSO editing/deletion
 - [x] Partial callsign checking (Super Check Partial)
 - [x] Voice keyer (SSB memory buttons)
+- [x] Search/filter in log
+- [x] Rate meter / statistics
+- [x] Log backup/archive
 
 #### Configuration
 - [x] Station setup dialog
@@ -171,13 +174,10 @@ ContestLogX is a cross-platform amateur radio contest logging application built 
 ### ❌ Not Implemented (Future)
 
 - [ ] Band map
-- [ ] Rate meter / statistics
 - [ ] Network/multi-op support
 - [ ] RTTY/digital mode integration
 - [ ] Additional contest modules
 - [ ] Log comparison/checking
-- [ ] Search/filter in log
-- [ ] Log backup/archive
 - [ ] Awards tracking (DXCC, WAS, etc.)
 
 ## Technical Architecture
@@ -511,4 +511,4 @@ Website: contestlogx.com
 *Amateur Radio Contest Logging Software*  
 Copyright (c) 2025-2026, by Steve Woodruff, N9OH
 
-Last Updated: March 3, 2026
+Last Updated: March 17, 2026
