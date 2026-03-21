@@ -24,6 +24,74 @@ Debug information is written to:
 - Enable specific components only when debugging that area to reduce log noise
 - Debug settings are loaded BEFORE any components initialize, ensuring clean startup logs
 
+## Recent Changes (2026 — 0.6.x)
+
+### Virginia QSO Party (VAQP) ✅
+- Full VAQP contest module added (`contests/vaqp.json`)
+- 95 counties + 38 independent cities as named multipliers (`multsOnce`)
+- Mobile station scoring: `/M` and `/R` suffix calls score 3 points
+- Bonus station groups: "Virginia is for Lovers" (K4L/K4O/K4V/K4E/K4R/K4S, +50 pts each) and "ARRL Year of the Club" (W4MYA/W4VA/K4LRG/N4FRS/W4OVH/W4NPS/W4RKC/K4XY, +20 pts each)
+- `receivedExchangeFilter` restricts out-of-state/DX stations to in-state county/city exchanges only
+- `bonusStations` JSON field supports `type`: `bonusOnce`, `bonusPerBand`, `bonusPerMode`, `bonusPerBandAndMode`
+- Summary sheet includes BONUS STATION DETAILS section showing worked/missed stations per group
+
+### Florida QSO Party (FQP) ✅
+- Full FQP contest module added (`contests/fqp.json`)
+- Both in-state (FL) and out-of-state (W/VE) station class support
+- `multsPerMode` multiplier type
+
+### Rate Widget ✅
+- New dock widget showing QSO rate (QSOs/hour) over recent intervals
+- Available from **Window → Rate** menu
+
+### Run / S&P / Off Operating Modes ✅
+- Three-state operating mode: **Run**, **S&P**, **Off**
+- Buttons in QSO entry bar; also togglable via **Ctrl+M** (configurable)
+- Run mode: Enter sequences CQ → Exchange → TU+Log
+- S&P mode: Enter sequences My Call → Exchange+Log
+- Off mode: Enter logs directly (legacy behaviour)
+- Memory roles (`CQ`, `My Call`, `Run Exch`, `S&P Exch`, `TU`) control which memory fires at each step
+
+### Contest / Station Memory Type Toggle ✅
+- Both CW and SSB memory editors now support two sets: **Station Memories** (global) and **Contest-Specific Memories**
+- Active type is shown as a clickable button in the status bar ("Station Memories" / "Contest Memories")
+- **Ctrl+T** keyboard shortcut (configurable) toggles between types instantly
+- Selected type persists in the CLX file — restored on log reload
+- When contest mode is active, empty contest slots do nothing (no silent fallback to station memories)
+
+### DX Cluster Band Filter ✅
+- Band filter dropdown added to the DX Cluster panel, to the right of the Auto-scroll checkbox
+- Shows **ALL** plus each band the current contest supports
+- Filtering hides/shows spots instantly; new spots arriving while a filter is active are filtered on arrival
+- Band list updates automatically when a new contest is loaded
+
+### Keyboard Handling from Floating Dock Windows ✅
+- F1–F8 CW/SSB memory keys now work when the QSO Entry dock is floating (undocked)
+- All other keyboard shortcuts (Ctrl+W, Ctrl+S, Ctrl+F, Ctrl+M, Ctrl+T, etc.) also work from floating docks
+- **Root cause fix:** `QWidget::isAncestorOf()` fails across window boundaries; now uses QObject parent-chain walk instead
+- `qApp->installEventFilter(mainWindow)` intercepts key events app-wide; events are routed only when the target is a descendant of MainWindow in the QObject tree
+
+### Escape to Halt CW/SSB Sending ✅
+- Pressing **Escape** immediately halts any in-progress CW sending
+- Also cancels TTS (SSB) voice keying in progress
+- Works from any widget in the main window and from floating docks
+
+### CW Memory SN Options ✅
+- CW Memories editor now includes `{SN}` serial number formatting options:
+  - **Minimum digits**: 1 (e.g. `7`), 2 (e.g. `07`), or 3 (e.g. `007`)
+  - **Cut numbers**: maps `0→T`, `9→N`, `1→A` for traditional CW abbreviations
+
+### Bonus Station Scoring (Contest Engine) ✅
+- `bonusStations` array in contest JSON defines station groups with point values
+- `type` field: `bonusOnce` | `bonusPerBand` | `bonusPerMode` | `bonusPerBandAndMode`
+- Bonus points are auto-calculated by the contest engine (no manual entry required)
+- Backward-compatible: old `oneTimeOnly: true/false` boolean maps to `bonusOnce`/`bonusPerBandAndMode`
+
+### Mobile Station Scoring (Contest Engine) ✅
+- `mobilePoints` and `mobileSuffixes` JSON fields in `scoring` section
+- When a worked station's callsign ends with any listed suffix (e.g. `/M`, `/R`), `mobilePoints` overrides the normal mode/relationship-based point calculation
+- Evaluated before mode-based scoring; used in VAQP
+
 ## Recent Changes (2025-12-15)
 
 ### DXCC Database Integration ✅

@@ -22,6 +22,7 @@ import Layout from '../layouts/Layout.astro';
           <li><a href="#call-history" class="hover:underline" style="color: #58a6ff;">Call History &amp; Exchange Autofill</a></li>
           <li><a href="#cw-ssb-memories" class="hover:underline" style="color: #58a6ff;">CW &amp; SSB Memories</a></li>
           <li><a href="#run-sp" class="hover:underline" style="color: #58a6ff;">Run &amp; Search and Pounce Modes</a></li>
+          <li><a href="#dx-cluster" class="hover:underline" style="color: #58a6ff;">DX Cluster</a></li>
           <li><a href="#import-export" class="hover:underline" style="color: #58a6ff;">Importing &amp; Exporting Logs</a></li>
           <li><a href="#custom-contests" class="hover:underline" style="color: #58a6ff;">Creating Custom Contest Modules</a></li>
           <li><a href="#clx-format" class="hover:underline" style="color: #58a6ff;">CLX File Format</a></li>
@@ -59,10 +60,12 @@ import Layout from '../layouts/Layout.astro';
             <li>ARRL DX Contest</li>
             <li>ARRL VHF Contest</li>
             <li>CWops CWT (CW Mini Test)</li>
-            <li>YB DX Contest</li>
             <li>EU DX Contest</li>
+            <li>Florida QSO Party (FQP)</li>
             <li>Minnesota QSO Party (MNQP)</li>
+            <li>Virginia QSO Party (VAQP)</li>
             <li>Winter Field Day</li>
+            <li>YB DX Contest</li>
             <li>General DXCC (open-ended DXCC tracking)</li>
           </ul>
           <p class="opacity-80 mt-2">Additional contests can be added by dropping a JSON definition file into the <code>contests/</code> directory — no recompilation needed.</p>
@@ -190,6 +193,34 @@ import Layout from '../layouts/Layout.astro';
           </ul>
           <p class="opacity-80 mt-2">For SSB memories, <code>{"{"+"CALL}"}</code> and <code>{"{"+"MYCALL}"}</code> are automatically converted to NATO phonetics before being sent to TTS (e.g., "Kilo One Alpha Bravo Charlie"). CW memories send the expanded text literally.</p>
 
+          <h3 class="text-lg font-semibold mb-2 mt-4">Station vs. Contest Memories</h3>
+          <p class="opacity-80 mb-2">
+            Each memory type (CW and SSB) has two independent sets of eight slots:
+          </p>
+          <ul class="list-disc list-inside space-y-1 opacity-80 mb-2">
+            <li><strong>Station Memories</strong> — global, shared across all contests</li>
+            <li><strong>Contest-Specific Memories</strong> — saved inside the <code>.clx</code> log file, specific to one contest log</li>
+          </ul>
+          <p class="opacity-80 mb-2">
+            The active set is shown in the status bar as a clickable button (<strong>Station Memories</strong> or <strong>Contest Memories</strong>).
+            Click it to toggle, or use the <strong>Ctrl+T</strong> keyboard shortcut (configurable in <strong>Preferences → Shortcuts</strong>).
+            The choice is saved with the log file and restored when you reopen it.
+          </p>
+          <p class="opacity-80">
+            Edit each set independently from <strong>Settings → CW Memories</strong> or <strong>Settings → SSB Memories</strong> using the
+            <em>Station Memories</em> / <em>Contest-Specific Memories</em> radio buttons at the top of the editor.
+          </p>
+
+          <h3 class="text-lg font-semibold mb-2 mt-4">Halting a Transmission</h3>
+          <p class="opacity-80">Press <strong>Escape</strong> at any time to immediately stop CW sending or cancel a TTS (SSB) voice message in progress. Works whether the QSO entry dock is docked or floating.</p>
+
+          <h3 class="text-lg font-semibold mb-2 mt-4">CW Serial Number Formatting</h3>
+          <p class="opacity-80 mb-2">The CW Memories editor includes options for the <code>{"{"+"SN}"}</code> token:</p>
+          <ul class="list-disc list-inside space-y-1 opacity-80">
+            <li><strong>Minimum digits</strong> — pad with leading zeros: 1 digit (e.g. <code>7</code>), 2 digits (e.g. <code>07</code>), or 3 digits (e.g. <code>007</code>)</li>
+            <li><strong>Cut numbers</strong> — substitute traditional CW abbreviations: <code>0→T</code>, <code>9→N</code>, <code>1→A</code></li>
+          </ul>
+
           <h3 class="text-lg font-semibold mb-2 mt-4">Typical Memory Layout</h3>
           <pre class="rounded p-4 text-sm overflow-x-auto" style="background-color: #0d1117; color: #e6edf3;">{`F1  CQ TEST N9OH N9OH
 F2  {CALL} 5NN {SN}
@@ -256,9 +287,44 @@ F8  N9OH`}</pre>
           </ul>
         </section>
 
+        <!-- DX Cluster -->
+        <section id="dx-cluster" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
+          <h2 class="text-2xl font-semibold mb-4">7. DX Cluster</h2>
+
+          <p class="opacity-80 mb-4">
+            ContestLogX includes a built-in DX cluster client. Open it from <strong>Window → DX Cluster</strong>.
+            Spots appear in real time and expire automatically after 15 minutes.
+          </p>
+
+          <h3 class="text-lg font-semibold mb-2">Connecting</h3>
+          <ol class="list-decimal list-inside space-y-2 opacity-80 mb-4">
+            <li>Enter a cluster address in <code>host:port</code> format (e.g. <code>dxc.k0xm.net:7300</code>) or select one from the dropdown.</li>
+            <li>Click <strong>Connect</strong>. ContestLogX will auto-login using your configured callsign.</li>
+            <li>Spots populate automatically; propagation data (SFI, A, K index) is also parsed and displayed in the status bar.</li>
+          </ol>
+
+          <h3 class="text-lg font-semibold mb-2">Band Filter</h3>
+          <p class="opacity-80 mb-2">
+            Use the band dropdown (to the right of the <strong>Auto-scroll</strong> checkbox) to show only spots on a specific band.
+            Selecting <strong>ALL</strong> removes the filter. The band list is populated from the contest definition currently loaded —
+            it updates automatically when you switch contests.
+          </p>
+
+          <h3 class="text-lg font-semibold mb-2 mt-4">Clicking a Spot</h3>
+          <p class="opacity-80 mb-4">
+            Click any spot row to tune your rig to that frequency and pre-fill the callsign in the entry field.
+            The spot is removed from the list once you log the QSO.
+          </p>
+
+          <h3 class="text-lg font-semibold mb-2">Spotting Your Last QSO</h3>
+          <p class="opacity-80">
+            Click <strong>Spot Last QSO</strong> to pre-fill the cluster command field with a <code>dx</code> command for the most recently logged contact. Edit if needed, then press Enter to send.
+          </p>
+        </section>
+
         <!-- Import/Export -->
         <section id="import-export" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
-          <h2 class="text-2xl font-semibold mb-4">7. Importing &amp; Exporting Logs</h2>
+          <h2 class="text-2xl font-semibold mb-4">8. Importing &amp; Exporting Logs</h2>
 
           <p class="opacity-80 mb-4">ContestLogX supports both import and export for Cabrillo and ADIF formats.</p>
 
@@ -288,7 +354,7 @@ F8  N9OH`}</pre>
 
         <!-- Custom Contest Modules -->
         <section id="custom-contests" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
-          <h2 class="text-2xl font-semibold mb-4">8. Creating Custom Contest Modules</h2>
+          <h2 class="text-2xl font-semibold mb-4">9. Creating Custom Contest Modules</h2>
 
           <p class="opacity-80 mb-4">
             Every contest in ContestLogX is defined by a JSON file in the <code>contests/</code> directory.
@@ -361,7 +427,7 @@ F8  N9OH`}</pre>
 
         <!-- CLX File Format -->
         <section id="clx-format" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
-          <h2 class="text-2xl font-semibold mb-4">9. CLX File Format</h2>
+          <h2 class="text-2xl font-semibold mb-4">10. CLX File Format</h2>
 
           <p class="opacity-80 mb-4">
             ContestLogX saves logs in the <code>.clx</code> format — a human-readable JSON file that is easy to inspect,
@@ -389,7 +455,7 @@ F8  N9OH`}</pre>
 
         <!-- Data Files -->
         <section id="data-files" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
-          <h2 class="text-2xl font-semibold mb-4">10. Data Files &amp; Storage Locations</h2>
+          <h2 class="text-2xl font-semibold mb-4">11. Data Files &amp; Storage Locations</h2>
 
           <h3 class="text-lg font-semibold mb-2">User Data</h3>
           <pre class="rounded p-4 text-sm overflow-x-auto mb-4" style="background-color: #0d1117; color: #e6edf3;">Linux:   ~/.local/share/ContestLogX/
