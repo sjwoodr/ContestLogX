@@ -1,0 +1,456 @@
+{
+  "contest": {
+    "name": "Virginia QSO Party",
+    "abbreviation": "VAQP",
+    "version": "1.0.0",
+    "sponsor": "Sterling Park Amateur Radio Club (SPARC), Call Box 29, Sterling, VA 20167",
+    "description": "Annual Virginia QSO Party. VA stations work all stations. Out-of-state stations work VA stations only. Work fixed stations once per band/mode; work VA Mobiles/Rovers/Expeditions once per county from which they operate.",
+    "startDate": "Third Saturday in March (2026: March 21, 1400 UTC – March 22, 0400 UTC; then March 22, 1200 UTC – 2400 UTC)",
+    "duration": 26,
+    "offTimeGapMinutes": 0,
+    "modes": ["CW", "SSB", "RTTY"],
+    "bands": ["160m", "80m", "40m", "20m", "15m", "10m", "6m", "2m"],
+    "url": "https://www.qsl.net/sterling/vaqp.htm",
+    "categories": {
+      "stations": ["SINGLE_OP", "MULTI_SINGLE", "MULTI_MULTI", "MOBILE", "EXPEDITION", "ROVER"],
+      "power": ["QRP", "LOW_POWER", "HIGH_POWER"],
+      "modes": ["MIXED", "CW", "PHONE", "DIGITAL"]
+    }
+  },
+
+  "frequencies": {
+    "160m": {
+      "start": 1800,
+      "end": 2000,
+      "cw":    {"start": 1800, "end": 1840},
+      "phone": {"start": 1840, "end": 2000}
+    },
+    "80m": {
+      "start": 3500,
+      "end": 4000,
+      "cw":    {"start": 3500, "end": 3600},
+      "phone": {"start": 3600, "end": 4000}
+    },
+    "40m": {
+      "start": 7000,
+      "end": 7300,
+      "cw":    {"start": 7000, "end": 7125},
+      "phone": {"start": 7125, "end": 7300}
+    },
+    "20m": {
+      "start": 14000,
+      "end": 14350,
+      "cw":    {"start": 14000, "end": 14150},
+      "phone": {"start": 14150, "end": 14350}
+    },
+    "15m": {
+      "start": 21000,
+      "end": 21450,
+      "cw":    {"start": 21000, "end": 21200},
+      "phone": {"start": 21200, "end": 21450}
+    },
+    "10m": {
+      "start": 28000,
+      "end": 29700,
+      "cw":    {"start": 28000, "end": 28300},
+      "phone": {"start": 28300, "end": 29700}
+    },
+    "6m": {
+      "start": 50000,
+      "end": 54000,
+      "cw":    {"start": 50000, "end": 50125},
+      "phone": {"start": 50125, "end": 54000}
+    },
+    "2m": {
+      "start": 144000,
+      "end": 148000,
+      "cw":    {"start": 144000, "end": 144150},
+      "phone": {"start": 144150, "end": 148000}
+    }
+  },
+
+  "stationClasses": {
+    "enabled": false
+  },
+
+  "userPrompts": [
+    {
+      "id": "stationType",
+      "question": "Select your station location",
+      "type": "select",
+      "options": [
+        {"value": "VA",  "label": "Virginia (in-state) — send VA county or independent city abbreviation"},
+        {"value": "WVE", "label": "W/VE (US or Canada outside VA) — send state or province abbreviation"},
+        {"value": "DX",  "label": "DX (outside US/Canada) — send DX"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "Determines your sent exchange and which multipliers are counted."
+    },
+    {
+      "id": "operatingClass",
+      "question": "Select your operating class",
+      "type": "select",
+      "options": [
+        {"value": "VA_SO",         "label": "VA: Single Operator"},
+        {"value": "VA_MS",         "label": "VA: Multi-Op Single Transmitter"},
+        {"value": "VA_MM",         "label": "VA: Multi-Op Multi Transmitter"},
+        {"value": "VA_MOB",        "label": "VA: Mobile (vehicle-mounted, may operate while moving)"},
+        {"value": "VA_EXP",        "label": "VA: Expedition (2+ VA locations, stationary at each, no commercial power)"},
+        {"value": "VA_ROV",        "label": "VA: Rover (vehicle-mounted for contesting, stationary and/or moving)"},
+        {"value": "OUT_SO",        "label": "Out-of-State: Single Operator"},
+        {"value": "OUT_MS",        "label": "Out-of-State: Multi-Op Single Transmitter"},
+        {"value": "OUT_MM",        "label": "Out-of-State: Multi-Op Multi Transmitter"},
+        {"value": "DX_UNLIMITED",  "label": "DX: Unlimited"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "VA Mobiles/Expeditions/Rovers: contacts in each VA county/independent city they operate from are re-workable and count as a new multiplier."
+    },
+    {
+      "id": "powerCategory",
+      "question": "Select your power category",
+      "type": "select",
+      "options": [
+        {"value": "QRP",  "label": "QRP — 5 watts or less"},
+        {"value": "LOW",  "label": "Low Power — 150 watts or less"},
+        {"value": "HIGH", "label": "High Power — greater than 150 watts"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "High power is greater than 150 watts; Low power is 150 watts or less."
+    },
+    {
+      "id": "myExchange",
+      "question": "Enter your exchange (VA county/city abbreviation, 2-letter state/province, or DX)",
+      "type": "text",
+      "required": true,
+      "forceUppercase": true,
+      "storeInMeta": true,
+      "description": "VA county or independent city abbreviation for VA stations (e.g. FAX for Fairfax Co., NFK for Norfolk). 2-letter US state or Canadian province for W/VE (e.g. MD, ON). DX for all others.",
+      "exchangeFieldMapping": {
+        "myExchange": "EXCHs"
+      }
+    }
+  ],
+
+  "exchangeFields": {
+    "sent": [
+      {
+        "name": "SNs",
+        "type": "serial",
+        "required": true,
+        "description": "QSO serial number sent (auto-incremented)"
+      },
+      {
+        "name": "EXCHs",
+        "type": "string",
+        "required": true,
+        "description": "VA county/independent city for VA stations; state/province for W/VE; DX for others"
+      }
+    ],
+    "received": [
+      {
+        "name": "SNr",
+        "type": "serial",
+        "required": true,
+        "description": "QSO serial number received"
+      },
+      {
+        "name": "EXCHr",
+        "type": "string",
+        "required": true,
+        "description": "VA county/city (from VA stations), state/province (from W/VE), or DX"
+      }
+    ]
+  },
+
+  "qsoFields": [
+    {"name": "Date",      "column": "DATE",   "type": "date",   "format": "yyyy-MM-dd", "required": true},
+    {"name": "Time",      "column": "TIME",   "type": "time",   "format": "HH:mm:ss",   "required": true},
+    {"name": "Callsign",  "column": "CALL",   "type": "string", "required": true, "uppercase": true},
+    {"name": "Frequency", "column": "FREQ",   "type": "number", "unit": "kHz",    "required": true},
+    {"name": "Mode",      "column": "MODE",   "type": "enum",   "values": ["CW", "SSB", "RTTY"], "required": true},
+    {"name": "SN Sent",   "column": "SNs",    "type": "string", "required": true},
+    {"name": "Exch Sent", "column": "EXCHs",  "type": "string", "required": true},
+    {"name": "SN Rcvd",   "column": "SNr",    "type": "string", "required": true},
+    {"name": "Exch Rcvd", "column": "EXCHr",  "type": "string", "required": true},
+    {"name": "Points",    "column": "POINTS", "type": "number", "calculated": true},
+    {"name": "Mult",      "column": "M",      "type": "string", "calculated": true}
+  ],
+
+  "scoring": {
+    "points": {
+      "phone": 1,
+      "cw":    2,
+      "digital": 2
+    },
+    "mobilePoints": 3,
+    "mobileSuffixes": ["/M", "/R"],
+    "multipliers": {
+      "type": "multsOnce",
+      "description": "VA stations: VA counties/independent cities + US states (excl VA) + Canadian provinces + DX — each counted once. Out-of-state stations: VA counties and independent cities only — each counted once.",
+      "categories": ["namedMults"],
+      "alaskaAndHawaiiCountDxcc": false,
+      "usAndCanadaCountDxcc": false
+    },
+    "finalScore": "SUM(points) * SUM(multipliers)",
+    "notes": [
+      "Bonus points (add manually to claimed score):",
+      "  VA Mobile/Expedition/Rover: +100 pts per VA county/independent city from which they log at least 10 valid QSOs."
+    ]
+  },
+
+  "dupeChecking": {
+    "type": "perBandAndMode",
+    "description": "Work fixed stations once per band per mode. VA Mobile, Expedition, and Rover stations may be worked again in each new VA county or independent city they operate from."
+  },
+
+  "logging": {
+    "requiredFields": ["date", "time", "frequency", "mode", "callsign", "serialSent", "exchSent", "serialRcvd", "exchReceived"],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "VA-QSO-PARTY",
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {sn_sent} {exch_sent} {call} {sn_rcvd} {exch_rcvd}",
+      "requiredHeaders": ["CONTEST", "CALLSIGN", "CATEGORY-OPERATOR", "CATEGORY-POWER", "CATEGORY-MODE", "CLAIMED-SCORE", "CREATED-BY", "NAME", "EMAIL", "CLUB"]
+    }
+  },
+
+  "callHistory": {
+    "fieldsToSave": ["EXCHr"],
+    "description": "Save county/state/province for future autofill"
+  },
+
+  "validation": {
+    "minimumQSOs": 1,
+    "maxOperatingTime": 26,
+    "offTimesRequired": false,
+    "namedMults": [
+      "ACC", "ALB", "ALL", "AME", "AMH", "APP", "ARL", "AUG", "BAT", "BED",
+      "BLA", "BOT", "BRU", "BCH", "BHM", "CAM", "CLN", "CRL", "CCY", "CHA",
+      "CHE", "CLA", "CRA", "CUL", "CUM", "DIC", "DIN", "ESS", "FFX", "FAU",
+      "FLO", "FLU", "FRA", "FRE", "GIL", "GLO", "GOO", "GRA", "GRN", "GVL",
+      "HAL", "HAN", "HCO", "HRY", "HIG", "IOW", "JAM", "KQN", "KGE", "KWM",
+      "LAN", "LEE", "LDN", "LSA", "LUN", "MAD", "MAT", "MEC", "MID", "MON",
+      "NEL", "NEW", "NHA", "NUM", "NOT", "ORG", "PAG", "PAT", "PIT", "POW",
+      "PRE", "PRG", "PRW", "PUL", "RAP", "RIC", "ROA", "RBR", "RHM", "RUS",
+      "SCO", "SHE", "SMY", "SHA", "SPO", "STA", "SUR", "SUS", "TAZ", "WAR",
+      "WAS", "WES", "WIS", "WYT", "YOR",
+      "ALX", "BRX", "BVX", "CHX", "CPX", "COX", "CVX", "DAX", "EMX", "FXX",
+      "FCX", "FRX", "FBX", "GAX", "HAX", "HBX", "HOX", "LEX", "LYX", "MAX",
+      "MPX", "MVX", "NNX", "NFX", "NRX", "PBX", "PQX", "POX", "RAX", "RIX",
+      "ROX", "SAX", "STX", "SUX", "VBX", "WAX", "WMX", "WIX",
+      "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL",
+      "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME",
+      "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH",
+      "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI",
+      "SC", "SD", "TN", "TX", "UT", "VT", "WA", "WV", "WI", "WY",
+      "AB", "BC", "MB", "NB", "NL", "NS", "NT", "NU", "ON", "PE", "QC", "SK", "YT",
+      "DX"
+    ],
+    "inStateMults": [
+      "ACC", "ALB", "ALL", "AME", "AMH", "APP", "ARL", "AUG", "BAT", "BED",
+      "BLA", "BOT", "BRU", "BCH", "BHM", "CAM", "CLN", "CRL", "CCY", "CHA",
+      "CHE", "CLA", "CRA", "CUL", "CUM", "DIC", "DIN", "ESS", "FFX", "FAU",
+      "FLO", "FLU", "FRA", "FRE", "GIL", "GLO", "GOO", "GRA", "GRN", "GVL",
+      "HAL", "HAN", "HCO", "HRY", "HIG", "IOW", "JAM", "KQN", "KGE", "KWM",
+      "LAN", "LEE", "LDN", "LSA", "LUN", "MAD", "MAT", "MEC", "MID", "MON",
+      "NEL", "NEW", "NHA", "NUM", "NOT", "ORG", "PAG", "PAT", "PIT", "POW",
+      "PRE", "PRG", "PRW", "PUL", "RAP", "RIC", "ROA", "RBR", "RHM", "RUS",
+      "SCO", "SHE", "SMY", "SHA", "SPO", "STA", "SUR", "SUS", "TAZ", "WAR",
+      "WAS", "WES", "WIS", "WYT", "YOR",
+      "ALX", "BRX", "BVX", "CHX", "CPX", "COX", "CVX", "DAX", "EMX", "FXX",
+      "FCX", "FRX", "FBX", "GAX", "HAX", "HBX", "HOX", "LEX", "LYX", "MAX",
+      "MPX", "MVX", "NNX", "NFX", "NRX", "PBX", "PQX", "POX", "RAX", "RIX",
+      "ROX", "SAX", "STX", "SUX", "VBX", "WAX", "WMX", "WIX"
+    ],
+    "exchangeValidation": {
+      "type": "namedMultOrDxcc",
+      "description": "VA county or independent city abbreviation (3 letters) for VA stations. 2-letter US state or Canadian province for W/VE. DX for non-NA stations."
+    },
+    "receivedExchangeFilter": {
+      "promptId": "stationType",
+      "rules": {
+        "WVE": "inStateMults",
+        "DX":  "inStateMults"
+      }
+    }
+  },
+
+  "bonusStations": [
+    {
+      "name": "Virginia is for Lovers",
+      "pointsEach": 50,
+      "type": "bonusOnce",
+      "stations": ["K4L", "K4O", "K4V", "K4E", "K4R", "K4S"],
+      "note": "Contact all six for the Lover's Quest certificate. Coordinator: Evan, KM4SK."
+    },
+    {
+      "name": "ARRL Year of the Club",
+      "pointsEach": 20,
+      "type": "bonusOnce",
+      "stations": ["W4MYA", "W4VA", "K4LRG", "N4FRS", "W4OVH", "W4NPS", "W4RKC", "K4XY"],
+      "note": "One club station per club contact. Coordinator: Mike, WA8AHZ."
+    }
+  ],
+
+  "countyAbbreviations": {
+    "description": "Virginia County abbreviations (95 counties) — official VaQP abbreviations",
+    "ACC": "Accomack",
+    "ALB": "Albemarle",
+    "ALL": "Alleghany",
+    "AME": "Amelia",
+    "AMH": "Amherst",
+    "APP": "Appomattox",
+    "ARL": "Arlington",
+    "AUG": "Augusta",
+    "BAT": "Bath",
+    "BED": "Bedford",
+    "BLA": "Bland",
+    "BOT": "Botetourt",
+    "BRU": "Brunswick",
+    "BCH": "Buchanan",
+    "BHM": "Buckingham",
+    "CAM": "Campbell",
+    "CLN": "Caroline",
+    "CRL": "Carroll",
+    "CCY": "Charles City",
+    "CHA": "Charlotte",
+    "CHE": "Chesterfield",
+    "CLA": "Clarke",
+    "CRA": "Craig",
+    "CUL": "Culpeper",
+    "CUM": "Cumberland",
+    "DIC": "Dickenson",
+    "DIN": "Dinwiddie",
+    "ESS": "Essex",
+    "FFX": "Fairfax",
+    "FAU": "Fauquier",
+    "FLO": "Floyd",
+    "FLU": "Fluvanna",
+    "FRA": "Franklin",
+    "FRE": "Frederick",
+    "GIL": "Giles",
+    "GLO": "Gloucester",
+    "GOO": "Goochland",
+    "GRA": "Grayson",
+    "GRN": "Greene",
+    "GVL": "Greensville",
+    "HAL": "Halifax",
+    "HAN": "Hanover",
+    "HCO": "Henrico",
+    "HRY": "Henry",
+    "HIG": "Highland",
+    "IOW": "Isle of Wight",
+    "JAM": "James City",
+    "KQN": "King and Queen",
+    "KGE": "King George",
+    "KWM": "King William",
+    "LAN": "Lancaster",
+    "LEE": "Lee",
+    "LDN": "Loudoun",
+    "LSA": "Louisa",
+    "LUN": "Lunenburg",
+    "MAD": "Madison",
+    "MAT": "Mathews",
+    "MEC": "Mecklenburg",
+    "MID": "Middlesex",
+    "MON": "Montgomery",
+    "NEL": "Nelson",
+    "NEW": "New Kent",
+    "NHA": "Northampton",
+    "NUM": "Northumberland",
+    "NOT": "Nottoway",
+    "ORG": "Orange",
+    "PAG": "Page",
+    "PAT": "Patrick",
+    "PIT": "Pittsylvania",
+    "POW": "Powhatan",
+    "PRE": "Prince Edward",
+    "PRG": "Prince George",
+    "PRW": "Prince William",
+    "PUL": "Pulaski",
+    "RAP": "Rappahannock",
+    "RIC": "Richmond",
+    "ROA": "Roanoke",
+    "RBR": "Rockbridge",
+    "RHM": "Rockingham",
+    "RUS": "Russell",
+    "SCO": "Scott",
+    "SHE": "Shenandoah",
+    "SMY": "Smyth",
+    "SHA": "Southampton",
+    "SPO": "Spotsylvania",
+    "STA": "Stafford",
+    "SUR": "Surry",
+    "SUS": "Sussex",
+    "TAZ": "Tazewell",
+    "WAR": "Warren",
+    "WAS": "Washington",
+    "WES": "Westmoreland",
+    "WIS": "Wise",
+    "WYT": "Wythe",
+    "YOR": "York"
+  },
+
+  "cityAbbreviations": {
+    "description": "Virginia Independent City abbreviations (38 cities) — official VaQP abbreviations, X suffix denotes independent city",
+    "ALX": "Alexandria",
+    "BRX": "Bristol",
+    "BVX": "Buena Vista",
+    "CHX": "Charlottesville",
+    "CPX": "Chesapeake",
+    "COX": "Colonial Heights",
+    "CVX": "Covington",
+    "DAX": "Danville",
+    "EMX": "Emporia",
+    "FXX": "Fairfax (City)",
+    "FCX": "Falls Church",
+    "FRX": "Franklin (City)",
+    "FBX": "Fredericksburg",
+    "GAX": "Galax",
+    "HAX": "Hampton",
+    "HBX": "Harrisonburg",
+    "HOX": "Hopewell",
+    "LEX": "Lexington",
+    "LYX": "Lynchburg",
+    "MAX": "Manassas",
+    "MPX": "Manassas Park",
+    "MVX": "Martinsville",
+    "NNX": "Newport News",
+    "NFX": "Norfolk",
+    "NRX": "Norton",
+    "PBX": "Petersburg",
+    "PQX": "Poquoson",
+    "POX": "Portsmouth",
+    "RAX": "Radford",
+    "RIX": "Richmond (City)",
+    "ROX": "Roanoke (City)",
+    "SAX": "Salem",
+    "STX": "Staunton",
+    "SUX": "Suffolk",
+    "VBX": "Virginia Beach",
+    "WAX": "Waynesboro",
+    "WMX": "Williamsburg",
+    "WIX": "Winchester"
+  },
+
+  "ui": {
+    "showMultiplierPanel": true,
+    "logColumns": ["DATE", "TIME", "CALL", "FREQ", "MODE", "SNs", "EXCHs", "SNr", "EXCHr", "POINTS", "M", "COMMENT"],
+    "entryFields": ["CALL", "SNr", "EXCHr"],
+    "fieldNavigation": {
+      "keys": "tab"
+    },
+    "bandMap": {
+      "enabled": true,
+      "bands": ["160m", "80m", "40m", "20m", "15m", "10m", "6m", "2m"]
+    },
+    "multiplierDisplay": {
+      "showCounties":  true,
+      "showStates":    true,
+      "showProvinces": true,
+      "showDXCC":      true
+    }
+  }
+}

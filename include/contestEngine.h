@@ -89,7 +89,16 @@ public:
     bool getAlaskaHawaiiCountDxcc() const;
     bool getUsAndCanadaCountDxcc() const;
 
+    struct BonusStationGroup {
+        QString name;
+        int pointsEach = 0;
+        // type: "bonusOnce" | "bonusPerBand" | "bonusPerMode" | "bonusPerBandAndMode"
+        QString type = "bonusOnce";
+        QSet<QString> stations;  // uppercase callsigns
+    };
+
     // Worked multiplier tracking (for multiplier widget display)
+    QList<BonusStationGroup> getBonusStationGroups() const { return m_bonusStationGroups; }
     QSet<QString> getWorkedNamedMults() const { return m_workedNamedMults; }
     QSet<QString> getWorkedNamedMultsPerBand() const { return m_workedNamedMultsPerBand; }
     QSet<QString> getWorkedNamedMultsPerMode() const { return m_workedNamedMultsPerMode; }
@@ -205,6 +214,8 @@ private:
         QString mapsTo;
     };
     QList<MultAlias> m_multAliases;
+
+    QList<BonusStationGroup> m_bonusStationGroups;
 
     QJsonObject m_contestDef;
     QSet<QString> m_validStates;

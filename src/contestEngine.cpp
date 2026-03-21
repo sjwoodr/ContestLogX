@@ -129,6 +129,29 @@ bool ContestEngine::loadContest(const QJsonObject& contestDef)
             QString("Loaded %1 mult alias rule(s)").arg(m_multAliases.size()));
     }
 
+    // Load bonusStations — array of groups, each with a point value and list of callsigns
+    m_bonusStationGroups.clear();
+    if (contestDef.contains("bonusStations")) {
+        QJsonArray groups = contestDef["bonusStations"].toArray();
+        for (const QJsonValue& gv : groups) {
+            QJsonObject obj = gv.toObject();
+            BonusStationGroup group;
+            group.name       = obj["name"].toString();
+            group.pointsEach = obj["pointsEach"].toInt(0);
+            // Support both new "type" field and legacy "oneTimeOnly" bool
+            if (obj.contains("type"))
+                group.type = obj["type"].toString();
+            else
+                group.type = obj["oneTimeOnly"].toBool(true) ? "bonusOnce" : "bonusPerBandAndMode";
+            for (const QJsonValue& sv : obj["stations"].toArray())
+                group.stations.insert(sv.toString().toUpper());
+            if (group.pointsEach > 0 && !group.stations.isEmpty())
+                m_bonusStationGroups.append(group);
+        }
+        DebugLogger::instance().log("ContestEngine",
+            QString("Loaded %1 bonus station group(s)").arg(m_bonusStationGroups.size()));
+    }
+
     // Validate precedence array covers all defined scoring rules
     if (contestDef.contains("scoring")) {
         QJsonObject scoring = contestDef["scoring"].toObject();
@@ -740,6 +763,20 @@ int ContestEngine::calculatePoints(const QsoRecord& qso, const QString& myCallsi
                                 .arg(theirCall).arg(theirPrefix).arg(m_stationClass));
                         return 0;
                     }
+                }
+            }
+        }
+
+        // Check if worked station's callsign suffix overrides mode-based points
+        // (e.g., VAQP: /M contacts are worth 3 pts regardless of mode)
+        if (scoring.contains("mobilePoints") && scoring.contains("mobileSuffixes")) {
+            int mobilePoints = scoring["mobilePoints"].toInt();
+            QString callUpper = theirCall.toUpper();
+            for (const QJsonValue& sfx : scoring["mobileSuffixes"].toArray()) {
+                if (callUpper.endsWith(sfx.toString().toUpper())) {
+                    DebugLogger::instance().log("ContestEngine",
+                        QString("  Points: %1 (mobile suffix)").arg(mobilePoints));
+                    return mobilePoints;
                 }
             }
         }
@@ -2468,7 +2505,33 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
     
     // Calculate final contest score
     // Check if contest uses category-based scoring (states + provinces + dxcc)
-    m_runningScore.bonusPoints = 0; // Hard-coded to 0 for now
+    // Calculate bonus points from bonusStation groups
+    m_runningScore.bonusPoints = 0;
+    for (const BonusStationGroup& group : m_bonusStationGroups) {
+        QSet<QString> seen;
+        for (const QsoRecord& qso : qsos) {
+            QString call = qso.getCall().toUpper();
+            if (!group.stations.contains(call))
+                continue;
+
+            // Build dedup key based on group type
+            QString key;
+            if (group.type == "bonusOnce") {
+                key = call;
+            } else if (group.type == "bonusPerBand") {
+                key = call + "_" + qso.getBand();
+            } else if (group.type == "bonusPerMode") {
+                key = call + "_" + qso.getMode().toUpper();
+            } else { // bonusPerBandAndMode
+                key = call + "_" + qso.getBand() + "_" + qso.getMode().toUpper();
+            }
+
+            if (!seen.contains(key)) {
+                seen.insert(key);
+                m_runningScore.bonusPoints += group.pointsEach;
+            }
+        }
+    }
     
     QStringList multCategories = getMultiplierCategories();
     

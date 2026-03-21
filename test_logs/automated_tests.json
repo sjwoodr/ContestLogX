@@ -99,6 +99,16 @@
       "name": "FQP W/VE Out-of-State NC (LOW, multsPerMode, 147 QSOs w/dupes+OOB)",
       "log_file": "test_fqp_wve_low.clx",
       "expected_score": 33496
+    },
+    {
+      "name": "VAQP Out-of-State OH (LOW, multsOnce, 105 QSOs, bonus stations)",
+      "log_file": "test_vaqp_outofstate.clx",
+      "expected_score": 16990
+    },
+    {
+      "name": "VAQP In-State VA (LOW, multsOnce, 110 QSOs, mobiles+bonus)",
+      "log_file": "test_vaqp_instate.clx",
+      "expected_score": 17138
     }
   ]
 }
