@@ -410,6 +410,47 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
             }
         }
 
+        // Handle registered shortcuts (modifier-key combos) from floating docks.
+        // keyPressEvent() never fires for floating dock children, so we dispatch here too.
+        if (!QApplication::activeModalWidget() && keyEvent->modifiers() != Qt::NoModifier) {
+            QWidget *w = qobject_cast<QWidget*>(obj);
+            bool belongsToUs = false;
+            for (QObject *p = obj; p; p = p->parent()) {
+                if (p == this) { belongsToUs = true; break; }
+            }
+            if (w && belongsToUs) {
+                int keyWithMods = keyEvent->key() | static_cast<int>(keyEvent->modifiers() &
+                    (Qt::ShiftModifier | Qt::ControlModifier | Qt::AltModifier | Qt::MetaModifier));
+                QString eventSeqStr = QKeySequence(keyWithMods).toString();
+
+                QMap<QString, QString> shortcuts = Settings::instance().getShortcuts();
+                static const QMap<QString, QString> shortcutDefaults = {
+                    {"clearQsoEntry",    "Ctrl+W"},
+                    {"preSaveCall",      "Ctrl+S"},
+                    {"qsoViewFilter",    "Ctrl+F"},
+                    {"toggleRunSP",      "Ctrl+M"},
+                    {"toggleMemoryType", "Ctrl+T"},
+                };
+                for (auto dit = shortcutDefaults.begin(); dit != shortcutDefaults.end(); ++dit) {
+                    if (!shortcuts.contains(dit.key()))
+                        shortcuts[dit.key()] = dit.value();
+                }
+                for (auto it = shortcuts.begin(); it != shortcuts.end(); ++it) {
+                    if (QKeySequence(it.value()).toString() != eventSeqStr) continue;
+                    if (it.key() == "clearQsoEntry")    { clearEntryForm();       return true; }
+                    if (it.key() == "preSaveCall")      { preSaveCall();          return true; }
+                    if (it.key() == "qsoViewFilter")    {
+                        m_filterBar->setVisible(true);
+                        m_filterEdit->setFocus();
+                        m_filterEdit->selectAll();
+                        return true;
+                    }
+                    if (it.key() == "toggleRunSP")      { onToggleRunSP();        return true; }
+                    if (it.key() == "toggleMemoryType") { onToggleMemoryType();   return true; }
+                }
+            }
+        }
+
         // Escape halts CW and SSB sending from anywhere in the main window
         if (keyEvent->key() == Qt::Key_Escape) {
             if (m_cwConsole)
@@ -2873,9 +2914,10 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
     // Check against registered shortcuts (merge with hard-coded defaults for any not yet saved)
     QMap<QString, QString> shortcuts = Settings::instance().getShortcuts();
     static const QMap<QString, QString> defaultShortcuts = {
-        {"clearQsoEntry", "Ctrl+W"},
-        {"preSaveCall",   "Ctrl+S"},
-        {"qsoViewFilter", "Ctrl+F"},
+        {"clearQsoEntry",    "Ctrl+W"},
+        {"preSaveCall",      "Ctrl+S"},
+        {"qsoViewFilter",    "Ctrl+F"},
+        {"toggleMemoryType", "Ctrl+T"},
     };
     for (auto dit = defaultShortcuts.begin(); dit != defaultShortcuts.end(); ++dit) {
         if (!shortcuts.contains(dit.key()))
@@ -2901,6 +2943,9 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
                 return;
             } else if (it.key() == "toggleRunSP") {
                 onToggleRunSP();
+                return;
+            } else if (it.key() == "toggleMemoryType") {
+                onToggleMemoryType();
                 return;
             }
         }
@@ -3659,8 +3704,8 @@ void MainWindow::onFreqModeButtonClicked()
 void MainWindow::loadCWMemories()
 {
     QList<CwMemory> memories;
-    if (m_useContestMemories && !m_contestCwMemories.isEmpty()) {
-        memories = m_contestCwMemories;
+    if (m_useContestMemories) {
+        memories = m_contestCwMemories;  // Empty list → all slots disabled; no station fallback
     } else {
         memories = Settings::instance().getCwMemories();
     }
@@ -3672,8 +3717,8 @@ void MainWindow::loadCWMemories()
 void MainWindow::loadSsbMemories()
 {
     QList<SsbMemory> memories;
-    if (m_useContestMemories && !m_contestSsbMemories.isEmpty()) {
-        memories = m_contestSsbMemories;
+    if (m_useContestMemories) {
+        memories = m_contestSsbMemories;  // Empty list → all slots disabled; no station fallback
     } else {
         memories = Settings::instance().getSsbMemories();
     }
@@ -4409,6 +4454,31 @@ void MainWindow::onToggleRunSP()
     else if (m_runMode == RunMode::Run) m_runMode = RunMode::SP;
     else                                m_runMode = RunMode::Off;
     updateRunSPButtons();
+}
+
+void MainWindow::onToggleMemoryType()
+{
+    m_useContestMemories = !m_useContestMemories;
+    loadCWMemories();
+    loadSsbMemories();
+    m_isModified = true;
+    updateWindowTitle();
+
+    QString typeName = m_useContestMemories ? "Contest" : "Station";
+    QString mode = m_lastMode.toUpper();
+    QString modeLabel;
+    if (mode == "CW" || mode == "CWR")
+        modeLabel = "CW";
+    else if (mode == "USB" || mode == "LSB" || mode == "AM" || mode == "FM")
+        modeLabel = "SSB";
+    else
+        modeLabel = mode.isEmpty() ? "CW/SSB" : mode;
+
+    if (m_statusLabel)
+        m_statusLabel->setText(QString("%1 memories active").arg(typeName));
+
+    DebugLogger::instance().log("MainWindow",
+        QString("Memory type toggled to %1 (%2 mode)").arg(typeName).arg(modeLabel));
 }
 
 int MainWindow::findMemoryIndexByRole(MemoryRole role) const

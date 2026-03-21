@@ -140,6 +140,7 @@ private slots:
     void onSsbMemoryTriggered(int memoryNumber, const QString& text);
     void onCwMemoryTriggered(int fKey, const QString& text);
     void onToggleRunSP();
+    void onToggleMemoryType();
     void onQsoEntryReturn();
     void onTtsFinished();
     void onTtsError(const QString& error);

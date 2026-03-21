@@ -29,10 +29,11 @@
 #include <QMessageBox>
 
 const QList<ShortcutsWidget::DefaultShortcut> ShortcutsWidget::DEFAULT_SHORTCUTS = {
-    {"clearQsoEntry", "Clear QSO Entry Panel", "Ctrl+W"},
-    {"preSaveCall", "Save QSO Fields to Call History (without logging)", "Ctrl+S"},
-    {"qsoViewFilter", "Filter QSO Log", "Ctrl+F"},
-    {"toggleRunSP", "Toggle Run / S&P Operating Mode", "Ctrl+M"}
+    {"clearQsoEntry",    "Clear QSO Entry Panel", "Ctrl+W"},
+    {"preSaveCall",      "Save QSO Fields to Call History (without logging)", "Ctrl+S"},
+    {"qsoViewFilter",    "Filter QSO Log", "Ctrl+F"},
+    {"toggleRunSP",      "Toggle Run / S&P Operating Mode", "Ctrl+M"},
+    {"toggleMemoryType", "Toggle Contest / Station Memories", "Ctrl+T"}
 };
 
 ShortcutsWidget::ShortcutsWidget(QWidget* parent)
