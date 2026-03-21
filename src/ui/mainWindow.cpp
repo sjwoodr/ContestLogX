@@ -197,9 +197,14 @@ MainWindow::MainWindow(QWidget *parent)
     
     m_contestNameLabel = new QLabel("Contest: None");
     statusBar()->addPermanentWidget(m_contestNameLabel);
-    
+
     statusBar()->addPermanentWidget(new QLabel(" | "));
-    
+
+    m_memoryTypeLabel = new QLabel("Station Memories");
+    statusBar()->addPermanentWidget(m_memoryTypeLabel);
+
+    statusBar()->addPermanentWidget(new QLabel(" | "));
+
     m_qsoCountLabel = new QLabel("QSOs: 0");
     statusBar()->addPermanentWidget(m_qsoCountLabel);
     
@@ -3701,6 +3706,12 @@ void MainWindow::onFreqModeButtonClicked()
     }
 }
 
+void MainWindow::updateMemoryTypeLabel()
+{
+    if (m_memoryTypeLabel)
+        m_memoryTypeLabel->setText(m_useContestMemories ? "Contest Memories" : "Station Memories");
+}
+
 void MainWindow::loadCWMemories()
 {
     QList<CwMemory> memories;
@@ -3712,6 +3723,7 @@ void MainWindow::loadCWMemories()
     if (m_cwConsole) {
         m_cwConsole->setMemories(memories);
     }
+    updateMemoryTypeLabel();
 }
 
 void MainWindow::loadSsbMemories()
@@ -4402,7 +4414,7 @@ void MainWindow::onAbout()
     msgBox.setTextFormat(Qt::RichText);
     msgBox.setTextInteractionFlags(Qt::TextBrowserInteraction);
     msgBox.setText(
-        "<b>ContestLogX - Version 0.6.9 (Beta)</b><br><br>"
+        "<b>ContestLogX - Version 0.6.10 (Beta)</b><br><br>"
         "Cross-platform amateur radio contest logging software<br><br>"
         "Copyright &copy; 2025-2026, by Steve Woodruff, N9OH<br><br>"
         "<a href=\"https://contestlogx.com\">https://contestlogx.com</a><br><br>"
@@ -4464,21 +4476,8 @@ void MainWindow::onToggleMemoryType()
     m_isModified = true;
     updateWindowTitle();
 
-    QString typeName = m_useContestMemories ? "Contest" : "Station";
-    QString mode = m_lastMode.toUpper();
-    QString modeLabel;
-    if (mode == "CW" || mode == "CWR")
-        modeLabel = "CW";
-    else if (mode == "USB" || mode == "LSB" || mode == "AM" || mode == "FM")
-        modeLabel = "SSB";
-    else
-        modeLabel = mode.isEmpty() ? "CW/SSB" : mode;
-
-    if (m_statusLabel)
-        m_statusLabel->setText(QString("%1 memories active").arg(typeName));
-
     DebugLogger::instance().log("MainWindow",
-        QString("Memory type toggled to %1 (%2 mode)").arg(typeName).arg(modeLabel));
+        QString("Memory type toggled to %1").arg(m_useContestMemories ? "Contest" : "Station"));
 }
 
 int MainWindow::findMemoryIndexByRole(MemoryRole role) const

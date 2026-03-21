@@ -162,6 +162,7 @@ private:
     void promptForMissingUserPrompts();
     void loadCWMemories();
     void loadSsbMemories();
+    void updateMemoryTypeLabel();
     void flashDupeWarning();
     
     void clearEntryForm();
@@ -214,6 +215,7 @@ private:
     class QShortcut *m_filterShortcut;
     QPushButton *m_freqModeButton;
     QLabel *m_contestNameLabel;
+    QLabel *m_memoryTypeLabel;
     QLabel *m_qsoCountLabel;
     QLabel *m_rigStatusLabel;
     QLabel *m_wpmLabel;
