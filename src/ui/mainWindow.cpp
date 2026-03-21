@@ -200,7 +200,11 @@ MainWindow::MainWindow(QWidget *parent)
 
     statusBar()->addPermanentWidget(new QLabel(" | "));
 
-    m_memoryTypeLabel = new QLabel("Station Memories");
+    m_memoryTypeLabel = new QPushButton("Station Memories");
+    m_memoryTypeLabel->setFlat(true);
+    m_memoryTypeLabel->setCursor(Qt::PointingHandCursor);
+    m_memoryTypeLabel->setToolTip("Click to toggle Contest / Station memories (Ctrl+T)");
+    connect(m_memoryTypeLabel, &QPushButton::clicked, this, &MainWindow::onToggleMemoryType);
     statusBar()->addPermanentWidget(m_memoryTypeLabel);
 
     statusBar()->addPermanentWidget(new QLabel(" | "));
