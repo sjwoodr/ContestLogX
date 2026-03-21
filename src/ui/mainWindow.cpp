@@ -4352,10 +4352,12 @@ void MainWindow::updateRunSPButtons()
     m_runButton->setFont(m_runMode == RunMode::Run ? boldFont : normalFont);
     m_spButton->setFont(m_runMode == RunMode::SP  ? boldFont : normalFont);
 
-    switch (m_runMode) {
-        case RunMode::Off: m_statusLabel->setText("Operating mode: OFF (Enter logs directly)"); break;
-        case RunMode::Run: m_statusLabel->setText("Operating mode: RUN (Enter sequences CQ → Exchange → TU+Log)"); break;
-        case RunMode::SP:  m_statusLabel->setText("Operating mode: S&P (Enter sequences My Call → Exchange+Log)"); break;
+    if (m_statusLabel) {
+        switch (m_runMode) {
+            case RunMode::Off: m_statusLabel->setText("Operating mode: OFF (Enter logs directly)"); break;
+            case RunMode::Run: m_statusLabel->setText("Operating mode: RUN (Enter sequences CQ → Exchange → TU+Log)"); break;
+            case RunMode::SP:  m_statusLabel->setText("Operating mode: S&P (Enter sequences My Call → Exchange+Log)"); break;
+        }
     }
 }
 
