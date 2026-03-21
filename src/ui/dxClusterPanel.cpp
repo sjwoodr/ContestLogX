@@ -43,6 +43,7 @@ DxClusterPanel::DxClusterPanel(QWidget *parent)
     , m_socket(new QTcpSocket(this))
     , m_propagationTimer(new QTimer(this))
     , m_expirationTimer(new QTimer(this))
+    , m_bandFilterCombo(nullptr)
     , m_isConnected(false)
     , m_loginSent(false)
 {
@@ -112,7 +113,14 @@ void DxClusterPanel::setupUi()
     m_autoScrollCheckBox->setChecked(true);
     m_autoScrollCheckBox->setMaximumWidth(100);
     headerLayout->addWidget(m_autoScrollCheckBox);
-    
+
+    m_bandFilterCombo = new QComboBox(this);
+    m_bandFilterCombo->addItem("ALL");
+    m_bandFilterCombo->setMaximumWidth(80);
+    connect(m_bandFilterCombo, &QComboBox::currentTextChanged,
+            this, &DxClusterPanel::onBandFilterChanged);
+    headerLayout->addWidget(m_bandFilterCombo);
+
     headerLayout->addStretch();
     mainLayout->addLayout(headerLayout);
     
@@ -386,20 +394,26 @@ void DxClusterPanel::addSpot(const QString& callsign, double frequency, const QS
         return item;
     };
     
-    m_spotTable->setItem(row, 0, createItem(QTime::currentTime().toString("HH:mm:ss")));
+    QString band = BandPlan::freq2Band(frequency); // frequency is in kHz
+    QString mode = BandPlan::freq2Mode(frequency / 1000.0); // Convert kHz to MHz
+
+    QTableWidgetItem *timeItem = createItem(QTime::currentTime().toString("HH:mm:ss"));
+    timeItem->setData(Qt::UserRole, band);  // Store band for filtering
+    m_spotTable->setItem(row, 0, timeItem);
     m_spotTable->setItem(row, 1, createItem(callsign));
     m_spotTable->setItem(row, 2, createItem(QString::number(frequency, 'f', 1)));
-    
-    // Calculate mode from frequency using band plan
-    QString mode = BandPlan::freq2Mode(frequency / 1000.0); // Convert kHz to MHz
     m_spotTable->setItem(row, 3, createItem(mode));
-    
     m_spotTable->setItem(row, 4, createItem(spotter));
     m_spotTable->setItem(row, 5, createItem(comment));
-    
+
     // Store frequency and mode in the row for click handling
     m_spotTable->item(row, 2)->setData(Qt::UserRole, frequency);
     m_spotTable->item(row, 3)->setData(Qt::UserRole, mode);
+
+    // Apply band filter to this new row
+    QString filterBand = m_bandFilterCombo ? m_bandFilterCombo->currentText() : "ALL";
+    if (filterBand != "ALL" && band != filterBand)
+        m_spotTable->setRowHidden(row, true);
     
     // Keep only last 100 spots
     if (m_spotTable->rowCount() > 100) {
@@ -638,6 +652,36 @@ void DxClusterPanel::setTableFont(const QFont& font)
     // Adjust row height proportionally to the new font size
     QFontMetrics fm(font);
     m_spotTable->verticalHeader()->setDefaultSectionSize(fm.height() + 10);
+}
+
+void DxClusterPanel::setBands(const QStringList& bands)
+{
+    if (!m_bandFilterCombo) return;
+
+    QString current = m_bandFilterCombo->currentText();
+    m_bandFilterCombo->blockSignals(true);
+    m_bandFilterCombo->clear();
+    m_bandFilterCombo->addItem("ALL");
+    for (const QString& band : bands)
+        m_bandFilterCombo->addItem(band);
+
+    // Restore previous selection if still valid, otherwise fall back to ALL
+    int idx = m_bandFilterCombo->findText(current);
+    m_bandFilterCombo->setCurrentIndex(idx >= 0 ? idx : 0);
+    m_bandFilterCombo->blockSignals(false);
+
+    // Re-apply filter with the (possibly restored) selection
+    onBandFilterChanged(m_bandFilterCombo->currentText());
+}
+
+void DxClusterPanel::onBandFilterChanged(const QString& band)
+{
+    for (int row = 0; row < m_spotTable->rowCount(); ++row) {
+        QTableWidgetItem *timeItem = m_spotTable->item(row, 0);
+        if (!timeItem) continue;
+        QString rowBand = timeItem->data(Qt::UserRole).toString();
+        m_spotTable->setRowHidden(row, band != "ALL" && rowBand != band);
+    }
 }
 
 void DxClusterPanel::setSpotCommand(const QString& callsign, double freqKhz)

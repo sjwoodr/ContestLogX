@@ -145,6 +145,7 @@ public:
     bool isValidBand(double freqKhz) const;
     bool isValidMode(const QString& mode) const;
     QStringList getAllowedModes() const;
+    QStringList getAllowedBands() const;
     QString getBandFromFrequency(double freqKhz) const;
     
     // Station class support

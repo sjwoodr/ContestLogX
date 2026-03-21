@@ -372,6 +372,44 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
         QKeyEvent *keyEvent = static_cast<QKeyEvent*>(event);
         QLineEdit* lineEdit = qobject_cast<QLineEdit*>(obj);
 
+        // Handle F1-F8 for CW/SSB memories from any widget owned by this window,
+        // including when the entry dock is floating (floating docks are separate top-level
+        // windows so keyPressEvent() never fires for them).
+        // Note: isAncestorOf() only works within the same window, so instead walk the
+        // QObject parent chain to detect whether the target belongs to our window.
+        if (keyEvent->modifiers() == Qt::NoModifier && !QApplication::activeModalWidget()) {
+            QWidget *w = qobject_cast<QWidget*>(obj);
+            bool belongsToUs = false;
+            for (QObject *p = obj; p; p = p->parent()) {
+                if (p == this) { belongsToUs = true; break; }
+            }
+            if (w && belongsToUs) {
+                int fKeyIndex = -1;
+                switch (keyEvent->key()) {
+                    case Qt::Key_F1: fKeyIndex = 0; break;
+                    case Qt::Key_F2: fKeyIndex = 1; break;
+                    case Qt::Key_F3: fKeyIndex = 2; break;
+                    case Qt::Key_F4: fKeyIndex = 3; break;
+                    case Qt::Key_F5: fKeyIndex = 4; break;
+                    case Qt::Key_F6: fKeyIndex = 5; break;
+                    case Qt::Key_F7: fKeyIndex = 6; break;
+                    case Qt::Key_F8: fKeyIndex = 7; break;
+                    default: break;
+                }
+                if (fKeyIndex >= 0) {
+                    QString mode = m_lastMode.toUpper();
+                    if ((mode == "CW" || mode == "CWR") && m_cwConsole) {
+                        m_cwConsole->onMemoryButton(fKeyIndex);
+                        return true;
+                    } else if ((mode == "USB" || mode == "LSB") && m_ssbMemoriesWidget) {
+                        m_ssbMemoriesWidget->triggerMemory(fKeyIndex);
+                        return true;
+                    }
+                    return true; // Consume the F-key regardless to avoid system shortcuts
+                }
+            }
+        }
+
         // Escape halts CW and SSB sending from anywhere in the main window
         if (keyEvent->key() == Qt::Key_Escape) {
             if (m_cwConsole)
@@ -1248,6 +1286,9 @@ void MainWindow::promptForMissingUserPrompts()
 
 void MainWindow::createConnections()
 {
+    // Install app-level event filter so F-keys work even when entry dock is floating
+    qApp->installEventFilter(this);
+
     connect(m_logButton, &QPushButton::clicked, this, &MainWindow::onLogQso);
     connect(m_clearButton, &QPushButton::clicked, this, &MainWindow::clearEntryForm);
     connect(m_qrzButton, &QPushButton::clicked, this, &MainWindow::onQrzLookup);
@@ -4316,7 +4357,7 @@ void MainWindow::onAbout()
     msgBox.setTextFormat(Qt::RichText);
     msgBox.setTextInteractionFlags(Qt::TextBrowserInteraction);
     msgBox.setText(
-        "<b>ContestLogX - Version 0.6.8 (Beta)</b><br><br>"
+        "<b>ContestLogX - Version 0.6.9 (Beta)</b><br><br>"
         "Cross-platform amateur radio contest logging software<br><br>"
         "Copyright &copy; 2025-2026, by Steve Woodruff, N9OH<br><br>"
         "<a href=\"https://contestlogx.com\">https://contestlogx.com</a><br><br>"
@@ -5633,6 +5674,9 @@ bool MainWindow::loadContestDefinition(const QString& filePath, bool restoreStat
             m_multiplierWidget->clear();
         }
     }
+
+    if (m_dxClusterPanel)
+        m_dxClusterPanel->setBands(m_contestEngine->getAllowedBands());
 
     updateWindowTitle();
     DebugLogger::instance().log("MainWindow", QString("loadContestDefinition completed successfully, m_contestDefinition.isEmpty(): %1").arg(m_contestDefinition.isEmpty() ? "true" : "false"));

@@ -1641,6 +1641,20 @@ QStringList ContestEngine::getAllowedModes() const
     return modes;
 }
 
+QStringList ContestEngine::getAllowedBands() const
+{
+    if (m_contestDef.contains("contest")) {
+        QJsonObject contest = m_contestDef["contest"].toObject();
+        if (contest.contains("bands")) {
+            QStringList bands;
+            for (const QJsonValue& val : contest["bands"].toArray())
+                bands.append(val.toString());
+            return bands;
+        }
+    }
+    return {};
+}
+
 bool ContestEngine::validateSerialNumber(const QString& value) const
 {
     QRegularExpression re("^\\d{1,4}$");

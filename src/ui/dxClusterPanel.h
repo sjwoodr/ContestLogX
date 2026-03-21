@@ -43,6 +43,7 @@ public:
     void saveSettings();
     void removeSpot(const QString& callsign);
     void setTableFont(const QFont& font);
+    void setBands(const QStringList& bands);
 
 public slots:
     void setSpotCommand(const QString& callsign, double freqKhz);
@@ -66,6 +67,7 @@ private slots:
     void onPropagationTimerTimeout();
     void onExpireSpots();
     void onSpotLastQso();
+    void onBandFilterChanged(const QString& band);
 
 private:
     void setupUi();
@@ -80,6 +82,7 @@ private:
     QPushButton *m_connectButton;
     QComboBox *m_viewCombo;
     QCheckBox *m_autoScrollCheckBox;
+    QComboBox *m_bandFilterCombo;
     QTcpSocket *m_socket;
     QTimer *m_propagationTimer;
     QTimer *m_expirationTimer;
