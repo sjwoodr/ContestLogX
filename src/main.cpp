@@ -22,7 +22,7 @@
 #include <QIcon>
 
 // Application version
-static const char* APP_VERSION = "0.6.13";
+static const char* APP_VERSION = "0.6.14";
 
 // Bump this to force the terms dialog to re-appear for all users.
 // History: 1 = original terms, 2 = MIT license change

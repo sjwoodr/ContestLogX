@@ -2,6 +2,8 @@
 
 All notable changes to ContestLogX are documented in this file.
 
+## [0.6.14]
+
 ## [0.6.13]
 - Changed license to MIT
 - Added versioned terms acceptance — dialog re-appears when terms change

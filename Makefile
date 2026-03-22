@@ -87,7 +87,7 @@ version:
 	sed -i 's/APP_VERSION = "[0-9.]*"/APP_VERSION = "'"$$NEW_VERSION"'"/' src/main.cpp; \
 	sed -i "s|releases/download/v[0-9.]*/ContestLogX\.[0-9.]*\.|releases/download/v$$NEW_VERSION/ContestLogX.$$NEW_VERSION.|g" web/src/pages/download.astro; \
 	sed -i "s/Version [0-9.]* (Beta)/Version $$NEW_VERSION (Beta)/g" web/src/pages/download.astro; \
-	sed -i '/^## \[/i ## ['"$$NEW_VERSION"']\n' CHANGELOG.md; \
+	sed -i '0,/^## \[/{s/^## \[/## ['"$$NEW_VERSION"']\n\n## [/}' CHANGELOG.md; \
 	echo "Version updated to $$NEW_VERSION in:"; \
 	echo "  - CMakeLists.txt"; \
 	echo "  - README.md"; \

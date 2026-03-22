@@ -122,12 +122,6 @@ jobs:
           modules: 'qtnetworkauth qtmultimedia'
           cache: true
 
-      - name: Download DXCC database (cty.dat)
-        run: |
-          mkdir -p ~/.local/share/ContestLogX
-          curl -s -L https://www.country-files.com/cty/cty.dat -o ~/.local/share/ContestLogX/cty.dat
-          ls -lh ~/.local/share/ContestLogX/cty.dat
-
       - name: Build macOS app bundle
         run: |
           chmod +x scripts/build-macos-bundle.sh
