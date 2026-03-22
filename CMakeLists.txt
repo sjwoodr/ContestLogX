@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(ContestLogX VERSION 0.6.12 LANGUAGES CXX)
+project(ContestLogX VERSION 0.6.13 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -9,18 +9,16 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
 # Find Qt6
-find_package(Qt6 REQUIRED COMPONENTS 
-    Core 
-    Widgets 
-    Network 
-    SerialPort
+find_package(Qt6 REQUIRED COMPONENTS
+    Core
+    Widgets
+    Network
     Xml
 )
 
 # Include directories
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/../WLOGTOOL
 )
 
 # Source files
@@ -153,7 +151,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     Qt6::Core
     Qt6::Widgets
     Qt6::Network
-    Qt6::SerialPort
     Qt6::Xml
 )
 
