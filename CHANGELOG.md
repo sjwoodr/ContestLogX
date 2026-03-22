@@ -8,6 +8,10 @@ All notable changes to ContestLogX are documented in this file.
 - Removed unnecessary cty.dat download from macOS CI build
 - Removed qtserialport from CI Qt module installs
 - Rewrote README for public-facing audience
+- Fixed band map showing "No contest loaded" when rig is disconnected
+- Fixed band map losing spots on band change
+- Fixed band map not showing existing cluster spots when switching bands
+- Added new screenshot to website
 
 ## [0.6.13]
 - Changed license to MIT

@@ -96,12 +96,6 @@ void BandMapWidget::addOrUpdateSpot(const SpotData &spot)
 {
     if (spot.callsign.isEmpty() || spot.freqMhz <= 0.0) return;
 
-    // Only accept spots within the current band range
-    if (m_bandRange.maxMhz > 0.0 &&
-        (spot.freqMhz < m_bandRange.minMhz || spot.freqMhz > m_bandRange.maxMhz)) {
-        return;
-    }
-
     const QString key = dedupKey(spot);
 
     if (m_spots.contains(key)) {
@@ -143,8 +137,7 @@ void BandMapWidget::setBandRange(double minMhz, double maxMhz, const QString &ba
     m_visibleMinMhz = minMhz;
     m_visibleMaxMhz = maxMhz;
 
-    // Clear all spots on band change
-    m_spots.clear();
+    // Spots are retained across band changes — rendering filters by visible range
 
     // Reset zoom slider
     if (m_zoomSlider) m_zoomSlider->setValue(1);
@@ -351,10 +344,18 @@ void BandMapCanvas::paintEvent(QPaintEvent *)
     // ── Empty states ────────────────────────────────────────────────────────
     if (br.maxMhz <= 0.0) {
         p.setPen(Qt::gray);
-        p.drawText(rect(), Qt::AlignCenter, "No contest loaded");
+        p.drawText(rect(), Qt::AlignCenter, "Connect rig to activate band map");
         return;
     }
-    if (m_bandMap->m_spots.isEmpty()) {
+    // Count spots within the current band range
+    bool hasVisibleSpots = false;
+    for (auto it = m_bandMap->m_spots.constBegin(); it != m_bandMap->m_spots.constEnd(); ++it) {
+        if (it->freqMhz >= br.minMhz && it->freqMhz <= br.maxMhz) {
+            hasVisibleSpots = true;
+            break;
+        }
+    }
+    if (!hasVisibleSpots) {
         p.setPen(Qt::gray);
         QString msg = br.band.isEmpty()
             ? "No spots"
