@@ -12,6 +12,15 @@ All notable changes to ContestLogX are documented in this file.
 - Fixed band map losing spots on band change
 - Fixed band map not showing existing cluster spots when switching bands
 - Added new screenshot to website
+- Added Russian DX Contest (RDXC) contest definition
+- Generalized contest engine prefix-based scoring rules (replaces hardcoded euCountry)
+- Added visibleWhen support for conditional qsoFields and userPrompts based on prompt values
+- Added scoringRuleConditions for station-type-dependent scoring rules
+- Added {sn_sent} and {sn_rcvd} Cabrillo template substitutions
+- Added --russian flag to generate_callsigns.py for Russian callsign generation
+- Added RDXC automated test logs (DX and Russian station perspectives)
+- Added SPEC-002 specification for stationClasses to userPrompts migration
+- Fixed visibleWhen not checked in new log userPrompt collection path
 
 ## [0.6.13]
 - Changed license to MIT

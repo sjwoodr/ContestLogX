@@ -1257,6 +1257,26 @@ void MainWindow::applyRestrictedModeFromUserPrompts()
     }
 }
 
+bool MainWindow::isFieldVisible(const QString& columnName) const
+{
+    if (!m_contestEngine || !m_contestDefinition.contains("qsoFields"))
+        return true;
+    QJsonArray qsoFields = m_contestDefinition["qsoFields"].toArray();
+    for (const QJsonValue& fieldVal : qsoFields) {
+        QJsonObject field = fieldVal.toObject();
+        if (field["column"].toString() == columnName && field.contains("visibleWhen")) {
+            QJsonObject vw = field["visibleWhen"].toObject();
+            QString promptId = vw["promptId"].toString();
+            QJsonArray values = vw["values"].toArray();
+            QString actual = m_contestEngine->getUserPromptValue(promptId);
+            for (const QJsonValue& v : values)
+                if (v.toString() == actual) return true;
+            return false;
+        }
+    }
+    return true;
+}
+
 void MainWindow::promptForMissingUserPrompts()
 {
     if (!m_contestEngine || m_contestDefinition.isEmpty()) return;
@@ -1274,6 +1294,17 @@ void MainWindow::promptForMissingUserPrompts()
         if (!m_contestEngine->getUserPromptValue(promptId).isEmpty()) continue;
         // Skip non-required prompts that are missing — don't bother the user
         if (!required) continue;
+        // Skip prompts with unmet visibleWhen conditions
+        if (p.contains("visibleWhen")) {
+            QJsonObject vw = p["visibleWhen"].toObject();
+            QString depId = vw["promptId"].toString();
+            QJsonArray vals = vw["values"].toArray();
+            QString actual = m_contestEngine->getUserPromptValue(depId);
+            bool met = false;
+            for (const QJsonValue& v : vals)
+                if (v.toString() == actual) { met = true; break; }
+            if (!met) continue;
+        }
 
         anyPrompted = true;
         QString question = p["question"].toString();
@@ -1839,7 +1870,19 @@ void MainWindow::onNewLog()
                             QString question = promptObj["question"].toString();
                             QString type = promptObj["type"].toString();
                             bool required = promptObj["required"].toBool(false);
-                            
+
+                            // Skip prompts with unmet visibleWhen conditions
+                            if (promptObj.contains("visibleWhen")) {
+                                QJsonObject vw = promptObj["visibleWhen"].toObject();
+                                QString depId = vw["promptId"].toString();
+                                QJsonArray vals = vw["values"].toArray();
+                                QString actual = m_contestEngine->getUserPromptValue(depId);
+                                bool met = false;
+                                for (const QJsonValue& v : vals)
+                                    if (v.toString() == actual) { met = true; break; }
+                                if (!met) continue;
+                            }
+
                             if (type == "text") {
                                 QString value;
                                 bool forceUppercase = promptObj.value("forceUppercase").toBool(true);
@@ -3258,11 +3301,11 @@ void MainWindow::onLogQso()
                       (m_lastMode.contains("DIGI")) ? "+0" : "59";
     qso.setRstSent(rstSent);
     
-    // Set serial number sent if contest uses SNs field
+    // Always set serial number — used for QSO ordering even if not part of exchange
     int nextSerial = m_qsoModel->count() + 1;
     QString serialSent = QString::number(nextSerial);
     qso.setExchangeField("SNs", serialSent);
-    DebugLogger::instance().log("MainWindow", 
+    DebugLogger::instance().log("MainWindow",
         QString("Set SNs exchange field to: '%1'").arg(serialSent));
     
     // Set our grid square if the contest has a myGridSquare user prompt
@@ -5910,6 +5953,15 @@ void MainWindow::updateLogHeaders()
 
         DebugLogger::instance().log("MainWindow",
             QString("Using default log columns: %1").arg(fullHeaders.join(", ")));
+    }
+
+    // Filter columns by visibleWhen conditions in qsoFields
+    {
+        QStringList filtered;
+        for (const QString& col : fullHeaders) {
+            if (isFieldVisible(col)) filtered.append(col);
+        }
+        fullHeaders = filtered;
     }
 
     // Always prepend "#" (QSO number) as the first column if not already present

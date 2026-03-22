@@ -155,6 +155,7 @@ private:
     void loadQsosIntoModel(const QList<QsoRecord>& qsos, QProgressDialog* progressDialog);
     void applyRestrictedModeFromUserPrompts();
     void promptForMissingUserPrompts();
+    bool isFieldVisible(const QString& columnName) const;
     void loadCWMemories();
     void loadSsbMemories();
     void updateMemoryTypeLabel();

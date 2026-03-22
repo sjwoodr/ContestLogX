@@ -109,6 +109,16 @@
       "name": "VAQP In-State VA (LOW, multsOnce, 110 QSOs, mobiles+bonus)",
       "log_file": "test_vaqp_instate.clx",
       "expected_score": 17138
+    },
+    {
+      "name": "RDXC Non-Russian (DX station, 152 QSOs, mixed bands/modes)",
+      "log_file": "test_rdxc_from_usa.clx",
+      "expected_score": 114030
+    },
+    {
+      "name": "RDXC Russian (UA station, 146 QSOs, mixed bands/modes)",
+      "log_file": "test_rdxc_from_russia.clx",
+      "expected_score": 85150
     }
   ]
 }

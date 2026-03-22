@@ -31,7 +31,7 @@ private slots:
 
     void testSetBandRange_clearsSpots();
     void testSetBandRange_resetsViewport();
-    void testAddOrUpdateSpot_rejectsOutOfBandSpot();
+    void testAddOrUpdateSpot_acceptsOutOfBandSpot();
 
 private:
     SpotData makeSpot(const QString &call, double freqMhz,
@@ -224,9 +224,9 @@ void TestBandMap::testSetBandRange_clearsSpots()
     bm.addOrUpdateSpot(makeSpot("W1AW", 14.025));
     QCOMPARE(bm.spotCount(), 1);
 
-    // Changing band clears all spots
+    // Changing band retains spots from other bands
     bm.setBandRange(7.0, 7.3, "40m");
-    QCOMPARE(bm.spotCount(), 0);
+    QCOMPARE(bm.spotCount(), 1);
 }
 
 void TestBandMap::testSetBandRange_resetsViewport()
@@ -237,13 +237,13 @@ void TestBandMap::testSetBandRange_resetsViewport()
     QCOMPARE(bm.visibleMaxMhz(), 14.35);
 }
 
-void TestBandMap::testAddOrUpdateSpot_rejectsOutOfBandSpot()
+void TestBandMap::testAddOrUpdateSpot_acceptsOutOfBandSpot()
 {
     BandMapWidget bm;
     bm.setBandRange(14.0, 14.35, "20m");
-    // 21 MHz is outside the 20m band range
+    // 21 MHz is outside the 20m band range but spots are stored for all bands
     bm.addOrUpdateSpot(makeSpot("JA1ABC", 21.025));
-    QCOMPARE(bm.spotCount(), 0);
+    QCOMPARE(bm.spotCount(), 1);
 }
 
 QTEST_MAIN(TestBandMap)

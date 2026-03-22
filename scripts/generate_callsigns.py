@@ -64,6 +64,25 @@ def generate_mexican_callsign():
     return prefix + digit + suffix
 
 
+def generate_russian_callsign():
+    """Generate a valid Russian callsign (European or Asiatic Russia)."""
+    # Russian prefixes: R, RA, RW, RV, RN, RK, RZ, RC, RD, UA, UK
+    # European Russia: R1-R7, RA1-RA7, UA1-UA7, etc.
+    # Asiatic Russia: R0, R8, R9, RA0, RA8, RA9, UA9, UA0, etc.
+    prefix = random.choice([
+        'R', 'RA', 'RW', 'RV', 'RN', 'RK', 'RZ', 'UA', 'UK',
+    ])
+
+    # District digit — 0-9 covers EU Russia (1-7) and AS Russia (0, 8, 9)
+    digit = str(random.randint(0, 9))
+
+    # Suffix letters (typically 2-3)
+    suffix_length = random.choices([2, 3], weights=[55, 45])[0]
+    suffix = ''.join(random.choices(string.ascii_uppercase, k=suffix_length))
+
+    return prefix + digit + suffix
+
+
 def generate_international_callsign():
     """Generate a valid international callsign."""
     # Common international prefixes
@@ -134,7 +153,7 @@ def generate_international_callsign():
         return prefix + suffix
 
 
-def generate_callsigns(us_count=100, canadian_mexican_count=50, intl_count=200):
+def generate_callsigns(us_count=100, canadian_mexican_count=50, intl_count=200, russian_count=0):
     """
     Generate a list of valid callsigns.
 
@@ -142,6 +161,7 @@ def generate_callsigns(us_count=100, canadian_mexican_count=50, intl_count=200):
         us_count: Number of US callsigns to generate
         canadian_mexican_count: Number of Canadian and Mexican callsigns (split evenly)
         intl_count: Number of international callsigns
+        russian_count: Number of Russian callsigns to generate
 
     Returns:
         List of callsigns
@@ -161,6 +181,10 @@ def generate_callsigns(us_count=100, canadian_mexican_count=50, intl_count=200):
 
     for _ in range(mexican_count):
         callsigns.append(generate_mexican_callsign())
+
+    # Generate Russian callsigns
+    for _ in range(russian_count):
+        callsigns.append(generate_russian_callsign())
 
     # Generate international callsigns
     for _ in range(intl_count):
@@ -188,6 +212,8 @@ Examples:
                         help='Number of US callsigns to generate')
     parser.add_argument('-n', '--na', type=int, default=0,
                         help='Number of Canadian/Mexican callsigns to generate (split evenly)')
+    parser.add_argument('-r', '--russian', type=int, default=0,
+                        help='Number of Russian callsigns to generate')
     parser.add_argument('-i', '--intl', type=int, default=0,
                         help='Number of international callsigns to generate')
     parser.add_argument('-t', '--total', type=int,
@@ -204,22 +230,24 @@ Examples:
         random.seed(args.seed)
 
     # Calculate counts
+    russian_count = args.russian
     if args.total:
-        # Use default ratios
-        us_count = int(args.total * 0.30)
-        na_count = int(args.total * 0.15)
-        intl_count = args.total - us_count - na_count
+        # Use default ratios (russian count is separate, subtracted from total first)
+        remaining = args.total - russian_count
+        us_count = int(remaining * 0.30)
+        na_count = int(remaining * 0.15)
+        intl_count = remaining - us_count - na_count
     else:
         us_count = args.us
         na_count = args.na
         intl_count = args.intl
 
-    if us_count == 0 and na_count == 0 and intl_count == 0:
+    if us_count == 0 and na_count == 0 and intl_count == 0 and russian_count == 0:
         parser.print_help()
         return
 
     # Generate callsigns
-    callsigns = generate_callsigns(us_count, na_count, intl_count)
+    callsigns = generate_callsigns(us_count, na_count, intl_count, russian_count)
 
     # Output
     if args.output:

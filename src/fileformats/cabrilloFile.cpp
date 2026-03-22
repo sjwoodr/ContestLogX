@@ -317,6 +317,8 @@ QString CabrilloFile::generateQsoLine(const QsoRecord& qso, const QString& qsoTe
         line.replace("{name_sent}", "");
     }
 
+    line.replace("{sn_sent}", qso.getExchangeField("SNs"));
+    line.replace("{sn_rcvd}", qso.getExchangeField("SNr"));
     line.replace("{CATs}", qso.getExchangeField("CATs"));
     line.replace("{LOCs}", qso.getExchangeField("LOCs"));
     line.replace("{GRIDs}", qso.getExchangeField("GRIDs"));

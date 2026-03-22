@@ -1,0 +1,260 @@
+{
+  "contest": {
+    "name": "Russian DX Contest",
+    "abbreviation": "RDXC",
+    "version": "1.0.0",
+    "sponsor": "Soyuz Radioljubitelej Rossii (SRR)",
+    "description": "International contest encouraging contacts with Russian stations. Non-Russian stations exchange RST and serial number; Russian stations exchange RST and oblast code.",
+    "startDate": "Third full weekend of March",
+    "duration": 24,
+    "offTimeGapMinutes": 0,
+    "modes": ["CW", "SSB"],
+    "bands": ["160m", "80m", "40m", "20m", "15m", "10m"],
+    "url": "https://www.rdxc.org",
+    "categories": {
+      "stations": ["SINGLE_OP", "MULTI_SINGLE", "MULTI_TWO", "MULTI_MULTI"],
+      "power": ["HIGH", "LOW", "QRP"],
+      "modes": ["CW", "SSB", "MIXED"]
+    }
+  },
+  "frequencies": {
+    "160m": {
+      "start": 1800,
+      "end": 2000,
+      "cw": {"start": 1800, "end": 1850},
+      "phone": {"start": 1850, "end": 2000}
+    },
+    "80m": {
+      "start": 3500,
+      "end": 4000,
+      "cw": {"start": 3500, "end": 3600},
+      "phone": {"start": 3600, "end": 4000}
+    },
+    "40m": {
+      "start": 7000,
+      "end": 7300,
+      "cw": {"start": 7000, "end": 7125},
+      "phone": {"start": 7125, "end": 7300}
+    },
+    "20m": {
+      "start": 14000,
+      "end": 14350,
+      "cw": {"start": 14000, "end": 14150},
+      "phone": {"start": 14150, "end": 14350}
+    },
+    "15m": {
+      "start": 21000,
+      "end": 21450,
+      "cw": {"start": 21000, "end": 21200},
+      "phone": {"start": 21200, "end": 21450}
+    },
+    "10m": {
+      "start": 28000,
+      "end": 29700,
+      "cw": {"start": 28000, "end": 28300},
+      "phone": {"start": 28300, "end": 29700}
+    }
+  },
+  "stationClasses": {
+    "enabled": false
+  },
+  "userPrompts": [
+    {
+      "id": "stationType",
+      "question": "Are you a Russian or non-Russian station?",
+      "type": "select",
+      "options": [
+        {"value": "DX", "label": "Non-Russian (DX) — send RST + serial number"},
+        {"value": "UA", "label": "Russian — send RST + oblast code"}
+      ],
+      "required": true,
+      "storeInMeta": true
+    },
+    {
+      "id": "myOblast",
+      "question": "Enter your oblast code (e.g., MA, SP, KK)",
+      "type": "text",
+      "required": true,
+      "storeInMeta": true,
+      "visibleWhen": {"promptId": "stationType", "values": ["UA"]},
+      "exchangeFieldMapping": {"myOblast": "EXCHs"}
+    },
+    {
+      "id": "operatingCategory",
+      "question": "Select your operating category",
+      "type": "select",
+      "options": [
+        {"value": "SOAB-HP-MIX", "label": "Single-Op All Band High Power Mixed"},
+        {"value": "SOAB-LP-MIX", "label": "Single-Op All Band Low Power Mixed"},
+        {"value": "SOAB-QRP-MIX", "label": "Single-Op All Band QRP Mixed"},
+        {"value": "SOAB-HP-CW", "label": "Single-Op All Band High Power CW"},
+        {"value": "SOAB-LP-CW", "label": "Single-Op All Band Low Power CW"},
+        {"value": "SOAB-QRP-CW", "label": "Single-Op All Band QRP CW"},
+        {"value": "SOAB-HP-SSB", "label": "Single-Op All Band High Power SSB"},
+        {"value": "SOAB-LP-SSB", "label": "Single-Op All Band Low Power SSB"},
+        {"value": "SOAB-QRP-SSB", "label": "Single-Op All Band QRP SSB"},
+        {"value": "SO-160M", "label": "Single-Op 160m"},
+        {"value": "SO-80M", "label": "Single-Op 80m"},
+        {"value": "SO-40M", "label": "Single-Op 40m"},
+        {"value": "SO-20M", "label": "Single-Op 20m"},
+        {"value": "SO-15M", "label": "Single-Op 15m"},
+        {"value": "SO-10M", "label": "Single-Op 10m"},
+        {"value": "MS", "label": "Multi-Op Single Transmitter"},
+        {"value": "M2", "label": "Multi-Op Two Transmitters"},
+        {"value": "MM", "label": "Multi-Op Multi Transmitters"}
+      ],
+      "required": true,
+      "storeInMeta": true
+    },
+    {
+      "id": "powerCategory",
+      "question": "Select your power category",
+      "type": "select",
+      "options": [
+        {"value": "HP", "label": "High Power (up to legal limit)"},
+        {"value": "LP", "label": "Low Power (up to 100W)"},
+        {"value": "QRP", "label": "QRP (up to 5W)"}
+      ],
+      "required": true,
+      "storeInMeta": true
+    }
+  ],
+  "exchangeFields": {
+    "sent": [
+      {
+        "name": "RST",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report sent"
+      },
+      {
+        "name": "SNs",
+        "type": "serial",
+        "required": true,
+        "description": "Serial number sent (auto-incremented)"
+      }
+    ],
+    "received": [
+      {
+        "name": "RST",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report received"
+      },
+      {
+        "name": "EXCHr",
+        "type": "string",
+        "required": true,
+        "description": "Serial number (non-Russian) or oblast code (Russian stations)"
+      }
+    ]
+  },
+  "qsoFields": [
+    {"name": "Date",      "column": "DATE",   "type": "date",   "format": "yyyy-MM-dd", "required": true},
+    {"name": "Time",      "column": "TIME",   "type": "time",   "format": "HH:mm:ss",   "required": true},
+    {"name": "Callsign",  "column": "CALL",   "type": "string", "required": true, "uppercase": true},
+    {"name": "Frequency", "column": "FREQ",   "type": "number", "unit": "kHz",    "required": true},
+    {"name": "Mode",      "column": "MODE",   "type": "enum",   "values": ["CW", "SSB"], "required": true},
+    {"name": "RST Sent",  "column": "RSTs",   "type": "string", "required": true, "default": "599"},
+    {"name": "RST Rcvd",  "column": "RSTr",   "type": "string", "required": true},
+    {"name": "SN Sent",     "column": "SNs",    "type": "serial", "required": true, "visibleWhen": {"promptId": "stationType", "values": ["DX"]}},
+    {"name": "Oblast Sent", "column": "EXCHs",  "type": "string", "required": true, "visibleWhen": {"promptId": "stationType", "values": ["UA"]}},
+    {"name": "Exch Rcvd",   "column": "EXCHr",  "type": "string", "required": true, "description": "Serial number or oblast code"},
+    {"name": "Points",    "column": "POINTS", "type": "number", "calculated": true},
+    {"name": "Mult",      "column": "M",      "type": "string", "calculated": true}
+  ],
+  "scoring": {
+    "russianStationPrefixes": ["UA", "UA2", "UA9"],
+    "scoringRuleConditions": {
+      "russianStation": {"promptId": "stationType", "values": ["DX"]}
+    },
+    "points": {
+      "russianStation": {
+        "CW": 10,
+        "SSB": 10
+      },
+      "sameDxccEntity": {
+        "CW": 2,
+        "SSB": 2
+      },
+      "sameContinent": {
+        "CW": 3,
+        "SSB": 3
+      },
+      "differentContinent": {
+        "CW": 5,
+        "SSB": 5
+      }
+    },
+    "precedence": [
+      "russianStation",
+      "sameDxccEntity",
+      "sameContinent",
+      "differentContinent"
+    ],
+    "multipliers": {
+      "type": "multsPerBand",
+      "description": "Russian oblasts and DXCC entities (including WAE) counted once per band",
+      "categories": ["namedMults", "dxcc"],
+      "includeWaeEntities": true,
+      "namedMultSource": "exchange"
+    },
+    "finalScore": "SUM(points) * (namedMults + dxccMultipliers)"
+  },
+  "dupeChecking": {
+    "type": "perBandAndMode",
+    "description": "Station may be worked once per band per mode (CW and SSB count separately)"
+  },
+  "logging": {
+    "requiredFields": ["date", "time", "frequency", "mode", "callsign", "rstSent", "rstReceived", "serialSent", "exchReceived"],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "RDXC",
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {rst_sent} {sn_sent} {call} {rst_rcvd} {exch_rcvd}",
+      "requiredHeaders": ["CONTEST", "CALLSIGN", "CATEGORY-OPERATOR", "CATEGORY-BAND", "CATEGORY-POWER", "CATEGORY-MODE", "CATEGORY-TRANSMITTER", "CLAIMED-SCORE", "CLUB", "NAME", "ADDRESS", "OPERATORS"]
+    }
+  },
+  "callHistory": {
+    "fieldsToSave": ["EXCHr"],
+    "description": "Save received exchange (oblast code or serial) for future lookups"
+  },
+  "validation": {
+    "minimumQSOs": 1,
+    "maxOperatingTime": 24,
+    "offTimesRequired": false,
+    "namedMults": [
+      "SP", "LO", "KO", "KL", "AR", "NO", "VO", "NV", "PS", "MU",
+      "KA", "MA", "MO", "OR", "LP", "TV", "VR", "SM", "YR", "KS",
+      "TL", "TB", "RA", "NN", "IV", "VL", "KU", "KG", "BR", "BO",
+      "VG", "SA", "PE", "SR", "UL", "KI", "TA", "MR", "MD", "UD",
+      "CU", "KR", "KC", "ST", "KM", "SO", "RK", "RO", "CN", "IN",
+      "SE", "AO", "DA", "KB", "AD", "DO", "HE", "LU", "ZP",
+      "CB", "SV", "PM", "TO", "HM", "YN", "TN", "OM", "NS", "KN",
+      "OB", "KE", "BA", "AL", "GA",
+      "KK", "HK", "EA", "SL", "MG", "AM", "CK", "PK", "BU", "YA",
+      "IR", "ZK", "HA", "TU", "KT",
+      "FJ", "AN"
+    ],
+    "exchangeValidation": {
+      "type": "oblastOrSerial",
+      "description": "Accept oblast code (for Russian stations) or serial number (for non-Russian stations)",
+      "serialFormat": "^[0-9]+$"
+    }
+  },
+  "ui": {
+    "showMultiplierPanel": true,
+    "logColumns": ["DATE", "TIME", "CALL", "FREQ", "MODE", "RSTs", "RSTr", "SNs", "EXCHs", "EXCHr", "POINTS", "M"],
+    "entryFields": ["CALL", "RSTr", "EXCHr"],
+    "fieldNavigation": {
+      "keys": "tab"
+    },
+    "bandMap": {
+      "enabled": true,
+      "bands": ["160m", "80m", "40m", "20m", "15m", "10m"]
+    },
+    "multiplierDisplay": {
+      "showOblasts": true,
+      "showDXCC": true
+    }
+  }
+}

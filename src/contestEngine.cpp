@@ -859,14 +859,36 @@ int ContestEngine::calculatePoints(const QsoRecord& qso, const QString& myCallsi
                     ruleApplies = sameContinent;
                 } else if (rule == "differentContinent") {
                     ruleApplies = !sameContinent;
-                } else if (rule == "euCountry") {
-                    if (scoring.contains("euCountryPrefixes")) {
-                        QJsonArray euList = scoring["euCountryPrefixes"].toArray();
-                        for (const auto& v : euList) {
+                } else {
+                    // Generic prefix-match rule: check for a "<ruleName>Prefixes" array
+                    QString prefixKey = rule + "Prefixes";
+                    if (scoring.contains(prefixKey)) {
+                        QJsonArray prefixList = scoring[prefixKey].toArray();
+                        for (const auto& v : prefixList) {
                             if (v.toString() == theirEntity.primaryPrefix) {
                                 ruleApplies = true;
                                 break;
                             }
+                        }
+                    }
+                }
+
+                // Check if a condition restricts this rule to specific station types
+                if (ruleApplies && scoring.contains("scoringRuleConditions")) {
+                    QJsonObject conditions = scoring["scoringRuleConditions"].toObject();
+                    if (conditions.contains(rule)) {
+                        QJsonObject cond = conditions[rule].toObject();
+                        QString promptId = cond["promptId"].toString();
+                        QJsonArray vals = cond["values"].toArray();
+                        QString actual = m_userPromptValues.value(promptId);
+                        bool met = false;
+                        for (const QJsonValue& v : vals)
+                            if (v.toString() == actual) { met = true; break; }
+                        if (!met) {
+                            ruleApplies = false;
+                            DebugLogger::instance().log("ContestEngine",
+                                QString("  Rule '%1' skipped: condition not met (prompt '%2' = '%3')")
+                                    .arg(rule, promptId, actual));
                         }
                     }
                 }
