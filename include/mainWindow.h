@@ -36,6 +36,7 @@
 #include "qsoListModel.h"
 #include "qsoRecord.h"
 #include "flrigClient.h"
+#include "bandMapWidget.h"
 #include "qsoEditDialog.h"
 #include "qrzcqApi.h"
 #include "qrzApi.h"
@@ -145,6 +146,10 @@ private slots:
     void onTtsFinished();
     void onTtsError(const QString& error);
 
+    // Band map
+    void onSpotReceived(const SpotData &spot);
+    void onToggleBandMap(bool checked);
+
 protected:
     bool eventFilter(QObject *obj, QEvent *event) override;
     void closeEvent(QCloseEvent *event) override;
@@ -157,6 +162,8 @@ private:
     void setupDocks(QSplitter* mainSplitter);
     void setupMenus();
     void createConnections();
+    void createBandMapDock();
+    ContactStatus resolveSpotStatus(const QString &callsign);
     void loadQsosIntoModel(const QList<QsoRecord>& qsos, QProgressDialog* progressDialog);
     void applyRestrictedModeFromUserPrompts();
     void promptForMissingUserPrompts();
@@ -240,6 +247,11 @@ private:
     class QDockWidget *m_rateDock;
     class QSplitter *m_mainSplitter;
     class QSplitter *m_rightPanelSplitter;
+
+    // Band map
+    class BandMapWidget *m_bandMapWidget = nullptr;
+    QAction *m_bandMapWidgetAction = nullptr;
+    QString m_lastBand; // tracks last-known band for change detection
 
     // Menu actions for toggleable panels
     QAction *m_floatEntryAction;

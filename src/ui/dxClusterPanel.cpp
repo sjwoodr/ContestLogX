@@ -28,6 +28,7 @@
 #include <QHeaderView>
 #include <QMessageBox>
 #include <QTime>
+#include <QDateTime>
 #include <QTimer>
 #include <QRegularExpression>
 #include <QInputDialog>
@@ -226,6 +227,7 @@ void DxClusterPanel::onSocketConnected()
 {
     DebugLogger::instance().log("DxCluster", "DX Cluster connected");
     m_isConnected = true;
+    emit clusterConnectedChanged(true);
     m_loginSent = false;
     m_loginBuffer.clear();
     m_spotTable->setRowCount(0);
@@ -262,6 +264,7 @@ void DxClusterPanel::onSocketDisconnected()
 {
     DebugLogger::instance().log("DxCluster", "DX Cluster disconnected");
     m_isConnected = false;
+    emit clusterConnectedChanged(false);
     m_loginSent = false;
     m_loginBuffer.clear();
     m_connectButton->setText("Connect");
@@ -433,6 +436,16 @@ void DxClusterPanel::addSpot(const QString& callsign, double frequency, const QS
     if (m_autoScrollCheckBox && m_autoScrollCheckBox->isChecked()) {
         m_spotTable->scrollToBottom();
     }
+
+    // Emit SpotData for band map consumption. frequency here is in kHz.
+    SpotData spot;
+    spot.callsign  = callsign.trimmed().toUpper();
+    spot.freqMhz   = frequency / 1000.0; // kHz → MHz
+    spot.mode      = mode;
+    spot.spotter   = spotter.trimmed().toUpper();
+    spot.timestamp = QDateTime::currentDateTimeUtc();
+    spot.status    = ContactStatus::Unknown; // resolved by MainWindow
+    emit spotReceived(spot);
 }
 
 void DxClusterPanel::showLoginDialog()

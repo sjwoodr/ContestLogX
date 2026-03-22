@@ -39,6 +39,5 @@ web/.astro/
 *.onnx.json
 *.onnx
 config.json
-CLAUDE.md
 
 scripts/__pycache__/

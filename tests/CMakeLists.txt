@@ -49,5 +49,10 @@ add_clx_test(test_dupecheck test_dupecheck.cpp
 #   - stripPortableSuffixes() function validation
 # Run with: ctest -V -R portable
 
+# BandMap tests (header included so AUTOMOC generates moc for Q_OBJECT classes)
+add_clx_test(test_bandmap test_bandmap.cpp
+    ${CMAKE_SOURCE_DIR}/src/ui/bandMapWidget.cpp
+    ${CMAKE_SOURCE_DIR}/include/bandMapWidget.h)
+
 # TODO: Add ContestEngine multiplier tests
 # Requires refactoring ContestEngine to be more testable (mock DxccDatabase)

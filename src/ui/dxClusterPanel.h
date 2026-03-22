@@ -30,6 +30,7 @@
 #include <QTextEdit>
 #include <QDialog>
 #include <QCheckBox>
+#include "bandMapWidget.h"
 
 class DxClusterPanel : public QWidget
 {
@@ -52,6 +53,8 @@ signals:
     void propagationDataReceived(int sfi, int aIndex, int kIndex);
     void spotClicked(const QString& callsign, double frequency, const QString& mode);
     void spotLastQsoRequested();
+    void spotReceived(const SpotData &spot);   // emitted after each parsed cluster spot
+    void clusterConnectedChanged(bool connected); // emitted on connect/disconnect
 
 private slots:
     void onSpotClicked(int row, int column);

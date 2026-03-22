@@ -23,6 +23,7 @@ import Layout from '../layouts/Layout.astro';
           <li><a href="#cw-ssb-memories" class="hover:underline" style="color: #58a6ff;">CW &amp; SSB Memories</a></li>
           <li><a href="#run-sp" class="hover:underline" style="color: #58a6ff;">Run &amp; Search and Pounce Modes</a></li>
           <li><a href="#dx-cluster" class="hover:underline" style="color: #58a6ff;">DX Cluster</a></li>
+          <li><a href="#band-map" class="hover:underline" style="color: #58a6ff;">Band Map</a></li>
           <li><a href="#import-export" class="hover:underline" style="color: #58a6ff;">Importing &amp; Exporting Logs</a></li>
           <li><a href="#custom-contests" class="hover:underline" style="color: #58a6ff;">Creating Custom Contest Modules</a></li>
           <li><a href="#clx-format" class="hover:underline" style="color: #58a6ff;">CLX File Format</a></li>
@@ -320,11 +321,112 @@ F8  N9OH`}</pre>
           <p class="opacity-80">
             Click <strong>Spot Last QSO</strong> to pre-fill the cluster command field with a <code>dx</code> command for the most recently logged contact. Edit if needed, then press Enter to send.
           </p>
+
+          <h3 class="text-lg font-semibold mb-2 mt-4">Band Map</h3>
+          <p class="opacity-80">
+            When the DX cluster is connected, spots are also fed to the visual Band Map panel. See <a href="#band-map" class="underline" style="color: #58a6ff;">Section 8 — Band Map</a> for details.
+          </p>
+        </section>
+
+        <!-- Band Map -->
+        <section id="band-map" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
+          <h2 class="text-2xl font-semibold mb-4">8. Band Map</h2>
+
+          <p class="opacity-80 mb-4">
+            The Band Map displays DX cluster spots as labeled markers on a horizontal frequency axis, giving you
+            a spatial overview of activity on the current band. Open it from <strong>Window → Band Map</strong>.
+            The panel is a dockable, floatable window — drag it anywhere or float it on a second monitor.
+          </p>
+
+          <h3 class="text-lg font-semibold mb-2">Color Coding</h3>
+          <p class="opacity-80 mb-3">
+            Each spot marker is color-coded so you can instantly prioritize where to point your antenna
+            without reading the callsign list.
+          </p>
+
+          <div class="space-y-4 mb-4">
+
+            <div class="flex gap-4 items-start">
+              <div class="flex-shrink-0 w-6 h-6 rounded mt-1" style="background-color: #FF6B00;"></div>
+              <div>
+                <p class="font-semibold">Orange — New Multiplier</p>
+                <p class="opacity-80 text-sm">
+                  This station would add a multiplier you haven't worked yet. ContestLogX checks whether the
+                  station's DXCC entity already appears anywhere in your log — if not, the spot is orange.
+                  These are your highest-priority targets: working them increases both your QSO count <em>and</em>
+                  your multiplier total.
+                </p>
+              </div>
+            </div>
+
+            <div class="flex gap-4 items-start">
+              <div class="flex-shrink-0 w-6 h-6 rounded mt-1" style="background-color: #1E90FF;"></div>
+              <div>
+                <p class="font-semibold">Blue — Unworked, Not a New Multiplier</p>
+                <p class="opacity-80 text-sm">
+                  You haven't worked this station yet, but their DXCC entity is already in your log on
+                  this band. Worth working for the QSO point, but won't add to your multiplier count.
+                  These are your bread-and-butter contacts — move quickly and keep the rate up.
+                </p>
+              </div>
+            </div>
+
+            <div class="flex gap-4 items-start">
+              <div class="flex-shrink-0 w-6 h-6 rounded mt-1" style="background-color: #505050;"></div>
+              <div>
+                <p class="font-semibold">Gray — Already Worked</p>
+                <p class="opacity-80 text-sm">
+                  This callsign is already in your log. Depending on the contest's dupe rules (per-band,
+                  per-mode, or overall), working them again may not count. Gray spots fade into the
+                  background so your eye is drawn to orange and blue first.
+                </p>
+              </div>
+            </div>
+
+          </div>
+
+          <p class="opacity-80 mb-4">
+            Colors update automatically the moment you log a QSO or run <strong>Contest → Recalculate Score</strong> —
+            a freshly worked orange spot turns gray without disappearing from the map.
+          </p>
+
+          <h3 class="text-lg font-semibold mb-2">Click to QSY</h3>
+          <p class="opacity-80 mb-4">
+            Click any spot marker to tune your rig to that frequency and mode — same behavior as clicking a row in the DX Cluster panel.
+            The callsign is also pre-filled in the entry field.
+          </p>
+
+          <h3 class="text-lg font-semibold mb-2">Zoom &amp; Pan</h3>
+          <ul class="list-disc list-inside space-y-1 opacity-80 mb-4">
+            <li><strong>Scroll wheel</strong> — zoom in/out centered on cursor position</li>
+            <li><strong>Zoom slider</strong> — drag the slider at the top of the panel to adjust the visible frequency range</li>
+            <li><strong>Click-drag</strong> — pan the view left or right</li>
+            <li>Zoom and pan reset to full-band default whenever you change bands</li>
+          </ul>
+
+          <h3 class="text-lg font-semibold mb-2">VFO Line</h3>
+          <p class="opacity-80 mb-4">
+            When rig control is connected, a green vertical line shows your current VFO frequency on the band map, updating in real time as you tune.
+          </p>
+
+          <h3 class="text-lg font-semibold mb-2">Spot Expiry &amp; Limits</h3>
+          <ul class="list-disc list-inside space-y-1 opacity-80 mb-4">
+            <li>Spots expire automatically after <strong>30 minutes</strong> by default.</li>
+            <li>A maximum of <strong>30 spots</strong> are displayed at a time; the oldest spot is evicted when the limit is reached.</li>
+            <li>Both thresholds are configurable via <code>QSettings</code> keys <code>BandMap/ExpiryMinutes</code> and <code>BandMap/MaxSpots</code>.</li>
+          </ul>
+
+          <h3 class="text-lg font-semibold mb-2">Band Changes</h3>
+          <p class="opacity-80">
+            Changing bands (as detected from the rig frequency) automatically clears all spots and resets the viewport to
+            full-band zoom. The "No cluster" indicator appears in the top-right corner if the DX cluster connection is lost;
+            existing spots remain visible until expiry.
+          </p>
         </section>
 
         <!-- Import/Export -->
         <section id="import-export" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
-          <h2 class="text-2xl font-semibold mb-4">8. Importing &amp; Exporting Logs</h2>
+          <h2 class="text-2xl font-semibold mb-4">9. Importing &amp; Exporting Logs</h2>
 
           <p class="opacity-80 mb-4">ContestLogX supports both import and export for Cabrillo and ADIF formats.</p>
 
@@ -354,7 +456,7 @@ F8  N9OH`}</pre>
 
         <!-- Custom Contest Modules -->
         <section id="custom-contests" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
-          <h2 class="text-2xl font-semibold mb-4">9. Creating Custom Contest Modules</h2>
+          <h2 class="text-2xl font-semibold mb-4">10. Creating Custom Contest Modules</h2>
 
           <p class="opacity-80 mb-4">
             Every contest in ContestLogX is defined by a JSON file in the <code>contests/</code> directory.
@@ -427,7 +529,7 @@ F8  N9OH`}</pre>
 
         <!-- CLX File Format -->
         <section id="clx-format" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
-          <h2 class="text-2xl font-semibold mb-4">10. CLX File Format</h2>
+          <h2 class="text-2xl font-semibold mb-4">11. CLX File Format</h2>
 
           <p class="opacity-80 mb-4">
             ContestLogX saves logs in the <code>.clx</code> format — a human-readable JSON file that is easy to inspect,
@@ -455,7 +557,7 @@ F8  N9OH`}</pre>
 
         <!-- Data Files -->
         <section id="data-files" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
-          <h2 class="text-2xl font-semibold mb-4">11. Data Files &amp; Storage Locations</h2>
+          <h2 class="text-2xl font-semibold mb-4">12. Data Files &amp; Storage Locations</h2>
 
           <h3 class="text-lg font-semibold mb-2">User Data</h3>
           <pre class="rounded p-4 text-sm overflow-x-auto mb-4" style="background-color: #0d1117; color: #e6edf3;">Linux:   ~/.local/share/ContestLogX/

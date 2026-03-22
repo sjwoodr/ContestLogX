@@ -3,3 +3,7 @@
 3. Check last time we updated master.scp and cty.dat - if more than 30 days, prompt if they want to refresh those.
 
 
+
+
+1. SNr field, up down arrow key to increment or decrement manually
+2. dx cluster mode filter 

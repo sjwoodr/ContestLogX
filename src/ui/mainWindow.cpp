@@ -874,6 +874,8 @@ void MainWindow::setupDocks(QSplitter* mainSplitter)
             m_rateWidgetAction->setChecked(visible);
     });
 
+    createBandMapDock();
+
     // Load SSB memories (from contest or settings)
     loadSsbMemories();
 
@@ -1126,6 +1128,11 @@ void MainWindow::setupMenus()
     m_rateWidgetAction->setCheckable(true);
     m_rateWidgetAction->setChecked(false);  // Hidden by default
     connect(m_rateWidgetAction, &QAction::triggered, this, &MainWindow::onToggleRateWidget);
+
+    m_bandMapWidgetAction = windowMenu->addAction("&Band Map");
+    m_bandMapWidgetAction->setCheckable(true);
+    m_bandMapWidgetAction->setChecked(false);  // Hidden by default
+    connect(m_bandMapWidgetAction, &QAction::triggered, this, &MainWindow::onToggleBandMap);
 
     windowMenu->addSeparator();
     QAction* dockAllAction = windowMenu->addAction("&Dock All Panels");
@@ -3552,6 +3559,12 @@ void MainWindow::onLogQso()
 
     // Update QSO count in status bar
     m_qsoCountLabel->setText(QString("QSOs: %1").arg(m_qsoModel->count()));
+
+    // Refresh band map spot statuses (newly worked station is now Worked)
+    if (m_bandMapWidget)
+        m_bandMapWidget->refreshAllStatuses([this](const QString &call) {
+            return resolveSpotStatus(call);
+        });
 }
 
 void MainWindow::onQrzLookup()
@@ -3645,6 +3658,30 @@ void MainWindow::onUpdateRigDisplay()
         if (qAbs(freqKHz - m_lastFrequency) > 0.1) { // 100 Hz in kHz
             m_lastFrequency = freqKHz;
             DebugLogger::instance().log("MainWindow", QString("Updated frequency to %1 kHz").arg(freqKHz));
+        }
+
+        // Update band map VFO line
+        if (m_bandMapWidget)
+            m_bandMapWidget->setRigFrequency(freqKHz / 1000.0); // MHz
+
+        // Detect band change — update band map range and clear spots
+        if (m_contestEngine && m_bandMapWidget) {
+            QString currentBand = m_contestEngine->getBandFromFrequency(freqKHz);
+            if (!currentBand.isEmpty() && currentBand != m_lastBand) {
+                m_lastBand = currentBand;
+                // Retrieve band limits from contest definition
+                double minMhz = 0.0, maxMhz = 0.0;
+                if (m_contestDefinition.contains("frequencies")) {
+                    QJsonObject freqs = m_contestDefinition["frequencies"].toObject();
+                    if (freqs.contains(currentBand)) {
+                        QJsonObject bandObj = freqs[currentBand].toObject();
+                        minMhz = bandObj["start"].toDouble() / 1000.0; // kHz → MHz
+                        maxMhz = bandObj["end"].toDouble() / 1000.0;
+                    }
+                }
+                if (minMhz > 0.0 && maxMhz > minMhz)
+                    m_bandMapWidget->setBandRange(minMhz, maxMhz, currentBand);
+            }
         }
     }
     
@@ -3971,6 +4008,12 @@ void MainWindow::onRecalculateScore()
 
     m_statusLabel->setText("Score recalculated");
     DebugLogger::instance().log("MainWindow", "Score recalculated for all QSOs");
+
+    // Refresh band map spot statuses after rescore
+    if (m_bandMapWidget)
+        m_bandMapWidget->refreshAllStatuses([this](const QString &call) {
+            return resolveSpotStatus(call);
+        });
 }
 
 void MainWindow::onCWWindow()
@@ -4020,6 +4063,85 @@ void MainWindow::onToggleRateWidget(bool checked)
         m_rateDock->setVisible(checked);
         savePanelState();
     }
+}
+
+void MainWindow::createBandMapDock()
+{
+    m_bandMapWidget = new BandMapWidget(this);
+    m_bandMapWidget->setObjectName("bandMapDock");
+    m_bandMapWidget->setAllowedAreas(Qt::AllDockWidgetAreas);
+    addDockWidget(Qt::RightDockWidgetArea, m_bandMapWidget);
+    m_bandMapWidget->hide();
+
+    connect(m_bandMapWidget, &BandMapWidget::visibilityChanged, this, [this](bool visible) {
+        if (m_bandMapWidgetAction)
+            m_bandMapWidgetAction->setChecked(visible);
+    });
+
+    // Band map spot click → QSY (reuse existing onDxSpotClicked)
+    connect(m_bandMapWidget, &BandMapWidget::spotClicked,
+            this, &MainWindow::onDxSpotClicked);
+
+    // DX cluster spots → band map
+    connect(m_dxClusterPanel, &DxClusterPanel::spotReceived,
+            this, &MainWindow::onSpotReceived);
+
+    // Cluster connect/disconnect → band map indicator + clear on reconnect
+    connect(m_dxClusterPanel, &DxClusterPanel::clusterConnectedChanged,
+            this, [this](bool connected) {
+        m_bandMapWidget->setClusterConnected(connected);
+        if (connected)
+            m_bandMapWidget->clearAllSpots();
+    });
+}
+
+void MainWindow::onSpotReceived(const SpotData &spot)
+{
+    if (!m_bandMapWidget)
+        return;
+    SpotData resolved = spot;
+    resolved.status = resolveSpotStatus(spot.callsign);
+    m_bandMapWidget->addOrUpdateSpot(resolved);
+}
+
+ContactStatus MainWindow::resolveSpotStatus(const QString &callsign)
+{
+    if (!m_qsoModel)
+        return ContactStatus::Unknown;
+
+    const QList<QsoRecord> &qsos = m_qsoModel->getQsos();
+
+    // Check if already worked (any band/mode)
+    for (const QsoRecord &q : qsos) {
+        if (q.getCall().compare(callsign, Qt::CaseInsensitive) == 0)
+            return ContactStatus::Worked;
+    }
+
+    // Heuristic new-multiplier check: if DXCC entity of this spot has not been
+    // worked by any QSO in the log, flag it as a potential new multiplier.
+    if (m_dxccDatabase && m_dxccDatabase->isLoaded()) {
+        DxccEntity spotEntity = m_dxccDatabase->lookupCallsign(callsign);
+        if (spotEntity.dxcc > 0) {
+            bool entityWorked = false;
+            for (const QsoRecord &q : qsos) {
+                DxccEntity qEntity = m_dxccDatabase->lookupCallsign(q.getCall());
+                if (qEntity.dxcc == spotEntity.dxcc) {
+                    entityWorked = true;
+                    break;
+                }
+            }
+            if (!entityWorked)
+                return ContactStatus::NewMultiplier;
+        }
+    }
+
+    return ContactStatus::UnworkedNonMult;
+}
+
+void MainWindow::onToggleBandMap(bool checked)
+{
+    if (m_bandMapWidget)
+        m_bandMapWidget->setVisible(checked);
 }
 
 void MainWindow::onShowMultipliers()

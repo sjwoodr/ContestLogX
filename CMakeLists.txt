@@ -35,6 +35,7 @@ set(SOURCES
     src/ui/ssbKeyingSetupDialog.cpp
     src/ui/ssbMemoriesWidget.cpp
     src/ui/dxClusterPanel.cpp
+    src/ui/bandMapWidget.cpp
     src/ui/scoreWidget.cpp
     src/ui/rateWidget.cpp
     src/ui/multiplierWidget.cpp
@@ -105,6 +106,7 @@ set(HEADERS
     src/ui/ssbKeyingSetupDialog.h
     include/ssbMemoriesWidget.h
     src/ui/dxClusterPanel.h
+    include/bandMapWidget.h
     include/qsoRecord.h
     include/qsoListModel.h
     include/fileHandler.h
