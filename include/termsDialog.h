@@ -11,10 +11,11 @@
 #include <QDialog>
 
 /**
- * @brief First-run terms of use dialog.
+ * @brief Terms of use dialog.
  *
- * Displays the GPL3 warranty disclaimer and requires the user to accept
- * before the application proceeds. Declining exits the application.
+ * Displays the MIT license disclaimer and requires the user to accept
+ * before the application proceeds. Shown on first run or when
+ * TERMS_VERSION is bumped. Declining exits the application.
  */
 class TermsDialog : public QDialog
 {

@@ -24,6 +24,10 @@
 // Application version
 static const char* APP_VERSION = "0.6.13";
 
+// Bump this to force the terms dialog to re-appear for all users.
+// History: 1 = original terms, 2 = MIT license change
+static const int TERMS_VERSION = 2;
+
 // Global log file
 static QFile *logFile = nullptr;
 static QTextStream *logStream = nullptr;
@@ -161,16 +165,19 @@ int main(int argc, char *argv[])
     
     applyTheme();
 
-    // Show terms of use on first run (or when settings are reset)
-    if (!parser.isSet(testOnlyOption) && !Settings::instance().getTermsAccepted()) {
-        DebugLogger::instance().log("INFO", "Terms of use not yet accepted — showing dialog");
+    // Show terms of use on first run or when TERMS_VERSION has been bumped
+    int acceptedVersion = Settings::instance().getTermsAcceptedVersion();
+    if (!parser.isSet(testOnlyOption) && acceptedVersion < TERMS_VERSION) {
+        DebugLogger::instance().log("INFO",
+            QString("Terms v%1 not yet accepted (have v%2) — showing dialog")
+                .arg(TERMS_VERSION).arg(acceptedVersion));
         TermsDialog terms;
         if (terms.exec() != QDialog::Accepted) {
             DebugLogger::instance().log("INFO", "User declined terms of use — exiting");
             return 1;
         }
-        DebugLogger::instance().log("INFO", "User accepted terms of use");
-        Settings::instance().setTermsAccepted(true);
+        DebugLogger::instance().log("INFO", QString("User accepted terms v%1").arg(TERMS_VERSION));
+        Settings::instance().setTermsAcceptedVersion(TERMS_VERSION);
     } else if (!parser.isSet(testOnlyOption)) {
         DebugLogger::instance().log("INFO", "Terms of use previously accepted — skipping dialog");
     }

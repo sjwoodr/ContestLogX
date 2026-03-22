@@ -40,7 +40,8 @@ TermsDialog::TermsDialog(QWidget* parent)
         "<b>WITHOUT WARRANTY OF ANY KIND</b>, express or implied, including but "
         "not limited to the warranties of <b>MERCHANTABILITY</b> or "
         "<b>FITNESS FOR A PARTICULAR PURPOSE</b>.</p>"
-        "<p>See the LICENSE file included with ContestLogX for the full license text.</p>"
+        "<p>See the LICENSE file included with ContestLogX or the "
+        "<a href=\"https://opensource.org/licenses/MIT\">full license text online</a>.</p>"
         "<p>By clicking <b>I Accept</b>, you acknowledge that you have read and "
         "understood these terms.</p>"
     );

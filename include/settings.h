@@ -250,9 +250,9 @@ public:
     QString getTheme() const;
     void setTheme(const QString& theme);
 
-    // Terms of use
-    bool getTermsAccepted() const;
-    void setTermsAccepted(bool accepted);
+    // Terms of use — version-based re-acceptance
+    int getTermsAcceptedVersion() const;
+    void setTermsAcceptedVersion(int version);
 
     // Panel fonts (keys: qsoEntry, qsoLog, dxCluster, scp, cwKeyboard)
     QFont getPanelFont(const QString& panelKey) const;

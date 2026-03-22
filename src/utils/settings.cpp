@@ -1317,14 +1317,17 @@ void Settings::setTheme(const QString& theme)
     save();
 }
 
-bool Settings::getTermsAccepted() const
+int Settings::getTermsAcceptedVersion() const
 {
-    return m_settings["termsAccepted"].toBool(false);
+    QJsonValue v = m_settings["termsAccepted"];
+    if (v.isBool())
+        return v.toBool() ? 1 : 0;
+    return v.toInt(0);
 }
 
-void Settings::setTermsAccepted(bool accepted)
+void Settings::setTermsAcceptedVersion(int version)
 {
-    m_settings["termsAccepted"] = accepted;
+    m_settings["termsAccepted"] = version;
     save();
 }
 
