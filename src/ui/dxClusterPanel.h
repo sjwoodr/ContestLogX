@@ -71,13 +71,16 @@ private slots:
     void onExpireSpots();
     void onSpotLastQso();
     void onBandFilterChanged(const QString& band);
+    void onModeFilterChanged(const QString& mode);
 
 private:
     void setupUi();
     void addSpot(const QString& callsign, double frequency, const QString& spotter, const QString& comment);
     void showLoginDialog();
     void sendLoginAndCommands();
-    
+    void applyRowFilter(int row);
+    static QString modeCategory(const QString& mode, const QString& comment);
+
     QTableWidget *m_spotTable;
     QTextEdit *m_consoleText;
     QComboBox *m_clusterEdit;
@@ -86,6 +89,7 @@ private:
     QComboBox *m_viewCombo;
     QCheckBox *m_autoScrollCheckBox;
     QComboBox *m_bandFilterCombo;
+    QComboBox *m_modeFilterCombo;
     QTcpSocket *m_socket;
     QTimer *m_propagationTimer;
     QTimer *m_expirationTimer;

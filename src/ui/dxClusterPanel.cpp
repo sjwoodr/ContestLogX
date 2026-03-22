@@ -45,6 +45,7 @@ DxClusterPanel::DxClusterPanel(QWidget *parent)
     , m_propagationTimer(new QTimer(this))
     , m_expirationTimer(new QTimer(this))
     , m_bandFilterCombo(nullptr)
+    , m_modeFilterCombo(nullptr)
     , m_isConnected(false)
     , m_loginSent(false)
 {
@@ -86,9 +87,6 @@ void DxClusterPanel::setupUi()
     // Header with controls
     QHBoxLayout *headerLayout = new QHBoxLayout();
     
-    QLabel *titleLabel = new QLabel("<b>DX Cluster</b>");
-    headerLayout->addWidget(titleLabel);
-    
     m_clusterEdit = new QComboBox(this);
     m_clusterEdit->setEditable(true);
     m_clusterEdit->setMinimumWidth(200);
@@ -121,6 +119,13 @@ void DxClusterPanel::setupUi()
     connect(m_bandFilterCombo, &QComboBox::currentTextChanged,
             this, &DxClusterPanel::onBandFilterChanged);
     headerLayout->addWidget(m_bandFilterCombo);
+
+    m_modeFilterCombo = new QComboBox(this);
+    m_modeFilterCombo->addItems({"ALL", "CW", "SSB", "RTTY", "FTx"});
+    m_modeFilterCombo->setMaximumWidth(70);
+    connect(m_modeFilterCombo, &QComboBox::currentTextChanged,
+            this, &DxClusterPanel::onModeFilterChanged);
+    headerLayout->addWidget(m_modeFilterCombo);
 
     headerLayout->addStretch();
     mainLayout->addLayout(headerLayout);
@@ -399,9 +404,11 @@ void DxClusterPanel::addSpot(const QString& callsign, double frequency, const QS
     
     QString band = BandPlan::freq2Band(frequency); // frequency is in kHz
     QString mode = BandPlan::freq2Mode(frequency / 1000.0); // Convert kHz to MHz
+    QString modeCat = modeCategory(mode, comment);
 
     QTableWidgetItem *timeItem = createItem(QTime::currentTime().toString("HH:mm:ss"));
-    timeItem->setData(Qt::UserRole, band);  // Store band for filtering
+    timeItem->setData(Qt::UserRole,     band);     // band for band filter
+    timeItem->setData(Qt::UserRole + 1, modeCat);  // category for mode filter
     m_spotTable->setItem(row, 0, timeItem);
     m_spotTable->setItem(row, 1, createItem(callsign));
     m_spotTable->setItem(row, 2, createItem(QString::number(frequency, 'f', 1)));
@@ -413,10 +420,8 @@ void DxClusterPanel::addSpot(const QString& callsign, double frequency, const QS
     m_spotTable->item(row, 2)->setData(Qt::UserRole, frequency);
     m_spotTable->item(row, 3)->setData(Qt::UserRole, mode);
 
-    // Apply band filter to this new row
-    QString filterBand = m_bandFilterCombo ? m_bandFilterCombo->currentText() : "ALL";
-    if (filterBand != "ALL" && band != filterBand)
-        m_spotTable->setRowHidden(row, true);
+    // Apply both filters to this new row
+    applyRowFilter(row);
     
     // Keep only last 100 spots
     if (m_spotTable->rowCount() > 100) {
@@ -687,14 +692,57 @@ void DxClusterPanel::setBands(const QStringList& bands)
     onBandFilterChanged(m_bandFilterCombo->currentText());
 }
 
-void DxClusterPanel::onBandFilterChanged(const QString& band)
+// Map raw mode string + comment text → filter category
+QString DxClusterPanel::modeCategory(const QString& mode, const QString& comment)
 {
-    for (int row = 0; row < m_spotTable->rowCount(); ++row) {
-        QTableWidgetItem *timeItem = m_spotTable->item(row, 0);
-        if (!timeItem) continue;
-        QString rowBand = timeItem->data(Qt::UserRole).toString();
-        m_spotTable->setRowHidden(row, band != "ALL" && rowBand != band);
-    }
+    // Check comment first — clusters often annotate FT8/RTTY explicitly
+    QString upperComment = comment.toUpper();
+    if (upperComment.contains("FT8") || upperComment.contains("FT4") || upperComment.contains("FT2"))
+        return "FTx";
+    if (upperComment.contains("RTTY"))
+        return "RTTY";
+
+    QString upperMode = mode.toUpper();
+    if (upperMode == "CW" || upperMode == "CWR")
+        return "CW";
+    if (upperMode == "USB" || upperMode == "LSB" || upperMode == "SSB" ||
+        upperMode == "AM"  || upperMode == "FM"  || upperMode == "PHONE")
+        return "SSB";
+    if (upperMode == "RTTY")
+        return "RTTY";
+    if (upperMode == "DIG" || upperMode == "DATA" || upperMode == "FT8" ||
+        upperMode == "FT4" || upperMode == "FT2")
+        return "FTx";
+
+    return "OTHER";
+}
+
+void DxClusterPanel::applyRowFilter(int row)
+{
+    QTableWidgetItem *timeItem = m_spotTable->item(row, 0);
+    if (!timeItem) return;
+
+    QString rowBand    = timeItem->data(Qt::UserRole).toString();
+    QString rowModeCat = timeItem->data(Qt::UserRole + 1).toString();
+
+    QString filterBand = m_bandFilterCombo ? m_bandFilterCombo->currentText() : "ALL";
+    QString filterMode = m_modeFilterCombo ? m_modeFilterCombo->currentText() : "ALL";
+
+    bool hidden = (filterBand != "ALL" && rowBand != filterBand)
+               || (filterMode != "ALL" && rowModeCat != filterMode);
+    m_spotTable->setRowHidden(row, hidden);
+}
+
+void DxClusterPanel::onBandFilterChanged(const QString& /*band*/)
+{
+    for (int row = 0; row < m_spotTable->rowCount(); ++row)
+        applyRowFilter(row);
+}
+
+void DxClusterPanel::onModeFilterChanged(const QString& /*mode*/)
+{
+    for (int row = 0; row < m_spotTable->rowCount(); ++row)
+        applyRowFilter(row);
 }
 
 void DxClusterPanel::setSpotCommand(const QString& callsign, double freqKhz)
