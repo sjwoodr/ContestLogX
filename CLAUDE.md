@@ -10,7 +10,7 @@ A C++ Qt6-based amateur radio contest logging application.
 ## Dependencies
 
 - **CMake** >= 3.16
-- **Qt6** (Core, Widgets, Network, SerialPort, Xml)
+- **Qt6** (Core, Widgets, Network, Xml)
 - **C++17** compiler (GCC, Clang, or MSVC)
 - **Python 3** (for test scripts)
 
