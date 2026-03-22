@@ -6,6 +6,8 @@
 
 Most contest loggers are Windows-only, closed-source, or locked to a fixed set of contests. ContestLogX runs natively on Linux and macOS with no emulation or workarounds. Every contest is defined in a simple JSON file — add support for any contest without touching a line of C++.
 
+**[Website](https://contestlogx.com)** | **[Documentation](https://contestlogx.com/docs/)** | **[Downloads](https://github.com/sjwoodr/ContestLogX/releases)**
+
 ## Features
 
 ### Contest Logging
@@ -136,5 +138,4 @@ See the [LICENSE](LICENSE) file for the full license text.
 
 ---
 
-**ContestLogX v0.6.14**
-*Copyright (c) 2025-2026 Steve Woodruff, N9OH*
+**[contestlogx.com](https://contestlogx.com)** | **ContestLogX v0.6.14** | *Copyright (c) 2025-2026 Steve Woodruff, N9OH*
