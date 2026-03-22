@@ -4,7 +4,7 @@
 
 [![Build](https://github.com/sjwoodr/ContestLogX/actions/workflows/ci.yml/badge.svg)](https://github.com/sjwoodr/ContestLogX/actions/workflows/ci.yml)
 
-Most contest loggers are Windows-only, closed-source, or locked to a fixed set of contests. ContestLogX runs natively on Linux and macOS with no emulation or workarounds. Every contest is defined in a simple JSON file — add support for any contest without touching a line of C++.
+Most contest loggers are Windows-only, closed-source, or locked to a fixed set of contests. ContestLogX runs natively on Linux and macOS with no emulation or workarounds. Every contest is defined in a simple JSON file allowing you to add support for any contest without touching a line of C++.
 
 **[Website](https://contestlogx.com)** | **[Documentation](https://contestlogx.com/docs/)** | **[Downloads](https://github.com/sjwoodr/ContestLogX/releases)**
 
