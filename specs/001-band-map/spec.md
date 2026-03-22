@@ -173,8 +173,10 @@ zoomed view.
 - **Cluster disconnects while map is open**: Existing spots remain visible until
   expiry; new spots stop arriving; an indicator shows the cluster is not connected.
 - **Multiple spots for the same callsign at slightly different frequencies**: Each
-  report is displayed as a distinct marker at its reported frequency; no
-  deduplication is performed.
+  report is displayed as a distinct marker at its reported frequency.
+- **Duplicate spot — same callsign at the same frequency**: The existing marker's
+  expiry timestamp is reset (refreshed); no second marker is added. One marker
+  per callsign+frequency pair at any given time.
 - **Radio not connected on click-to-QSY**: Status message shown; no crash.
 - **All spots expire simultaneously**: Map transitions to empty state gracefully;
   no flicker or error.
@@ -192,8 +194,9 @@ zoomed view.
 - **FR-001**: The band map MUST display all current DX cluster spots for the
   operator's active contest band as markers on a frequency axis.
 
-- **FR-002**: Each spot marker MUST show the spotted callsign and indicate the
-  reported operating mode.
+- **FR-002**: Each spot marker MUST display the spotted callsign as its visible
+  label. The operating mode, frequency, spotter callsign, and spot age MUST be
+  shown in a tooltip when the operator hovers over the marker.
 
 - **FR-003**: A new spot MUST appear on the band map within 2 seconds of being
   received from the DX cluster.
@@ -202,8 +205,9 @@ zoomed view.
   multiplier, already-worked, and unworked non-multiplier MUST be visually
   distinguishable without a legend.
 
-- **FR-005**: Contact status color MUST update in real time when the operator logs
-  a QSO with a spotted station (no manual refresh required).
+- **FR-005**: Contact status color MUST update in real time whenever the log
+  changes — a QSO is logged, edited, or deleted — affecting any visible spot
+  (no manual refresh required). Status is also evaluated when a spot first arrives.
 
 - **FR-006**: Operators MUST be able to click a spot marker to QSY the active
   radio to that spot's frequency and mode.
@@ -223,8 +227,10 @@ zoomed view.
 - **FR-011**: The band map MUST update its displayed band and reload spots when
   the operator's active band changes.
 
-- **FR-012**: Operators MUST be able to zoom the frequency axis to narrow the
-  visible range and pan to shift the visible window along the band.
+- **FR-012**: Operators MUST be able to zoom the frequency axis via scroll wheel
+  over the map AND via a visible zoom slider in the panel. Both controls narrow
+  or widen the visible frequency range. Panning shifts the visible window along
+  the band (click-drag or scrollbar).
 
 - **FR-013**: The band map MUST show an informative empty state when no contest
   is loaded, no cluster connection is active, or no spots exist for the current band.
@@ -279,6 +285,18 @@ zoomed view.
 
 ---
 
+## Clarifications
+
+### Session 2026-03-21
+
+- Q: When the cluster sends a duplicate spot (same callsign, same frequency), should the band map update the existing marker or add a new one? → A: Update existing marker — reset its expiry timestamp; one marker per callsign+frequency pair.
+- Q: What triggers the band map to update when the operator changes bands? → A: Rig frequency polling — band derived from the radio's reported frequency (already polled for QSO entry).
+- Q: When should spot contact-status colors be re-evaluated? → A: Event-driven — on spot arrival, and re-evaluate all visible spot colors on any log change (QSO logged, edited, or deleted).
+- Q: What is the primary zoom mechanism for the frequency axis? → A: Scroll wheel over the map + a visible zoom slider in the panel (for discoverability and accessibility).
+- Q: How is the spot's operating mode indicated on the marker? → A: Callsign only on the marker; mode (plus frequency, spotter, age) shown in a tooltip on hover.
+
+---
+
 ## Assumptions
 
 - The DX cluster connection and spot delivery are managed by the existing DX Cluster
@@ -286,10 +304,14 @@ zoomed view.
   connection.
 - Contact status (multiplier/worked classification) is computed by the application's
   existing contest scoring logic and is authoritative for the current log state.
-- The "active band" follows the operator's active radio frequency as reported by
-  the existing rig control integration.
-- Spot deduplication (multiple cluster reports of the same callsign) is not
-  performed; each report appears as a distinct marker at its reported frequency.
+- The "active band" is derived from the rig's polled frequency (already polled
+  for QSO entry). Band changes are detected automatically when the polled
+  frequency crosses into a different contest band segment — no separate event
+  or manual band field change is required.
+- A duplicate cluster report (same callsign at the same frequency) refreshes the
+  existing marker's expiry timestamp rather than adding a second marker. Multiple
+  reports of the same callsign at *different* frequencies each appear as distinct
+  markers at their respective frequencies.
 - Mouse-driven interaction is the primary model for spot selection; keyboard
   navigation of spot markers is not required in this spec but must not be
   architecturally precluded.
