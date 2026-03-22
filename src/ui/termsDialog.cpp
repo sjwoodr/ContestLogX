@@ -1,21 +1,8 @@
 /*
  * ContestLogX - Amateur Radio Contest Logging Software
- * Copyright (c) 2025-2026, by Steve Woodruff, N9OH
+ * Copyright (c) 2025-2026 Steve Woodruff, N9OH
  *
- * This file is part of ContestLogX.
- *
- * ContestLogX is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * ContestLogX is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with ContestLogX.  If not, see <https://www.gnu.org/licenses/>.
+ * Released under the MIT License. See LICENSE file for details.
  */
 
 #include "termsDialog.h"
@@ -48,14 +35,12 @@ TermsDialog::TermsDialog(QWidget* parent)
     text->setOpenExternalLinks(true);
     text->setHtml(
         "<p>ContestLogX is free software distributed under the "
-        "<b>GNU General Public License, version 3</b>.</p>"
-        "<p>This program is distributed in the hope that it will be useful, "
-        "but <b>WITHOUT ANY WARRANTY</b>; without even the implied warranty of "
-        "<b>MERCHANTABILITY</b> or <b>FITNESS FOR A PARTICULAR PURPOSE</b>. "
-        "See the GNU General Public License for more details.</p>"
-        "<p>You should have received a copy of the GNU General Public License "
-        "along with ContestLogX. If not, see "
-        "<a href=\"https://www.gnu.org/licenses/\">https://www.gnu.org/licenses/</a>.</p>"
+        "<b>MIT License</b>.</p>"
+        "<p>This program is provided <b>AS IS</b>, "
+        "<b>WITHOUT WARRANTY OF ANY KIND</b>, express or implied, including but "
+        "not limited to the warranties of <b>MERCHANTABILITY</b> or "
+        "<b>FITNESS FOR A PARTICULAR PURPOSE</b>.</p>"
+        "<p>See the LICENSE file included with ContestLogX for the full license text.</p>"
         "<p>By clicking <b>I Accept</b>, you acknowledge that you have read and "
         "understood these terms.</p>"
     );

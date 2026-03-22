@@ -6,7 +6,7 @@ This file lists the third-party libraries distributed with ContestLogX and their
 
 ## Qt Framework
 
-**Modules used:** Qt6::Core, Qt6::Widgets, Qt6::Network, Qt6::SerialPort, Qt6::Xml
+**Modules used:** Qt6::Core, Qt6::Widgets, Qt6::Network, Qt6::Xml
 
 **Copyright:** The Qt Company Ltd. and individual contributors
 
@@ -34,5 +34,5 @@ country lookups and multiplier scoring.
 
 ---
 
-*ContestLogX itself is released under the GNU General Public License v3.0.
+*ContestLogX itself is released under the MIT License.
 See the LICENSE file for details.*

@@ -484,7 +484,7 @@ make test-logs-headless  # log tests without display (CI)
 
 ## License
 
-ContestLogX is released under the **GNU General Public License v3.0 (GPL v3)**.
+ContestLogX is released under the **MIT License**.
 See the [LICENSE](LICENSE) file for the full license text.
 
 ## Contact
