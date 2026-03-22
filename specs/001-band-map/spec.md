@@ -161,8 +161,9 @@ zoomed view.
 3. **Given** the operator has zoomed or panned, **When** the band changes,
    **Then** the zoom and pan reset to the full-band default for the new band.
 
-4. **Given** the operator has zoomed or panned, **When** the application restarts,
-   **Then** the previous zoom/pan state is restored.
+4. **Given** the operator has zoomed or panned, **When** the band changes,
+   **Then** the zoom and pan reset to the full-band default for the new band and
+   no zoom/pan state is carried over.
 
 ---
 
@@ -172,6 +173,8 @@ zoomed view.
   loaded" empty state — no error, no crash.
 - **Cluster disconnects while map is open**: Existing spots remain visible until
   expiry; new spots stop arriving; an indicator shows the cluster is not connected.
+  On reconnect, all existing spots are cleared and the map starts fresh from
+  newly arriving spots.
 - **Multiple spots for the same callsign at slightly different frequencies**: Each
   report is displayed as a distinct marker at its reported frequency.
 - **Duplicate spot — same callsign at the same frequency**: The existing marker's
@@ -238,8 +241,14 @@ zoomed view.
 - **FR-014**: The band map panel MUST be dockable, floatable, and closable,
   consistent with other panels in the application.
 
-- **FR-015**: Band map panel position, size, and zoom/pan state MUST persist
-  across application sessions.
+- **FR-015**: Band map panel position and size MUST persist across application
+  sessions. Zoom and pan state reset to full-band default on band change and
+  are not persisted across sessions.
+
+- **FR-016**: The maximum number of simultaneously stored spots MUST be
+  configurable via Preferences (default: 30). When the limit is reached, the
+  oldest spot (by arrival timestamp) is evicted to make room for the new
+  arrival.
 
 ### Key Entities
 
@@ -271,8 +280,8 @@ zoomed view.
   within 1 second of the click.
 
 - **SC-004**: The map remains readable (spot labels non-overlapping at default zoom)
-  with up to 30 simultaneously active spots; zoom is available to manage denser
-  conditions.
+  up to the configured spot limit (default: 30); zoom is available to manage
+  readability when many spots are visible within the limit.
 
 - **SC-005**: The three contact status colors are correctly identified by operators
   without referring to a legend (verified by informal user testing).
@@ -280,8 +289,9 @@ zoomed view.
 - **SC-006**: The band map panel opens, docks, floats, resizes, and closes without
   affecting the layout or behavior of any other panel.
 
-- **SC-007**: After application restart, the band map panel position, size, and
-  zoom state are restored to the previous session's values.
+- **SC-007**: After application restart, the band map panel position and size
+  are restored to the previous session's values. Zoom and pan always open at
+  the full-band default.
 
 ---
 
@@ -294,6 +304,10 @@ zoomed view.
 - Q: When should spot contact-status colors be re-evaluated? → A: Event-driven — on spot arrival, and re-evaluate all visible spot colors on any log change (QSO logged, edited, or deleted).
 - Q: What is the primary zoom mechanism for the frequency axis? → A: Scroll wheel over the map + a visible zoom slider in the panel (for discoverability and accessibility).
 - Q: How is the spot's operating mode indicated on the marker? → A: Callsign only on the marker; mode (plus frequency, spotter, age) shown in a tooltip on hover.
+- Q: Does zoom/pan state persist across sessions or reset on band change? → A: No persistence — zoom and pan always reset to full-band default on band change and are not saved across sessions.
+- Q: What is the maximum number of simultaneously stored spots and is it configurable? → A: Default 30 spots max, configurable via Preferences; oldest spot (by arrival time) is evicted when the limit is exceeded.
+- Q: When the cluster disconnects, do existing spots remain? When it reconnects, what happens? → A: On disconnect, existing spots remain visible until expiry. On reconnect, all spots are cleared and the map starts fresh from newly arriving spots.
+- Q: When the operator changes bands, are existing spots cleared or filtered? → A: All spots are cleared on band change; the map starts fresh for the new band.
 
 ---
 
@@ -315,3 +329,7 @@ zoomed view.
 - Mouse-driven interaction is the primary model for spot selection; keyboard
   navigation of spot markers is not required in this spec but must not be
   architecturally precluded.
+- When the operator changes bands, all stored spots are cleared and the band map
+  starts fresh for the new band. No spot data is carried over across band changes.
+- Zoom and pan state is ephemeral — it resets to full-band default on band change
+  and is not written to QSettings.

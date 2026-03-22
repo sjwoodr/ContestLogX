@@ -24,9 +24,9 @@ state transitions under adverse conditions.
 
 ## Requirement Consistency
 
-- [ ] CHK056 - The cluster-disconnect edge case says existing spots remain visible until expiry. FR-013 says the empty state shows when "no cluster connection is active." These may conflict — if spots are still visible after disconnect, when does the "no cluster" empty state appear? [Consistency, Spec §FR-013, §Edge Cases]
+- [x] CHK056 - **Resolved**: Edge case updated — on disconnect, existing spots remain until expiry; the "no cluster" indicator is shown alongside spots (not instead of them). On reconnect, all spots are cleared and the map starts fresh. FR-013 empty state applies only when no spots remain and no cluster is connected. [Consistency, Spec §FR-013, §Edge Cases]
 - [ ] CHK057 - US3 scenario 2 says clicking a spot with no radio connected shows "a clear status message." FR-007 says the band map "MUST display an informative status message." Are these consistent in specifying the same behavior, or could they lead to two different message mechanisms? [Consistency, Spec §US3, §FR-007]
-- [ ] CHK058 - The assumption states spots are cleared when the band changes (setBandRange resets viewport). The edge case for "no spots on current band" shows an empty state. Are requirements consistent: are spots *filtered* to the new band (in-memory spots from the old band are cleared) or *all* spots cleared on band change? [Consistency, Spec §Assumptions, §Edge Cases, Plan §Band Change Detection]
+- [x] CHK058 - **Resolved**: All spots are cleared on band change. This is documented in Assumptions and is consistent with the edge case for "no spots on current band." Spots are not filtered — the entire spot store is reset when the active band changes. [Consistency, Spec §Assumptions, §Edge Cases]
 
 ## Scenario Coverage
 

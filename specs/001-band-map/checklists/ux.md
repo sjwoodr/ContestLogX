@@ -27,7 +27,7 @@ requirements — rendering, interaction, states, and accessibility.
 - [ ] CHK012 - FR-004 requires three status colors to be distinguishable "without a legend," but SC-005 says this is "verified by informal user testing." Are these consistent — is the legend-free requirement a testable gate or a post-release aspiration? [Consistency, Spec §FR-004, §SC-005]
 - [ ] CHK013 - The spec says click-to-QSY should behave "consistent with clicking a spot in the existing cluster table" (US3, scenario 3). Is the existing cluster table behavior formally documented or assumed? If assumed, is this a hidden dependency? [Consistency, Spec §US3]
 - [ ] CHK014 - FR-002 specifies tooltip content as "mode, frequency, spotter callsign, and spot age." Are these consistent with the SpotData entity definition in the data model, which lists the same fields? [Consistency, Spec §FR-002, data-model.md]
-- [ ] CHK015 - US5 scenario 3 says zoom/pan reset when band changes, but FR-015 says zoom/pan state persists across sessions. Are these consistent — does "per-band" zoom state persist (separate state per band), or does band change always reset to default? [Consistency, Spec §US5, §FR-015]
+- [x] CHK015 - **Resolved**: FR-015 updated — zoom/pan is not persisted; it resets to full-band default on band change. SC-007 updated accordingly. US5 and FR-015 are now consistent. [Consistency, Spec §US5, §FR-015]
 
 ## Acceptance Criteria Quality
 

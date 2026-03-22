@@ -21,7 +21,7 @@ requirements — repaint pipeline, expiry, status re-evaluation, and scale.
 
 ## Requirement Consistency
 
-- [ ] CHK035 - SC-004 states the map should be "readable with up to 30 simultaneously active spots." The plan states scale up to 500 spots. Are requirements consistent — does the system degrade gracefully above 30, or is 30 a hard cap? [Consistency, Spec §SC-004, Plan §Scale/Scope]
+- [x] CHK035 - **Resolved**: FR-016 added — max spot count defaults to 30 and is configurable via Preferences; oldest spot is evicted when limit is reached. 30 is the enforced cap at default settings. SC-004 updated to reference the configurable limit. [Consistency, Spec §SC-004, §FR-016]
 - [ ] CHK036 - FR-005 requires contact status colors to update "in real time" on log changes. Is "real time" consistent with the 2-second arrival latency in SC-002 — does status re-evaluation have its own latency budget? [Consistency, Spec §FR-005, §SC-002]
 - [ ] CHK037 - The plan states status re-evaluation is triggered on every log change and iterates all visible spots. For 500 spots, is this O(n) scan acceptable within the "real time" requirement? Is there a requirement that status updates complete within a defined time budget? [Consistency, Plan §Contact Status Query, Gap]
 
