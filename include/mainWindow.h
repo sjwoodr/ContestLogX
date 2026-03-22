@@ -129,6 +129,7 @@ private slots:
     void onToggleCallsignLookupDebug(bool checked);
     void onDownloadCtyDat();
     void onDownloadScp();
+    void checkDataFileStaleness();
     void onManageCallHistory();
     void onScpDialog();
     void onPreferences();

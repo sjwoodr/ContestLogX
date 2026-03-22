@@ -287,6 +287,11 @@ MainWindow::MainWindow(QWidget *parent)
         }
     }
 
+    // Check if data files (cty.dat, master.scp) are stale (skip in test mode)
+    if (!m_testMode) {
+        QTimer::singleShot(500, this, &MainWindow::checkDataFileStaleness);
+    }
+
     // Restore window geometry in showEvent (after window is visible)
     // restoreWindowGeometry() will be called in showEvent() on first show
     // DON'T restore panel state here - it will be restored AFTER window geometry in showEvent()
@@ -515,6 +520,19 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
             }
         }
         
+        // Up/Down arrows in the SNr field increment/decrement the serial number
+        if ((keyEvent->key() == Qt::Key_Up || keyEvent->key() == Qt::Key_Down) && lineEdit) {
+            if (m_exchangeFields.value("SNr") == lineEdit) {
+                bool ok = false;
+                int sn = lineEdit->text().trimmed().toInt(&ok);
+                if (!ok) sn = 0;
+                sn += (keyEvent->key() == Qt::Key_Up) ? 1 : -1;
+                if (sn < 0) sn = 0;
+                lineEdit->setText(QString::number(sn));
+                return true;
+            }
+        }
+
         // Check if Enter or Return was pressed in any QSO entry field
         if (keyEvent->key() == Qt::Key_Return || keyEvent->key() == Qt::Key_Enter) {
             bool inEntryField = (lineEdit == m_callEdit)
@@ -4540,7 +4558,7 @@ void MainWindow::onAbout()
     msgBox.setTextFormat(Qt::RichText);
     msgBox.setTextInteractionFlags(Qt::TextBrowserInteraction);
     msgBox.setText(
-        "<b>ContestLogX - Version 0.6.11 (Beta)</b><br><br>"
+        "<b>ContestLogX - Version 0.6.12 (Beta)</b><br><br>"
         "Cross-platform amateur radio contest logging software<br><br>"
         "Copyright &copy; 2025-2026, by Steve Woodruff, N9OH<br><br>"
         "<a href=\"https://contestlogx.com\">https://contestlogx.com</a><br><br>"
@@ -6161,6 +6179,50 @@ void MainWindow::updateQsoEntryFields()
         setTabOrder(m_qrzButton, m_logButton);
         setTabOrder(m_logButton, m_clearButton);
     }
+}
+
+void MainWindow::checkDataFileStaleness()
+{
+    const int STALE_DAYS = 7;
+    QString dataPath = Settings::getUserDataPath();
+
+    auto fileAgeDays = [](const QString &path) -> int {
+        QFileInfo fi(path);
+        if (!fi.exists()) return -1;
+        return fi.lastModified().daysTo(QDateTime::currentDateTime());
+    };
+
+    int ctyAge = fileAgeDays(dataPath + "/cty.dat");
+    int scpAge = fileAgeDays(dataPath + "/master.scp");
+
+    bool ctyStal = ctyAge >= STALE_DAYS;
+    bool scpStale = scpAge >= STALE_DAYS;
+
+    if (!ctyStal && !scpStale)
+        return;
+
+    // Build a description of what's stale
+    QStringList staleFiles;
+    if (ctyStal)
+        staleFiles << QString("DXCC database (cty.dat) — %1 days old").arg(ctyAge);
+    if (scpStale)
+        staleFiles << QString("Super Check Partial (master.scp) — %1 days old").arg(scpAge);
+
+    QMessageBox msgBox(this);
+    msgBox.setWindowTitle("Data Files Out of Date");
+    msgBox.setIcon(QMessageBox::Question);
+    msgBox.setText("One or more data files haven't been updated in over 7 days:");
+    msgBox.setInformativeText(staleFiles.join("\n") + "\n\nWould you like to download the latest versions now?");
+    msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+    msgBox.setDefaultButton(QMessageBox::Yes);
+
+    if (msgBox.exec() != QMessageBox::Yes)
+        return;
+
+    if (ctyStal)
+        onDownloadCtyDat();
+    if (scpStale)
+        onDownloadScp();
 }
 
 void MainWindow::onDownloadCtyDat()
