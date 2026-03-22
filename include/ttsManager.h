@@ -95,7 +95,7 @@ private:
     void startAudioProcess(const QString& audioFile);
     void cleanup();
     void switchToDataMode();
-    void restoreOriginalMode();
+    void restoreOriginalMode(bool delayed = false);
     QString generateOutputPath() const;
 
     QProcess *m_ttsProcess;

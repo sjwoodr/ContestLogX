@@ -100,7 +100,7 @@ void TtsManager::cancel()
     }
 
     // Restore mode after processes are stopped (no concurrent flrig activity)
-    restoreOriginalMode();
+    restoreOriginalMode(false);  // synchronous: processes already dead, cancel is immediate
 
     cleanup();
     m_isActive = false;
@@ -315,8 +315,9 @@ void TtsManager::onAudioFinished(int exitCode, QProcess::ExitStatus exitStatus)
         return;
     }
 
-    // Restore original mode before emitting signals
-    restoreOriginalMode();
+    // Restore original mode: release PTT now, then delay before mode change so
+    // the radio's PTT relay has time to fully settle before accepting a mode command.
+    restoreOriginalMode(true);
 
     if (exitStatus != QProcess::NormalExit || exitCode != 0) {
         QString errorMsg = QString::fromUtf8(m_audioProcess->readAllStandardError());
@@ -343,7 +344,7 @@ void TtsManager::onAudioError(QProcess::ProcessError processError)
         return;
     }
 
-    restoreOriginalMode();
+    restoreOriginalMode(true);
 
     QString errorMsg;
     switch (processError) {
@@ -370,7 +371,7 @@ void TtsManager::onAudioError(QProcess::ProcessError processError)
 void TtsManager::onAudioTimeout()
 {
     DebugLogger::instance().log("TtsManager", "Audio timeout");
-    restoreOriginalMode();
+    restoreOriginalMode(true);
     if (m_audioProcess) {
         m_audioProcess->kill();
     }
@@ -406,7 +407,7 @@ void TtsManager::switchToDataMode()
     }
 }
 
-void TtsManager::restoreOriginalMode()
+void TtsManager::restoreOriginalMode(bool delayed)
 {
     if (m_savedMode.isEmpty() || !m_flrigClient || !m_flrigClient->isConnected())
         return;
@@ -414,10 +415,24 @@ void TtsManager::restoreOriginalMode()
     m_flrigClient->setPTT(false);
     DebugLogger::instance().log("TtsManager", "PTT released");
 
-    DebugLogger::instance().log("TtsManager",
-        QString("Restoring mode to %1").arg(m_savedMode));
-    m_flrigClient->setMode(m_savedMode);
-    m_savedMode.clear();
+    if (delayed) {
+        // Give the radio's PTT relay time to fully release before changing mode.
+        // Some radios (e.g. ICOM) lock mode changes while PTT is active/settling.
+        QString savedMode = m_savedMode;
+        m_savedMode.clear();  // clear now so a concurrent cancel() is a no-op
+        QTimer::singleShot(PTT_SETTLE_MS, this, [this, savedMode]() {
+            if (!m_flrigClient || !m_flrigClient->isConnected())
+                return;
+            DebugLogger::instance().log("TtsManager",
+                QString("Restoring mode to %1").arg(savedMode));
+            m_flrigClient->setMode(savedMode);
+        });
+    } else {
+        DebugLogger::instance().log("TtsManager",
+            QString("Restoring mode to %1").arg(m_savedMode));
+        m_flrigClient->setMode(m_savedMode);
+        m_savedMode.clear();
+    }
 }
 
 void TtsManager::cleanup()
