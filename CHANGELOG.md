@@ -3,6 +3,10 @@
 All notable changes to ContestLogX are documented in this file.
 
 ## [0.6.14]
+- Added CHANGELOG.md with CI-driven release notes from changelog entries
+- Fixed make version inserting duplicate changelog sections
+- Removed unnecessary cty.dat download from macOS CI build
+- Removed qtserialport from CI Qt module installs
 
 ## [0.6.13]
 - Changed license to MIT
