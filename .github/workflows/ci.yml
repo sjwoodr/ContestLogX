@@ -22,7 +22,7 @@ jobs:
           host: 'linux'
           target: 'desktop'
           arch: 'gcc_64'
-          modules: 'qtnetworkauth qtserialport qtmultimedia'
+          modules: 'qtnetworkauth qtmultimedia'
           cache: true
 
       - name: Install additional dependencies
@@ -119,7 +119,7 @@ jobs:
           version: '6.5.*'
           host: 'mac'
           target: 'desktop'
-          modules: 'qtnetworkauth qtserialport qtmultimedia'
+          modules: 'qtnetworkauth qtmultimedia'
           cache: true
 
       - name: Download DXCC database (cty.dat)
@@ -178,13 +178,27 @@ jobs:
           name: macos-app
           path: artifacts/
 
+      - name: Extract release notes from CHANGELOG.md
+        id: changelog
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          # Extract the section for this version (between its heading and the next heading)
+          NOTES=$(awk "/^## \\[$VERSION\\]/{found=1; next} /^## \\[/{if(found) exit} found{print}" CHANGELOG.md)
+          if [ -z "$NOTES" ]; then
+            NOTES="No changelog entry for v$VERSION."
+          fi
+          # Use GH delimiter for multiline output
+          echo "notes<<CHANGELOG_EOF" >> $GITHUB_OUTPUT
+          echo "$NOTES" >> $GITHUB_OUTPUT
+          echo "CHANGELOG_EOF" >> $GITHUB_OUTPUT
+
       - name: Create Release and Upload Assets
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.version.outputs.version }}
           name: Release ${{ steps.version.outputs.version }}
           body: |
-            ContestLogX Release ${{ steps.version.outputs.version }}
+            ${{ steps.changelog.outputs.notes }}
 
             ## Downloads
             - **Linux AppImage**: ContestLogX.${{ steps.version.outputs.version }}.AppImage.tar.gz
