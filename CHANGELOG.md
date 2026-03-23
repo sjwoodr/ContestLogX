@@ -4,6 +4,7 @@ All notable changes to ContestLogX are documented in this file.
 
 ## [0.7.0]
 - Added online score publishing to contestonlinescore.com (SPEC-003), disabled by default
+- Added "Post Now (Test)" button in Preferences to verify online scoring credentials
 - Added Online Scoring tab in Preferences for credentials and posting interval
 - Added Contest menu toggle for online score publishing with field validation
 - Added contestOnlineScore metadata to 10 contest definitions

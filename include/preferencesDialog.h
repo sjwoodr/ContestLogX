@@ -18,6 +18,7 @@
 #include <QFontComboBox>
 #include <QSpinBox>
 #include <QFont>
+#include <QLabel>
 #include <QList>
 #include <QListWidget>
 
@@ -48,6 +49,7 @@ private slots:
     void onQrzcqSessionObtained(const QString& token);
     void onQrzcqSessionError(const QString& error);
     void onTestQrzConnection();
+    void onTestOnlineScoring();
     void onQrzSessionObtained(const QString& token);
     void onQrzSessionError(const QString& error);
     void onAddDxCluster();
@@ -113,6 +115,9 @@ private:
     QLineEdit *m_osPasswordEdit;
     QComboBox *m_osIntervalCombo;
     QCheckBox *m_osPerQsoCheck;
+    QPushButton *m_osTestButton;
+    QLabel *m_osTestStatusLabel;
+    class OnlineScoreClient *m_osTestClient;
 };
 
 #endif // PREFERENCESDIALOG_H

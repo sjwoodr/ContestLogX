@@ -10,6 +10,7 @@
 #include "settings.h"
 #include "qrzcqApi.h"
 #include "qrzApi.h"
+#include "onlineScoreClient.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QFormLayout>
@@ -31,6 +32,7 @@ PreferencesDialog::PreferencesDialog(QWidget *parent)
     , m_qrzcqApi(new QrzcqApi(this))
     , m_qrzApi(new QrzApi(this))
     , m_fontsChanged(false)
+    , m_osTestClient(new OnlineScoreClient(this))
 {
     m_originalTheme = Settings::instance().getTheme();
     setupUi();
@@ -315,6 +317,17 @@ void PreferencesDialog::setupUi()
     m_osPerQsoCheck->setChecked(Settings::instance().getOnlineScoringPerQso());
     osLayout->addRow("", m_osPerQsoCheck);
 
+    m_osTestButton = new QPushButton("Post Now (Test)");
+    m_osTestButton->setToolTip("Send a test post to contestonlinescore.com to verify credentials");
+    m_osTestStatusLabel = new QLabel("");
+    QHBoxLayout *osTestLayout = new QHBoxLayout;
+    osTestLayout->addWidget(m_osTestButton);
+    osTestLayout->addWidget(m_osTestStatusLabel);
+    osTestLayout->addStretch();
+    osLayout->addRow("", osTestLayout);
+
+    connect(m_osTestButton, &QPushButton::clicked, this, &PreferencesDialog::onTestOnlineScoring);
+
     QLabel *osNote = new QLabel(
         "Scores are posted to contestonlinescore.com.\n"
         "Use the Contest menu to start/stop posting during an active contest.");
@@ -328,6 +341,7 @@ void PreferencesDialog::setupUi()
         m_osPasswordEdit->setEnabled(enabled);
         m_osIntervalCombo->setEnabled(enabled);
         m_osPerQsoCheck->setEnabled(enabled);
+        m_osTestButton->setEnabled(enabled);
     };
     connect(m_osEnabledCheck, &QCheckBox::toggled, updateOsFields);
     updateOsFields(m_osEnabledCheck->isChecked());
@@ -598,4 +612,67 @@ void PreferencesDialog::onDeleteDxCluster()
     if (!item)
         return;
     delete m_dxClusterList->takeItem(m_dxClusterList->row(item));
+}
+
+void PreferencesDialog::onTestOnlineScoring()
+{
+    QString callsign = m_osCallsignEdit->text().trimmed().toUpper();
+    QString password = m_osPasswordEdit->text();
+    if (callsign.isEmpty() || password.isEmpty()) {
+        m_osTestStatusLabel->setText("Enter callsign and password first");
+        m_osTestStatusLabel->setStyleSheet("color: red;");
+        return;
+    }
+
+    m_osTestButton->setEnabled(false);
+    m_osTestStatusLabel->setText("Posting...");
+    m_osTestStatusLabel->setStyleSheet("");
+
+    m_osTestClient->setCredentials(callsign, password);
+
+    // Build a minimal test post using "GENERAL QSO" as the contest ID
+    ScorePostData data;
+    data.contestId = "GENERAL QSO";
+    data.callsign = callsign;
+    data.ops = callsign;
+    data.stPrvOth = m_stateEdit->text().trimmed().toUpper();
+    data.grid = m_gridEdit->text().trimmed().toUpper();
+    data.cqZone = m_cqZoneSpinBox->value();
+    data.ituZone = m_ituZoneSpinBox->value();
+    data.arrlSection = m_arrlSectionEdit->text().trimmed().toUpper();
+    data.totalScore = 0;
+
+    // Totals-only breakdown
+    ScoreBreakdownEntry totals;
+    totals.band = "total";
+    totals.mode = "ALL";
+    totals.qsoCount = 0;
+    totals.points = 0;
+    data.breakdown.append(totals);
+
+    connect(m_osTestClient, &OnlineScoreClient::postSuccess, this, [this](const QString&) {
+        m_osTestStatusLabel->setText("Success!");
+        m_osTestStatusLabel->setStyleSheet("color: green;");
+        m_osTestButton->setEnabled(true);
+    }, Qt::SingleShotConnection);
+
+    connect(m_osTestClient, &OnlineScoreClient::postFailed, this, [this](const QString& error) {
+        // A 404 "contest closed/not valid" from a test post means credentials worked
+        if (error.contains("Contest is closed") || error.contains("not valid")) {
+            m_osTestStatusLabel->setText("Connected OK (test contest not active)");
+            m_osTestStatusLabel->setStyleSheet("color: green;");
+        } else {
+            m_osTestStatusLabel->setText("Failed: " + error);
+            m_osTestStatusLabel->setStyleSheet("color: red;");
+        }
+        m_osTestButton->setEnabled(true);
+    }, Qt::SingleShotConnection);
+
+    connect(m_osTestClient, &OnlineScoreClient::authFailed, this, [this]() {
+        m_osTestStatusLabel->setText("Authentication failed — check credentials");
+        m_osTestStatusLabel->setStyleSheet("color: red;");
+        m_osTestButton->setEnabled(true);
+    }, Qt::SingleShotConnection);
+
+    m_osTestClient->postScore(data);
 }
