@@ -242,6 +242,9 @@ MainWindow::MainWindow(QWidget *parent)
     m_sessionStationInfo->setOperatorName(settings.getOperatorName());
     m_sessionStationInfo->setGrid(settings.getGridSquare());
     m_sessionStationInfo->setState(settings.getState());
+    m_sessionStationInfo->setCqZone(settings.getCqZone());
+    m_sessionStationInfo->setItuZone(settings.getItuZone());
+    m_sessionStationInfo->setArrlSection(settings.getArrlSection());
     
     // Load CW memories
     loadCWMemories();
@@ -2911,6 +2914,25 @@ void MainWindow::onPreferences()
                 if (entity.dxcc > 0)
                     Settings::instance().setDxccCountry(entity.primaryPrefix);
             }
+        }
+        // Sync session station info with updated preferences — only fill empty fields
+        // so we don't overwrite per-session overrides the operator has already set
+        if (m_sessionStationInfo && dialog.stationChanged()) {
+            Settings &s = Settings::instance();
+            if (m_sessionStationInfo->callsign().isEmpty())
+                m_sessionStationInfo->setCallsign(s.getCallsign());
+            if (m_sessionStationInfo->operatorName().isEmpty())
+                m_sessionStationInfo->setOperatorName(s.getOperatorName());
+            if (m_sessionStationInfo->grid().isEmpty())
+                m_sessionStationInfo->setGrid(s.getGridSquare());
+            if (m_sessionStationInfo->state().isEmpty())
+                m_sessionStationInfo->setState(s.getState());
+            if (m_sessionStationInfo->cqZone() <= 0)
+                m_sessionStationInfo->setCqZone(s.getCqZone());
+            if (m_sessionStationInfo->ituZone() <= 0)
+                m_sessionStationInfo->setItuZone(s.getItuZone());
+            if (m_sessionStationInfo->arrlSection().isEmpty())
+                m_sessionStationInfo->setArrlSection(s.getArrlSection());
         }
     }
 }
