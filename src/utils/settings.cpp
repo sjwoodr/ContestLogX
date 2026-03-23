@@ -1167,6 +1167,19 @@ void Settings::setQrzCredentials(const QString& username, const QString& passwor
 }
 
 // Online scoring settings
+bool Settings::getOnlineScoringEnabled() const
+{
+    return m_settings["onlineScoring"].toObject()["enabled"].toBool(false);
+}
+
+void Settings::setOnlineScoringEnabled(bool enabled)
+{
+    QJsonObject os = m_settings["onlineScoring"].toObject();
+    os["enabled"] = enabled;
+    m_settings["onlineScoring"] = os;
+    m_modified = true;
+}
+
 QString Settings::getOnlineScoringCallsign() const
 {
     QString encrypted = m_settings["onlineScoring"].toObject()["callsign"].toString();

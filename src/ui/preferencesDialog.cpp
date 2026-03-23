@@ -269,6 +269,10 @@ void PreferencesDialog::setupUi()
     QWidget *osTab = new QWidget;
     QFormLayout *osLayout = new QFormLayout(osTab);
 
+    m_osEnabledCheck = new QCheckBox("Enable online score publishing");
+    m_osEnabledCheck->setChecked(Settings::instance().getOnlineScoringEnabled());
+    osLayout->addRow(m_osEnabledCheck);
+
     m_osCallsignEdit = new QLineEdit;
     m_osCallsignEdit->setPlaceholderText("Callsign for contestonlinescore.com");
     m_osCallsignEdit->setText(Settings::instance().getOnlineScoringCallsign());
@@ -296,11 +300,21 @@ void PreferencesDialog::setupUi()
     osLayout->addRow("", m_osPerQsoCheck);
 
     QLabel *osNote = new QLabel(
-        "Enable posting from the Contest menu during an active contest.\n"
-        "Scores are posted to contestonlinescore.com.");
+        "Scores are posted to contestonlinescore.com.\n"
+        "Use the Contest menu to start/stop posting during an active contest.");
     osNote->setWordWrap(true);
     osNote->setStyleSheet("color: gray;");
     osLayout->addRow(osNote);
+
+    // Enable/disable fields based on checkbox state
+    auto updateOsFields = [this](bool enabled) {
+        m_osCallsignEdit->setEnabled(enabled);
+        m_osPasswordEdit->setEnabled(enabled);
+        m_osIntervalCombo->setEnabled(enabled);
+        m_osPerQsoCheck->setEnabled(enabled);
+    };
+    connect(m_osEnabledCheck, &QCheckBox::toggled, updateOsFields);
+    updateOsFields(m_osEnabledCheck->isChecked());
 
     tabWidget->addTab(osTab, "Online Scoring");
 
@@ -387,6 +401,7 @@ void PreferencesDialog::onAccept()
     }
 
     // Online scoring
+    settings.setOnlineScoringEnabled(m_osEnabledCheck->isChecked());
     settings.setOnlineScoringCredentials(m_osCallsignEdit->text().trimmed().toUpper(),
                                          m_osPasswordEdit->text());
     settings.setOnlineScoringInterval(m_osIntervalCombo->currentData().toInt());

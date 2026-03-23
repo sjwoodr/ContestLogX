@@ -7415,6 +7415,14 @@ void MainWindow::onToggleOnlineScoring(bool enabled)
         return;
     }
 
+    // Check global enable setting
+    if (!Settings::instance().getOnlineScoringEnabled()) {
+        m_onlineScoringAction->setChecked(false);
+        QMessageBox::information(this, "Online Scoring",
+            "Online scoring is disabled. Enable it in Preferences > Online Scoring.");
+        return;
+    }
+
     // Validate required fields
     QStringList missing;
     QString osCall = Settings::instance().getOnlineScoringCallsign();

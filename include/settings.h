@@ -247,6 +247,8 @@ public:
     void setAudioPlayArgs(const QString& args);
 
     // Online scoring
+    bool getOnlineScoringEnabled() const;
+    void setOnlineScoringEnabled(bool enabled);
     QString getOnlineScoringCallsign() const;
     QString getOnlineScoringPassword() const;
     void setOnlineScoringCredentials(const QString& callsign, const QString& password);

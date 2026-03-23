@@ -105,6 +105,7 @@ private:
     bool m_fontsChanged;
 
     // Online Scoring tab
+    QCheckBox *m_osEnabledCheck;
     QLineEdit *m_osCallsignEdit;
     QLineEdit *m_osPasswordEdit;
     QComboBox *m_osIntervalCombo;
