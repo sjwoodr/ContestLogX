@@ -285,7 +285,7 @@ void PreferencesDialog::setupUi()
     QWidget *osTab = new QWidget;
     QFormLayout *osLayout = new QFormLayout(osTab);
 
-    m_osEnabledCheck = new QCheckBox("Enable online score publishing");
+    m_osEnabledCheck = new QCheckBox("Enable online score publishing to contestonlinescore.com");
     m_osEnabledCheck->setChecked(Settings::instance().getOnlineScoringEnabled());
     osLayout->addRow(m_osEnabledCheck);
 
@@ -425,7 +425,25 @@ void PreferencesDialog::onAccept()
         m_lookupChanged = true;
     }
 
-    // Online scoring
+    // Online scoring — validate required fields if enabling
+    if (m_osEnabledCheck->isChecked()) {
+        QStringList missing;
+        if (m_osCallsignEdit->text().trimmed().isEmpty()) missing << "Online Scoring Callsign";
+        if (m_osPasswordEdit->text().isEmpty()) missing << "Online Scoring Password";
+        if (m_cqZoneSpinBox->value() <= 0) missing << "CQ Zone (Station tab)";
+        if (m_ituZoneSpinBox->value() <= 0) missing << "ITU Zone (Station tab)";
+        if (m_stateEdit->text().trimmed().isEmpty()) missing << "State/Province (Station tab)";
+        if (m_gridEdit->text().trimmed().isEmpty()) missing << "Grid Square (Station tab)";
+
+        if (!missing.isEmpty()) {
+            QMessageBox::warning(this, "Online Scoring",
+                "Online scoring requires the following fields:\n\n- " +
+                missing.join("\n- ") +
+                "\n\nPlease fill them in before enabling.");
+            m_osEnabledCheck->setChecked(false);
+        }
+    }
+
     settings.setOnlineScoringEnabled(m_osEnabledCheck->isChecked());
     settings.setOnlineScoringCredentials(m_osCallsignEdit->text().trimmed().toUpper(),
                                          m_osPasswordEdit->text());
