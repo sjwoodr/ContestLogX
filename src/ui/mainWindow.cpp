@@ -40,6 +40,7 @@
 #include "debugLogger.h"
 #include "dxccDatabase.h"
 #include "onlineScoreClient.h"
+#include <QSpinBox>
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QFile>
@@ -4335,10 +4336,20 @@ void MainWindow::onOperatorCallDialog()
     form->setRowWrapPolicy(QFormLayout::DontWrapRows);
     form->setFieldGrowthPolicy(QFormLayout::ExpandingFieldsGrow);
 
-    auto *callEdit  = new QLineEdit(m_sessionStationInfo->callsign(), &dlg);
-    auto *nameEdit  = new QLineEdit(m_sessionStationInfo->operatorName(), &dlg);
-    auto *gridEdit  = new QLineEdit(m_sessionStationInfo->grid(), &dlg);
-    auto *stateEdit = new QLineEdit(m_sessionStationInfo->state(), &dlg);
+    auto *callEdit    = new QLineEdit(m_sessionStationInfo->callsign(), &dlg);
+    auto *nameEdit    = new QLineEdit(m_sessionStationInfo->operatorName(), &dlg);
+    auto *gridEdit    = new QLineEdit(m_sessionStationInfo->grid(), &dlg);
+    auto *stateEdit   = new QLineEdit(m_sessionStationInfo->state(), &dlg);
+    auto *cqZoneEdit  = new QSpinBox(&dlg);
+    auto *ituZoneEdit = new QSpinBox(&dlg);
+    auto *arrlEdit    = new QLineEdit(m_sessionStationInfo->arrlSection(), &dlg);
+
+    cqZoneEdit->setRange(0, 40);
+    cqZoneEdit->setSpecialValueText("—");
+    cqZoneEdit->setValue(m_sessionStationInfo->cqZone());
+    ituZoneEdit->setRange(0, 90);
+    ituZoneEdit->setSpecialValueText("—");
+    ituZoneEdit->setValue(m_sessionStationInfo->ituZone());
 
     // Enforce uppercase on fields that need it
     auto forceUpper = [](QLineEdit *le) {
@@ -4354,11 +4365,26 @@ void MainWindow::onOperatorCallDialog()
     forceUpper(callEdit);
     forceUpper(gridEdit);
     forceUpper(stateEdit);
+    forceUpper(arrlEdit);
+
+    // Auto-populate CQ/ITU zone from DXCC database when callsign changes
+    connect(callEdit, &QLineEdit::editingFinished, &dlg, [this, callEdit, cqZoneEdit, ituZoneEdit]() {
+        QString call = callEdit->text().trimmed().toUpper();
+        if (call.isEmpty() || !m_dxccDatabase) return;
+        auto entity = m_dxccDatabase->lookupCallsign(call);
+        if (entity.dxcc > 0) {
+            if (cqZoneEdit->value() == 0) cqZoneEdit->setValue(entity.cqZone);
+            if (ituZoneEdit->value() == 0) ituZoneEdit->setValue(entity.ituZone);
+        }
+    });
 
     form->addRow(tr("Callsign:"),       callEdit);
     form->addRow(tr("Operator name:"),  nameEdit);
     form->addRow(tr("Grid square:"),    gridEdit);
     form->addRow(tr("State/Province:"), stateEdit);
+    form->addRow(tr("CQ Zone:"),        cqZoneEdit);
+    form->addRow(tr("ITU Zone:"),       ituZoneEdit);
+    form->addRow(tr("ARRL Section:"),   arrlEdit);
 
     auto *buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dlg);
     if (auto *btn = buttons->button(QDialogButtonBox::Ok))
@@ -4375,13 +4401,19 @@ void MainWindow::onOperatorCallDialog()
     m_sessionStationInfo->setOperatorName(nameEdit->text().trimmed());
     m_sessionStationInfo->setGrid(gridEdit->text().trimmed().toUpper());
     m_sessionStationInfo->setState(stateEdit->text().trimmed().toUpper());
+    m_sessionStationInfo->setCqZone(cqZoneEdit->value());
+    m_sessionStationInfo->setItuZone(ituZoneEdit->value());
+    m_sessionStationInfo->setArrlSection(arrlEdit->text().trimmed().toUpper());
 
     DebugLogger::instance().log("MainWindow",
-        QString("Station info updated: call=%1 name=%2 grid=%3 state=%4")
+        QString("Station info updated: call=%1 name=%2 grid=%3 state=%4 cq=%5 itu=%6 arrl=%7")
             .arg(m_sessionStationInfo->callsign())
             .arg(m_sessionStationInfo->operatorName())
             .arg(m_sessionStationInfo->grid())
-            .arg(m_sessionStationInfo->state()));
+            .arg(m_sessionStationInfo->state())
+            .arg(m_sessionStationInfo->cqZone())
+            .arg(m_sessionStationInfo->ituZone())
+            .arg(m_sessionStationInfo->arrlSection()));
 
     // Mark the log as modified so the updated info is persisted on next save
     m_isModified = true;

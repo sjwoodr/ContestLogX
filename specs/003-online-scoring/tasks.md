@@ -19,7 +19,7 @@
 
 - [x] T002 [P] Add `m_cqZone` (int), `m_ituZone` (int), `m_arrlSection` (QString) fields with getters/setters to `include/stationInfo.h`
 - [x] T003 [P] Implement `toJson()` and `fromJson()` serialization for new fields in `src/core/stationInfo.cpp` — add to `location` object, default cqZone/ituZone to 0, arrlSection to ""
-- [ ] T004 Add CQ zone and ITU zone auto-population from DxccDatabase callsign lookup in `src/ui/mainWindow.cpp` station dialog handler
+- [x] T004 Add CQ zone and ITU zone auto-population from DxccDatabase callsign lookup in `src/ui/mainWindow.cpp` station dialog handler
 
 ### Settings Extension [FR-001]
 
@@ -35,7 +35,7 @@
 
 - [x] T007 [US1] Add "Online Scoring" section to preferences dialog in `src/ui/preferencesDialog.cpp` with fields: callsign (QLineEdit), password (QLineEdit, echoMode Password), interval dropdown (1/2/5/10/15 min), per-QSO checkbox
 - [x] T008 [US1] Connect preferences dialog fields to Settings getters/setters — load on open, save on accept in `src/ui/preferencesDialog.cpp`
-- [ ] T009 [US1] Add station info fields (CQ Zone, ITU Zone, ARRL Section) to the station information dialog in `src/ui/mainWindow.cpp`
+- [x] T009 [US1] Add station info fields (CQ Zone, ITU Zone, ARRL Section) to the station information dialog in `src/ui/mainWindow.cpp`
 
 ---
 
