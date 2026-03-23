@@ -3,6 +3,8 @@
 All notable changes to ContestLogX are documented in this file.
 
 ## [0.7.0]
+- Added band/mode QSO breakdown table to summary sheet (matches 3830scores.com format)
+- Removed unnecessary asterisk prefix from multiplier listings in summary sheet
 - Fixed operating time calculation when offTimeGapMinutes is 0 (now uses 15-minute floor)
 
 ## [0.6.14]
