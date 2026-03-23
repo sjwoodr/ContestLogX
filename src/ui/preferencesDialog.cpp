@@ -48,7 +48,7 @@ PreferencesDialog::~PreferencesDialog()
 void PreferencesDialog::setupUi()
 {
     setWindowTitle("Preferences");
-    setMinimumSize(550, 450);
+    setMinimumSize(700, 450);
 
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
 

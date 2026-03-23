@@ -271,24 +271,23 @@ MainWindow::MainWindow(QWidget *parent)
         DebugLogger::instance().log("MainWindow", "Test mode enabled");
     }
 
+    // Prompt for station setup if callsign is not configured (skip in test mode)
+    if (!m_testMode && settings.getCallsign().isEmpty()) {
+        DebugLogger::instance().log("MainWindow", "Station not configured, showing preferences dialog");
+        QTimer::singleShot(100, this, &MainWindow::onPreferences);
+    }
+
     if (logIndex != -1 && logIndex + 1 < args.count()) {
         QString logFilePath = args[logIndex + 1];
         m_debugLogMode = true;
         DebugLogger::instance().log("MainWindow", QString("Loading log file from command line: %1").arg(logFilePath));
         DebugLogger::instance().log("MainWindow", "Debug log mode enabled - summary sheet will be written to debug log");
-        QTimer::singleShot(100, this, [this, logFilePath]() {
+        QTimer::singleShot(200, this, [this, logFilePath]() {
             loadLogFile(logFilePath);
         });
-    } else {
-        // Check if station setup is configured
-        QString callsign = settings.getCallsign();
-        if (callsign.isEmpty()) {
-            DebugLogger::instance().log("MainWindow", "Station not configured, showing preferences dialog");
-            QTimer::singleShot(100, this, &MainWindow::onPreferences);
-        } else {
-            DebugLogger::instance().log("MainWindow", "Station configured, showing contest selection dialog");
-            QTimer::singleShot(100, this, &MainWindow::onNewLog);
-        }
+    } else if (!settings.getCallsign().isEmpty()) {
+        DebugLogger::instance().log("MainWindow", "Station configured, showing contest selection dialog");
+        QTimer::singleShot(100, this, &MainWindow::onNewLog);
     }
 
     // Check if data files (cty.dat, master.scp) are stale (skip in test mode)
