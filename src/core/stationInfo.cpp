@@ -26,6 +26,7 @@ QJsonObject StationInfo::toJson() const
     if (!m_county.isEmpty()) location["county"] = m_county;
     if (m_cqZone > 0) location["cq_zone"] = m_cqZone;
     if (m_ituZone > 0) location["itu_zone"] = m_ituZone;
+    if (!m_arrlSection.isEmpty()) location["arrl_section"] = m_arrlSection;
     if (!location.isEmpty()) json["location"] = location;
     
     QJsonObject equipment;
@@ -50,6 +51,7 @@ StationInfo StationInfo::fromJson(const QJsonObject& json)
         info.m_county = location["county"].toString();
         info.m_cqZone = location["cq_zone"].toInt();
         info.m_ituZone = location["itu_zone"].toInt();
+        info.m_arrlSection = location["arrl_section"].toString();
     }
     
     if (json.contains("equipment")) {

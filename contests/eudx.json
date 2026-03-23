@@ -17,6 +17,13 @@
       "modes": ["CW", "SSB", "MIXED"]
     }
   },
+  "contestOnlineScore": {
+    "contestId": "EUDXC",
+    "mult1Name": "DXCC",
+    "mult1Attribute": "country",
+    "mult2Name": "EU Regions",
+    "mult2Attribute": "state"
+  },
   "frequencies": {
     "160m": {
       "start": 1800,

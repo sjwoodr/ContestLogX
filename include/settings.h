@@ -246,6 +246,15 @@ public:
     QString getAudioPlayArgs() const;
     void setAudioPlayArgs(const QString& args);
 
+    // Online scoring
+    QString getOnlineScoringCallsign() const;
+    QString getOnlineScoringPassword() const;
+    void setOnlineScoringCredentials(const QString& callsign, const QString& password);
+    int getOnlineScoringInterval() const;
+    void setOnlineScoringInterval(int minutes);
+    bool getOnlineScoringPerQso() const;
+    void setOnlineScoringPerQso(bool perQso);
+
     // Theme
     QString getTheme() const;
     void setTheme(const QString& theme);

@@ -16,6 +16,13 @@
       "stations": ["SINGLE_OP", "MULTI_OP"]
     }
   },
+  "contestOnlineScore": {
+    "contestId": "ARRL-10",
+    "mult1Name": "DXCC",
+    "mult1Attribute": "country",
+    "mult2Name": "VE/W/XE/ITU",
+    "mult2Attribute": "state"
+  },
   "frequencies": {
     "10m": {
       "start": 28000,

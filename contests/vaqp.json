@@ -17,7 +17,11 @@
       "modes": ["MIXED", "CW", "PHONE", "DIGITAL"]
     }
   },
-
+  "contestOnlineScore": {
+    "contestId": "VA-QSO-PARTY",
+    "mult1Name": "Count./DXCC/St./Prov.",
+    "mult1Attribute": "state"
+  },
   "frequencies": {
     "160m": {
       "start": 1800,

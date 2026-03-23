@@ -265,6 +265,45 @@ void PreferencesDialog::setupUi()
 
     tabWidget->addTab(fontsTab, "Fonts");
 
+    // ── Online Scoring tab ──────────────────────────────────────────────────
+    QWidget *osTab = new QWidget;
+    QFormLayout *osLayout = new QFormLayout(osTab);
+
+    m_osCallsignEdit = new QLineEdit;
+    m_osCallsignEdit->setPlaceholderText("Callsign for contestonlinescore.com");
+    m_osCallsignEdit->setText(Settings::instance().getOnlineScoringCallsign());
+    osLayout->addRow("Callsign:", m_osCallsignEdit);
+
+    m_osPasswordEdit = new QLineEdit;
+    m_osPasswordEdit->setEchoMode(QLineEdit::Password);
+    m_osPasswordEdit->setPlaceholderText("Password");
+    m_osPasswordEdit->setText(Settings::instance().getOnlineScoringPassword());
+    osLayout->addRow("Password:", m_osPasswordEdit);
+
+    m_osIntervalCombo = new QComboBox;
+    m_osIntervalCombo->addItem("1 minute", 1);
+    m_osIntervalCombo->addItem("2 minutes", 2);
+    m_osIntervalCombo->addItem("5 minutes", 5);
+    m_osIntervalCombo->addItem("10 minutes", 10);
+    m_osIntervalCombo->addItem("15 minutes", 15);
+    int savedInterval = Settings::instance().getOnlineScoringInterval();
+    int osIdx = m_osIntervalCombo->findData(savedInterval);
+    if (osIdx >= 0) m_osIntervalCombo->setCurrentIndex(osIdx);
+    osLayout->addRow("Post interval:", m_osIntervalCombo);
+
+    m_osPerQsoCheck = new QCheckBox("Post after each QSO (instead of on timer)");
+    m_osPerQsoCheck->setChecked(Settings::instance().getOnlineScoringPerQso());
+    osLayout->addRow("", m_osPerQsoCheck);
+
+    QLabel *osNote = new QLabel(
+        "Enable posting from the Contest menu during an active contest.\n"
+        "Scores are posted to contestonlinescore.com.");
+    osNote->setWordWrap(true);
+    osNote->setStyleSheet("color: gray;");
+    osLayout->addRow(osNote);
+
+    tabWidget->addTab(osTab, "Online Scoring");
+
     mainLayout->addWidget(tabWidget);
 
     QDialogButtonBox *buttonBox = new QDialogButtonBox(
@@ -346,6 +385,13 @@ void PreferencesDialog::onAccept()
         settings.save();
         m_lookupChanged = true;
     }
+
+    // Online scoring
+    settings.setOnlineScoringCredentials(m_osCallsignEdit->text().trimmed().toUpper(),
+                                         m_osPasswordEdit->text());
+    settings.setOnlineScoringInterval(m_osIntervalCombo->currentData().toInt());
+    settings.setOnlineScoringPerQso(m_osPerQsoCheck->isChecked());
+    settings.save();
 
     accept();
 }

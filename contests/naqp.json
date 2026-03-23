@@ -16,6 +16,18 @@
       "power": ["QRP", "LOW_POWER", "HIGH_POWER"]
     }
   },
+  "contestOnlineScore": {
+    "contestId": "NAQP-CW",
+    "contestIdMapping": {
+      "contestMode": {
+        "CW": "NAQP-CW",
+        "SSB": "NAQP-SSB",
+        "RTTY": "NAQP-RTTY"
+      }
+    },
+    "mult1Name": "States/Provinces/NA",
+    "mult1Attribute": "state"
+  },
   "frequencies": {
     "160m": {
       "start": 1800,

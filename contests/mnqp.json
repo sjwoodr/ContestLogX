@@ -17,6 +17,11 @@
       "modes": ["MIXED", "CW", "PHONE"]
     }
   },
+  "contestOnlineScore": {
+    "contestId": "MN-QSO-PARTY",
+    "mult1Name": "Count./DXCC/St./Prov.",
+    "mult1Attribute": "state"
+  },
   "frequencies": {
     "160m": {
       "start": 1800,

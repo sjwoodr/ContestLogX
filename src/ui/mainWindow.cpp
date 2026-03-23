@@ -39,6 +39,7 @@
 #include "../utils/bandPlan.h"
 #include "debugLogger.h"
 #include "dxccDatabase.h"
+#include "onlineScoreClient.h"
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QFile>
@@ -119,6 +120,10 @@ MainWindow::MainWindow(QWidget *parent)
     , m_contestEngine(new ContestEngine(this))
     , m_dxccDatabase(new DxccDatabase(this))
     , m_flrigClient(new FlrigClient(this))
+    , m_onlineScoreClient(new OnlineScoreClient(this))
+    , m_scorePostTimer(new QTimer(this))
+    , m_onlineScoringAction(nullptr)
+    , m_onlineScoringLabel(nullptr)
     , m_rigPollTimer(new QTimer(this))
     , m_dupeFlashTimer(new QTimer(this))
     , m_dockStateSaveTimer(new QTimer(this))
@@ -213,7 +218,18 @@ MainWindow::MainWindow(QWidget *parent)
     
     m_propagationLabel = new QLabel("");
     statusBar()->addPermanentWidget(m_propagationLabel);
-    
+
+    m_onlineScoringLabel = new QLabel("");
+    m_onlineScoringLabel->hide();
+    statusBar()->addPermanentWidget(new QLabel(" | "));
+    statusBar()->addPermanentWidget(m_onlineScoringLabel);
+
+    // Online score publishing signal connections
+    connect(m_onlineScoreClient, &OnlineScoreClient::postSuccess, this, &MainWindow::onScorePostSuccess);
+    connect(m_onlineScoreClient, &OnlineScoreClient::postFailed, this, &MainWindow::onScorePostFailed);
+    connect(m_onlineScoreClient, &OnlineScoreClient::authFailed, this, &MainWindow::onScorePostAuthFailed);
+    connect(m_scorePostTimer, &QTimer::timeout, this, &MainWindow::onPostScore);
+
     // Setup rig polling timer (500ms interval by default)
     Settings& settings = Settings::instance();
     int pollInterval = settings.getFlrigPollInterval();
@@ -1084,7 +1100,14 @@ void MainWindow::setupMenus()
     
     QAction *summaryAction = contestMenu->addAction("&Create summary sheet...");
     connect(summaryAction, &QAction::triggered, this, &MainWindow::onCreateSummarySheet);
-    
+
+    contestMenu->addSeparator();
+
+    m_onlineScoringAction = contestMenu->addAction("&Online Score Publishing");
+    m_onlineScoringAction->setCheckable(true);
+    m_onlineScoringAction->setChecked(false);
+    connect(m_onlineScoringAction, &QAction::toggled, this, &MainWindow::onToggleOnlineScoring);
+
     // Window menu
     QMenu *windowMenu = menuBar()->addMenu("&Window");
     
@@ -1501,6 +1524,9 @@ void MainWindow::onNewLog()
 {
     if (!maybeSave())
         return;
+    // Disable online scoring when switching logs
+    if (m_onlineScoringAction && m_onlineScoringAction->isChecked())
+        m_onlineScoringAction->setChecked(false);
     resetBackupState();
     
     // Show contest selection dialog
@@ -3613,6 +3639,12 @@ void MainWindow::onLogQso()
         m_bandMapWidget->refreshAllStatuses([this](const QString &call) {
             return resolveSpotStatus(call);
         });
+
+    // Trigger per-QSO online score posting (debounced)
+    if (m_onlineScoringAction && m_onlineScoringAction->isChecked() &&
+        Settings::instance().getOnlineScoringPerQso()) {
+        QTimer::singleShot(2000, this, &MainWindow::onPostScore);
+    }
 }
 
 void MainWindow::onQrzLookup()
@@ -7335,6 +7367,249 @@ void MainWindow::generateSummaryToDebugLog()
         DebugLogger::instance().log("MainWindow", line);
     }
     DebugLogger::instance().log("MainWindow", "=== SUMMARY SHEET END ===");
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Online Score Publishing
+// ──────────────────────────────────────────────────────────────────────────────
+
+void MainWindow::onToggleOnlineScoring(bool enabled)
+{
+    if (!enabled) {
+        // Disable
+        if (m_scorePostTimer) m_scorePostTimer->stop();
+        if (m_onlineScoringLabel) m_onlineScoringLabel->hide();
+        DebugLogger::instance().log("OnlineScore", "Online scoring disabled");
+        return;
+    }
+
+    // Validate required fields
+    QStringList missing;
+    QString osCall = Settings::instance().getOnlineScoringCallsign();
+    QString osPass = Settings::instance().getOnlineScoringPassword();
+    if (osCall.isEmpty()) missing << "Online Scoring Callsign (in Preferences)";
+    if (osPass.isEmpty()) missing << "Online Scoring Password (in Preferences)";
+
+    if (m_sessionStationInfo) {
+        if (m_sessionStationInfo->cqZone() <= 0) missing << "CQ Zone";
+        if (m_sessionStationInfo->ituZone() <= 0) missing << "ITU Zone";
+        if (m_sessionStationInfo->state().isEmpty()) missing << "State/Province";
+        if (m_sessionStationInfo->grid().isEmpty()) missing << "Grid Square";
+    } else {
+        missing << "Station Info (not configured)";
+    }
+
+    // Check contest has contestOnlineScore block
+    if (m_contestDefinition.isEmpty() ||
+        !m_contestDefinition.contains("contestOnlineScore")) {
+        missing << "Contest online score configuration (not available for this contest)";
+    }
+
+    if (!missing.isEmpty()) {
+        m_onlineScoringAction->setChecked(false);
+        QMessageBox::warning(this, "Cannot Enable Online Scoring",
+            "The following required fields are missing:\n\n- " + missing.join("\n- "));
+        return;
+    }
+
+    // Configure client
+    m_onlineScoreClient->setCredentials(osCall, osPass);
+
+    // Start timer
+    if (Settings::instance().getOnlineScoringPerQso()) {
+        DebugLogger::instance().log("OnlineScore", "Online scoring enabled (per-QSO mode)");
+    } else {
+        int intervalMs = Settings::instance().getOnlineScoringInterval() * 60 * 1000;
+        m_scorePostTimer->setInterval(intervalMs);
+        m_scorePostTimer->start();
+        DebugLogger::instance().log("OnlineScore",
+            QString("Online scoring enabled (every %1 min)").arg(Settings::instance().getOnlineScoringInterval()));
+    }
+
+    if (m_onlineScoringLabel) {
+        m_onlineScoringLabel->setText("Score: posting...");
+        m_onlineScoringLabel->show();
+    }
+
+    // Post immediately on enable
+    onPostScore();
+}
+
+void MainWindow::onPostScore()
+{
+    if (!m_onlineScoringAction || !m_onlineScoringAction->isChecked()) return;
+    if (!m_contestEngine || !m_onlineScoreClient) return;
+    if (m_onlineScoreClient->isPostInFlight()) return;
+
+    ScorePostData data;
+
+    // Contest ID
+    QJsonObject osConfig = m_contestDefinition["contestOnlineScore"].toObject();
+    data.contestId = osConfig["contestId"].toString();
+
+    // Check for mode-dependent contest ID mapping
+    if (osConfig.contains("contestIdMapping")) {
+        QJsonObject mapping = osConfig["contestIdMapping"].toObject();
+        for (auto it = mapping.begin(); it != mapping.end(); ++it) {
+            QString promptId = it.key();
+            QString promptValue = m_contestEngine->getUserPromptValue(promptId);
+            QJsonObject idMap = it.value().toObject();
+            if (idMap.contains(promptValue))
+                data.contestId = idMap[promptValue].toString();
+        }
+    }
+
+    // Station info
+    data.callsign = getSessionCallsign();
+    data.ops = data.callsign;
+    data.club = Settings::instance().getCabrilloClub();
+
+    // QTH from station info
+    if (m_sessionStationInfo) {
+        data.cqZone = m_sessionStationInfo->cqZone();
+        data.ituZone = m_sessionStationInfo->ituZone();
+        data.arrlSection = m_sessionStationInfo->arrlSection();
+        data.stPrvOth = m_sessionStationInfo->state();
+        data.grid = m_sessionStationInfo->grid();
+    }
+
+    // DXCC country from callsign lookup
+    if (m_dxccDatabase) {
+        auto entity = m_dxccDatabase->lookupCallsign(data.callsign);
+        if (entity.dxcc > 0)
+            data.dxccCountry = entity.primaryPrefix;
+    }
+
+    // Operating class from userPrompts
+    QString powerPrompt = m_contestEngine->getUserPromptValue("powerCategory");
+    if (powerPrompt == "HP") data.power = "HIGH";
+    else if (powerPrompt == "LP") data.power = "LOW";
+    else if (powerPrompt == "QRP") data.power = "QRP";
+
+    QString opCat = m_contestEngine->getUserPromptValue("operatingCategory");
+    if (opCat.contains("MULTI") || opCat.startsWith("MS") || opCat.startsWith("M2") || opCat.startsWith("MM")) {
+        data.opsCategory = "MULTI-OP";
+        if (opCat.startsWith("M2")) data.transmitter = "TWO";
+        else if (opCat.startsWith("MM")) data.transmitter = "UNLIMITED";
+    }
+
+    // Mode from contest mode prompt or derive from QSOs
+    QString modePrompt = m_contestEngine->getUserPromptValue("contestMode");
+    if (modePrompt == "CW") data.mode = "CW";
+    else if (modePrompt == "SSB" || modePrompt == "Phone") data.mode = "PH";
+    else if (modePrompt == "RTTY") data.mode = "RY";
+    else if (modePrompt == "DIGI" || modePrompt == "Digital") data.mode = "DG";
+    // else stays "MIXED"
+
+    // Score and breakdown
+    ContestEngine::ContestScore score = m_contestEngine->getRunningScore();
+    data.totalScore = score.contestScore;
+
+    // Get mult attributes from contest definition
+    QString mult1Attr = osConfig["mult1Attribute"].toString();
+    QString mult2Attr = osConfig["mult2Attribute"].toString();
+
+    // Build band/mode breakdown from BandModeStats
+    auto modeLabel = [](const QString& m) -> QString {
+        if (m == "CW") return "CW";
+        if (m == "SSB" || m == "USB" || m == "LSB" || m == "FM" || m == "AM") return "PH";
+        if (m == "RTTY") return "RY";
+        return "DG";
+    };
+
+    // Tally QSOs, points, and mults per band/mode
+    struct BandModeTally {
+        int qsos = 0;
+        int points = 0;
+        QMap<QString, QSet<QString>> multSets; // attr -> set of unique mults
+    };
+    QMap<QString, BandModeTally> tallies; // key = "band/mode"
+
+    int totalQsos = 0, totalPoints = 0;
+    QMap<QString, QSet<QString>> totalMultSets;
+
+    for (int i = 0; i < m_qsoModel->rowCount(); ++i) {
+        QsoRecord qso = m_qsoModel->getQso(i);
+        if (qso.isDupe()) continue;
+
+        QString band = qso.getBand();
+        if (band.endsWith('m')) band.chop(1); // "40m" -> "40"
+        QString mode = modeLabel(qso.getMode());
+        QString key = band + "/" + mode;
+
+        tallies[key].qsos++;
+        tallies[key].points += qso.getPoints();
+        totalQsos += 1;
+        totalPoints += qso.getPoints();
+
+        // Multipliers
+        QList<ContestEngine::MultiplierInfo> mults = m_contestEngine->getMultipliersWithCategory(qso);
+        for (const auto& mult : mults) {
+            QString attr;
+            if (mult.category == "namedMults") attr = mult1Attr;
+            else if (mult.category == "dxcc") attr = (mult2Attr.isEmpty() ? mult1Attr : mult2Attr);
+            else if (mult.category == "gridSquares") attr = "gridsquare";
+            if (!attr.isEmpty()) {
+                tallies[key].multSets[attr].insert(mult.value);
+                totalMultSets[attr].insert(mult.value);
+            }
+        }
+    }
+
+    // Convert tallies to breakdown entries
+    for (auto it = tallies.constBegin(); it != tallies.constEnd(); ++it) {
+        QStringList parts = it.key().split('/');
+        ScoreBreakdownEntry entry;
+        entry.band = parts[0];
+        entry.mode = parts[1];
+        entry.qsoCount = it->qsos;
+        entry.points = it->points;
+        for (auto mit = it->multSets.constBegin(); mit != it->multSets.constEnd(); ++mit)
+            entry.mults[mit.key()] = mit.value().size();
+        data.breakdown.append(entry);
+    }
+
+    // Totals row
+    ScoreBreakdownEntry totals;
+    totals.band = "total";
+    totals.mode = "ALL";
+    totals.qsoCount = totalQsos;
+    totals.points = totalPoints;
+    for (auto mit = totalMultSets.constBegin(); mit != totalMultSets.constEnd(); ++mit)
+        totals.mults[mit.key()] = mit.value().size();
+    data.breakdown.append(totals);
+
+    m_onlineScoreClient->postScore(data);
+}
+
+void MainWindow::onScorePostSuccess(const QString& timestamp)
+{
+    if (m_onlineScoringLabel) {
+        m_onlineScoringLabel->setText(QString("Score: %1 UTC").arg(timestamp));
+        m_onlineScoringLabel->setStyleSheet("");
+    }
+}
+
+void MainWindow::onScorePostFailed(const QString& error)
+{
+    if (m_onlineScoringLabel) {
+        m_onlineScoringLabel->setText("Score: Error");
+        m_onlineScoringLabel->setToolTip(error);
+        m_onlineScoringLabel->setStyleSheet("color: red;");
+    }
+    DebugLogger::instance().log("OnlineScore", QString("Post failed: %1").arg(error));
+}
+
+void MainWindow::onScorePostAuthFailed()
+{
+    // Auto-disable
+    if (m_onlineScoringAction) m_onlineScoringAction->setChecked(false);
+    if (m_scorePostTimer) m_scorePostTimer->stop();
+    if (m_onlineScoringLabel) m_onlineScoringLabel->hide();
+
+    QMessageBox::warning(this, "Online Scoring Disabled",
+        "Online scoring has been disabled after 3 consecutive authentication failures.\n\n"
+        "Please check your online scoring credentials in Preferences, then re-enable from the Contest menu.");
 }
 
 QString MainWindow::getSessionCallsign() const

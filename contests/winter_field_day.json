@@ -17,6 +17,11 @@
       "location": ["State/Province", "MX", "DX"]
     }
   },
+  "contestOnlineScore": {
+    "contestId": "WFDA-CONTEST",
+    "mult1Name": "Modes",
+    "mult1Attribute": "wpxprefix"
+  },
   "frequencies": {
     "160m": {
       "start": 1800,

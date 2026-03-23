@@ -1166,6 +1166,77 @@ void Settings::setQrzCredentials(const QString& username, const QString& passwor
     m_modified = true;
 }
 
+// Online scoring settings
+QString Settings::getOnlineScoringCallsign() const
+{
+    QString encrypted = m_settings["onlineScoring"].toObject()["callsign"].toString();
+    if (encrypted.isEmpty()) return "";
+    QByteArray decoded = QByteArray::fromBase64(encrypted.toLatin1());
+    const char key[] = "ContestLogX";
+    QByteArray result;
+    for (int i = 0; i < decoded.length(); ++i)
+        result.append(decoded[i] ^ key[i % strlen(key)]);
+    return QString::fromLatin1(result);
+}
+
+QString Settings::getOnlineScoringPassword() const
+{
+    QString encrypted = m_settings["onlineScoring"].toObject()["password"].toString();
+    if (encrypted.isEmpty()) return "";
+    QByteArray decoded = QByteArray::fromBase64(encrypted.toLatin1());
+    const char key[] = "ContestLogX";
+    QByteArray result;
+    for (int i = 0; i < decoded.length(); ++i)
+        result.append(decoded[i] ^ key[i % strlen(key)]);
+    return QString::fromLatin1(result);
+}
+
+void Settings::setOnlineScoringCredentials(const QString& callsign, const QString& password)
+{
+    QJsonObject os = m_settings["onlineScoring"].toObject();
+    const char key[] = "ContestLogX";
+
+    auto encode = [&](const QString& value) -> QString {
+        if (value.isEmpty()) return "";
+        QByteArray bytes = value.toLatin1();
+        QByteArray encrypted;
+        for (int i = 0; i < bytes.length(); ++i)
+            encrypted.append(bytes[i] ^ key[i % strlen(key)]);
+        return QString::fromLatin1(encrypted.toBase64());
+    };
+
+    os["callsign"] = encode(callsign);
+    os["password"] = encode(password);
+    m_settings["onlineScoring"] = os;
+    m_modified = true;
+}
+
+int Settings::getOnlineScoringInterval() const
+{
+    return m_settings["onlineScoring"].toObject()["intervalMinutes"].toInt(5);
+}
+
+void Settings::setOnlineScoringInterval(int minutes)
+{
+    QJsonObject os = m_settings["onlineScoring"].toObject();
+    os["intervalMinutes"] = minutes;
+    m_settings["onlineScoring"] = os;
+    m_modified = true;
+}
+
+bool Settings::getOnlineScoringPerQso() const
+{
+    return m_settings["onlineScoring"].toObject()["perQso"].toBool(false);
+}
+
+void Settings::setOnlineScoringPerQso(bool perQso)
+{
+    QJsonObject os = m_settings["onlineScoring"].toObject();
+    os["perQso"] = perQso;
+    m_settings["onlineScoring"] = os;
+    m_modified = true;
+}
+
 QString Settings::getContestUserPrompt(const QString& contestFile, const QString& promptId) const
 {
     QJsonObject contests = m_settings["contests"].toObject();

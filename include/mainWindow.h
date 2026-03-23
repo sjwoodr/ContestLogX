@@ -90,6 +90,11 @@ private slots:
     void onOperatorCallDialog();
     void onExportCabrillo();
     void onCreateSummarySheet();
+    void onToggleOnlineScoring(bool enabled);
+    void onPostScore();
+    void onScorePostSuccess(const QString& timestamp);
+    void onScorePostFailed(const QString& error);
+    void onScorePostAuthFailed();
     void onAbout();
     void onColumnResized(int logicalIndex, int oldSize, int newSize);
     void onPropagationDataReceived(int sfi, int aIndex, int kIndex);
@@ -298,6 +303,13 @@ private:
     QString m_lastMode;
     int m_lastWpm;
     
+    // Online score publishing
+    class OnlineScoreClient *m_onlineScoreClient;
+    QTimer *m_scorePostTimer;
+    QAction *m_onlineScoringAction;
+    QLabel *m_onlineScoringLabel;
+    bool m_scorePostInFlight = false;
+
     // Callsign lookup APIs
     QrzcqApi *m_qrzcqApi;
     QrzApi   *m_qrzApi;

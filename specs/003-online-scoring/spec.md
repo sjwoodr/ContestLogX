@@ -110,8 +110,8 @@ last successful post time.
    next interval.
 
 4. **Given** online scoring is enabled with "after each QSO" mode, **When** the
-   operator logs a QSO, **Then** the system posts the updated score within a few
-   seconds.
+   operator logs a QSO, **Then** the system posts the updated score after a
+   2-second debounce (to coalesce rapid sequential QSOs).
 
 5. **Given** online scoring is enabled, **When** the operator is actively logging
    QSOs during a posting cycle, **Then** the UI remains responsive with no lag or
@@ -230,7 +230,9 @@ and verify the next post succeeds.
 
 4. **Given** the operator entered an incorrect password, **When** 3 consecutive posts
    fail with authentication errors, **Then** the system auto-disables online scoring
-   and shows a dialog telling the operator to check their credentials.
+   and shows a dialog telling the operator to check their credentials. The operator
+   can re-enable by toggling the Contest menu item again after correcting their
+   credentials in Settings.
 
 ---
 
@@ -268,15 +270,21 @@ The Contest menu must include a toggle to enable or disable online score publish
 the current session. Before enabling, the system validates that all required fields are
 present: callsign, password, CQ zone, ITU zone, state/province, and grid square. If
 any field is missing, a dialog lists the missing fields and the feature is not enabled.
-When enabled, the system posts immediately, then continues at the configured interval.
-The enable state is never saved to the log file — the operator must re-enable each session.
+When enabled, the system posts immediately (even if the log has zero QSOs — this
+validates connectivity), then continues at the configured interval. The enable state
+is never saved to the log file — the operator must re-enable each session. If the
+operator switches contest definitions or closes the log, online scoring is automatically
+disabled.
 
 ### FR-004: Score Post Generation
 The system must generate score posts in the contestonlinescore.com XML format
 (dynamicresults). Each post includes: contest identifier, operator callsign, operator
 list, operating class, club name, software identification, station QTH, band/mode
 breakdown with QSO counts, points, and multipliers, summary totals, total score, and
-UTC timestamp.
+UTC timestamp. The score data is a point-in-time snapshot taken when the post is
+initiated — score recalculations or QSO edits/deletions that happen between posts are
+reflected in the next post, not retroactively. If a post is already in-flight, the
+next trigger is deferred until the current post completes.
 
 ### FR-005: Contest Online Score Configuration
 Each contest definition may include a `contestOnlineScore` object containing all metadata
@@ -284,9 +292,11 @@ needed for score posting: `contestId` (the server-recognized contest identifier,
 "NAQP-CW"), `mult1Name` and `mult1Attribute` (first multiplier display name and type
 identifier), and optionally `mult2Name` and `mult2Attribute` for contests with two
 multiplier types. Valid attribute values are: zone, country, state, gridsquare,
-wpxprefix, prefix, hq (lowercase only). If the `contestOnlineScore` block is absent from
-the contest definition, online scoring is unavailable for that contest and the enable
-toggle is grayed out.
+wpxprefix, prefix, hq (lowercase only). Contests with no standard multipliers (e.g.,
+objectiveMultipliers like Winter Field Day) omit the mult attributes — the breakdown
+XML includes only QSO counts and points, no `<mult>` elements. If the
+`contestOnlineScore` block is absent from the contest definition, online scoring is
+unavailable for that contest and the enable toggle is grayed out.
 
 ### FR-005a: Contest Definition Updates
 All existing contest definitions with a matching entry on the scoring server must be
@@ -307,8 +317,9 @@ updated to include the `contestOnlineScore` block. The following 10 contests are
 
 Contests with mode-dependent IDs (arrl_dx, naqp) must support a `contestIdMapping`
 within the `contestOnlineScore` block that maps the contest mode userPrompt value to
-the appropriate server contest ID. Contests not on the server (general_dxcc, rdxc) do
-not include this block and are ineligible for online scoring.
+the appropriate server contest ID. If the mapping has no entry for the current mode
+prompt value, the base `contestId` is used as a fallback. Contests not on the server
+(general_dxcc, rdxc) do not include this block and are ineligible for online scoring.
 
 ### FR-006: Operating Class Derivation
 The operating class (power, assisted, transmitter, ops, bands, mode, overlay) is derived
@@ -319,9 +330,14 @@ ALL bands, MIXED mode, N/A overlay.
 ### FR-008: Asynchronous HTTP Posting
 Score posts are sent asynchronously via HTTP POST with Basic Authentication. The posting
 must not block the user interface. The system handles success responses (status 200),
-server errors (status 404, 405), and network failures gracefully. After 3 consecutive
-authentication failures, the system auto-disables online scoring and shows a dialog
-prompting the operator to verify their credentials.
+server errors (status 404, 405), and network failures gracefully. HTTP 401 and 403
+responses are treated as authentication failures. After 3 consecutive authentication
+failures, the system auto-disables online scoring, stops the posting timer, and shows
+a dialog prompting the operator to verify their credentials. The auth failure counter
+resets to zero on any successful post. Network timeouts use a 15-second deadline. Unexpected HTTP status codes (500, 503,
+etc.) and unparseable responses are treated as transient network errors — logged,
+shown briefly in the status bar, and retried at the next interval. They do not count
+toward the auth failure counter.
 
 ### FR-009: Status Bar Feedback
 The status bar displays online scoring status: disabled (no indicator), enabled and
@@ -330,8 +346,10 @@ description. The indicator updates after each post attempt.
 
 ### FR-010: Timer and Per-QSO Posting Modes
 In timer mode, the system posts at the configured interval (default 5 minutes) measured
-from the last post attempt. In per-QSO mode, the system posts shortly after each QSO
-is logged (with a brief debounce to handle rapid logging).
+from the last post attempt. In per-QSO mode, the system posts 2 seconds after the last
+QSO is logged (debounce resets on each new QSO to coalesce rapid logging). If a post is
+already in-flight when the next interval or QSO trigger fires, the new post is skipped
+and rescheduled for the next interval.
 
 ---
 
@@ -379,6 +397,8 @@ is logged (with a brief debounce to handle rapid logging).
 5. A 2-second debounce in per-QSO mode is sufficient to avoid excessive posts during rapid logging
 6. Contests without a `contestOnlineScore` block in their definition are not eligible for online scoring
 7. The `<ops>` field should contain only the session callsign for single-operator entries, matching the `<call>` field
+8. The online scoring credentials callsign (for HTTP auth) may differ from the session callsign (for the `<call>` element) — this is valid for guest operators using the station owner's account
+9. ARRL section is optional — if empty, the `<arrlsection>` element is included but empty in the XML
 
 ---
 

@@ -14,6 +14,11 @@
       "stations": ["SINGLE_OP"]
     }
   },
+  "contestOnlineScore": {
+    "contestId": "CW-Ops",
+    "mult1Name": "Unique Calls",
+    "mult1Attribute": "state"
+  },
   "frequencies": {
     "160m": {
       "start": 1800,

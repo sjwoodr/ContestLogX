@@ -73,6 +73,7 @@ set(SOURCES
     src/database/dxccDatabase.cpp
     src/qrzcqApi.cpp
     src/qrzApi.cpp
+    src/net/onlineScoreClient.cpp
 )
 
 set(HEADERS
@@ -126,6 +127,7 @@ set(HEADERS
      include/dxccDatabase.h
      include/qrzcqApi.h
      include/qrzApi.h
+     include/onlineScoreClient.h
 )
 
 # UI files

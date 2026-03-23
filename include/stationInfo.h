@@ -37,7 +37,10 @@ public:
     
     int ituZone() const { return m_ituZone; }
     void setItuZone(int zone) { m_ituZone = zone; }
-    
+
+    QString arrlSection() const { return m_arrlSection; }
+    void setArrlSection(const QString& section) { m_arrlSection = section; }
+
     QString rig() const { return m_rig; }
     void setRig(const QString& rig) { m_rig = rig; }
     
@@ -58,6 +61,7 @@ private:
     QString m_county;
     int m_cqZone;
     int m_ituZone;
+    QString m_arrlSection;
     QString m_rig;
     QString m_antenna;
     int m_power;

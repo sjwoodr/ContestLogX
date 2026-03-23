@@ -103,6 +103,12 @@ private:
     };
     QList<FontRow> m_fontRows;
     bool m_fontsChanged;
+
+    // Online Scoring tab
+    QLineEdit *m_osCallsignEdit;
+    QLineEdit *m_osPasswordEdit;
+    QComboBox *m_osIntervalCombo;
+    QCheckBox *m_osPerQsoCheck;
 };
 
 #endif // PREFERENCESDIALOG_H

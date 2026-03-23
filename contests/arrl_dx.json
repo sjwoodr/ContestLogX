@@ -16,6 +16,17 @@
       "stations": ["SINGLE_OP", "SINGLE_OP_UNLIMITED", "MULTI_SINGLE", "MULTI_TWO", "MULTI_MULTI"]
     }
   },
+  "contestOnlineScore": {
+    "contestId": "ARRL-DX-CW",
+    "contestIdMapping": {
+      "contestMode": {
+        "CW": "ARRL-DX-CW",
+        "SSB": "ARRL-DX-SSB"
+      }
+    },
+    "mult1Name": "States/Prov./Countries",
+    "mult1Attribute": "country"
+  },
   "frequencies": {
     "160m": {
       "start": 1800,
