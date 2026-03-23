@@ -373,11 +373,12 @@ void MainWindow::closeEvent(QCloseEvent *event)
         }
     }
 
-    // Save window geometry
-    saveWindowGeometry();
-    
-    // Save dock widget state (positions, sizes, floating state)
-    savePanelState();
+    // Don't save window/panel state in test-only mode — parallel test runs
+    // would corrupt the user's settings file
+    if (!m_testMode) {
+        saveWindowGeometry();
+        savePanelState();
+    }
     
     // Accept the close event
     QMainWindow::closeEvent(event);

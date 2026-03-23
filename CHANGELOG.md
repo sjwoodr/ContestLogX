@@ -9,6 +9,7 @@ All notable changes to ContestLogX are documented in this file.
 - Added contestOnlineScore metadata to 10 contest definitions
 - Added CQ Zone, ITU Zone, ARRL Section fields to station info dialog
 - Added auto-population of CQ/ITU zone from DXCC database when callsign is entered
+- Fixed test-only mode corrupting user settings when run in parallel (race condition)
 - Added band/mode QSO breakdown table to summary sheet (matches 3830scores.com format)
 - Removed unnecessary asterisk prefix from multiplier listings in summary sheet
 - Fixed operating time calculation when offTimeGapMinutes is 0 (now uses 15-minute floor)
