@@ -41,6 +41,9 @@ public:
     QString getState() const;
     void setState(const QString& state);
 
+    QString getDxccCountry() const;
+    void setDxccCountry(const QString& prefix);
+
     int getCqZone() const;
     void setCqZone(int zone);
 

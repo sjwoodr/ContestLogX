@@ -190,6 +190,19 @@ void Settings::setState(const QString& state)
     m_modified = true;
 }
 
+QString Settings::getDxccCountry() const
+{
+    return m_settings["station"].toObject()["dxccCountry"].toString("");
+}
+
+void Settings::setDxccCountry(const QString& prefix)
+{
+    QJsonObject station = m_settings["station"].toObject();
+    station["dxccCountry"] = prefix;
+    m_settings["station"] = station;
+    m_modified = true;
+}
+
 int Settings::getCqZone() const
 {
     return m_settings["station"].toObject()["cqZone"].toInt(0);

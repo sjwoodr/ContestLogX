@@ -11,6 +11,9 @@
 #include "qrzcqApi.h"
 #include "qrzApi.h"
 #include "onlineScoreClient.h"
+#include "dxccDatabase.h"
+#include <QStandardPaths>
+#include <QFile>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QFormLayout>
@@ -635,6 +638,18 @@ void PreferencesDialog::onTestOnlineScoring()
     data.contestId = "GENERAL QSO";
     data.callsign = callsign;
     data.ops = callsign;
+    // Look up DXCC country from callsign using a temporary DxccDatabase
+    {
+        DxccDatabase db;
+        QString dataPath = QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation)
+                           + "/ContestLogX/cty.dat";
+        if (QFile::exists(dataPath)) {
+            db.loadFromFile(dataPath);
+            auto entity = db.lookupCallsign(callsign);
+            if (entity.dxcc > 0)
+                data.dxccCountry = entity.primaryPrefix;
+        }
+    }
     data.stPrvOth = m_stateEdit->text().trimmed().toUpper();
     data.grid = m_gridEdit->text().trimmed().toUpper();
     data.cqZone = m_cqZoneSpinBox->value();

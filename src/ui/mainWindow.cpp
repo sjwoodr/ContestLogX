@@ -2903,6 +2903,15 @@ void MainWindow::onPreferences()
         if (m_dxClusterPanel) {
             m_dxClusterPanel->loadSettings();
         }
+        // Update DXCC country from callsign
+        if (m_dxccDatabase) {
+            QString call = Settings::instance().getCallsign();
+            if (!call.isEmpty()) {
+                auto entity = m_dxccDatabase->lookupCallsign(call);
+                if (entity.dxcc > 0)
+                    Settings::instance().setDxccCountry(entity.primaryPrefix);
+            }
+        }
     }
 }
 
