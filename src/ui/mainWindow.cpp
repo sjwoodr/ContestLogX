@@ -4367,6 +4367,13 @@ void MainWindow::onOperatorCallDialog()
     form->setRowWrapPolicy(QFormLayout::DontWrapRows);
     form->setFieldGrowthPolicy(QFormLayout::ExpandingFieldsGrow);
 
+    auto *note = new QLabel(
+        "These settings override your default station preferences for this "
+        "contest session only. Leave fields unchanged if your defaults are correct.", &dlg);
+    note->setWordWrap(true);
+    form->addRow(note);
+    form->addRow(new QLabel("", &dlg));
+
     auto *callEdit    = new QLineEdit(m_sessionStationInfo->callsign(), &dlg);
     auto *nameEdit    = new QLineEdit(m_sessionStationInfo->operatorName(), &dlg);
     auto *gridEdit    = new QLineEdit(m_sessionStationInfo->grid(), &dlg);
