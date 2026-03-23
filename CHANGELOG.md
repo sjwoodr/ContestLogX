@@ -2,6 +2,9 @@
 
 All notable changes to ContestLogX are documented in this file.
 
+## [0.7.0]
+- Fixed operating time calculation when offTimeGapMinutes is 0 (now uses 15-minute floor)
+
 ## [0.6.14]
 - Added CHANGELOG.md with CI-driven release notes from changelog entries
 - Fixed make version inserting duplicate changelog sections

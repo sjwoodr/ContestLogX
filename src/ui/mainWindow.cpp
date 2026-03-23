@@ -4588,7 +4588,7 @@ void MainWindow::onAbout()
     msgBox.setTextFormat(Qt::RichText);
     msgBox.setTextInteractionFlags(Qt::TextBrowserInteraction);
     msgBox.setText(
-        "<b>ContestLogX - Version 0.6.14 (Beta)</b><br><br>"
+        "<b>ContestLogX - Version 0.7.0 (Beta)</b><br><br>"
         "Cross-platform amateur radio contest logging software<br><br>"
         "Copyright &copy; 2025-2026, by Steve Woodruff, N9OH<br><br>"
         "<a href=\"https://contestlogx.com\">https://contestlogx.com</a><br><br>"
@@ -6750,12 +6750,15 @@ QString MainWindow::generateSummaryString()
         qint64 totalMinutes = firstQsoTime.secsTo(lastQsoTime) / 60;
         qint64 offTimeMinutes = 0;
         
-        // Find gaps of offTimeGapThreshold or more minutes
+        // Find gaps that count as off-time; use a 15-minute floor when not specified
+        if (offTimeGapThreshold <= 0)
+            offTimeGapThreshold = 15;
+
         for (int i = 0; i < m_qsoModel->rowCount() - 1; ++i) {
             QDateTime currentQsoTime = m_qsoModel->getQso(i).getDateTime();
             QDateTime nextQsoTime = m_qsoModel->getQso(i + 1).getDateTime();
             qint64 gapMinutes = currentQsoTime.secsTo(nextQsoTime) / 60;
-            
+
             if (gapMinutes >= offTimeGapThreshold) {
                 offTimeMinutes += gapMinutes;
             }
