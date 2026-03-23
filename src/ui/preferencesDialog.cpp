@@ -77,6 +77,22 @@ void PreferencesDialog::setupUi()
     connect(m_stateEdit, &QLineEdit::textChanged, this, &PreferencesDialog::onStateTextChanged);
     stationLayout->addRow("State/Province:", m_stateEdit);
 
+    m_cqZoneSpinBox = new QSpinBox(this);
+    m_cqZoneSpinBox->setRange(0, 40);
+    m_cqZoneSpinBox->setSpecialValueText("—");
+    m_cqZoneSpinBox->setValue(settings.getCqZone());
+    stationLayout->addRow("CQ Zone:", m_cqZoneSpinBox);
+
+    m_ituZoneSpinBox = new QSpinBox(this);
+    m_ituZoneSpinBox->setRange(0, 90);
+    m_ituZoneSpinBox->setSpecialValueText("—");
+    m_ituZoneSpinBox->setValue(settings.getItuZone());
+    stationLayout->addRow("ITU Zone:", m_ituZoneSpinBox);
+
+    m_arrlSectionEdit = new QLineEdit(settings.getArrlSection(), this);
+    m_arrlSectionEdit->setMaxLength(10);
+    stationLayout->addRow("ARRL Section:", m_arrlSectionEdit);
+
     tabWidget->addTab(stationTab, "Station");
 
     // Display tab
@@ -341,12 +357,21 @@ void PreferencesDialog::onAccept()
     QString grid = m_gridEdit->text().trimmed().toUpper();
     QString state = m_stateEdit->text().trimmed().toUpper();
 
+    int cqZone = m_cqZoneSpinBox->value();
+    int ituZone = m_ituZoneSpinBox->value();
+    QString arrlSection = m_arrlSectionEdit->text().trimmed().toUpper();
+
     if (call != settings.getCallsign() || name != settings.getOperatorName() ||
-        grid != settings.getGridSquare() || state != settings.getState()) {
+        grid != settings.getGridSquare() || state != settings.getState() ||
+        cqZone != settings.getCqZone() || ituZone != settings.getItuZone() ||
+        arrlSection != settings.getArrlSection()) {
         settings.setCallsign(call);
         settings.setOperatorName(name);
         settings.setGridSquare(grid);
         settings.setState(state);
+        settings.setCqZone(cqZone);
+        settings.setItuZone(ituZone);
+        settings.setArrlSection(arrlSection);
         settings.save();
         m_stationChanged = true;
     }

@@ -190,6 +190,45 @@ void Settings::setState(const QString& state)
     m_modified = true;
 }
 
+int Settings::getCqZone() const
+{
+    return m_settings["station"].toObject()["cqZone"].toInt(0);
+}
+
+void Settings::setCqZone(int zone)
+{
+    QJsonObject station = m_settings["station"].toObject();
+    station["cqZone"] = zone;
+    m_settings["station"] = station;
+    m_modified = true;
+}
+
+int Settings::getItuZone() const
+{
+    return m_settings["station"].toObject()["ituZone"].toInt(0);
+}
+
+void Settings::setItuZone(int zone)
+{
+    QJsonObject station = m_settings["station"].toObject();
+    station["ituZone"] = zone;
+    m_settings["station"] = station;
+    m_modified = true;
+}
+
+QString Settings::getArrlSection() const
+{
+    return m_settings["station"].toObject()["arrlSection"].toString("");
+}
+
+void Settings::setArrlSection(const QString& section)
+{
+    QJsonObject station = m_settings["station"].toObject();
+    station["arrlSection"] = section;
+    m_settings["station"] = station;
+    m_modified = true;
+}
+
 QString Settings::getFlrigHost() const
 {
     return m_settings["rig"].toObject()["flrigHost"].toString("localhost");

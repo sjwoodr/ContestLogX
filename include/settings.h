@@ -40,7 +40,16 @@ public:
     
     QString getState() const;
     void setState(const QString& state);
-    
+
+    int getCqZone() const;
+    void setCqZone(int zone);
+
+    int getItuZone() const;
+    void setItuZone(int zone);
+
+    QString getArrlSection() const;
+    void setArrlSection(const QString& section);
+
     QString getCabrilloEmail() const;
     void setCabrilloEmail(const QString& email);
     

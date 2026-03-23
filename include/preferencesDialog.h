@@ -62,6 +62,9 @@ private:
     QLineEdit *m_nameEdit;
     QLineEdit *m_gridEdit;
     QLineEdit *m_stateEdit;
+    QSpinBox *m_cqZoneSpinBox;
+    QSpinBox *m_ituZoneSpinBox;
+    QLineEdit *m_arrlSectionEdit;
     bool m_stationChanged;
 
     // Shortcuts tab
