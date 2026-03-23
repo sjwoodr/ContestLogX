@@ -633,9 +633,10 @@ void PreferencesDialog::onTestOnlineScoring()
 
     m_osTestClient->setCredentials(callsign, password);
 
-    // Build a minimal test post using "GENERAL QSO" as the contest ID
+    // Build a minimal test post using "CW-Ops" as the contest ID
+    // (always active on the server; zero scores are cleaned up before contests)
     ScorePostData data;
-    data.contestId = "GENERAL QSO";
+    data.contestId = "CW-Ops";
     data.callsign = callsign;
     data.ops = callsign;
     // Look up DXCC country from callsign using a temporary DxccDatabase

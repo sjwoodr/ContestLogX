@@ -172,26 +172,41 @@ void OnlineScoreClient::onReplyFinished(QNetworkReply *reply)
     DebugLogger::instance().log("OnlineScore",
         QString("Response: %1").arg(QString::fromUtf8(responseData)));
 
-    QJsonDocument doc = QJsonDocument::fromJson(responseData);
-    if (!doc.isObject()) {
-        DebugLogger::instance().log("OnlineScore", "Unparseable response — treating as transient error");
-        emit postFailed("Unparseable server response");
-        return;
-    }
+    // Server may respond with JSON or plaintext containing "OK"
+    QString responseStr = QString::fromUtf8(responseData).trimmed();
 
-    QJsonObject obj = doc.object();
-    int status = obj["status"].toInt();
-    QString message = obj["status_message"].toString();
-
-    if (status == 200) {
+    // Check for plaintext success (e.g., "Cluster: OK-Forwarded . COSB: OK-Full")
+    if (responseStr.contains("OK", Qt::CaseInsensitive)) {
         m_consecutiveAuthFailures = 0;
         QString timestamp = QDateTime::currentDateTimeUtc().toString("HH:mm");
         DebugLogger::instance().log("OnlineScore",
             QString("Score posted successfully at %1 UTC").arg(timestamp));
         emit postSuccess(timestamp);
-    } else {
-        DebugLogger::instance().log("OnlineScore",
-            QString("Server rejected post: %1 - %2").arg(status).arg(message));
-        emit postFailed(message);
+        return;
     }
+
+    // Try JSON parsing for error responses
+    QJsonDocument doc = QJsonDocument::fromJson(responseData);
+    if (doc.isObject()) {
+        QJsonObject obj = doc.object();
+        int status = obj["status"].toInt();
+        QString message = obj["status_message"].toString();
+
+        if (status == 200) {
+            m_consecutiveAuthFailures = 0;
+            QString timestamp = QDateTime::currentDateTimeUtc().toString("HH:mm");
+            DebugLogger::instance().log("OnlineScore",
+                QString("Score posted successfully at %1 UTC").arg(timestamp));
+            emit postSuccess(timestamp);
+        } else {
+            DebugLogger::instance().log("OnlineScore",
+                QString("Server rejected post: %1 - %2").arg(status).arg(message));
+            emit postFailed(message);
+        }
+        return;
+    }
+
+    // Neither JSON nor plaintext OK — treat as transient error
+    DebugLogger::instance().log("OnlineScore", "Unparseable response — treating as transient error");
+    emit postFailed("Unexpected server response");
 }
