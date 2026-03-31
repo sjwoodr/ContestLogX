@@ -20,7 +20,8 @@ const QList<ShortcutsWidget::DefaultShortcut> ShortcutsWidget::DEFAULT_SHORTCUTS
     {"preSaveCall",      "Save QSO Fields to Call History (without logging)", "Ctrl+S"},
     {"qsoViewFilter",    "Filter QSO Log", "Ctrl+F"},
     {"toggleRunSP",      "Toggle Run / S&P Operating Mode", "Ctrl+M"},
-    {"toggleMemoryType", "Toggle Contest / Station Memories", "Ctrl+T"}
+    {"toggleMemoryType", "Toggle Contest / Station Memories", "Ctrl+T"},
+    {"switchRadio",      "Switch Active Radio (SO2R)", "`"}
 };
 
 ShortcutsWidget::ShortcutsWidget(QWidget* parent)

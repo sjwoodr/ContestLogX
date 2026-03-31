@@ -61,10 +61,11 @@
 #include <QCheckBox>
 #include <QComboBox>
 #include <QMessageBox>
+#include <QInputDialog>
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QFormLayout>
-#include <QInputDialog>
+#include <QTabBar>
 #include <QRegularExpressionValidator>
 #include <QFileDialog>
 #include <QFileInfo>
@@ -288,7 +289,15 @@ MainWindow::MainWindow(QWidget *parent)
     } else {
         DebugLogger::instance().log("MainWindow", "Auto-connect disabled");
     }
-    
+
+    // Restore SO2R mode if previously enabled
+    if (settings.getSo2rEnabled()) {
+        QTimer::singleShot(600, this, [this]() {
+            enableSo2r();
+            if (m_so2rAction) m_so2rAction->setChecked(true);
+        });
+    }
+
     // Check for --test-only and --log command-line arguments first
     QStringList args = QApplication::arguments();
     int logIndex = args.indexOf("--log");
@@ -423,6 +432,24 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
         // windows so keyPressEvent() never fires for them).
         // Note: isAncestorOf() only works within the same window, so instead walk the
         // QObject parent chain to detect whether the target belongs to our window.
+        // SO2R: switch active radio from floating docks (uses configured shortcut)
+        if (m_so2rEnabled && !QApplication::activeModalWidget()) {
+            QWidget *sw = qobject_cast<QWidget*>(obj);
+            bool ours = false;
+            for (QObject *p = obj; p; p = p->parent()) {
+                if (p == this) { ours = true; break; }
+            }
+            if (sw && ours) {
+                QString switchKey = Settings::instance().getShortcut("switchRadio");
+                if (switchKey.isEmpty()) switchKey = "`";
+                int k = keyEvent->key() | (keyEvent->modifiers() & (Qt::ShiftModifier | Qt::ControlModifier | Qt::AltModifier | Qt::MetaModifier));
+                if (QKeySequence(k).toString() == QKeySequence(switchKey).toString()) {
+                    switchActiveRadio();
+                    return true;
+                }
+            }
+        }
+
         if (keyEvent->modifiers() == Qt::NoModifier && !QApplication::activeModalWidget()) {
             QWidget *w = qobject_cast<QWidget*>(obj);
             bool belongsToUs = false;
@@ -521,40 +548,58 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
         bool handleSpace = (m_fieldNavigationKeys == "space" || m_fieldNavigationKeys == "both");
         bool handleTab = (m_fieldNavigationKeys == "tab" || m_fieldNavigationKeys == "both");
         
-        if (((keyEvent->key() == Qt::Key_Space && handleSpace) || 
+        if (((keyEvent->key() == Qt::Key_Space && handleSpace) ||
              (keyEvent->key() == Qt::Key_Tab && handleTab)) && lineEdit) {
-            // Check if this field is in our entry field list
+            // Check if this field is in our entry field list (Radio L)
             int currentIndex = m_entryFieldOrder.indexOf(lineEdit);
             if (currentIndex >= 0) {
-                // If leaving the call field, trigger auto-lookup via active service
                 if (lineEdit == m_callEdit && !m_callEdit->text().isEmpty()) {
                     QString callsign = m_callEdit->text().trimmed().toUpper();
                     if (callsign.length() >= 2)
                         triggerAutoLookup(callsign);
                 }
-                
-                // Move to next field, wrapping to first field if at the end
                 int nextIndex = (currentIndex + 1) % m_entryFieldOrder.size();
                 m_entryFieldOrder[nextIndex]->setFocus();
-                return true; // Event handled - don't insert space/tab
+                return true;
+            }
+            // Check Radio R field list if SO2R active
+            if (m_so2rEnabled && !m_entryWidgetsR.entryFieldOrder.isEmpty()) {
+                int idxR = m_entryWidgetsR.entryFieldOrder.indexOf(lineEdit);
+                if (idxR >= 0) {
+                    if (lineEdit == m_entryWidgetsR.callEdit && !m_entryWidgetsR.callEdit->text().isEmpty()) {
+                        QString callsign = m_entryWidgetsR.callEdit->text().trimmed().toUpper();
+                        if (callsign.length() >= 2)
+                            triggerAutoLookup(callsign);
+                    }
+                    int nextIdx = (idxR + 1) % m_entryWidgetsR.entryFieldOrder.size();
+                    m_entryWidgetsR.entryFieldOrder[nextIdx]->setFocus();
+                    return true;
+                }
             }
         }
-        
+
         // Handle Shift+Tab to go to previous field (only if tab navigation is enabled)
         if (keyEvent->key() == Qt::Key_Backtab && handleTab && lineEdit) {
-            // Check if this field is in our entry field list
             int currentIndex = m_entryFieldOrder.indexOf(lineEdit);
             if (currentIndex >= 0) {
-                // Move to previous field, wrapping to last field if at the beginning
                 int prevIndex = (currentIndex - 1 + m_entryFieldOrder.size()) % m_entryFieldOrder.size();
                 m_entryFieldOrder[prevIndex]->setFocus();
-                return true; // Event handled
+                return true;
+            }
+            if (m_so2rEnabled && !m_entryWidgetsR.entryFieldOrder.isEmpty()) {
+                int idxR = m_entryWidgetsR.entryFieldOrder.indexOf(lineEdit);
+                if (idxR >= 0) {
+                    int prevIdx = (idxR - 1 + m_entryWidgetsR.entryFieldOrder.size()) % m_entryWidgetsR.entryFieldOrder.size();
+                    m_entryWidgetsR.entryFieldOrder[prevIdx]->setFocus();
+                    return true;
+                }
             }
         }
-        
+
         // Up/Down arrows in the SNr field increment/decrement the serial number
         if ((keyEvent->key() == Qt::Key_Up || keyEvent->key() == Qt::Key_Down) && lineEdit) {
-            if (m_exchangeFields.value("SNr") == lineEdit) {
+            if (m_exchangeFields.value("SNr") == lineEdit
+                || (m_so2rEnabled && m_entryWidgetsR.exchangeFields.value("SNr") == lineEdit)) {
                 bool ok = false;
                 int sn = lineEdit->text().trimmed().toInt(&ok);
                 if (!ok) sn = 0;
@@ -569,7 +614,21 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
         if (keyEvent->key() == Qt::Key_Return || keyEvent->key() == Qt::Key_Enter) {
             bool inEntryField = (lineEdit == m_callEdit)
                              || (lineEdit && m_exchangeFields.values().contains(lineEdit));
-            if (inEntryField) {
+            // Also check Radio R entry fields if SO2R is active
+            bool inEntryFieldR = false;
+            if (m_so2rEnabled && m_entryWidgetsR.callEdit) {
+                inEntryFieldR = (lineEdit == m_entryWidgetsR.callEdit)
+                             || (lineEdit && m_entryWidgetsR.exchangeFields.values().contains(lineEdit));
+            }
+            if (inEntryField || inEntryFieldR) {
+                // Activate the correct radio before processing Enter
+                if (m_so2rEnabled && inEntryFieldR && m_activeRadio != ActiveRadio::Right) {
+                    m_activeRadio = ActiveRadio::Right;
+                    updateActiveRadioIndicator();
+                } else if (m_so2rEnabled && inEntryField && m_activeRadio != ActiveRadio::Left) {
+                    m_activeRadio = ActiveRadio::Left;
+                    updateActiveRadioIndicator();
+                }
                 onQsoEntryReturn();
                 return true;
             }
@@ -681,131 +740,22 @@ void MainWindow::setupUi()
         });
     }
 
-    // Entry form at BOTTOM
-    QWidget *entryPanel = new QWidget(this);
-    QHBoxLayout *entryPanelLayout = new QHBoxLayout(entryPanel);
-    entryPanelLayout->setContentsMargins(2, 2, 2, 2);
-    entryPanelLayout->setSpacing(5);
-    
-    m_freqModeButton = new QPushButton("14250.0 USB", this);
-    m_freqModeButton->setFlat(false);
-    m_freqModeButton->setMinimumWidth(120);
-    m_freqModeButton->setMinimumHeight(50);
-    m_freqModeButton->setStyleSheet("QPushButton { text-align: center; padding: 8px; font-weight: bold; font-size: 11pt; }");
-    connect(m_freqModeButton, &QPushButton::clicked, this, &MainWindow::onFreqModeButtonClicked);
-    entryPanelLayout->addWidget(m_freqModeButton);
-    
-    m_qsoEntryGroup = new QGroupBox(this);
-    m_qsoEntryGroup->setObjectName("qsoEntryGroup");
+    // Entry form at BOTTOM — Radio L
+    QWidget *entryPanel = createEntryPanel(m_entryWidgets, QString());
 
-    // Outer vertical layout: "Return to dock" bar on top, fields row below.
-    QVBoxLayout *groupVLayout = new QVBoxLayout(m_qsoEntryGroup);
-    groupVLayout->setSpacing(2);
-    groupVLayout->setContentsMargins(5, 5, 5, 2);
-
-    m_returnToDockLabel = new QLabel("<a href='dock'>Return to dock</a>");
-    m_returnToDockLabel->setTextFormat(Qt::RichText);
-    m_returnToDockLabel->setAlignment(Qt::AlignRight);
-    m_returnToDockLabel->setVisible(false);
-    connect(m_returnToDockLabel, &QLabel::linkActivated, this, [this]() {
-        m_entryDock->setFloating(false);
-    });
-    groupVLayout->addWidget(m_returnToDockLabel);
-
-    m_qsoEntryLayout = new QHBoxLayout();
-    m_qsoEntryLayout->setSpacing(5);
-    groupVLayout->addLayout(m_qsoEntryLayout);
-    
-    m_qsoEntryLayout->addWidget(new QLabel("Call:"));
-    ScpLineEdit *callEdit = new ScpLineEdit();
-    m_callEdit = callEdit;  // Store as base QLineEdit pointer for compatibility
-    callEdit->setMaxLength(14);  // Standard callsign length
-    callEdit->setMaximumWidth(120); // Max width for 10 chars
-    // SCP widget will be wired in createConnections() after m_scpWidget is created
-    
-    // Force uppercase input
-    connect(callEdit, &QLineEdit::textChanged, [this](const QString& text) {
-        if (text != text.toUpper()) {
-            int cursorPos = m_callEdit->cursorPosition();
-            m_callEdit->setText(text.toUpper());
-            m_callEdit->setCursorPosition(cursorPos);
-        }
-    });
-    m_qsoEntryLayout->addWidget(callEdit);
-    
-    m_qsoEntryLayout->addWidget(new QLabel("Exchange:"));
-    m_exchangeEdit = new QLineEdit();
-    m_exchangeEdit->setMinimumWidth(100);
-    // Force uppercase input
-    connect(m_exchangeEdit, &QLineEdit::textChanged, [this](const QString& text) {
-        if (text != text.toUpper()) {
-            int cursorPos = m_exchangeEdit->cursorPosition();
-            m_exchangeEdit->setText(text.toUpper());
-            m_exchangeEdit->setCursorPosition(cursorPos);
-        }
-    });
-    m_qsoEntryLayout->addWidget(m_exchangeEdit);
-    
-    // Create horizontal layout for buttons
-    QHBoxLayout* buttonLayout = new QHBoxLayout;
-    
-    // QRZ lookup button with magnifying glass icon
-    m_qrzButton = new QPushButton;
-    m_qrzButton->setIcon(style()->standardIcon(QStyle::SP_FileDialogDetailedView));  // Using a standard icon, can be replaced with custom magnifying glass
-    m_qrzButton->setFixedSize(32, 32);
-    m_qrzButton->setToolTip("Look up callsign on QRZCQ");
-    m_qrzButton->setFocusPolicy(Qt::NoFocus);
-    buttonLayout->addWidget(m_qrzButton);
-    
-    // Log QSO button
-    m_logButton = new QPushButton("Log QSO");
-    m_logButton->setFocusPolicy(Qt::NoFocus);
-    buttonLayout->addWidget(m_logButton);
-
-    // Clear button
-    m_clearButton = new QPushButton("Clear");
-    m_clearButton->setFocusPolicy(Qt::NoFocus);
-    buttonLayout->addWidget(m_clearButton);
-    buttonLayout->addStretch();
-
-    // Run / S&P / Off toggle buttons
-    m_offButton = new QPushButton("OFF");
-    m_offButton->setCheckable(true);
-    m_offButton->setChecked(true);
-    m_offButton->setToolTip("Enter key sequences disabled — logs QSO directly");
-    m_offButton->setFixedWidth(46);
-    m_offButton->setFocusPolicy(Qt::NoFocus);
-    buttonLayout->addWidget(m_offButton);
-
-    m_runButton = new QPushButton("RUN");
-    m_runButton->setCheckable(true);
-    m_runButton->setChecked(false);
-    m_runButton->setToolTip("Run mode: you are calling CQ (Enter sequences CQ → Exchange → TU+Log)");
-    m_runButton->setFixedWidth(46);
-    m_runButton->setFocusPolicy(Qt::NoFocus);
-    buttonLayout->addWidget(m_runButton);
-
-    m_spButton = new QPushButton("S&&P");
-    m_spButton->setCheckable(true);
-    m_spButton->setChecked(false);
-    m_spButton->setToolTip("Search & Pounce: you are answering a CQ (Enter sequences My Call → Exchange → Log)");
-    m_spButton->setFixedWidth(46);
-    m_spButton->setFocusPolicy(Qt::NoFocus);
-    buttonLayout->addWidget(m_spButton);
-
-    m_qsoEntryLayout->addLayout(buttonLayout);
-
-    // Set proper tab order
-    setTabOrder(m_callEdit, m_exchangeEdit);
-    setTabOrder(m_exchangeEdit, m_qrzButton);
-    setTabOrder(m_qrzButton, m_logButton);
-    setTabOrder(m_logButton, m_clearButton);
-    
-    // Install event filters for Enter key handling
-    m_callEdit->installEventFilter(this);
-    m_exchangeEdit->installEventFilter(this);
-    
-    entryPanelLayout->addWidget(m_qsoEntryGroup, 1);
+    // Alias Radio L widgets to existing member pointers for backward compatibility
+    m_freqModeButton = m_entryWidgets.freqModeButton;
+    m_callEdit = m_entryWidgets.callEdit;
+    m_exchangeEdit = m_entryWidgets.exchangeEdit;
+    m_logButton = m_entryWidgets.logButton;
+    m_clearButton = m_entryWidgets.clearButton;
+    m_qrzButton = m_entryWidgets.qrzButton;
+    m_offButton = m_entryWidgets.offButton;
+    m_runButton = m_entryWidgets.runButton;
+    m_spButton = m_entryWidgets.spButton;
+    m_qsoEntryGroup = m_entryWidgets.entryGroup;
+    m_qsoEntryLayout = m_entryWidgets.entryLayout;
+    m_returnToDockLabel = m_entryWidgets.returnToDockLabel;
 
     mainSplitter->addWidget(leftPanel);
 
@@ -817,6 +767,12 @@ void MainWindow::setupUi()
     m_entryDock->setFeatures(QDockWidget::DockWidgetFloatable | QDockWidget::DockWidgetMovable);
     addDockWidget(Qt::BottomDockWidgetArea, m_entryDock);
 
+    // Wire returnToDockLabel and freqModeButton now that dock exists
+    connect(m_returnToDockLabel, &QLabel::linkActivated, this, [this]() {
+        m_entryDock->setFloating(false);
+    });
+    connect(m_freqModeButton, &QPushButton::clicked, this, &MainWindow::onFreqModeButtonClicked);
+
     setupDocks(mainSplitter);
 
     // Right dock area owns the bottom-right corner so the entry dock
@@ -825,6 +781,125 @@ void MainWindow::setupUi()
     setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
 
     mainLayout->addWidget(mainSplitter);
+}
+
+QWidget* MainWindow::createEntryPanel(EntryPanelWidgets& w, const QString& radioLabel)
+{
+    QWidget *panel = new QWidget(this);
+    QHBoxLayout *panelLayout = new QHBoxLayout(panel);
+    panelLayout->setContentsMargins(2, 2, 2, 2);
+    panelLayout->setSpacing(5);
+
+    w.freqModeButton = new QPushButton("14250.0 USB", this);
+    w.freqModeButton->setFlat(false);
+    w.freqModeButton->setMinimumWidth(120);
+    w.freqModeButton->setMinimumHeight(50);
+    w.freqModeButton->setStyleSheet("QPushButton { text-align: center; padding: 8px; font-weight: bold; font-size: 11pt; }");
+    panelLayout->addWidget(w.freqModeButton);
+
+    w.entryGroup = new QGroupBox(this);
+    w.entryGroup->setObjectName(radioLabel.isEmpty() ? "qsoEntryGroup" : "qsoEntryGroup" + radioLabel);
+
+    QVBoxLayout *groupVLayout = new QVBoxLayout(w.entryGroup);
+    groupVLayout->setSpacing(2);
+    groupVLayout->setContentsMargins(5, 5, 5, 2);
+
+    w.returnToDockLabel = new QLabel("<a href='dock'>Return to dock</a>");
+    w.returnToDockLabel->setTextFormat(Qt::RichText);
+    w.returnToDockLabel->setAlignment(Qt::AlignRight);
+    w.returnToDockLabel->setVisible(false);
+    groupVLayout->addWidget(w.returnToDockLabel);
+
+    w.entryLayout = new QHBoxLayout();
+    w.entryLayout->setSpacing(5);
+    groupVLayout->addLayout(w.entryLayout);
+
+    w.entryLayout->addWidget(new QLabel("Call:"));
+    ScpLineEdit *callEdit = new ScpLineEdit();
+    w.callEdit = callEdit;
+    callEdit->setMaxLength(14);
+    callEdit->setMaximumWidth(120);
+
+    // Force uppercase input
+    connect(callEdit, &QLineEdit::textChanged, [callEdit](const QString& text) {
+        if (text != text.toUpper()) {
+            int cursorPos = callEdit->cursorPosition();
+            callEdit->setText(text.toUpper());
+            callEdit->setCursorPosition(cursorPos);
+        }
+    });
+    w.entryLayout->addWidget(callEdit);
+
+    w.entryLayout->addWidget(new QLabel("Exchange:"));
+    w.exchangeEdit = new QLineEdit();
+    w.exchangeEdit->setMinimumWidth(100);
+    connect(w.exchangeEdit, &QLineEdit::textChanged, [edit = w.exchangeEdit](const QString& text) {
+        if (text != text.toUpper()) {
+            int cursorPos = edit->cursorPosition();
+            edit->setText(text.toUpper());
+            edit->setCursorPosition(cursorPos);
+        }
+    });
+    w.entryLayout->addWidget(w.exchangeEdit);
+
+    // Buttons
+    QHBoxLayout* buttonLayout = new QHBoxLayout;
+
+    w.qrzButton = new QPushButton;
+    w.qrzButton->setIcon(style()->standardIcon(QStyle::SP_FileDialogDetailedView));
+    w.qrzButton->setFixedSize(32, 32);
+    w.qrzButton->setToolTip("Look up callsign on QRZCQ");
+    w.qrzButton->setFocusPolicy(Qt::NoFocus);
+    buttonLayout->addWidget(w.qrzButton);
+
+    w.logButton = new QPushButton("Log QSO");
+    w.logButton->setFocusPolicy(Qt::NoFocus);
+    buttonLayout->addWidget(w.logButton);
+
+    w.clearButton = new QPushButton("Clear");
+    w.clearButton->setFocusPolicy(Qt::NoFocus);
+    buttonLayout->addWidget(w.clearButton);
+    buttonLayout->addStretch();
+
+    // Run / S&P / Off toggle buttons
+    w.offButton = new QPushButton("OFF");
+    w.offButton->setCheckable(true);
+    w.offButton->setChecked(true);
+    w.offButton->setToolTip("Enter key sequences disabled — logs QSO directly");
+    w.offButton->setFixedWidth(46);
+    w.offButton->setFocusPolicy(Qt::NoFocus);
+    buttonLayout->addWidget(w.offButton);
+
+    w.runButton = new QPushButton("RUN");
+    w.runButton->setCheckable(true);
+    w.runButton->setChecked(false);
+    w.runButton->setToolTip("Run mode: you are calling CQ (Enter sequences CQ → Exchange → TU+Log)");
+    w.runButton->setFixedWidth(46);
+    w.runButton->setFocusPolicy(Qt::NoFocus);
+    buttonLayout->addWidget(w.runButton);
+
+    w.spButton = new QPushButton("S&&P");
+    w.spButton->setCheckable(true);
+    w.spButton->setChecked(false);
+    w.spButton->setToolTip("Search & Pounce: you are answering a CQ (Enter sequences My Call → Exchange → Log)");
+    w.spButton->setFixedWidth(46);
+    w.spButton->setFocusPolicy(Qt::NoFocus);
+    buttonLayout->addWidget(w.spButton);
+
+    w.entryLayout->addLayout(buttonLayout);
+
+    // Tab order
+    setTabOrder(w.callEdit, w.exchangeEdit);
+    setTabOrder(w.exchangeEdit, w.qrzButton);
+    setTabOrder(w.qrzButton, w.logButton);
+    setTabOrder(w.logButton, w.clearButton);
+
+    // Event filters for Enter key handling
+    w.callEdit->installEventFilter(this);
+    w.exchangeEdit->installEventFilter(this);
+
+    panelLayout->addWidget(w.entryGroup, 1);
+    return panel;
 }
 
 void MainWindow::setupDocks(QSplitter* mainSplitter)
@@ -1105,6 +1180,12 @@ void MainWindow::setupMenus()
 
     QAction *ssbKeyingAction = rigMenu->addAction("SSB &Keying Setup...");
     connect(ssbKeyingAction, &QAction::triggered, this, &MainWindow::onSsbKeyingSetup);
+
+    rigMenu->addSeparator();
+    m_so2rAction = rigMenu->addAction("SO&2R Mode");
+    m_so2rAction->setCheckable(true);
+    m_so2rAction->setChecked(Settings::instance().getSo2rEnabled());
+    connect(m_so2rAction, &QAction::toggled, this, &MainWindow::onToggleSo2r);
 
     // Contest menu
     QMenu *contestMenu = menuBar()->addMenu("&Contest");
@@ -1440,25 +1521,8 @@ void MainWindow::createConnections()
     // Install app-level event filter so F-keys work even when entry dock is floating
     qApp->installEventFilter(this);
 
-    connect(m_logButton, &QPushButton::clicked, this, &MainWindow::onLogQso);
-    connect(m_clearButton, &QPushButton::clicked, this, &MainWindow::clearEntryForm);
-    connect(m_qrzButton, &QPushButton::clicked, this, &MainWindow::onQrzLookup);
-
-    // Run / S&P / Off toggle buttons
-    connect(m_offButton, &QPushButton::clicked, this, [this]() {
-        m_runMode = RunMode::Off;
-        updateRunSPButtons();
-    });
-    connect(m_runButton, &QPushButton::clicked, this, [this]() {
-        m_runMode = RunMode::Run;
-        updateRunSPButtons();
-    });
-    connect(m_spButton, &QPushButton::clicked, this, [this]() {
-        m_runMode = RunMode::SP;
-        updateRunSPButtons();
-    });
-    connect(m_callEdit, &QLineEdit::textChanged, this, &MainWindow::onCallChanged);
-    connect(m_exchangeEdit, &QLineEdit::textChanged, this, &MainWindow::onExchangeChanged);
+    // Wire Radio L entry panel connections
+    wireEntryPanelConnections(m_entryWidgets, false);
     
     m_rateWidget->setModel(m_qsoModel);
 
@@ -3071,6 +3135,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
         {"preSaveCall",      "Ctrl+S"},
         {"qsoViewFilter",    "Ctrl+F"},
         {"toggleMemoryType", "Ctrl+T"},
+        {"switchRadio",      "`"},
     };
     for (auto dit = defaultShortcuts.begin(); dit != defaultShortcuts.end(); ++dit) {
         if (!shortcuts.contains(dit.key()))
@@ -3099,6 +3164,9 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
                 return;
             } else if (it.key() == "toggleMemoryType") {
                 onToggleMemoryType();
+                return;
+            } else if (it.key() == "switchRadio") {
+                switchActiveRadio();
                 return;
             }
         }
@@ -3283,17 +3351,19 @@ void MainWindow::onLogQso()
 {
     QsoRecord qso;
     
-    // Get callsign from either the dynamic CALL field or the original m_callEdit
+    // Get callsign from either the dynamic CALL field or the call edit for the active radio
+    auto& exchFields = activeExchangeFields();
+    QLineEdit* callEdit = activeCallEdit();
     QString callsign;
-    if (m_exchangeFields.contains("CALL")) {
-        callsign = m_exchangeFields["CALL"]->text().trimmed().toUpper();
+    if (exchFields.contains("CALL")) {
+        callsign = exchFields["CALL"]->text().trimmed().toUpper();
     } else {
-        callsign = m_callEdit->text().trimmed().toUpper();
+        callsign = callEdit->text().trimmed().toUpper();
     }
-    
+
     if (callsign.isEmpty()) {
         QMessageBox::warning(this, "Invalid QSO", "Callsign cannot be empty");
-        m_callEdit->setFocus();
+        callEdit->setFocus();
         return;
     }
     
@@ -3330,32 +3400,34 @@ void MainWindow::onLogQso()
     }
     
     qso.setCall(callsign);
-    // Use frequency from rig (stored in m_lastFrequency)
-    qso.setFrequency(QString::number(m_lastFrequency, 'f', 1));
-    
+    // Use frequency/mode from active radio
+    double freq = activeFrequency();
+    QString mode = activeMode();
+    qso.setFrequency(QString::number(freq, 'f', 1));
+
     // Get band from frequency
-    QString band = m_contestEngine->getBandFromFrequency(m_lastFrequency);
+    QString band = m_contestEngine->getBandFromFrequency(freq);
     if (!band.isEmpty()) {
         qso.setBandName(band);
     }
-    
-    qso.setMode(m_lastMode);
+
+    qso.setMode(mode);
     qso.setDateTime(QDateTime::currentDateTimeUtc());
     qso.setSerial(m_qsoModel->count() + 1);
     
     // Validate that the mode is allowed for this contest
     QStringList allowedModes = m_contestEngine->getAllowedModes();
     if (!allowedModes.isEmpty()) {
-        bool modeValid = allowedModes.contains(m_lastMode.toUpper());
-        
+        bool modeValid = allowedModes.contains(mode.toUpper());
+
         // If SSB is allowed, also accept LSB and USB
         if (!modeValid && allowedModes.contains("SSB")) {
-            modeValid = (m_lastMode == "LSB" || m_lastMode == "USB");
+            modeValid = (mode == "LSB" || mode == "USB");
         }
-        
+
         if (!modeValid) {
             QString errorMsg = QString("Invalid mode '%1'. This contest only allows: %2")
-                .arg(m_lastMode)
+                .arg(mode)
                 .arg(allowedModes.join(", "));
             m_statusLabel->setText(errorMsg);
             DebugLogger::instance().log("MainWindow", errorMsg);
@@ -3366,17 +3438,17 @@ void MainWindow::onLogQso()
     // If this log was loaded from a file, check if the mode is restricted to the original mode
     QString restrictedMode = m_contestEngine->getRestrictedMode();
     if (!restrictedMode.isEmpty()) {
-        bool modeMatches = m_lastMode.toUpper() == restrictedMode.toUpper();
-        
+        bool modeMatches = mode.toUpper() == restrictedMode.toUpper();
+
         // If the restricted mode is SSB, also allow LSB and USB
         if (!modeMatches && restrictedMode.toUpper() == "SSB") {
-            modeMatches = (m_lastMode == "LSB" || m_lastMode == "USB");
+            modeMatches = (mode == "LSB" || mode == "USB");
         }
-        
+
         if (!modeMatches) {
             QString errorMsg = QString("This log file is restricted to %1 mode only. Cannot log %2 contacts.")
                 .arg(restrictedMode)
-                .arg(m_lastMode);
+                .arg(mode);
             m_statusLabel->setText(errorMsg);
             DebugLogger::instance().log("MainWindow", errorMsg);
             return;
@@ -3466,14 +3538,14 @@ void MainWindow::onLogQso()
     }
     
     // Set exchange fields from dynamic inputs (received exchange)
-    if (!m_exchangeFields.isEmpty()) {
-        DebugLogger::instance().log("MainWindow", 
-            QString("Processing %1 exchange fields").arg(m_exchangeFields.size()));
-        
+    if (!exchFields.isEmpty()) {
+        DebugLogger::instance().log("MainWindow",
+            QString("Processing %1 exchange fields").arg(exchFields.size()));
+
         QString receivedName;
         QString receivedExch;
-        
-        for (auto it = m_exchangeFields.begin(); it != m_exchangeFields.end(); ++it) {
+
+        for (auto it = exchFields.begin(); it != exchFields.end(); ++it) {
             QString fieldName = it.key();
             QString value = it.value()->text().trimmed().toUpper();
             
@@ -3532,14 +3604,14 @@ void MainWindow::onLogQso()
         
         // Set default RST received if not provided
         if (qso.getRstReceived().isEmpty()) {
-            QString defaultRst = (m_lastMode == "CW" || m_lastMode == "RTTY") ? "599" : 
-                                (m_lastMode.contains("DIGI")) ? "+0" : "59";
+            QString defaultRst = (mode == "CW" || mode == "RTTY") ? "599" :
+                                (mode.contains("DIGI")) ? "+0" : "59";
             qso.setRstReceived(defaultRst);
-            DebugLogger::instance().log("MainWindow", 
+            DebugLogger::instance().log("MainWindow",
                 QString("Set default RST received: %1").arg(defaultRst));
         }
     }
-    
+
     // Validate with basic checks
     DebugLogger::instance().log("MainWindow", "Calling qso.isValid()...");
     if (!qso.isValid()) {
@@ -3692,8 +3764,12 @@ void MainWindow::onLogQso()
                 .arg(score.contestScore));
     }
     
-    clearEntryForm();
-    m_callEdit->setFocus();
+    // Clear the active radio's entry form
+    if (m_so2rEnabled && m_activeRadio == ActiveRadio::Right)
+        clearEntryFormR();
+    else
+        clearEntryForm();
+    activeCallEdit()->setFocus();
 
     // Update QSO count in status bar
     m_qsoCountLabel->setText(QString("QSOs: %1").arg(m_qsoModel->count()));
@@ -3742,19 +3818,52 @@ void MainWindow::onQrzLookup()
 
 void MainWindow::onRigControl()
 {
-    RigControlDialog dialog(m_rigClient, this);
-    connect(&dialog, &RigControlDialog::pollIntervalChanged, this, [this](int ms) {
-        m_rigPollTimer->setInterval(ms);
-        DebugLogger::instance().log("Rig", QString("Rig poll interval changed to %1 ms").arg(ms));
-    });
-    connect(&dialog, &RigControlDialog::backendChanged, this, &MainWindow::onRigBackendChanged);
+    // If SO2R is enabled, ask which radio to configure
+    bool configRadioR = false;
+    if (m_so2rEnabled && m_rigClientR) {
+        QStringList items;
+        items << "Radio L" << "Radio R";
+        bool ok;
+        QString choice = QInputDialog::getItem(this, "Rig Control",
+            "Select radio to configure:", items,
+            (m_activeRadio == ActiveRadio::Right) ? 1 : 0, false, &ok);
+        if (!ok) return;
+        configRadioR = (choice == "Radio R");
+    }
+
+    RigInterface* client = configRadioR ? m_rigClientR : m_rigClient;
+    RigControlDialog dialog(client, this, configRadioR);
+
+    if (configRadioR) {
+        dialog.setWindowTitle("Rig Connection Settings — Radio R");
+        connect(&dialog, &RigControlDialog::pollIntervalChanged, this, [this](int ms) {
+            if (m_rigPollTimerR) m_rigPollTimerR->setInterval(ms);
+        });
+        connect(&dialog, &RigControlDialog::backendChanged, this, &MainWindow::onRigBackendChangedR);
+    } else {
+        dialog.setWindowTitle("Rig Connection Settings — Radio L");
+        connect(&dialog, &RigControlDialog::pollIntervalChanged, this, [this](int ms) {
+            m_rigPollTimer->setInterval(ms);
+            DebugLogger::instance().log("Rig", QString("Rig poll interval changed to %1 ms").arg(ms));
+        });
+        connect(&dialog, &RigControlDialog::backendChanged, this, &MainWindow::onRigBackendChanged);
+    }
+
     dialog.exec();
 
     // Sync poll timer state with connection after dialog closes
-    if (m_rigClient->isConnected() && !m_rigPollTimer->isActive()) {
-        onRigConnected();
-    } else if (!m_rigClient->isConnected() && m_rigPollTimer->isActive()) {
-        onRigDisconnected();
+    if (configRadioR) {
+        if (m_rigClientR && m_rigClientR->isConnected() && m_rigPollTimerR && !m_rigPollTimerR->isActive()) {
+            onRigConnectedR();
+        } else if (m_rigClientR && !m_rigClientR->isConnected() && m_rigPollTimerR && m_rigPollTimerR->isActive()) {
+            onRigDisconnectedR();
+        }
+    } else {
+        if (m_rigClient->isConnected() && !m_rigPollTimer->isActive()) {
+            onRigConnected();
+        } else if (!m_rigClient->isConnected() && m_rigPollTimer->isActive()) {
+            onRigDisconnected();
+        }
     }
 }
 
@@ -4795,7 +4904,7 @@ void MainWindow::onAbout()
     msgBox.setTextFormat(Qt::RichText);
     msgBox.setTextInteractionFlags(Qt::TextBrowserInteraction);
     msgBox.setText(
-        "<b>ContestLogX - Version 0.7.1 (Beta)</b><br><br>"
+        "<b>ContestLogX - Version 0.7.2 (Beta)</b><br><br>"
         "Cross-platform amateur radio contest logging software<br><br>"
         "Copyright &copy; 2025-2026, by Steve Woodruff, N9OH<br><br>"
         "<a href=\"https://contestlogx.com\">https://contestlogx.com</a><br><br>"
@@ -4817,6 +4926,7 @@ void MainWindow::onAbout()
 
 void MainWindow::updateRunSPButtons()
 {
+    // Update Radio L buttons
     m_offButton->setChecked(m_runMode == RunMode::Off);
     m_runButton->setChecked(m_runMode == RunMode::Run);
     m_spButton->setChecked(m_runMode == RunMode::SP);
@@ -4831,8 +4941,20 @@ void MainWindow::updateRunSPButtons()
     m_runButton->setFont(m_runMode == RunMode::Run ? boldFont : normalFont);
     m_spButton->setFont(m_runMode == RunMode::SP  ? boldFont : normalFont);
 
+    // Update Radio R buttons if SO2R is active
+    if (m_so2rEnabled && m_entryWidgetsR.offButton) {
+        m_entryWidgetsR.offButton->setChecked(m_runModeR == RunMode::Off);
+        m_entryWidgetsR.runButton->setChecked(m_runModeR == RunMode::Run);
+        m_entryWidgetsR.spButton->setChecked(m_runModeR == RunMode::SP);
+
+        m_entryWidgetsR.offButton->setFont(m_runModeR == RunMode::Off ? boldFont : normalFont);
+        m_entryWidgetsR.runButton->setFont(m_runModeR == RunMode::Run ? boldFont : normalFont);
+        m_entryWidgetsR.spButton->setFont(m_runModeR == RunMode::SP  ? boldFont : normalFont);
+    }
+
     if (m_statusLabel) {
-        switch (m_runMode) {
+        RunMode mode = activeRunMode();
+        switch (mode) {
             case RunMode::Off: m_statusLabel->setText("Operating mode: OFF (Enter logs directly)"); break;
             case RunMode::Run: m_statusLabel->setText("Operating mode: RUN (Enter sequences CQ → Exchange → TU+Log)"); break;
             case RunMode::SP:  m_statusLabel->setText("Operating mode: S&P (Enter sequences My Call → Exchange+Log)"); break;
@@ -4842,10 +4964,11 @@ void MainWindow::updateRunSPButtons()
 
 void MainWindow::onToggleRunSP()
 {
-    // Cycle: Off → Run → SP → Off
-    if (m_runMode == RunMode::Off)      m_runMode = RunMode::Run;
-    else if (m_runMode == RunMode::Run) m_runMode = RunMode::SP;
-    else                                m_runMode = RunMode::Off;
+    // Cycle: Off → Run → SP → Off — applies to the active radio
+    RunMode& mode = (m_so2rEnabled && m_activeRadio == ActiveRadio::Right) ? m_runModeR : m_runMode;
+    if (mode == RunMode::Off)      mode = RunMode::Run;
+    else if (mode == RunMode::Run) mode = RunMode::SP;
+    else                           mode = RunMode::Off;
     updateRunSPButtons();
 }
 
@@ -4902,28 +5025,32 @@ void MainWindow::triggerMemoryByRole(MemoryRole role)
 
 void MainWindow::onQsoEntryReturn()
 {
-    QString call = m_callEdit->text().trimmed();
+    QString call = activeCallEdit()->text().trimmed();
+    auto& exchFields = activeExchangeFields();
     bool hasExchange = false;
-    for (auto* field : m_exchangeFields.values()) {
+    for (auto* field : exchFields.values()) {
         if (!field->text().trimmed().isEmpty()) {
             hasExchange = true;
             break;
         }
     }
 
-    if (m_runMode == RunMode::Off) {
+    RunMode runMode = activeRunMode();
+    bool& exchangeSent = (m_so2rEnabled && m_activeRadio == ActiveRadio::Right) ? m_exchangeSentR : m_exchangeSent;
+
+    if (runMode == RunMode::Off) {
         onLogQso();
         return;
     }
 
-    if (m_runMode == RunMode::Run) {
+    if (runMode == RunMode::Run) {
         if (call.isEmpty()) {
             // Step 1: call box empty → send CQ
             triggerMemoryByRole(MemoryRole::CQ);
-        } else if (!m_exchangeSent) {
+        } else if (!exchangeSent) {
             // Step 2: call filled, exchange not yet sent → send exchange
             triggerMemoryByRole(MemoryRole::RunExchange);
-            m_exchangeSent = true;
+            exchangeSent = true;
         } else {
             // Step 3: exchange was sent → send TU and log
             triggerMemoryByRole(MemoryRole::TU);
@@ -4931,11 +5058,11 @@ void MainWindow::onQsoEntryReturn()
         }
     } else {
         // S&P mode
-        if (!m_exchangeSent) {
+        if (!exchangeSent) {
             // Step 1: call filled → send my call; ignore Enter if call is empty
             if (call.isEmpty()) return;
             triggerMemoryByRole(MemoryRole::MyCall);
-            m_exchangeSent = true;
+            exchangeSent = true;
         } else if (hasExchange) {
             // Step 2: exchange filled → send our exchange then log
             triggerMemoryByRole(MemoryRole::SPExchange);
@@ -5276,16 +5403,18 @@ void MainWindow::onDxSpotClicked(const QString& callsign, double frequency, cons
 {
     DebugLogger::instance().log("MainWindow", QString("DX spot clicked: call=%1, changing rig to %2 kHz, mode %3").arg(callsign).arg(frequency).arg(mode));
 
-    // Set callsign in QSO entry field
-    m_callEdit->setText(callsign.toUpper());
+    // Set callsign in active radio's QSO entry field
+    activeCallEdit()->setText(callsign.toUpper());
 
     // Reset all exchange fields except CALL — restore RST defaults rather than leaving them blank
-    for (auto it = m_exchangeFields.begin(); it != m_exchangeFields.end(); ++it) {
+    auto& exchFields = activeExchangeFields();
+    for (auto it = exchFields.begin(); it != exchFields.end(); ++it) {
         const QString& fieldName = it.key();
         if (fieldName == "CALL") continue;
         if (fieldName.contains("RST", Qt::CaseSensitive)) {
-            QString defaultRst = (m_lastMode == "CW" || m_lastMode == "RTTY") ? "599" :
-                                 (m_lastMode.contains("DIGI")) ? "+0" : "59";
+            QString curMode = activeMode();
+            QString defaultRst = (curMode == "CW" || curMode == "RTTY") ? "599" :
+                                 (curMode.contains("DIGI")) ? "+0" : "59";
             it.value()->setText(defaultRst);
         } else {
             it.value()->clear();
@@ -5318,18 +5447,25 @@ void MainWindow::onDxSpotClicked(const QString& callsign, double frequency, cons
         m_statusLabel->setText("Ready");
     }
     
-    m_callEdit->setFocus();
-    
-    // Update local display immediately
-    m_lastFrequency = frequency;
-    if (!mode.isEmpty())
-        m_lastMode = mode;
-    m_freqModeButton->setText(QString("%1 %2").arg(frequency, 0, 'f', 1).arg(m_lastMode));
+    activeCallEdit()->setFocus();
 
-    // Change rig frequency and mode
-    if (m_rigClient && m_rigClient->isConnected()) {
-        m_rigClient->setFrequency(static_cast<long>(frequency * 1000)); // Convert kHz to Hz
-        m_rigClient->setMode(mode);
+    // Update active radio's local display immediately
+    if (m_so2rEnabled && m_activeRadio == ActiveRadio::Right) {
+        m_lastFrequencyR = frequency;
+        if (!mode.isEmpty()) m_lastModeR = mode;
+        if (m_entryWidgetsR.freqModeButton)
+            m_entryWidgetsR.freqModeButton->setText(QString("%1 %2").arg(frequency, 0, 'f', 1).arg(m_lastModeR));
+    } else {
+        m_lastFrequency = frequency;
+        if (!mode.isEmpty()) m_lastMode = mode;
+        m_freqModeButton->setText(QString("%1 %2").arg(frequency, 0, 'f', 1).arg(m_lastMode));
+    }
+
+    // Change active rig frequency and mode
+    RigInterface* rig = activeRigClient();
+    if (rig && rig->isConnected()) {
+        rig->setFrequency(static_cast<long>(frequency * 1000)); // Convert kHz to Hz
+        rig->setMode(mode);
     }
 }
 
@@ -6430,6 +6566,86 @@ void MainWindow::updateQsoEntryFields()
         setTabOrder(lastWidget, m_qrzButton);
         setTabOrder(m_qrzButton, m_logButton);
         setTabOrder(m_logButton, m_clearButton);
+    }
+
+    // Replicate entry fields for Radio R if SO2R is active
+    if (m_so2rEnabled && m_entryWidgetsR.entryLayout) {
+        // Hide existing Radio R widgets
+        for (int i = 0; i < m_entryWidgetsR.entryLayout->count(); ++i) {
+            if (QWidget* widget = m_entryWidgetsR.entryLayout->itemAt(i)->widget()) {
+                widget->hide();
+            }
+        }
+
+        // Clean up old dynamic fields
+        for (auto it = m_entryWidgetsR.exchangeFields.begin(); it != m_entryWidgetsR.exchangeFields.end(); ++it) {
+            if (it.value() != m_entryWidgetsR.callEdit && it.value() != m_entryWidgetsR.exchangeEdit) {
+                it.value()->deleteLater();
+            }
+        }
+        m_entryWidgetsR.exchangeFields.clear();
+        m_entryWidgetsR.entryFieldOrder.clear();
+
+        int insertPosR = 0;
+        for (const QString& fieldName : entryFieldsList) {
+            QLabel* label = nullptr;
+            QLineEdit* edit = nullptr;
+
+            if (fieldName == "CALL" && m_entryWidgetsR.callEdit) {
+                edit = m_entryWidgetsR.callEdit;
+                edit->show();
+                edit->setMaxLength(14);
+                edit->setMaximumWidth(120);
+                for (int i = 0; i < m_entryWidgetsR.entryLayout->count(); ++i) {
+                    QLabel* lbl = qobject_cast<QLabel*>(m_entryWidgetsR.entryLayout->itemAt(i)->widget());
+                    if (lbl && lbl->text() == "Call:") {
+                        label = lbl;
+                        label->show();
+                        break;
+                    }
+                }
+            } else {
+                label = new QLabel(fieldName + ":");
+                edit = new QLineEdit();
+            }
+
+            if (fieldName.contains("RST", Qt::CaseSensitive)) {
+                edit->setMaximumWidth(60);
+                edit->setMaxLength(3);
+                QString currentMode = m_lastModeR.isEmpty() ? "USB" : m_lastModeR;
+                QString defaultRst = (currentMode == "CW" || currentMode == "RTTY") ? "599" :
+                                    (currentMode.contains("DIGI")) ? "+0" : "59";
+                edit->setText(defaultRst);
+            } else if (fieldName.contains("EXCH", Qt::CaseSensitive)) {
+                edit->setMinimumWidth(80);
+                edit->setMaximumWidth(150);
+            } else {
+                edit->setMinimumWidth(80);
+                edit->setMaximumWidth(150);
+            }
+
+            connect(edit, &QLineEdit::textChanged, [edit](const QString& text) {
+                if (text != text.toUpper()) {
+                    int cursorPos = edit->cursorPosition();
+                    edit->setText(text.toUpper());
+                    edit->setCursorPosition(cursorPos);
+                }
+            });
+            edit->installEventFilter(this);
+
+            m_entryWidgetsR.exchangeFields[fieldName] = edit;
+            m_entryWidgetsR.entryFieldOrder.append(edit);
+
+            if (label) {
+                m_entryWidgetsR.entryLayout->insertWidget(insertPosR++, label);
+            }
+            m_entryWidgetsR.entryLayout->insertWidget(insertPosR++, edit);
+        }
+
+        // Show buttons
+        m_entryWidgetsR.logButton->show();
+        m_entryWidgetsR.clearButton->show();
+        m_entryWidgetsR.qrzButton->show();
     }
 }
 
@@ -7809,4 +8025,395 @@ QString MainWindow::getSessionCallsign() const
     // Fallback to Settings if session info not set
     return Settings::instance().getCallsign();
 }
-    
+
+// ---------- SO2R support ----------
+
+RigInterface* MainWindow::activeRigClient() const
+{
+    if (m_so2rEnabled && m_activeRadio == ActiveRadio::Right && m_rigClientR)
+        return m_rigClientR;
+    return m_rigClient;
+}
+
+double MainWindow::activeFrequency() const
+{
+    return (m_so2rEnabled && m_activeRadio == ActiveRadio::Right) ? m_lastFrequencyR : m_lastFrequency;
+}
+
+QString MainWindow::activeMode() const
+{
+    return (m_so2rEnabled && m_activeRadio == ActiveRadio::Right) ? m_lastModeR : m_lastMode;
+}
+
+int MainWindow::activeWpm() const
+{
+    return (m_so2rEnabled && m_activeRadio == ActiveRadio::Right) ? m_lastWpmR : m_lastWpm;
+}
+
+QLineEdit* MainWindow::activeCallEdit() const
+{
+    return (m_so2rEnabled && m_activeRadio == ActiveRadio::Right) ? m_entryWidgetsR.callEdit : m_callEdit;
+}
+
+QLineEdit* MainWindow::activeExchangeEdit() const
+{
+    return (m_so2rEnabled && m_activeRadio == ActiveRadio::Right) ? m_entryWidgetsR.exchangeEdit : m_exchangeEdit;
+}
+
+QMap<QString, QLineEdit*>& MainWindow::activeExchangeFields()
+{
+    return (m_so2rEnabled && m_activeRadio == ActiveRadio::Right) ? m_entryWidgetsR.exchangeFields : m_exchangeFields;
+}
+
+QList<QLineEdit*>& MainWindow::activeEntryFieldOrder()
+{
+    return (m_so2rEnabled && m_activeRadio == ActiveRadio::Right) ? m_entryWidgetsR.entryFieldOrder : m_entryFieldOrder;
+}
+
+MainWindow::RunMode MainWindow::activeRunMode() const
+{
+    return (m_so2rEnabled && m_activeRadio == ActiveRadio::Right) ? m_runModeR : m_runMode;
+}
+
+void MainWindow::setActiveRunMode(RunMode mode)
+{
+    if (m_so2rEnabled && m_activeRadio == ActiveRadio::Right)
+        m_runModeR = mode;
+    else
+        m_runMode = mode;
+}
+
+void MainWindow::switchActiveRadio()
+{
+    if (!m_so2rEnabled) return;
+
+    m_activeRadio = (m_activeRadio == ActiveRadio::Left) ? ActiveRadio::Right : ActiveRadio::Left;
+
+    // Route CW/TTS to the active radio
+    if (m_cwConsole)
+        m_cwConsole->setRigClient(activeRigClient());
+    if (m_ttsManager)
+        m_ttsManager->setRigClient(activeRigClient());
+
+    updateActiveRadioIndicator();
+
+    // Move focus to the active radio's call edit
+    QLineEdit* callEdit = activeCallEdit();
+    if (callEdit) {
+        callEdit->setFocus();
+        callEdit->selectAll();
+    }
+
+    QString radioName = (m_activeRadio == ActiveRadio::Left) ? "Radio L" : "Radio R";
+    QString switchKey = Settings::instance().getShortcut("switchRadio");
+    if (switchKey.isEmpty()) switchKey = "`";
+    m_statusLabel->setText(QString("Active: %1 — %2 to switch").arg(radioName, switchKey));
+    DebugLogger::instance().log("MainWindow", QString("Switched active radio to %1").arg(radioName));
+}
+
+void MainWindow::updateActiveRadioIndicator()
+{
+    if (!m_so2rEnabled) return;
+
+    QString activeGroupStyle = "QGroupBox { border: 2px solid #4CAF50; border-radius: 4px; margin-top: 0.5em; }"
+                               "QGroupBox::title { color: #4CAF50; }";
+    QString inactiveGroupStyle = "QGroupBox { border: 1px solid gray; border-radius: 4px; margin-top: 0.5em; }";
+
+    if (m_entryWidgets.entryGroup)
+        m_entryWidgets.entryGroup->setStyleSheet(
+            m_activeRadio == ActiveRadio::Left ? activeGroupStyle : inactiveGroupStyle);
+    if (m_entryWidgetsR.entryGroup)
+        m_entryWidgetsR.entryGroup->setStyleSheet(
+            m_activeRadio == ActiveRadio::Right ? activeGroupStyle : inactiveGroupStyle);
+
+    // Green title bar on the active dock, default on inactive
+    QString activeDockStyle = "QDockWidget::title { background: #4CAF50; color: white; padding: 4px; }";
+    QString inactiveDockStyle = "QDockWidget::title { }";
+
+    if (m_entryDock)
+        m_entryDock->setStyleSheet(
+            m_activeRadio == ActiveRadio::Left ? activeDockStyle : inactiveDockStyle);
+    if (m_entryDockR)
+        m_entryDockR->setStyleSheet(
+            m_activeRadio == ActiveRadio::Right ? activeDockStyle : inactiveDockStyle);
+}
+
+void MainWindow::createRadioRRigClient()
+{
+    Settings& settings = Settings::instance();
+    m_rigBackendR = settings.getRadioRRigBackend();
+    if (m_rigBackendR == "hamlib") {
+        m_rigClientR = new HamlibClient(this);
+    } else {
+        m_rigClientR = new FlrigClient(this);
+        m_rigBackendR = "flrig";
+    }
+
+    // Polling timer for Radio R
+    m_rigPollTimerR = new QTimer(this);
+    m_rigPollTimerR->setInterval(settings.getFlrigPollInterval());
+    connect(m_rigPollTimerR, &QTimer::timeout, this, &MainWindow::onUpdateRigDisplayR);
+
+    // Rig connections for Radio R
+    connect(m_rigClientR, SIGNAL(connected()), this, SLOT(onRigConnectedR()));
+    connect(m_rigClientR, SIGNAL(disconnected()), this, SLOT(onRigDisconnectedR()));
+
+    DebugLogger::instance().log("MainWindow", QString("Created Radio R rig client: %1").arg(m_rigBackendR));
+}
+
+void MainWindow::destroyRadioRRigClient()
+{
+    if (m_rigPollTimerR) {
+        m_rigPollTimerR->stop();
+        delete m_rigPollTimerR;
+        m_rigPollTimerR = nullptr;
+    }
+    if (m_rigClientR) {
+        if (m_rigClientR->isConnected())
+            m_rigClientR->disconnectFromRig();
+        delete m_rigClientR;
+        m_rigClientR = nullptr;
+    }
+    m_lastFrequencyR = 0.0;
+    m_lastModeR.clear();
+    m_lastWpmR = 0;
+    DebugLogger::instance().log("MainWindow", "Destroyed Radio R rig client");
+}
+
+void MainWindow::wireEntryPanelConnections(EntryPanelWidgets& w, bool isRadioR)
+{
+    // Clicking Log on a radio's panel activates that radio first
+    connect(w.logButton, &QPushButton::clicked, this, [this, isRadioR]() {
+        if (m_so2rEnabled && isRadioR && m_activeRadio != ActiveRadio::Right) {
+            m_activeRadio = ActiveRadio::Right;
+            updateActiveRadioIndicator();
+        } else if (m_so2rEnabled && !isRadioR && m_activeRadio != ActiveRadio::Left) {
+            m_activeRadio = ActiveRadio::Left;
+            updateActiveRadioIndicator();
+        }
+        onLogQso();
+    });
+    if (isRadioR) {
+        connect(w.clearButton, &QPushButton::clicked, this, &MainWindow::clearEntryFormR);
+    } else {
+        connect(w.clearButton, &QPushButton::clicked, this, &MainWindow::clearEntryForm);
+    }
+    connect(w.qrzButton, &QPushButton::clicked, this, &MainWindow::onQrzLookup);
+
+    // Run / S&P / Off toggle buttons
+    connect(w.offButton, &QPushButton::clicked, this, [this, isRadioR]() {
+        if (isRadioR) m_runModeR = RunMode::Off; else m_runMode = RunMode::Off;
+        updateRunSPButtons();
+    });
+    connect(w.runButton, &QPushButton::clicked, this, [this, isRadioR]() {
+        if (isRadioR) m_runModeR = RunMode::Run; else m_runMode = RunMode::Run;
+        updateRunSPButtons();
+    });
+    connect(w.spButton, &QPushButton::clicked, this, [this, isRadioR]() {
+        if (isRadioR) m_runModeR = RunMode::SP; else m_runMode = RunMode::SP;
+        updateRunSPButtons();
+    });
+    connect(w.callEdit, &QLineEdit::textChanged, this, &MainWindow::onCallChanged);
+    connect(w.exchangeEdit, &QLineEdit::textChanged, this, &MainWindow::onExchangeChanged);
+}
+
+void MainWindow::clearEntryFormR()
+{
+    if (!m_entryWidgetsR.callEdit) return;
+    m_entryWidgetsR.callEdit->clear();
+    m_entryWidgetsR.exchangeEdit->clear();
+    for (auto it = m_entryWidgetsR.exchangeFields.begin(); it != m_entryWidgetsR.exchangeFields.end(); ++it) {
+        if (it.value() != m_entryWidgetsR.callEdit)
+            it.value()->clear();
+    }
+    m_exchangeSentR = false;
+    m_entryWidgetsR.callEdit->setFocus();
+}
+
+void MainWindow::enableSo2r()
+{
+    if (m_so2rEnabled) return;
+    m_so2rEnabled = true;
+
+    // Create Radio R rig client
+    createRadioRRigClient();
+
+    // Create Radio R entry dock
+    QWidget *entryPanelR = createEntryPanel(m_entryWidgetsR, "R");
+    m_entryDockR = new QDockWidget("Radio R", this);
+    m_entryDockR->setObjectName("entryDockR");
+    m_entryDockR->setWidget(entryPanelR);
+    m_entryDockR->setAllowedAreas(Qt::BottomDockWidgetArea);
+    m_entryDockR->setFeatures(QDockWidget::DockWidgetFloatable | QDockWidget::DockWidgetMovable);
+    addDockWidget(Qt::BottomDockWidgetArea, m_entryDockR);
+
+    // Wire Radio R return-to-dock and freq/mode button
+    connect(m_entryWidgetsR.returnToDockLabel, &QLabel::linkActivated, this, [this]() {
+        m_entryDockR->setFloating(false);
+    });
+    connect(m_entryWidgetsR.freqModeButton, &QPushButton::clicked, this, &MainWindow::onFreqModeButtonClicked);
+
+    // Wire Radio R entry panel connections
+    wireEntryPanelConnections(m_entryWidgetsR, true);
+
+    // Wire SCP to Radio R call field
+    ScpLineEdit *scpLineEditR = qobject_cast<ScpLineEdit*>(m_entryWidgetsR.callEdit);
+    if (scpLineEditR && m_scpWidget) {
+        scpLineEditR->setScpWidget(m_scpWidget);
+        scpLineEditR->setScpEnabled(Settings::instance().getScpEnabled());
+    }
+
+    // Relabel Radio L dock
+    m_entryDock->setWindowTitle("Radio L");
+
+    // Stack both entry docks vertically — both always visible
+    splitDockWidget(m_entryDock, m_entryDockR, Qt::Vertical);
+
+    // Set active radio to Left and show indicator
+    m_activeRadio = ActiveRadio::Left;
+    updateActiveRadioIndicator();
+
+    // Auto-connect Radio R if configured
+    Settings& settings = Settings::instance();
+    bool autoConnect = false;
+    QString host;
+    int port;
+    if (m_rigBackendR == "hamlib") {
+        autoConnect = settings.getRadioRHamlibAutoConnect();
+        host = settings.getRadioRHamlibHost();
+        port = settings.getRadioRHamlibPort();
+    } else {
+        autoConnect = settings.getRadioRFlrigAutoConnect();
+        host = settings.getRadioRFlrigHost();
+        port = settings.getRadioRFlrigPort();
+    }
+    if (autoConnect && m_rigClientR) {
+        QTimer::singleShot(500, this, [this, host, port]() {
+            if (m_rigClientR && m_rigClientR->connectToRig(host, port)) {
+                onRigConnectedR();
+            }
+        });
+    }
+
+    // Update exchange fields for Radio R if a contest is loaded
+    if (!m_contestDefinition.isEmpty()) {
+        updateQsoEntryFields();
+    }
+
+    Settings::instance().setSo2rEnabled(true);
+    DebugLogger::instance().log("MainWindow", "SO2R mode enabled");
+}
+
+void MainWindow::disableSo2r()
+{
+    if (!m_so2rEnabled) return;
+
+    // Switch to Radio L first
+    m_activeRadio = ActiveRadio::Left;
+
+    // Route CW/TTS back to Radio L
+    if (m_cwConsole)
+        m_cwConsole->setRigClient(m_rigClient);
+    if (m_ttsManager)
+        m_ttsManager->setRigClient(m_rigClient);
+
+    // Destroy Radio R rig client
+    destroyRadioRRigClient();
+
+    // Remove Radio R entry dock
+    if (m_entryDockR) {
+        removeDockWidget(m_entryDockR);
+        delete m_entryDockR;
+        m_entryDockR = nullptr;
+    }
+    m_entryWidgetsR = EntryPanelWidgets();
+
+    // Restore Radio L dock title and clear all SO2R styling
+    m_entryDock->setWindowTitle("QSO Entry");
+    m_entryDock->setStyleSheet("");
+    if (m_entryWidgets.entryGroup)
+        m_entryWidgets.entryGroup->setStyleSheet("");
+
+    m_so2rEnabled = false;
+    m_runModeR = RunMode::Off;
+    m_exchangeSentR = false;
+
+    // Shrink the entry dock back to its minimum height
+    QWidget* entryWidget = m_entryDock->widget();
+    if (entryWidget) {
+        int minH = entryWidget->minimumSizeHint().height();
+        m_entryDock->setFixedHeight(minH);
+        // Release the fixed constraint after a layout pass so the dock remains resizable
+        QTimer::singleShot(0, this, [this]() {
+            m_entryDock->setMinimumHeight(0);
+            m_entryDock->setMaximumHeight(QWIDGETSIZE_MAX);
+        });
+    }
+
+    Settings::instance().setSo2rEnabled(false);
+    m_statusLabel->setText("SO2R disabled");
+    DebugLogger::instance().log("MainWindow", "SO2R mode disabled");
+}
+
+void MainWindow::onToggleSo2r(bool enabled)
+{
+    if (enabled)
+        enableSo2r();
+    else
+        disableSo2r();
+}
+
+void MainWindow::onRigConnectedR()
+{
+    if (!m_rigClientR) return;
+    m_rigPollTimerR->start();
+    QString rigName = m_rigClientR->getRigName();
+    DebugLogger::instance().log("MainWindow", QString("Radio R connected: %1").arg(rigName));
+    m_statusLabel->setText(QString("Radio R connected: %1").arg(rigName.isEmpty() ? m_rigBackendR : rigName));
+}
+
+void MainWindow::onRigDisconnectedR()
+{
+    if (m_rigPollTimerR)
+        m_rigPollTimerR->stop();
+    DebugLogger::instance().log("MainWindow", "Radio R disconnected");
+    m_statusLabel->setText("Radio R disconnected");
+    if (m_entryWidgetsR.freqModeButton)
+        m_entryWidgetsR.freqModeButton->setText("--- ---");
+}
+
+void MainWindow::onUpdateRigDisplayR()
+{
+    if (!m_rigClientR || !m_rigClientR->isConnected()) return;
+
+    double freqHz = m_rigClientR->getFrequency();
+    double freqKHz = freqHz / 1000.0;
+    QString mode = m_rigClientR->getMode();
+    int wpm = m_rigClientR->getCWSpeed();
+
+    m_lastFrequencyR = freqKHz;
+    if (!mode.isEmpty())
+        m_lastModeR = mode;
+    if (wpm > 0)
+        m_lastWpmR = wpm;
+
+    // Update Radio R freq/mode button
+    if (m_entryWidgetsR.freqModeButton) {
+        QString displayMode = m_lastModeR;
+        m_entryWidgetsR.freqModeButton->setText(
+            QString("%1 %2").arg(m_lastFrequencyR, 0, 'f', 1).arg(displayMode));
+    }
+}
+
+void MainWindow::onRigBackendChangedR(const QString& backend)
+{
+    if (backend == m_rigBackendR) return;
+
+    destroyRadioRRigClient();
+    m_rigBackendR = backend;
+    Settings::instance().setRadioRRigBackend(backend);
+    createRadioRRigClient();
+
+    DebugLogger::instance().log("MainWindow", QString("Radio R backend changed to %1").arg(backend));
+}
+

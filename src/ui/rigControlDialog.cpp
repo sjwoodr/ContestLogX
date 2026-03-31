@@ -16,9 +16,10 @@
 #include <QLabel>
 #include <QMessageBox>
 
-RigControlDialog::RigControlDialog(RigInterface* client, QWidget *parent)
+RigControlDialog::RigControlDialog(RigInterface* client, QWidget *parent, bool isRadioR)
     : QDialog(parent)
     , m_rigClient(client)
+    , m_isRadioR(isRadioR)
 {
     setWindowTitle("Rig Connection Settings");
     setupUi();
@@ -206,19 +207,31 @@ void RigControlDialog::loadSettings()
 {
     Settings& settings = Settings::instance();
 
-    // Backend selection
-    QString backend = settings.getRigBackend();
-    m_backendCombo->setCurrentIndex(backend == "hamlib" ? 1 : 0);
+    if (m_isRadioR) {
+        // Radio R settings
+        QString backend = settings.getRadioRRigBackend();
+        m_backendCombo->setCurrentIndex(backend == "hamlib" ? 1 : 0);
 
-    // flrig settings
-    m_flrigHostEdit->setText(settings.getFlrigHost());
-    m_flrigPortSpin->setValue(settings.getFlrigPort());
-    m_flrigAutoConnectCheck->setChecked(settings.getFlrigAutoConnect());
+        m_flrigHostEdit->setText(settings.getRadioRFlrigHost());
+        m_flrigPortSpin->setValue(settings.getRadioRFlrigPort());
+        m_flrigAutoConnectCheck->setChecked(settings.getRadioRFlrigAutoConnect());
 
-    // Hamlib settings
-    m_hamlibHostEdit->setText(settings.getHamlibHost());
-    m_hamlibPortSpin->setValue(settings.getHamlibPort());
-    m_hamlibAutoConnectCheck->setChecked(settings.getHamlibAutoConnect());
+        m_hamlibHostEdit->setText(settings.getRadioRHamlibHost());
+        m_hamlibPortSpin->setValue(settings.getRadioRHamlibPort());
+        m_hamlibAutoConnectCheck->setChecked(settings.getRadioRHamlibAutoConnect());
+    } else {
+        // Radio L settings (existing)
+        QString backend = settings.getRigBackend();
+        m_backendCombo->setCurrentIndex(backend == "hamlib" ? 1 : 0);
+
+        m_flrigHostEdit->setText(settings.getFlrigHost());
+        m_flrigPortSpin->setValue(settings.getFlrigPort());
+        m_flrigAutoConnectCheck->setChecked(settings.getFlrigAutoConnect());
+
+        m_hamlibHostEdit->setText(settings.getHamlibHost());
+        m_hamlibPortSpin->setValue(settings.getHamlibPort());
+        m_hamlibAutoConnectCheck->setChecked(settings.getHamlibAutoConnect());
+    }
 
     // Shared
     m_pollIntervalSpin->setValue(settings.getFlrigPollInterval());
@@ -231,18 +244,29 @@ void RigControlDialog::saveSettings()
 {
     Settings& settings = Settings::instance();
 
-    // Backend
-    settings.setRigBackend(selectedBackend());
+    if (m_isRadioR) {
+        // Radio R settings
+        settings.setRadioRRigBackend(selectedBackend());
 
-    // flrig settings
-    settings.setFlrigHost(m_flrigHostEdit->text());
-    settings.setFlrigPort(m_flrigPortSpin->value());
-    settings.setFlrigAutoConnect(m_flrigAutoConnectCheck->isChecked());
+        settings.setRadioRFlrigHost(m_flrigHostEdit->text());
+        settings.setRadioRFlrigPort(m_flrigPortSpin->value());
+        settings.setRadioRFlrigAutoConnect(m_flrigAutoConnectCheck->isChecked());
 
-    // Hamlib settings
-    settings.setHamlibHost(m_hamlibHostEdit->text());
-    settings.setHamlibPort(m_hamlibPortSpin->value());
-    settings.setHamlibAutoConnect(m_hamlibAutoConnectCheck->isChecked());
+        settings.setRadioRHamlibHost(m_hamlibHostEdit->text());
+        settings.setRadioRHamlibPort(m_hamlibPortSpin->value());
+        settings.setRadioRHamlibAutoConnect(m_hamlibAutoConnectCheck->isChecked());
+    } else {
+        // Radio L settings (existing)
+        settings.setRigBackend(selectedBackend());
+
+        settings.setFlrigHost(m_flrigHostEdit->text());
+        settings.setFlrigPort(m_flrigPortSpin->value());
+        settings.setFlrigAutoConnect(m_flrigAutoConnectCheck->isChecked());
+
+        settings.setHamlibHost(m_hamlibHostEdit->text());
+        settings.setHamlibPort(m_hamlibPortSpin->value());
+        settings.setHamlibAutoConnect(m_hamlibAutoConnectCheck->isChecked());
+    }
 
     // Shared
     settings.setFlrigPollInterval(m_pollIntervalSpin->value());
@@ -280,18 +304,30 @@ void RigControlDialog::onConnectClicked()
 
         // Save connection settings on successful connection
         Settings& settings = Settings::instance();
-        if (selectedBackend() == "flrig") {
-            settings.setFlrigHost(host);
-            settings.setFlrigPort(port);
-            settings.setFlrigAutoConnect(true);
-            m_flrigAutoConnectCheck->setChecked(true);
+        if (m_isRadioR) {
+            if (selectedBackend() == "flrig") {
+                settings.setRadioRFlrigHost(host);
+                settings.setRadioRFlrigPort(port);
+                settings.setRadioRFlrigAutoConnect(true);
+            } else {
+                settings.setRadioRHamlibHost(host);
+                settings.setRadioRHamlibPort(port);
+                settings.setRadioRHamlibAutoConnect(true);
+            }
+            settings.setRadioRRigBackend(selectedBackend());
         } else {
-            settings.setHamlibHost(host);
-            settings.setHamlibPort(port);
-            settings.setHamlibAutoConnect(true);
-            m_hamlibAutoConnectCheck->setChecked(true);
+            if (selectedBackend() == "flrig") {
+                settings.setFlrigHost(host);
+                settings.setFlrigPort(port);
+                settings.setFlrigAutoConnect(true);
+            } else {
+                settings.setHamlibHost(host);
+                settings.setHamlibPort(port);
+                settings.setHamlibAutoConnect(true);
+            }
+            settings.setRigBackend(selectedBackend());
         }
-        settings.setRigBackend(selectedBackend());
+        m_flrigAutoConnectCheck->setChecked(true);
 
         updateConnectionStatus();
     } else {
@@ -315,13 +351,21 @@ void RigControlDialog::onDisconnectClicked()
 
     // Disable auto-connect when user manually disconnects
     Settings& settings = Settings::instance();
-    if (selectedBackend() == "flrig") {
-        settings.setFlrigAutoConnect(false);
-        m_flrigAutoConnectCheck->setChecked(false);
+    if (m_isRadioR) {
+        if (selectedBackend() == "flrig") {
+            settings.setRadioRFlrigAutoConnect(false);
+        } else {
+            settings.setRadioRHamlibAutoConnect(false);
+        }
     } else {
-        settings.setHamlibAutoConnect(false);
-        m_hamlibAutoConnectCheck->setChecked(false);
+        if (selectedBackend() == "flrig") {
+            settings.setFlrigAutoConnect(false);
+        } else {
+            settings.setHamlibAutoConnect(false);
+        }
     }
+    m_flrigAutoConnectCheck->setChecked(false);
+    m_hamlibAutoConnectCheck->setChecked(false);
 
     updateConnectionStatus();
 }

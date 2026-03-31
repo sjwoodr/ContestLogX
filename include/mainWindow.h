@@ -35,6 +35,23 @@
 #include "memoryRole.h"
 #include "rateWidget.h"
 
+struct EntryPanelWidgets {
+    QPushButton *freqModeButton = nullptr;
+    QLineEdit *callEdit = nullptr;
+    QLineEdit *exchangeEdit = nullptr;
+    QMap<QString, QLineEdit*> exchangeFields;
+    QList<QLineEdit*> entryFieldOrder;
+    QPushButton *logButton = nullptr;
+    QPushButton *clearButton = nullptr;
+    QPushButton *qrzButton = nullptr;
+    QPushButton *offButton = nullptr;
+    QPushButton *runButton = nullptr;
+    QPushButton *spButton = nullptr;
+    QGroupBox *entryGroup = nullptr;
+    QHBoxLayout *entryLayout = nullptr;
+    QLabel *returnToDockLabel = nullptr;
+};
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -65,6 +82,11 @@ private slots:
     void onRigDisconnected();
     void onUpdateRigDisplay();
     void onRigBackendChanged(const QString& backend);
+    void onRigConnectedR();
+    void onRigDisconnectedR();
+    void onUpdateRigDisplayR();
+    void onRigBackendChangedR(const QString& backend);
+    void onToggleSo2r(bool enabled);
     void onEditSsbMemories();
     void onSsbKeyingSetup();
     
@@ -154,6 +176,9 @@ protected:
     void showEvent(QShowEvent *event) override;
 
 private:
+    // Run / S&P operating mode (declared early for use in method signatures)
+    enum class RunMode { Off, Run, SP };
+
     void setupUi();
     void setupDocks(QSplitter* mainSplitter);
     void setupMenus();
@@ -170,6 +195,25 @@ private:
     void flashDupeWarning();
     
     void clearEntryForm();
+    void clearEntryFormR();
+    QWidget* createEntryPanel(EntryPanelWidgets& widgets, const QString& radioLabel);
+    void wireEntryPanelConnections(EntryPanelWidgets& widgets, bool isRadioR);
+    void switchActiveRadio();
+    void updateActiveRadioIndicator();
+    RigInterface* activeRigClient() const;
+    double activeFrequency() const;
+    QString activeMode() const;
+    int activeWpm() const;
+    QLineEdit* activeCallEdit() const;
+    QLineEdit* activeExchangeEdit() const;
+    QMap<QString, QLineEdit*>& activeExchangeFields();
+    QList<QLineEdit*>& activeEntryFieldOrder();
+    RunMode activeRunMode() const;
+    void setActiveRunMode(RunMode mode);
+    void enableSo2r();
+    void disableSo2r();
+    void createRadioRRigClient();
+    void destroyRadioRRigClient();
     void preSaveCall();
     void triggerMemoryByRole(MemoryRole role);
     int findMemoryIndexByRole(MemoryRole role) const;
@@ -225,8 +269,11 @@ private:
     QLabel *m_wpmLabel;
     QLabel *m_propagationLabel;
     
-    // QSO entry dock (floatable, bottom area only)
-    class QDockWidget *m_entryDock;
+    // QSO entry docks (floatable, bottom area only)
+    class QDockWidget *m_entryDock;       // Radio L (or single radio)
+    class QDockWidget *m_entryDockR = nullptr;  // Radio R (SO2R only)
+    EntryPanelWidgets m_entryWidgets;     // Radio L widgets
+    EntryPanelWidgets m_entryWidgetsR;    // Radio R widgets
 
     // Right side panels (now as dock widgets)
     class DxClusterPanel *m_dxClusterPanel;
@@ -297,7 +344,7 @@ private:
     class ContestEngine *m_contestEngine;
     class DxccDatabase *m_dxccDatabase;
     
-    // Rig control
+    // Rig control — Radio L
     RigInterface *m_rigClient;
     QString m_rigBackend;
     QTimer *m_rigPollTimer;
@@ -306,6 +353,20 @@ private:
     double m_lastFrequency;
     QString m_lastMode;
     int m_lastWpm;
+
+    // Rig control — Radio R (SO2R)
+    RigInterface *m_rigClientR = nullptr;
+    QString m_rigBackendR;
+    QTimer *m_rigPollTimerR = nullptr;
+    double m_lastFrequencyR = 0.0;
+    QString m_lastModeR;
+    int m_lastWpmR = 0;
+
+    // SO2R state
+    enum class ActiveRadio { Left, Right };
+    ActiveRadio m_activeRadio = ActiveRadio::Left;
+    bool m_so2rEnabled = false;
+    QAction *m_so2rAction = nullptr;
     
     // Online score publishing
     class OnlineScoreClient *m_onlineScoreClient;
@@ -331,9 +392,10 @@ private:
     bool m_useContestMemories = false;
 
     // Run / S&P operating mode
-    enum class RunMode { Off, Run, SP };
-    RunMode m_runMode = RunMode::Off;
+    RunMode m_runMode = RunMode::Off;       // Radio L
+    RunMode m_runModeR = RunMode::Off;      // Radio R
     bool m_exchangeSent = false;   // True once Exchange memory has been sent this QSO
+    bool m_exchangeSentR = false;  // Radio R
     QPushButton *m_offButton = nullptr;
     QPushButton *m_runButton = nullptr;
     QPushButton *m_spButton = nullptr;

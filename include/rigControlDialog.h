@@ -29,7 +29,7 @@ class RigControlDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit RigControlDialog(RigInterface* client, QWidget *parent = nullptr);
+    explicit RigControlDialog(RigInterface* client, QWidget *parent = nullptr, bool isRadioR = false);
     ~RigControlDialog();
 
     /**
@@ -58,6 +58,7 @@ private:
     void saveSettings();
 
     RigInterface* m_rigClient;
+    bool m_isRadioR;
 
     // Backend selection
     QComboBox* m_backendCombo;

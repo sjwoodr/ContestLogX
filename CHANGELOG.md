@@ -2,6 +2,15 @@
 
 All notable changes to ContestLogX are documented in this file.
 
+## [0.7.2]
+- Added SO2R (Single Operator, 2 Radio) support with dual independent QSO entry dock widgets
+- Added independent rig connections per radio (Radio L / Radio R) with separate backend, host, port settings
+- Added backtick (`) keyboard shortcut to switch active radio, with visual indicator on active panel
+- Added independent Run/S&P/Off mode per radio for typical SO2R operation
+- Added SO2R Mode toggle in Rig menu with persistent setting
+- Added Radio L/R selection in Rig Connection Settings dialog when SO2R is enabled
+- DX cluster spots and CW/SSB keying route to the active radio
+
 ## [0.7.1]
 
 ## [0.7.0]

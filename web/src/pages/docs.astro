@@ -15,28 +15,28 @@ import Layout from '../layouts/Layout.astro';
       <!-- Table of Contents -->
       <nav class="rounded-lg border p-6 mb-10" style="background-color: #161b22; border-color: #30363d;">
         <h2 class="text-lg font-semibold mb-3">Contents</h2>
-        <ol class="space-y-1 opacity-80 list-decimal list-inside">
+        <ul class="space-y-1 opacity-80" style="list-style-type: disc; padding-left: 1.5rem;">
           <li><a href="#getting-started" class="hover:underline" style="color: #58a6ff;">Getting Started</a></li>
           <li><a href="#rig-control" class="hover:underline" style="color: #58a6ff;">Rig Control (flrig &amp; Hamlib)</a></li>
           <li><a href="#logging" class="hover:underline" style="color: #58a6ff;">Logging a QSO, Sorting &amp; Filtering</a></li>
           <li><a href="#call-history" class="hover:underline" style="color: #58a6ff;">Call History &amp; Exchange Autofill</a></li>
           <li><a href="#cw-ssb-memories" class="hover:underline" style="color: #58a6ff;">CW &amp; SSB Memories</a></li>
           <li><a href="#run-sp" class="hover:underline" style="color: #58a6ff;">Run &amp; Search and Pounce Modes</a></li>
+          <li><a href="#so2r" class="hover:underline" style="color: #58a6ff;">SO2R (Single Operator, 2 Radio)</a></li>
           <li><a href="#dx-cluster" class="hover:underline" style="color: #58a6ff;">DX Cluster</a></li>
           <li><a href="#band-map" class="hover:underline" style="color: #58a6ff;">Band Map</a></li>
           <li><a href="#import-export" class="hover:underline" style="color: #58a6ff;">Importing &amp; Exporting Logs</a></li>
           <li><a href="#custom-contests" class="hover:underline" style="color: #58a6ff;">Creating Custom Contest Modules</a></li>
           <li><a href="#clx-format" class="hover:underline" style="color: #58a6ff;">CLX File Format</a></li>
           <li><a href="#data-files" class="hover:underline" style="color: #58a6ff;">Data Files &amp; Storage Locations</a></li>
-
-        </ol>
+        </ul>
       </nav>
 
       <div class="space-y-10">
 
         <!-- Getting Started -->
         <section id="getting-started" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
-          <h2 class="text-2xl font-semibold mb-4">1. Getting Started</h2>
+          <h2 class="text-2xl font-semibold mb-4">Getting Started</h2>
 
           <h3 class="text-lg font-semibold mb-2 mt-4">Install Dependencies (Ubuntu/Debian)</h3>
           <pre class="rounded p-4 text-sm overflow-x-auto mb-4" style="background-color: #0d1117; color: #e6edf3;">sudo apt install cmake qt6-base-dev libqt6serialport6-dev libqt6xml6-dev</pre>
@@ -74,7 +74,7 @@ import Layout from '../layouts/Layout.astro';
 
         <!-- Rig Control -->
         <section id="rig-control" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
-          <h2 class="text-2xl font-semibold mb-4">2. Rig Control (flrig &amp; Hamlib)</h2>
+          <h2 class="text-2xl font-semibold mb-4">Rig Control (flrig &amp; Hamlib)</h2>
 
           <p class="opacity-80 mb-4">
             ContestLogX supports two rig control backends. Choose the one that fits your setup in
@@ -148,7 +148,7 @@ import Layout from '../layouts/Layout.astro';
 
         <!-- Logging a QSO -->
         <section id="logging" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
-          <h2 class="text-2xl font-semibold mb-4">3. Logging a QSO</h2>
+          <h2 class="text-2xl font-semibold mb-4">Logging a QSO</h2>
 
           <p class="opacity-80 mb-4">
             The entry row at the top of the log accepts QSO data. Fields vary by contest but always include callsign, frequency/band, mode, and exchange data.
@@ -191,7 +191,7 @@ import Layout from '../layouts/Layout.astro';
 
         <!-- Call History -->
         <section id="call-history" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
-          <h2 class="text-2xl font-semibold mb-4">4. Call History &amp; Exchange Autofill</h2>
+          <h2 class="text-2xl font-semibold mb-4">Call History &amp; Exchange Autofill</h2>
 
           <p class="opacity-80 mb-4">
             ContestLogX maintains a persistent call history database. When you enter a callsign, exchange fields (name, state, QTH, CWops ID, grid, etc.)
@@ -222,7 +222,7 @@ import Layout from '../layouts/Layout.astro';
 
         <!-- CW & SSB Memories -->
         <section id="cw-ssb-memories" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
-          <h2 class="text-2xl font-semibold mb-4">5. CW &amp; SSB Memories</h2>
+          <h2 class="text-2xl font-semibold mb-4">CW &amp; SSB Memories</h2>
 
           <p class="opacity-80 mb-4">
             ContestLogX supports eight programmable message memories (F1–F8). CW messages are sent via your keyer interface;
@@ -279,7 +279,7 @@ F8  N9OH`}</pre>
 
         <!-- Run / S&P -->
         <section id="run-sp" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
-          <h2 class="text-2xl font-semibold mb-4">6. Run &amp; Search and Pounce Modes</h2>
+          <h2 class="text-2xl font-semibold mb-4">Run &amp; Search and Pounce Modes</h2>
 
           <p class="opacity-80 mb-4">
             ContestLogX supports two operating modes that change how the <strong>Enter</strong> key sequences
@@ -332,9 +332,72 @@ F8  N9OH`}</pre>
           </ul>
         </section>
 
+        <!-- SO2R -->
+        <section id="so2r" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
+          <h2 class="text-2xl font-semibold mb-4">SO2R (Single Operator, 2 Radio)</h2>
+
+          <p class="opacity-80 mb-4">
+            SO2R lets you operate two radios simultaneously &mdash; typically one in Run mode calling CQ
+            while the other searches for new multipliers in S&amp;P mode.
+            ContestLogX supports SO2R with two independent QSO entry panels, each with its own rig connection,
+            frequency/mode display, and Run/S&amp;P state.
+          </p>
+
+          <h3 class="text-lg font-semibold mb-2">Enabling SO2R</h3>
+          <ol class="list-decimal list-inside space-y-2 opacity-80 mb-4">
+            <li>Go to <strong>Rig &rarr; SO2R Mode</strong> and check it to enable.</li>
+            <li>A second QSO entry panel (<strong>Radio R</strong>) appears below the existing panel (<strong>Radio L</strong>).</li>
+            <li>Both panels are always visible &mdash; visual continuity is essential for maintaining rate.</li>
+          </ol>
+
+          <h3 class="text-lg font-semibold mb-2 mt-4">Connecting Two Rigs</h3>
+          <p class="opacity-80 mb-3">
+            Each radio can use a different rig backend (flrig or Hamlib) with independent host and port settings.
+          </p>
+          <ol class="list-decimal list-inside space-y-2 opacity-80 mb-4">
+            <li>Go to <strong>Rig &rarr; Rig Connection</strong>. You will be prompted to select <strong>Radio L</strong> or <strong>Radio R</strong>.</li>
+            <li>Configure each radio&rsquo;s backend, host, and port independently.</li>
+            <li>Click <strong>Connect</strong> for each radio. Both frequency/mode displays update independently.</li>
+          </ol>
+
+          <h3 class="text-lg font-semibold mb-2 mt-4">Active Radio</h3>
+          <p class="opacity-80 mb-3">
+            One radio is always the <em>active</em> radio. The active radio&rsquo;s entry panel has a green title bar and border.
+            All actions go to the active radio:
+          </p>
+          <ul class="space-y-1 opacity-80 mb-4" style="list-style-type: disc; padding-left: 1.5rem;">
+            <li>CW and SSB memory keying (F1&ndash;F8)</li>
+            <li>DX cluster spot tuning (click a spot)</li>
+            <li>The <strong>Log QSO</strong> button and Enter key log from the active radio&rsquo;s fields and frequency</li>
+          </ul>
+          <p class="opacity-80 mb-3">
+            <strong>Exception:</strong> clicking <strong>Log QSO</strong> or pressing Enter directly in a radio&rsquo;s entry fields
+            automatically activates that radio first, so the QSO always logs with the correct radio&rsquo;s frequency and mode.
+          </p>
+
+          <h3 class="text-lg font-semibold mb-2 mt-4">Switching the Active Radio</h3>
+          <p class="opacity-80 mb-3">
+            Press the configured shortcut key (default: <code>`</code> backtick) to toggle between Radio L and Radio R.
+            The shortcut can be changed in <strong>File &rarr; Settings &rarr; Shortcuts</strong> under <em>Switch Active Radio (SO2R)</em>.
+          </p>
+
+          <h3 class="text-lg font-semibold mb-2 mt-4">Independent Run / S&amp;P</h3>
+          <p class="opacity-80 mb-3">
+            Each radio has its own Run / S&amp;P / Off mode buttons.
+            A typical SO2R workflow is Radio L in <strong>RUN</strong> (calling CQ) and Radio R in <strong>S&amp;P</strong> (hunting multipliers),
+            but any combination is supported.
+          </p>
+
+          <h3 class="text-lg font-semibold mb-2 mt-4">Disabling SO2R</h3>
+          <p class="opacity-80">
+            Uncheck <strong>Rig &rarr; SO2R Mode</strong>. The Radio R panel is removed, Radio R&rsquo;s rig connection is closed,
+            and the entry dock returns to the standard single-radio layout. The setting is remembered across sessions.
+          </p>
+        </section>
+
         <!-- DX Cluster -->
         <section id="dx-cluster" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
-          <h2 class="text-2xl font-semibold mb-4">7. DX Cluster</h2>
+          <h2 class="text-2xl font-semibold mb-4">DX Cluster</h2>
 
           <p class="opacity-80 mb-4">
             ContestLogX includes a built-in DX cluster client. Open it from <strong>Window → DX Cluster</strong>.
@@ -374,7 +437,7 @@ F8  N9OH`}</pre>
 
         <!-- Band Map -->
         <section id="band-map" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
-          <h2 class="text-2xl font-semibold mb-4">8. Band Map</h2>
+          <h2 class="text-2xl font-semibold mb-4">Band Map</h2>
 
           <p class="opacity-80 mb-4">
             The Band Map displays DX cluster spots as labeled markers on a horizontal frequency axis, giving you
@@ -470,7 +533,7 @@ F8  N9OH`}</pre>
 
         <!-- Import/Export -->
         <section id="import-export" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
-          <h2 class="text-2xl font-semibold mb-4">9. Importing &amp; Exporting Logs</h2>
+          <h2 class="text-2xl font-semibold mb-4">Importing &amp; Exporting Logs</h2>
 
           <p class="opacity-80 mb-4">ContestLogX supports both import and export for Cabrillo and ADIF formats.</p>
 
@@ -500,7 +563,7 @@ F8  N9OH`}</pre>
 
         <!-- Custom Contest Modules -->
         <section id="custom-contests" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
-          <h2 class="text-2xl font-semibold mb-4">10. Creating Custom Contest Modules</h2>
+          <h2 class="text-2xl font-semibold mb-4">Creating Custom Contest Modules</h2>
 
           <p class="opacity-80 mb-4">
             Every contest in ContestLogX is defined by a JSON file in the <code>contests/</code> directory.
@@ -573,7 +636,7 @@ F8  N9OH`}</pre>
 
         <!-- CLX File Format -->
         <section id="clx-format" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
-          <h2 class="text-2xl font-semibold mb-4">11. CLX File Format</h2>
+          <h2 class="text-2xl font-semibold mb-4">CLX File Format</h2>
 
           <p class="opacity-80 mb-4">
             ContestLogX saves logs in the <code>.clx</code> format — a human-readable JSON file that is easy to inspect,
@@ -601,7 +664,7 @@ F8  N9OH`}</pre>
 
         <!-- Data Files -->
         <section id="data-files" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
-          <h2 class="text-2xl font-semibold mb-4">12. Data Files &amp; Storage Locations</h2>
+          <h2 class="text-2xl font-semibold mb-4">Data Files &amp; Storage Locations</h2>
 
           <h3 class="text-lg font-semibold mb-2">User Data</h3>
           <pre class="rounded p-4 text-sm overflow-x-auto mb-4" style="background-color: #0d1117; color: #e6edf3;">Linux:   ~/.local/share/ContestLogX/

@@ -351,6 +351,126 @@ void Settings::setHamlibAutoConnect(bool autoConnect)
     save();
 }
 
+// SO2R settings
+
+bool Settings::getSo2rEnabled() const
+{
+    return m_settings["so2r"].toObject()["enabled"].toBool(false);
+}
+
+void Settings::setSo2rEnabled(bool enabled)
+{
+    QJsonObject so2r = m_settings["so2r"].toObject();
+    so2r["enabled"] = enabled;
+    m_settings["so2r"] = so2r;
+    save();
+}
+
+QString Settings::getRadioRRigBackend() const
+{
+    return m_settings["so2r"].toObject()["radioR"].toObject()["backend"].toString("flrig");
+}
+
+void Settings::setRadioRRigBackend(const QString& backend)
+{
+    QJsonObject so2r = m_settings["so2r"].toObject();
+    QJsonObject radioR = so2r["radioR"].toObject();
+    radioR["backend"] = backend;
+    so2r["radioR"] = radioR;
+    m_settings["so2r"] = so2r;
+    save();
+}
+
+QString Settings::getRadioRFlrigHost() const
+{
+    return m_settings["so2r"].toObject()["radioR"].toObject()["flrigHost"].toString("localhost");
+}
+
+void Settings::setRadioRFlrigHost(const QString& host)
+{
+    QJsonObject so2r = m_settings["so2r"].toObject();
+    QJsonObject radioR = so2r["radioR"].toObject();
+    radioR["flrigHost"] = host;
+    so2r["radioR"] = radioR;
+    m_settings["so2r"] = so2r;
+    save();
+}
+
+int Settings::getRadioRFlrigPort() const
+{
+    return m_settings["so2r"].toObject()["radioR"].toObject()["flrigPort"].toInt(12345);
+}
+
+void Settings::setRadioRFlrigPort(int port)
+{
+    QJsonObject so2r = m_settings["so2r"].toObject();
+    QJsonObject radioR = so2r["radioR"].toObject();
+    radioR["flrigPort"] = port;
+    so2r["radioR"] = radioR;
+    m_settings["so2r"] = so2r;
+    save();
+}
+
+bool Settings::getRadioRFlrigAutoConnect() const
+{
+    return m_settings["so2r"].toObject()["radioR"].toObject()["flrigAutoConnect"].toBool(false);
+}
+
+void Settings::setRadioRFlrigAutoConnect(bool autoConnect)
+{
+    QJsonObject so2r = m_settings["so2r"].toObject();
+    QJsonObject radioR = so2r["radioR"].toObject();
+    radioR["flrigAutoConnect"] = autoConnect;
+    so2r["radioR"] = radioR;
+    m_settings["so2r"] = so2r;
+    save();
+}
+
+QString Settings::getRadioRHamlibHost() const
+{
+    return m_settings["so2r"].toObject()["radioR"].toObject()["hamlibHost"].toString("localhost");
+}
+
+void Settings::setRadioRHamlibHost(const QString& host)
+{
+    QJsonObject so2r = m_settings["so2r"].toObject();
+    QJsonObject radioR = so2r["radioR"].toObject();
+    radioR["hamlibHost"] = host;
+    so2r["radioR"] = radioR;
+    m_settings["so2r"] = so2r;
+    save();
+}
+
+int Settings::getRadioRHamlibPort() const
+{
+    return m_settings["so2r"].toObject()["radioR"].toObject()["hamlibPort"].toInt(4532);
+}
+
+void Settings::setRadioRHamlibPort(int port)
+{
+    QJsonObject so2r = m_settings["so2r"].toObject();
+    QJsonObject radioR = so2r["radioR"].toObject();
+    radioR["hamlibPort"] = port;
+    so2r["radioR"] = radioR;
+    m_settings["so2r"] = so2r;
+    save();
+}
+
+bool Settings::getRadioRHamlibAutoConnect() const
+{
+    return m_settings["so2r"].toObject()["radioR"].toObject()["hamlibAutoConnect"].toBool(false);
+}
+
+void Settings::setRadioRHamlibAutoConnect(bool autoConnect)
+{
+    QJsonObject so2r = m_settings["so2r"].toObject();
+    QJsonObject radioR = so2r["radioR"].toObject();
+    radioR["hamlibAutoConnect"] = autoConnect;
+    so2r["radioR"] = radioR;
+    m_settings["so2r"] = so2r;
+    save();
+}
+
 int Settings::getCwWpm() const
 {
     return m_settings["cw"].toObject()["wpm"].toInt(28);

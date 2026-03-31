@@ -125,6 +125,30 @@ public:
     bool getHamlibAutoConnect() const;
     void setHamlibAutoConnect(bool autoConnect);
     
+    // SO2R settings
+    bool getSo2rEnabled() const;
+    void setSo2rEnabled(bool enabled);
+
+    // Radio R rig connection - backend selection
+    QString getRadioRRigBackend() const;
+    void setRadioRRigBackend(const QString& backend);
+
+    // Radio R flrig connection
+    QString getRadioRFlrigHost() const;
+    void setRadioRFlrigHost(const QString& host);
+    int getRadioRFlrigPort() const;
+    void setRadioRFlrigPort(int port);
+    bool getRadioRFlrigAutoConnect() const;
+    void setRadioRFlrigAutoConnect(bool autoConnect);
+
+    // Radio R Hamlib (rigctld) connection
+    QString getRadioRHamlibHost() const;
+    void setRadioRHamlibHost(const QString& host);
+    int getRadioRHamlibPort() const;
+    void setRadioRHamlibPort(int port);
+    bool getRadioRHamlibAutoConnect() const;
+    void setRadioRHamlibAutoConnect(bool autoConnect);
+
     // CW settings
     int getCwWpm() const;
     void setCwWpm(int wpm);
