@@ -13,7 +13,7 @@
 #include <QTimer>
 #include <QString>
 
-class FlrigClient;
+class RigInterface;
 
 /**
  * @brief Manages text-to-speech operations for SSB voice keying
@@ -41,10 +41,10 @@ public:
     void cancel();
 
     /**
-     * @brief Set the flrig client for data mode switching during audio playback
-     * @param client FlrigClient instance (may be nullptr)
+     * @brief Set the rig client for data mode switching during audio playback
+     * @param client RigInterface instance (may be nullptr)
      */
-    void setFlrigClient(FlrigClient *client) { m_flrigClient = client; }
+    void setRigClient(RigInterface *client) { m_rigClient = client; }
 
     /**
      * @brief Check if TTS is currently active
@@ -93,7 +93,7 @@ private:
     bool m_isActive;
     bool m_cancelled;
 
-    FlrigClient *m_flrigClient;
+    RigInterface *m_rigClient;
     QString m_savedMode;
 
     static const int TTS_TIMEOUT_MS = 10000;   // 10 seconds

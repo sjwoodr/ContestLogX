@@ -16,91 +16,133 @@
 #include <QLabel>
 #include <QMessageBox>
 
-RigControlDialog::RigControlDialog(FlrigClient* client, QWidget *parent)
+RigControlDialog::RigControlDialog(RigInterface* client, QWidget *parent)
     : QDialog(parent)
-    , m_flrigClient(client)
-    , m_hostEdit(nullptr)
-    , m_portSpin(nullptr)
-    , m_connectButton(nullptr)
-    , m_disconnectButton(nullptr)
-    , m_testButton(nullptr)
-    , m_statusLabel(nullptr)
-    , m_rigNameLabel(nullptr)
+    , m_rigClient(client)
 {
-    setWindowTitle("flrig Connection Settings");
+    setWindowTitle("Rig Connection Settings");
     setupUi();
     loadSettings();
-    
+
     // Update status based on actual connection state
-    if (m_flrigClient->isConnected()) {
+    if (m_rigClient->isConnected()) {
         m_statusLabel->setText("Connected");
         m_statusLabel->setStyleSheet("QLabel { color: green; font-weight: bold; }");
-        QString rigName = m_flrigClient->getRigName();
+        QString rigName = m_rigClient->getRigName();
         if (!rigName.isEmpty()) {
             m_rigNameLabel->setText(rigName);
         }
     }
     updateConnectionStatus();
-    
-    connect(m_flrigClient, &FlrigClient::connected, this, &RigControlDialog::onRigConnected);
-    connect(m_flrigClient, &FlrigClient::disconnected, this, &RigControlDialog::onRigDisconnected);
-    connect(m_flrigClient, &FlrigClient::error, this, &RigControlDialog::onRigError);
 }
 
 RigControlDialog::~RigControlDialog()
 {
 }
 
+QString RigControlDialog::selectedBackend() const
+{
+    return m_backendCombo->currentIndex() == 0 ? "flrig" : "hamlib";
+}
+
 void RigControlDialog::setupUi()
 {
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
-    
-    // Connection settings group
-    QGroupBox *connGroup = new QGroupBox("flrig Server Settings", this);
-    QFormLayout *formLayout = new QFormLayout(connGroup);
-    
-    m_hostEdit = new QLineEdit();
-    m_hostEdit->setPlaceholderText("localhost or 127.0.0.1");
-    formLayout->addRow("Host:", m_hostEdit);
-    
-    m_portSpin = new QSpinBox();
-    m_portSpin->setRange(1, 65535);
-    m_portSpin->setValue(12345);
-    formLayout->addRow("Port:", m_portSpin);
-    
+
+    // Backend selection
+    QGroupBox *backendGroup = new QGroupBox("Rig Interface", this);
+    QVBoxLayout *backendLayout = new QVBoxLayout(backendGroup);
+
+    QHBoxLayout *comboLayout = new QHBoxLayout();
+    comboLayout->addWidget(new QLabel("Backend:"));
+    m_backendCombo = new QComboBox();
+    m_backendCombo->addItem("flrig (XML-RPC)");
+    m_backendCombo->addItem("Hamlib (rigctld)");
+    comboLayout->addWidget(m_backendCombo);
+    comboLayout->addStretch();
+    backendLayout->addLayout(comboLayout);
+
+    m_featureNoteLabel = new QLabel();
+    m_featureNoteLabel->setWordWrap(true);
+    m_featureNoteLabel->setStyleSheet("QLabel { color: gray; font-style: italic; }");
+    backendLayout->addWidget(m_featureNoteLabel);
+
+    mainLayout->addWidget(backendGroup);
+
+    // Stacked settings pages
+    m_settingsStack = new QStackedWidget(this);
+
+    // --- flrig settings page ---
+    QWidget *flrigPage = new QWidget();
+    QFormLayout *flrigForm = new QFormLayout(flrigPage);
+
+    m_flrigHostEdit = new QLineEdit();
+    m_flrigHostEdit->setPlaceholderText("localhost or 127.0.0.1");
+    flrigForm->addRow("Host:", m_flrigHostEdit);
+
+    m_flrigPortSpin = new QSpinBox();
+    m_flrigPortSpin->setRange(1, 65535);
+    m_flrigPortSpin->setValue(12345);
+    flrigForm->addRow("Port:", m_flrigPortSpin);
+
+    m_flrigAutoConnectCheck = new QCheckBox("Auto-connect on startup");
+    flrigForm->addRow("", m_flrigAutoConnectCheck);
+
+    m_settingsStack->addWidget(flrigPage);
+
+    // --- Hamlib settings page ---
+    QWidget *hamlibPage = new QWidget();
+    QFormLayout *hamlibForm = new QFormLayout(hamlibPage);
+
+    m_hamlibHostEdit = new QLineEdit();
+    m_hamlibHostEdit->setPlaceholderText("localhost or 127.0.0.1");
+    hamlibForm->addRow("Host:", m_hamlibHostEdit);
+
+    m_hamlibPortSpin = new QSpinBox();
+    m_hamlibPortSpin->setRange(1, 65535);
+    m_hamlibPortSpin->setValue(4532);
+    hamlibForm->addRow("Port:", m_hamlibPortSpin);
+
+    m_hamlibAutoConnectCheck = new QCheckBox("Auto-connect on startup");
+    hamlibForm->addRow("", m_hamlibAutoConnectCheck);
+
+    m_settingsStack->addWidget(hamlibPage);
+
+    mainLayout->addWidget(m_settingsStack);
+
+    // Shared poll interval
+    QHBoxLayout *pollLayout = new QHBoxLayout();
+    pollLayout->addWidget(new QLabel("Poll Interval:"));
     m_pollIntervalSpin = new QSpinBox();
     m_pollIntervalSpin->setRange(100, 5000);
     m_pollIntervalSpin->setSingleStep(100);
     m_pollIntervalSpin->setValue(500);
     m_pollIntervalSpin->setSuffix(" ms");
-    formLayout->addRow("Poll Interval:", m_pollIntervalSpin);
-    
-    m_autoConnectCheck = new QCheckBox("Auto-connect on startup");
-    formLayout->addRow("", m_autoConnectCheck);
-    
-    mainLayout->addWidget(connGroup);
-    
+    pollLayout->addWidget(m_pollIntervalSpin);
+    pollLayout->addStretch();
+    mainLayout->addLayout(pollLayout);
+
     // Connection control buttons
     QHBoxLayout *buttonLayout = new QHBoxLayout();
     m_connectButton = new QPushButton("Connect");
     m_disconnectButton = new QPushButton("Disconnect");
     m_testButton = new QPushButton("Test");
-    
+
     buttonLayout->addWidget(m_connectButton);
     buttonLayout->addWidget(m_disconnectButton);
     buttonLayout->addWidget(m_testButton);
     buttonLayout->addStretch();
-    
+
     mainLayout->addLayout(buttonLayout);
-    
+
     // Status group
     QGroupBox *statusGroup = new QGroupBox("Status", this);
     QVBoxLayout *statusLayout = new QVBoxLayout(statusGroup);
-    
+
     m_statusLabel = new QLabel("Disconnected");
     m_statusLabel->setStyleSheet("QLabel { color: red; font-weight: bold; }");
     statusLayout->addWidget(m_statusLabel);
-    
+
     QLabel *rigLabel = new QLabel("Rig:");
     m_rigNameLabel = new QLabel("N/A");
     QHBoxLayout *rigLayout = new QHBoxLayout();
@@ -108,18 +150,16 @@ void RigControlDialog::setupUi()
     rigLayout->addWidget(m_rigNameLabel);
     rigLayout->addStretch();
     statusLayout->addLayout(rigLayout);
-    
+
     mainLayout->addWidget(statusGroup);
 
-    // flrig attribution
-    QLabel *flrigLabel = new QLabel(
-        "Rig control powered by <b>flrig</b>"
-        " — <a href=\"https://www.w1hkj.org/\">https://www.w1hkj.org/</a>", this);
-    flrigLabel->setTextFormat(Qt::RichText);
-    flrigLabel->setOpenExternalLinks(true);
-    flrigLabel->setAlignment(Qt::AlignCenter);
-    flrigLabel->setStyleSheet("QLabel { color: gray; }");
-    mainLayout->addWidget(flrigLabel);
+    // Attribution label (changes with backend)
+    m_attributionLabel = new QLabel(this);
+    m_attributionLabel->setTextFormat(Qt::RichText);
+    m_attributionLabel->setOpenExternalLinks(true);
+    m_attributionLabel->setAlignment(Qt::AlignCenter);
+    m_attributionLabel->setStyleSheet("QLabel { color: gray; }");
+    mainLayout->addWidget(m_attributionLabel);
     mainLayout->addSpacing(8);
 
     // Dialog buttons
@@ -130,7 +170,9 @@ void RigControlDialog::setupUi()
     if (auto *btn = buttonBox->button(QDialogButtonBox::Cancel))
         btn->setIcon(style()->standardIcon(QStyle::SP_DialogCancelButton));
     mainLayout->addWidget(buttonBox);
-    
+
+    connect(m_backendCombo, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, &RigControlDialog::onBackendChanged);
     connect(m_connectButton, &QPushButton::clicked, this, &RigControlDialog::onConnectClicked);
     connect(m_disconnectButton, &QPushButton::clicked, this, &RigControlDialog::onDisconnectClicked);
     connect(m_testButton, &QPushButton::clicked, this, &RigControlDialog::onTestClicked);
@@ -138,105 +180,183 @@ void RigControlDialog::setupUi()
     connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
 }
 
+void RigControlDialog::onBackendChanged(int index)
+{
+    m_settingsStack->setCurrentIndex(index);
+
+    if (index == 0) {
+        // flrig
+        m_featureNoteLabel->setText(
+            "flrig provides full rig control including CW keying, PTT, power, and bandwidth.");
+        m_attributionLabel->setText(
+            "Rig control powered by <b>flrig</b>"
+            " — <a href=\"https://www.w1hkj.org/\">https://www.w1hkj.org/</a>");
+    } else {
+        // Hamlib
+        m_featureNoteLabel->setText(
+            "Hamlib provides frequency and mode control. CW keying and other features "
+            "depend on rig capabilities. Requires rigctld to be running.");
+        m_attributionLabel->setText(
+            "Rig control powered by <b>Hamlib</b>"
+            " — <a href=\"https://hamlib.github.io/\">https://hamlib.github.io/</a>");
+    }
+}
+
 void RigControlDialog::loadSettings()
 {
     Settings& settings = Settings::instance();
-    m_hostEdit->setText(settings.getFlrigHost());
-    m_portSpin->setValue(settings.getFlrigPort());
+
+    // Backend selection
+    QString backend = settings.getRigBackend();
+    m_backendCombo->setCurrentIndex(backend == "hamlib" ? 1 : 0);
+
+    // flrig settings
+    m_flrigHostEdit->setText(settings.getFlrigHost());
+    m_flrigPortSpin->setValue(settings.getFlrigPort());
+    m_flrigAutoConnectCheck->setChecked(settings.getFlrigAutoConnect());
+
+    // Hamlib settings
+    m_hamlibHostEdit->setText(settings.getHamlibHost());
+    m_hamlibPortSpin->setValue(settings.getHamlibPort());
+    m_hamlibAutoConnectCheck->setChecked(settings.getHamlibAutoConnect());
+
+    // Shared
     m_pollIntervalSpin->setValue(settings.getFlrigPollInterval());
-    m_autoConnectCheck->setChecked(settings.getFlrigAutoConnect());
+
+    // Trigger UI update for current backend
+    onBackendChanged(m_backendCombo->currentIndex());
 }
 
 void RigControlDialog::saveSettings()
 {
     Settings& settings = Settings::instance();
-    settings.setFlrigHost(m_hostEdit->text());
-    settings.setFlrigPort(m_portSpin->value());
+
+    // Backend
+    settings.setRigBackend(selectedBackend());
+
+    // flrig settings
+    settings.setFlrigHost(m_flrigHostEdit->text());
+    settings.setFlrigPort(m_flrigPortSpin->value());
+    settings.setFlrigAutoConnect(m_flrigAutoConnectCheck->isChecked());
+
+    // Hamlib settings
+    settings.setHamlibHost(m_hamlibHostEdit->text());
+    settings.setHamlibPort(m_hamlibPortSpin->value());
+    settings.setHamlibAutoConnect(m_hamlibAutoConnectCheck->isChecked());
+
+    // Shared
     settings.setFlrigPollInterval(m_pollIntervalSpin->value());
-    settings.setFlrigAutoConnect(m_autoConnectCheck->isChecked());
 }
 
 void RigControlDialog::onConnectClicked()
 {
-    QString host = m_hostEdit->text();
-    int port = m_portSpin->value();
-    
+    QString host;
+    int port;
+
+    if (selectedBackend() == "flrig") {
+        host = m_flrigHostEdit->text();
+        port = m_flrigPortSpin->value();
+    } else {
+        host = m_hamlibHostEdit->text();
+        port = m_hamlibPortSpin->value();
+    }
+
     if (host.isEmpty()) {
         QMessageBox::warning(this, "Invalid Host", "Please enter a host name or IP address.");
         return;
     }
-    
+
     m_statusLabel->setText("Connecting...");
     m_statusLabel->setStyleSheet("QLabel { color: orange; font-weight: bold; }");
-    
-    if (m_flrigClient->connectToRig(host, port)) {
+
+    if (m_rigClient->connectToRig(host, port)) {
         m_statusLabel->setText("Connected");
         m_statusLabel->setStyleSheet("QLabel { color: green; font-weight: bold; }");
-        
-        // Get rig name
-        QString rigName = m_flrigClient->getRigName();
+
+        QString rigName = m_rigClient->getRigName();
         if (!rigName.isEmpty()) {
             m_rigNameLabel->setText(rigName);
         }
-        
-        // Save connection settings immediately on successful connection
+
+        // Save connection settings on successful connection
         Settings& settings = Settings::instance();
-        settings.setFlrigHost(host);
-        settings.setFlrigPort(port);
-        settings.setFlrigAutoConnect(true); // Enable auto-connect on successful connection
-        m_autoConnectCheck->setChecked(true);
-        
+        if (selectedBackend() == "flrig") {
+            settings.setFlrigHost(host);
+            settings.setFlrigPort(port);
+            settings.setFlrigAutoConnect(true);
+            m_flrigAutoConnectCheck->setChecked(true);
+        } else {
+            settings.setHamlibHost(host);
+            settings.setHamlibPort(port);
+            settings.setHamlibAutoConnect(true);
+            m_hamlibAutoConnectCheck->setChecked(true);
+        }
+        settings.setRigBackend(selectedBackend());
+
         updateConnectionStatus();
     } else {
         m_statusLabel->setText("Connection Failed");
         m_statusLabel->setStyleSheet("QLabel { color: red; font-weight: bold; }");
-        QMessageBox::critical(this, "Connection Failed", 
-            "Failed to connect to flrig server.\n\n"
-            "Make sure flrig is running and configured to accept connections.");
+
+        QString serverName = selectedBackend() == "flrig" ? "flrig" : "rigctld";
+        QMessageBox::critical(this, "Connection Failed",
+            QString("Failed to connect to %1 server.\n\n"
+                    "Make sure %1 is running and configured to accept connections.")
+                .arg(serverName));
     }
 }
 
 void RigControlDialog::onDisconnectClicked()
 {
-    m_flrigClient->disconnectFromRig();
+    m_rigClient->disconnectFromRig();
     m_statusLabel->setText("Disconnected");
     m_statusLabel->setStyleSheet("QLabel { color: red; font-weight: bold; }");
     m_rigNameLabel->setText("N/A");
-    
+
     // Disable auto-connect when user manually disconnects
     Settings& settings = Settings::instance();
-    settings.setFlrigAutoConnect(false);
-    m_autoConnectCheck->setChecked(false);
-    
+    if (selectedBackend() == "flrig") {
+        settings.setFlrigAutoConnect(false);
+        m_flrigAutoConnectCheck->setChecked(false);
+    } else {
+        settings.setHamlibAutoConnect(false);
+        m_hamlibAutoConnectCheck->setChecked(false);
+    }
+
     updateConnectionStatus();
 }
 
 void RigControlDialog::onTestClicked()
 {
-    if (!m_flrigClient->isConnected()) {
-        QMessageBox::information(this, "Not Connected", "Please connect to flrig first.");
+    if (!m_rigClient->isConnected()) {
+        QString serverName = selectedBackend() == "flrig" ? "flrig" : "rigctld";
+        QMessageBox::information(this, "Not Connected",
+            QString("Please connect to %1 first.").arg(serverName));
         return;
     }
-    
-    double freq = m_flrigClient->getFrequency();
-    QString mode = m_flrigClient->getMode();
-    
+
+    double freq = m_rigClient->getFrequency();
+    QString mode = m_rigClient->getMode();
+
     QString msg = QString("Current Settings:\n\nFrequency: %1 Hz\nMode: %2")
         .arg(QString::number(freq, 'f', 0))
         .arg(mode);
-    
-    QMessageBox::information(this, "flrig Test", msg);
+
+    QMessageBox::information(this, "Rig Test", msg);
 }
 
 void RigControlDialog::onAccepted()
 {
     saveSettings();
-    
+
+    // Notify about backend change
+    emit backendChanged(selectedBackend());
+
     // Apply poll interval change immediately if connected
-    if (m_flrigClient->isConnected()) {
+    if (m_rigClient->isConnected()) {
         emit pollIntervalChanged(m_pollIntervalSpin->value());
     }
-    
+
     accept();
 }
 
@@ -263,7 +383,7 @@ void RigControlDialog::onRigError(const QString& error)
 
 void RigControlDialog::updateConnectionStatus()
 {
-    bool connected = m_flrigClient->isConnected();
+    bool connected = m_rigClient->isConnected();
     m_connectButton->setEnabled(!connected);
     m_disconnectButton->setEnabled(connected);
     m_testButton->setEnabled(connected);

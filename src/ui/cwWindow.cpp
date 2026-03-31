@@ -6,7 +6,7 @@
  */
 
 #include "cwWindow.h"
-#include "flrigClient.h"
+#include "rigInterface.h"
 #include "debugLogger.h"
 #include "settings.h"
 #include <QVBoxLayout>
@@ -16,7 +16,7 @@
 #include <QDebug>
 #include <QKeyEvent>
 
-CWWindow::CWWindow(FlrigClient* rigClient, QWidget *parent)
+CWWindow::CWWindow(RigInterface* rigClient, QWidget *parent)
     : QWidget(parent), rigClient(rigClient)
 {
     DebugLogger::instance().log("CWWindow", "========== CW Window Constructor Started ==========");
@@ -119,11 +119,18 @@ CWWindow::~CWWindow()
 void CWWindow::sendCWText(const QString& text)
 {
     if (text.isEmpty()) return;
-    
+
+    // Hamlib/rigctld CW keying depends on rig support — most rigs don't have it
+    if (Settings::instance().getRigBackend() == "hamlib") {
+        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss");
+        historyText->append(QString("<span style='color: orange;'>[%1] CW keying is not available via Hamlib for most rigs. Use flrig for CW keying.</span>").arg(timestamp));
+        return;
+    }
+
     if (rigClient && rigClient->isConnected()) {
         int currentWpm = wpmSpinBox->value();
         rigClient->setCWSpeed(currentWpm);
-        
+
         bool success = rigClient->sendCW(text);
         
         if (success) {

@@ -22,7 +22,9 @@
 #include <QJsonObject>
 #include "qsoListModel.h"
 #include "qsoRecord.h"
+#include "rigInterface.h"
 #include "flrigClient.h"
+#include "hamlibClient.h"
 #include "bandMapWidget.h"
 #include "qsoEditDialog.h"
 #include "qrzcqApi.h"
@@ -62,6 +64,7 @@ private slots:
     void onRigConnected();
     void onRigDisconnected();
     void onUpdateRigDisplay();
+    void onRigBackendChanged(const QString& backend);
     void onEditSsbMemories();
     void onSsbKeyingSetup();
     
@@ -295,7 +298,8 @@ private:
     class DxccDatabase *m_dxccDatabase;
     
     // Rig control
-    FlrigClient *m_flrigClient;
+    RigInterface *m_rigClient;
+    QString m_rigBackend;
     QTimer *m_rigPollTimer;
     QTimer *m_dupeFlashTimer;
     QTimer *m_dockStateSaveTimer;  // Debounce timer for saving dock state

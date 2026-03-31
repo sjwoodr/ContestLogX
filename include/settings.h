@@ -98,18 +98,32 @@ public:
     QString getCabrilloOverlay() const;
     void setCabrilloOverlay(const QString& overlay);
     
+    // Rig connection - backend selection
+    QString getRigBackend() const;       // "flrig" or "hamlib"
+    void setRigBackend(const QString& backend);
+
     // flrig connection
     QString getFlrigHost() const;
     void setFlrigHost(const QString& host);
-    
+
     int getFlrigPort() const;
     void setFlrigPort(int port);
-    
+
     int getFlrigPollInterval() const;
     void setFlrigPollInterval(int ms);
-    
+
     bool getFlrigAutoConnect() const;
     void setFlrigAutoConnect(bool autoConnect);
+
+    // Hamlib (rigctld) connection
+    QString getHamlibHost() const;
+    void setHamlibHost(const QString& host);
+
+    int getHamlibPort() const;
+    void setHamlibPort(int port);
+
+    bool getHamlibAutoConnect() const;
+    void setHamlibAutoConnect(bool autoConnect);
     
     // CW settings
     int getCwWpm() const;

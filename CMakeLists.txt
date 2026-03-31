@@ -64,6 +64,7 @@ set(SOURCES
     src/fileformats/cabrilloFile.cpp
     src/fileformats/csvFile.cpp
     src/rig/flrigClient.cpp
+    src/rig/hamlibClient.cpp
     src/utils/settings.cpp
     src/utils/debugLogger.cpp
     src/utils/bandPlan.cpp
@@ -115,7 +116,9 @@ set(HEADERS
     include/loadingWorker.h
      include/scoringWorker.h
      include/clxFile.h
+     include/rigInterface.h
      include/flrigClient.h
+     include/hamlibClient.h
      include/settings.h
      include/callHistory.h
      include/superCheckPartial.h

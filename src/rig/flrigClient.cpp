@@ -18,7 +18,7 @@
 
 
 FlrigClient::FlrigClient(QObject *parent)
-    : QObject(parent)
+    : RigInterface(parent)
     , m_socket(new QTcpSocket(this))
     , m_host("localhost")
     , m_port(12345)

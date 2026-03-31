@@ -9,7 +9,7 @@
 #include "settings.h"
 #include "debugLogger.h"
 #include "piperManager.h"
-#include "flrigClient.h"
+#include "rigInterface.h"
 #include <QStandardPaths>
 #include <QDir>
 #include <QFile>
@@ -23,7 +23,7 @@ TtsManager::TtsManager(QObject *parent)
     , m_audioTimer(new QTimer(this))
     , m_isActive(false)
     , m_cancelled(false)
-    , m_flrigClient(nullptr)
+    , m_rigClient(nullptr)
 {
     m_ttsTimer->setSingleShot(true);
     connect(m_ttsTimer, &QTimer::timeout, this, &TtsManager::onTtsTimeout);
@@ -371,10 +371,10 @@ void TtsManager::switchToDataMode()
 {
     m_savedMode.clear();
 
-    if (!m_flrigClient || !m_flrigClient->isConnected())
+    if (!m_rigClient || !m_rigClient->isConnected())
         return;
 
-    QString currentMode = m_flrigClient->getMode();
+    QString currentMode = m_rigClient->getMode();
     if (currentMode.isEmpty())
         return;
 
@@ -388,18 +388,18 @@ void TtsManager::switchToDataMode()
         DebugLogger::instance().log("TtsManager",
             QString("Switching from %1 to %2 for audio playback").arg(currentMode, dataMode));
         m_savedMode = currentMode;
-        m_flrigClient->setMode(dataMode);
-        m_flrigClient->setPTT(true);
+        m_rigClient->setMode(dataMode);
+        m_rigClient->setPTT(true);
         DebugLogger::instance().log("TtsManager", "PTT engaged");
     }
 }
 
 void TtsManager::restoreOriginalMode(bool delayed)
 {
-    if (m_savedMode.isEmpty() || !m_flrigClient || !m_flrigClient->isConnected())
+    if (m_savedMode.isEmpty() || !m_rigClient || !m_rigClient->isConnected())
         return;
 
-    m_flrigClient->setPTT(false);
+    m_rigClient->setPTT(false);
     DebugLogger::instance().log("TtsManager", "PTT released");
 
     if (delayed) {
@@ -408,16 +408,16 @@ void TtsManager::restoreOriginalMode(bool delayed)
         QString savedMode = m_savedMode;
         m_savedMode.clear();  // clear now so a concurrent cancel() is a no-op
         QTimer::singleShot(PTT_SETTLE_MS, this, [this, savedMode]() {
-            if (!m_flrigClient || !m_flrigClient->isConnected())
+            if (!m_rigClient || !m_rigClient->isConnected())
                 return;
             DebugLogger::instance().log("TtsManager",
                 QString("Restoring mode to %1").arg(savedMode));
-            m_flrigClient->setMode(savedMode);
+            m_rigClient->setMode(savedMode);
         });
     } else {
         DebugLogger::instance().log("TtsManager",
             QString("Restoring mode to %1").arg(m_savedMode));
-        m_flrigClient->setMode(m_savedMode);
+        m_rigClient->setMode(m_savedMode);
         m_savedMode.clear();
     }
 }

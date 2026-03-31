@@ -12,25 +12,37 @@
 #include <QLineEdit>
 #include <QSpinBox>
 #include <QCheckBox>
+#include <QComboBox>
 #include <QPushButton>
 #include <QLabel>
-#include "flrigClient.h"
+#include <QGroupBox>
+#include <QStackedWidget>
+#include "rigInterface.h"
 
 /**
- * @brief Dialog for configuring and testing flrig connection
+ * @brief Dialog for configuring and testing rig connections
+ *
+ * Supports multiple rig backends (flrig, Hamlib rigctld)
  */
 class RigControlDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit RigControlDialog(FlrigClient* client, QWidget *parent = nullptr);
+    explicit RigControlDialog(RigInterface* client, QWidget *parent = nullptr);
     ~RigControlDialog();
+
+    /**
+     * @brief Returns the selected backend name ("flrig" or "hamlib")
+     */
+    QString selectedBackend() const;
 
 signals:
     void pollIntervalChanged(int ms);
+    void backendChanged(const QString& backend);
 
 private slots:
+    void onBackendChanged(int index);
     void onConnectClicked();
     void onDisconnectClicked();
     void onTestClicked();
@@ -44,18 +56,32 @@ private:
     void updateConnectionStatus();
     void loadSettings();
     void saveSettings();
-    
-    FlrigClient* m_flrigClient;
-    
-    QLineEdit* m_hostEdit;
-    QSpinBox* m_portSpin;
+
+    RigInterface* m_rigClient;
+
+    // Backend selection
+    QComboBox* m_backendCombo;
+    QStackedWidget* m_settingsStack;
+    QLabel* m_featureNoteLabel;
+
+    // flrig settings (page 0)
+    QLineEdit* m_flrigHostEdit;
+    QSpinBox* m_flrigPortSpin;
+    QCheckBox* m_flrigAutoConnectCheck;
+
+    // Hamlib settings (page 1)
+    QLineEdit* m_hamlibHostEdit;
+    QSpinBox* m_hamlibPortSpin;
+    QCheckBox* m_hamlibAutoConnectCheck;
+
+    // Shared controls
     QSpinBox* m_pollIntervalSpin;
-    QCheckBox* m_autoConnectCheck;
     QPushButton* m_connectButton;
     QPushButton* m_disconnectButton;
     QPushButton* m_testButton;
     QLabel* m_statusLabel;
     QLabel* m_rigNameLabel;
+    QLabel* m_attributionLabel;
 };
 
 #endif // RIGCONTROLDIALOG_H

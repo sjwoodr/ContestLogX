@@ -120,7 +120,7 @@ MainWindow::MainWindow(QWidget *parent)
     , m_sessionStationInfo(new StationInfo())
     , m_contestEngine(new ContestEngine(this))
     , m_dxccDatabase(new DxccDatabase(this))
-    , m_flrigClient(new FlrigClient(this))
+    , m_rigClient(nullptr)
     , m_onlineScoreClient(new OnlineScoreClient(this))
     , m_scorePostTimer(new QTimer(this))
     , m_onlineScoringAction(nullptr)
@@ -231,8 +231,17 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_onlineScoreClient, &OnlineScoreClient::authFailed, this, &MainWindow::onScorePostAuthFailed);
     connect(m_scorePostTimer, &QTimer::timeout, this, &MainWindow::onPostScore);
 
-    // Setup rig polling timer (500ms interval by default)
+    // Create rig client based on saved backend preference
     Settings& settings = Settings::instance();
+    m_rigBackend = settings.getRigBackend();
+    if (m_rigBackend == "hamlib") {
+        m_rigClient = new HamlibClient(this);
+    } else {
+        m_rigClient = new FlrigClient(this);
+        m_rigBackend = "flrig";
+    }
+
+    // Setup rig polling timer (500ms interval by default)
     int pollInterval = settings.getFlrigPollInterval();
     m_rigPollTimer->setInterval(pollInterval);
     connect(m_rigPollTimer, &QTimer::timeout, this, &MainWindow::onUpdateRigDisplay);
@@ -245,20 +254,35 @@ MainWindow::MainWindow(QWidget *parent)
     m_sessionStationInfo->setCqZone(settings.getCqZone());
     m_sessionStationInfo->setItuZone(settings.getItuZone());
     m_sessionStationInfo->setArrlSection(settings.getArrlSection());
-    
+
     // Load CW memories
     loadCWMemories();
-    
-    // Auto-reconnect to flrig if previously connected
-    bool autoConnect = settings.getFlrigAutoConnect();
-    DebugLogger::instance().log("MainWindow", QString("AutoConnect setting: %1").arg(autoConnect ? "true" : "false"));
+
+    // Auto-reconnect to rig if previously connected
+    bool autoConnect = false;
+    QString host;
+    int port;
+
+    if (m_rigBackend == "hamlib") {
+        autoConnect = settings.getHamlibAutoConnect();
+        host = settings.getHamlibHost();
+        port = settings.getHamlibPort();
+    } else {
+        autoConnect = settings.getFlrigAutoConnect();
+        host = settings.getFlrigHost();
+        port = settings.getFlrigPort();
+    }
+
+    DebugLogger::instance().log("MainWindow", QString("Rig backend: %1, AutoConnect: %2")
+        .arg(m_rigBackend).arg(autoConnect ? "true" : "false"));
     if (autoConnect) {
-        QString host = settings.getFlrigHost();
-        int port = settings.getFlrigPort();
-        DebugLogger::instance().log("MainWindow", QString("Will auto-connect to flrig at %1:%2 in 500ms").arg(host).arg(port));
+        DebugLogger::instance().log("MainWindow", QString("Will auto-connect to %1 at %2:%3 in 500ms")
+            .arg(m_rigBackend).arg(host).arg(port));
         QTimer::singleShot(500, this, [this, host, port]() {
             DebugLogger::instance().log("MainWindow", QString("Auto-connect timer fired, connecting to %1:%2").arg(host).arg(port));
-            m_flrigClient->connectToRig(host, port);
+            if (m_rigClient->connectToRig(host, port)) {
+                onRigConnected();
+            }
         });
     } else {
         DebugLogger::instance().log("MainWindow", "Auto-connect disabled");
@@ -825,7 +849,7 @@ void MainWindow::setupDocks(QSplitter* mainSplitter)
     // CW Console as QDockWidget
     m_cwConsoleDock = new QDockWidget("CW Console", this);
     m_cwConsoleDock->setObjectName("cwConsoleDock");  // Required for saveState/restoreState
-    m_cwConsole = new CWWindow(m_flrigClient, m_cwConsoleDock);
+    m_cwConsole = new CWWindow(m_rigClient, m_cwConsoleDock);
     m_cwConsole->setMinimumHeight(250);
     m_cwConsoleDock->setWidget(m_cwConsole);
     m_cwConsoleDock->setAllowedAreas(Qt::AllDockWidgetAreas);
@@ -1061,7 +1085,7 @@ void MainWindow::setupMenus()
     // Rig menu
     QMenu *rigMenu = menuBar()->addMenu("&Rig");
     
-    QAction *rigControlAction = rigMenu->addAction("flrig &Connection...");
+    QAction *rigControlAction = rigMenu->addAction("Rig &Connection...");
     connect(rigControlAction, &QAction::triggered, this, &MainWindow::onRigControl);
     
     rigMenu->addSeparator();
@@ -1179,7 +1203,7 @@ void MainWindow::setupMenus()
     // Debug menu
     QMenu *debugMenu = menuBar()->addMenu("&Debug");
     
-    m_flrigDebugAction = debugMenu->addAction("Enable &Flrig Debug Logging");
+    m_flrigDebugAction = debugMenu->addAction("Enable &Rig Debug Logging");
     m_flrigDebugAction->setCheckable(true);
     bool flrigDebugEnabled = Settings::instance().getFlrigDebugEnabled();
     m_flrigDebugAction->setChecked(flrigDebugEnabled);
@@ -1441,9 +1465,9 @@ void MainWindow::createConnections()
         }
     });
     
-    // Rig connections
-    connect(m_flrigClient, &FlrigClient::connected, this, &MainWindow::onRigConnected);
-    connect(m_flrigClient, &FlrigClient::disconnected, this, &MainWindow::onRigDisconnected);
+    // Rig connections — use SIGNAL/SLOT macros for cross-class signal inheritance
+    connect(m_rigClient, SIGNAL(connected()), this, SLOT(onRigConnected()));
+    connect(m_rigClient, SIGNAL(disconnected()), this, SLOT(onRigDisconnected()));
     
     // CW Console WPM changes
     connect(m_cwConsole, &CWWindow::wpmChanged, this, [this](int wpm) {
@@ -1515,7 +1539,7 @@ void MainWindow::createConnections()
     // TTS Manager connections
     connect(m_ttsManager, &TtsManager::finished, this, &MainWindow::onTtsFinished);
     connect(m_ttsManager, &TtsManager::error, this, &MainWindow::onTtsError);
-    m_ttsManager->setFlrigClient(m_flrigClient);
+    m_ttsManager->setRigClient(m_rigClient);
 
     // Initialize the configured callsign lookup API
     initCallsignLookup();
@@ -3710,17 +3734,63 @@ void MainWindow::onQrzLookup()
 
 void MainWindow::onRigControl()
 {
-    RigControlDialog dialog(m_flrigClient, this);
+    RigControlDialog dialog(m_rigClient, this);
     connect(&dialog, &RigControlDialog::pollIntervalChanged, this, [this](int ms) {
         m_rigPollTimer->setInterval(ms);
-	// even though this is mainwindow, this belongs in the Flrig filter
-        DebugLogger::instance().log("Flrig", QString("Rig poll interval changed to %1 ms").arg(ms));
+        DebugLogger::instance().log("Rig", QString("Rig poll interval changed to %1 ms").arg(ms));
     });
+    connect(&dialog, &RigControlDialog::backendChanged, this, &MainWindow::onRigBackendChanged);
     dialog.exec();
+
+    // Sync poll timer state with connection after dialog closes
+    if (m_rigClient->isConnected() && !m_rigPollTimer->isActive()) {
+        onRigConnected();
+    } else if (!m_rigClient->isConnected() && m_rigPollTimer->isActive()) {
+        onRigDisconnected();
+    }
+}
+
+void MainWindow::onRigBackendChanged(const QString& backend)
+{
+    if (backend == m_rigBackend) return;
+
+    DebugLogger::instance().log("MainWindow", QString("Rig backend changing from %1 to %2").arg(m_rigBackend).arg(backend));
+
+    // Stop polling and disconnect existing client
+    m_rigPollTimer->stop();
+    if (m_rigClient->isConnected()) {
+        m_rigClient->disconnectFromRig();
+    }
+
+    // Disconnect signals from old client
+    disconnect(m_rigClient, nullptr, this, nullptr);
+
+    // Delete old client and create new one
+    m_rigClient->deleteLater();
+    m_rigBackend = backend;
+
+    if (backend == "hamlib") {
+        m_rigClient = new HamlibClient(this);
+    } else {
+        m_rigClient = new FlrigClient(this);
+    }
+
+    // Reconnect signals — use SIGNAL/SLOT macros for cross-class signal inheritance
+    connect(m_rigClient, SIGNAL(connected()), this, SLOT(onRigConnected()));
+    connect(m_rigClient, SIGNAL(disconnected()), this, SLOT(onRigDisconnected()));
+
+    // Update CW window and TTS manager with new client
+    m_cwConsole->setRigClient(m_rigClient);
+    m_ttsManager->setRigClient(m_rigClient);
+
+    // Update status
+    m_rigStatusLabel->setText("Rig: Disconnected");
+    m_rigStatusLabel->setStyleSheet("QLabel { color: red; }");
 }
 
 void MainWindow::onRigConnected()
 {
+    DebugLogger::instance().log("MainWindow", "onRigConnected - starting rig poll timer");
     m_rigStatusLabel->setText("Rig: Connected");
     m_rigStatusLabel->setStyleSheet("QLabel { color: green; }");
     m_rigPollTimer->start();
@@ -3728,6 +3798,7 @@ void MainWindow::onRigConnected()
 
 void MainWindow::onRigDisconnected()
 {
+    DebugLogger::instance().log("MainWindow", "onRigDisconnected - stopping rig poll timer");
     m_rigStatusLabel->setText("Rig: Disconnected");
     m_rigStatusLabel->setStyleSheet("QLabel { color: red; }");
     m_rigPollTimer->stop();
@@ -3735,7 +3806,7 @@ void MainWindow::onRigDisconnected()
 
 void MainWindow::onUpdateRigDisplay()
 {
-    if (!m_flrigClient->isConnected()) {
+    if (!m_rigClient->isConnected()) {
         m_rigPollTimer->stop();
         return;
     }
@@ -3751,9 +3822,11 @@ void MainWindow::onUpdateRigDisplay()
     int wpm = 0;
     
     try {
-        freq = m_flrigClient->getFrequency();
-        mode = m_flrigClient->getMode();
-        wpm = m_flrigClient->getCWSpeed();
+        freq = m_rigClient->getFrequency();
+        if (freq > 0) {
+            mode = m_rigClient->getMode();
+            wpm = m_rigClient->getCWSpeed();
+        }
     } catch (...) {
         // Ignore errors - radio might be off or unresponsive
         return;
@@ -3816,10 +3889,10 @@ void MainWindow::onUpdateRigDisplay()
     }
     
     // Update freq/mode button
-    if (freq > 0 && !mode.isEmpty()) {
+    if (freq > 0) {
         m_freqModeButton->setText(QString("%1 %2")
             .arg(freq / 1000.0, 0, 'f', 1)
-            .arg(mode));
+            .arg(!mode.isEmpty() ? mode : m_lastMode));
     }
 }
 
@@ -3842,10 +3915,10 @@ void MainWindow::onFreqModeButtonClicked()
             .arg(newMode));
         
         // Send to rig if connected
-        if (m_flrigClient->isConnected()) {
+        if (m_rigClient->isConnected()) {
             // Convert kHz to Hz for flrig
-            m_flrigClient->setFrequency(newFreq * 1000.0);
-            m_flrigClient->setMode(newMode);
+            m_rigClient->setFrequency(newFreq * 1000.0);
+            m_rigClient->setMode(newMode);
             m_statusLabel->setText(QString("Rig set to %1 kHz %2")
                 .arg(newFreq, 0, 'f', 1)
                 .arg(newMode));
@@ -5215,10 +5288,16 @@ void MainWindow::onDxSpotClicked(const QString& callsign, double frequency, cons
     
     m_callEdit->setFocus();
     
-    // Change rig frequency and mode via flrig
-    if (m_flrigClient && m_flrigClient->isConnected()) {
-        m_flrigClient->setFrequency(static_cast<long>(frequency * 1000)); // Convert kHz to Hz
-        m_flrigClient->setMode(mode);
+    // Update local display immediately
+    m_lastFrequency = frequency;
+    if (!mode.isEmpty())
+        m_lastMode = mode;
+    m_freqModeButton->setText(QString("%1 %2").arg(frequency, 0, 'f', 1).arg(m_lastMode));
+
+    // Change rig frequency and mode
+    if (m_rigClient && m_rigClient->isConnected()) {
+        m_rigClient->setFrequency(static_cast<long>(frequency * 1000)); // Convert kHz to Hz
+        m_rigClient->setMode(mode);
     }
 }
 

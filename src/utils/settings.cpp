@@ -65,10 +65,14 @@ void Settings::load()
         m_settings = QJsonObject();
         m_settings["station"] = QJsonObject();
         m_settings["rig"] = QJsonObject{
+            {"backend", "flrig"},
             {"flrigHost", "localhost"},
             {"flrigPort", 12345},
             {"pollInterval", 500},
-            {"autoConnect", false}
+            {"autoConnect", false},
+            {"hamlibHost", "localhost"},
+            {"hamlibPort", 4532},
+            {"hamlibAutoConnect", false}
         };
         m_settings["window"] = QJsonObject{
             {"geometry", QJsonObject{
@@ -242,6 +246,19 @@ void Settings::setArrlSection(const QString& section)
     m_modified = true;
 }
 
+QString Settings::getRigBackend() const
+{
+    return m_settings["rig"].toObject()["backend"].toString("flrig");
+}
+
+void Settings::setRigBackend(const QString& backend)
+{
+    QJsonObject rig = m_settings["rig"].toObject();
+    rig["backend"] = backend;
+    m_settings["rig"] = rig;
+    save();
+}
+
 QString Settings::getFlrigHost() const
 {
     return m_settings["rig"].toObject()["flrigHost"].toString("localhost");
@@ -293,6 +310,45 @@ void Settings::setFlrigAutoConnect(bool autoConnect)
     m_settings["rig"] = rig;
     save();
     qDebug() << "Saved AutoConnect setting:" << autoConnect;
+}
+
+QString Settings::getHamlibHost() const
+{
+    return m_settings["rig"].toObject()["hamlibHost"].toString("localhost");
+}
+
+void Settings::setHamlibHost(const QString& host)
+{
+    QJsonObject rig = m_settings["rig"].toObject();
+    rig["hamlibHost"] = host;
+    m_settings["rig"] = rig;
+    save();
+}
+
+int Settings::getHamlibPort() const
+{
+    return m_settings["rig"].toObject()["hamlibPort"].toInt(4532);
+}
+
+void Settings::setHamlibPort(int port)
+{
+    QJsonObject rig = m_settings["rig"].toObject();
+    rig["hamlibPort"] = port;
+    m_settings["rig"] = rig;
+    save();
+}
+
+bool Settings::getHamlibAutoConnect() const
+{
+    return m_settings["rig"].toObject()["hamlibAutoConnect"].toBool(false);
+}
+
+void Settings::setHamlibAutoConnect(bool autoConnect)
+{
+    QJsonObject rig = m_settings["rig"].toObject();
+    rig["hamlibAutoConnect"] = autoConnect;
+    m_settings["rig"] = rig;
+    save();
 }
 
 int Settings::getCwWpm() const

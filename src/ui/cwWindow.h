@@ -18,19 +18,20 @@
 #include <QFont>
 #include "cwMemory.h"
 
-class FlrigClient;
+class RigInterface;
 
 class CWWindow : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit CWWindow(FlrigClient* rigClient, QWidget *parent = nullptr);
+    explicit CWWindow(RigInterface* rigClient, QWidget *parent = nullptr);
     ~CWWindow();
 
     int getCurrentWPM() const { return wpmSpinBox->value(); }
     void setMemories(const QList<CwMemory>& memories);
     void setMemoriesFont(const QFont& font);
+    void setRigClient(RigInterface* client) { rigClient = client; }
 
 public:
     void sendCWText(const QString& text);
@@ -53,14 +54,14 @@ private slots:
     void onWpmChanged(int wpm);
 
 private:
-    
+
     QTextEdit* historyText;
     QLineEdit* inputLine;
     QPushButton* clearButton;
     QPushButton* haltButton;
     QSpinBox* wpmSpinBox;
     QPushButton* memoryButtons[8];  // F1-F8
-    FlrigClient* rigClient;
+    RigInterface* rigClient;
     QList<CwMemory> memories;
 };
 

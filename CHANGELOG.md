@@ -3,6 +3,9 @@
 All notable changes to ContestLogX are documented in this file.
 
 ## [0.7.0]
+- Added Hamlib (rigctld) as an alternative rig control backend alongside flrig
+- Added rig backend selector in Rig Connection Settings dialog with per-backend configuration
+- Added RigInterface abstraction layer for supporting multiple rig control backends
 - Added online score publishing to contestonlinescore.com (SPEC-003), disabled by default
 - Added "Post Now (Test)" button in Preferences to verify online scoring credentials
 - Added Online Scoring tab in Preferences for credentials and posting interval
