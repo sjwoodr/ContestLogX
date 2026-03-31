@@ -8253,6 +8253,31 @@ void MainWindow::enableSo2r()
     });
     connect(m_entryWidgetsR.freqModeButton, &QPushButton::clicked, this, &MainWindow::onFreqModeButtonClicked);
 
+    // Return Radio R to dock when floating window is closed/minimized (matches Radio L behaviour)
+    connect(m_entryDockR, &QDockWidget::topLevelChanged, this, [this](bool floating) {
+        if (m_entryWidgetsR.returnToDockLabel)
+            m_entryWidgetsR.returnToDockLabel->setVisible(floating);
+        if (floating) {
+            QTimer::singleShot(0, this, [this]() {
+                if (!m_entryDockR || !m_entryDockR->isFloating()) return;
+                QWindow *win = m_entryDockR->window()->windowHandle();
+                if (!win) return;
+                win->setFlag(Qt::WindowMaximizeButtonHint, false);
+                connect(win, &QWindow::visibilityChanged,
+                        this, [this](QWindow::Visibility v) {
+                    if (v == QWindow::Minimized || v == QWindow::Maximized || v == QWindow::Hidden)
+                        QTimer::singleShot(0, this, [this]() {
+                            if (m_entryDockR) m_entryDockR->setFloating(false);
+                        });
+                });
+            });
+        }
+    });
+    connect(m_entryDockR, &QDockWidget::visibilityChanged, this, [this](bool visible) {
+        if (!visible && !m_restoringState && m_entryDockR)
+            QTimer::singleShot(0, m_entryDockR, &QWidget::show);
+    });
+
     // Wire Radio R entry panel connections
     wireEntryPanelConnections(m_entryWidgetsR, true);
 
