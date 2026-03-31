@@ -40,6 +40,7 @@ void SsbMemoriesWidget::setupUi()
 
         // Set object name to identify which button was clicked
         m_memoryButtons[i]->setObjectName(QString("F%1").arg(i + 1));
+        m_memoryButtons[i]->setFocusPolicy(Qt::NoFocus);
 
         connect(m_memoryButtons[i], &QPushButton::clicked,
                 this, &SsbMemoriesWidget::onMemoryButtonClicked);

@@ -197,6 +197,7 @@ MainWindow::MainWindow(QWidget *parent)
     m_memoryTypeLabel->setFlat(true);
     m_memoryTypeLabel->setCursor(Qt::PointingHandCursor);
     m_memoryTypeLabel->setToolTip("Click to toggle Contest / Station memories (Ctrl+T)");
+    m_memoryTypeLabel->setFocusPolicy(Qt::NoFocus);
     connect(m_memoryTypeLabel, &QPushButton::clicked, this, &MainWindow::onToggleMemoryType);
     statusBar()->addPermanentWidget(m_memoryTypeLabel);
 
@@ -753,14 +754,17 @@ void MainWindow::setupUi()
     m_qrzButton->setIcon(style()->standardIcon(QStyle::SP_FileDialogDetailedView));  // Using a standard icon, can be replaced with custom magnifying glass
     m_qrzButton->setFixedSize(32, 32);
     m_qrzButton->setToolTip("Look up callsign on QRZCQ");
+    m_qrzButton->setFocusPolicy(Qt::NoFocus);
     buttonLayout->addWidget(m_qrzButton);
     
     // Log QSO button
     m_logButton = new QPushButton("Log QSO");
+    m_logButton->setFocusPolicy(Qt::NoFocus);
     buttonLayout->addWidget(m_logButton);
 
     // Clear button
     m_clearButton = new QPushButton("Clear");
+    m_clearButton->setFocusPolicy(Qt::NoFocus);
     buttonLayout->addWidget(m_clearButton);
     buttonLayout->addStretch();
 
@@ -770,6 +774,7 @@ void MainWindow::setupUi()
     m_offButton->setChecked(true);
     m_offButton->setToolTip("Enter key sequences disabled — logs QSO directly");
     m_offButton->setFixedWidth(46);
+    m_offButton->setFocusPolicy(Qt::NoFocus);
     buttonLayout->addWidget(m_offButton);
 
     m_runButton = new QPushButton("RUN");
@@ -777,6 +782,7 @@ void MainWindow::setupUi()
     m_runButton->setChecked(false);
     m_runButton->setToolTip("Run mode: you are calling CQ (Enter sequences CQ → Exchange → TU+Log)");
     m_runButton->setFixedWidth(46);
+    m_runButton->setFocusPolicy(Qt::NoFocus);
     buttonLayout->addWidget(m_runButton);
 
     m_spButton = new QPushButton("S&&P");
@@ -784,6 +790,7 @@ void MainWindow::setupUi()
     m_spButton->setChecked(false);
     m_spButton->setToolTip("Search & Pounce: you are answering a CQ (Enter sequences My Call → Exchange → Log)");
     m_spButton->setFixedWidth(46);
+    m_spButton->setFocusPolicy(Qt::NoFocus);
     buttonLayout->addWidget(m_spButton);
 
     m_qsoEntryLayout->addLayout(buttonLayout);
@@ -3786,6 +3793,22 @@ void MainWindow::onRigBackendChanged(const QString& backend)
     // Update status
     m_rigStatusLabel->setText("Rig: Disconnected");
     m_rigStatusLabel->setStyleSheet("QLabel { color: red; }");
+
+    // Auto-connect the new backend if it has auto-connect enabled
+    Settings& settings = Settings::instance();
+    bool autoConnect = (backend == "hamlib") ? settings.getHamlibAutoConnect()
+                                             : settings.getFlrigAutoConnect();
+    if (autoConnect) {
+        QString host = (backend == "hamlib") ? settings.getHamlibHost() : settings.getFlrigHost();
+        int port = (backend == "hamlib") ? settings.getHamlibPort() : settings.getFlrigPort();
+        DebugLogger::instance().log("MainWindow", QString("Auto-connecting new %1 backend to %2:%3")
+            .arg(backend).arg(host).arg(port));
+        QTimer::singleShot(200, this, [this, host, port]() {
+            if (m_rigClient->connectToRig(host, port)) {
+                onRigConnected();
+            }
+        });
+    }
 }
 
 void MainWindow::onRigConnected()
@@ -4093,6 +4116,10 @@ void MainWindow::onSsbMemoryTriggered(int memoryNumber, const QString& text)
     } else {
         DebugLogger::instance().log("MainWindow", "SSB keying disabled, skipping TTS");
     }
+
+    // Return focus to call field for run mode continuity
+    if (m_callEdit)
+        m_callEdit->setFocus();
 }
 
 void MainWindow::onCwMemoryTriggered(int fKey, const QString& text)
@@ -4133,6 +4160,10 @@ void MainWindow::onCwMemoryTriggered(int fKey, const QString& text)
     if (m_cwConsole) {
         m_cwConsole->sendCWText(expandedText);
     }
+
+    // Return focus to call field for run mode continuity
+    if (m_callEdit)
+        m_callEdit->setFocus();
 }
 
 void MainWindow::onTtsFinished()
@@ -4763,7 +4794,7 @@ void MainWindow::onAbout()
     msgBox.setTextFormat(Qt::RichText);
     msgBox.setTextInteractionFlags(Qt::TextBrowserInteraction);
     msgBox.setText(
-        "<b>ContestLogX - Version 0.7.0 (Beta)</b><br><br>"
+        "<b>ContestLogX - Version 0.7.1 (Beta)</b><br><br>"
         "Cross-platform amateur radio contest logging software<br><br>"
         "Copyright &copy; 2025-2026, by Steve Woodruff, N9OH<br><br>"
         "<a href=\"https://contestlogx.com\">https://contestlogx.com</a><br><br>"

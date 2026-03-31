@@ -2,6 +2,8 @@
 
 All notable changes to ContestLogX are documented in this file.
 
+## [0.7.1]
+
 ## [0.7.0]
 - Added Hamlib (rigctld) as an alternative rig control backend alongside flrig
 - Added rig backend selector in Rig Connection Settings dialog with per-backend configuration

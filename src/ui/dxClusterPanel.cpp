@@ -84,6 +84,7 @@ void DxClusterPanel::setupUi()
     
     m_connectButton = new QPushButton("Connect", this);
     m_connectButton->setMaximumWidth(80);
+    m_connectButton->setFocusPolicy(Qt::NoFocus);
     connect(m_connectButton, &QPushButton::clicked, this, &DxClusterPanel::onConnect);
     headerLayout->addWidget(m_connectButton);
     
@@ -91,6 +92,7 @@ void DxClusterPanel::setupUi()
     m_viewCombo->addItem("Spots");
     m_viewCombo->addItem("Console");
     m_viewCombo->setMaximumWidth(100);
+    m_viewCombo->setFocusPolicy(Qt::NoFocus);
     connect(m_viewCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), 
             this, &DxClusterPanel::onViewChanged);
     headerLayout->addWidget(m_viewCombo);
@@ -145,6 +147,7 @@ void DxClusterPanel::setupUi()
     );
     m_spotTable->verticalHeader()->setDefaultSectionSize(28);
     m_spotTable->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
+    m_spotTable->setFocusPolicy(Qt::NoFocus);
     connect(m_spotTable, &QTableWidget::cellClicked, this, &DxClusterPanel::onSpotClicked);
     mainLayout->addWidget(m_spotTable);
     
@@ -167,6 +170,7 @@ void DxClusterPanel::setupUi()
     
     QPushButton *spotBtn = new QPushButton("Spot Last QSO", this);
     spotBtn->setMaximumWidth(120);
+    spotBtn->setFocusPolicy(Qt::NoFocus);
     connect(spotBtn, &QPushButton::clicked, this, &DxClusterPanel::onSpotLastQso);
     cmdLayout->addWidget(spotBtn);
 

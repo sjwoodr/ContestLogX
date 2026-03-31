@@ -51,7 +51,8 @@ void ScpWidget::setupUi()
     m_callsignTable->setShowGrid(false);
     m_callsignTable->setAlternatingRowColors(true);
     
-    connect(m_callsignTable, &QTableWidget::cellDoubleClicked, 
+    m_callsignTable->setFocusPolicy(Qt::NoFocus);
+    connect(m_callsignTable, &QTableWidget::cellDoubleClicked,
             this, &ScpWidget::onCellDoubleClicked);
     
     layout->addWidget(m_callsignTable);

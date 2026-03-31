@@ -80,6 +80,7 @@ CWWindow::CWWindow(RigInterface* rigClient, QWidget *parent)
         memoryButtons[i]->setMaximumHeight(45);
         memoryButtons[i]->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
         memoryButtons[i]->setStyleSheet("QPushButton { font-size: 9pt; padding: 2px; }");
+        memoryButtons[i]->setFocusPolicy(Qt::NoFocus);
         connect(memoryButtons[i], &QPushButton::clicked, this, [this, i]() { onMemoryButton(i); });
         memoryLayout->addWidget(memoryButtons[i]);
     }

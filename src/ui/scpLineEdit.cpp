@@ -82,6 +82,7 @@ void ScpLineEdit::onScpCallsignSelected(const QString& callsign)
 {
     // Auto-fill the call field from SCP widget selection
     setText(callsign);
+    setFocus();
     DebugLogger::instance().log("ScpLineEdit", QString("SCP selected: %1").arg(callsign));
 }
 
