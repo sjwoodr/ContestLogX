@@ -3293,6 +3293,7 @@ void MainWindow::onLogQso()
     
     if (callsign.isEmpty()) {
         QMessageBox::warning(this, "Invalid QSO", "Callsign cannot be empty");
+        m_callEdit->setFocus();
         return;
     }
     
