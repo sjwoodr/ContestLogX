@@ -17,7 +17,7 @@ import Layout from '../layouts/Layout.astro';
         <h2 class="text-lg font-semibold mb-3">Contents</h2>
         <ol class="space-y-1 opacity-80 list-decimal list-inside">
           <li><a href="#getting-started" class="hover:underline" style="color: #58a6ff;">Getting Started</a></li>
-          <li><a href="#rig-control" class="hover:underline" style="color: #58a6ff;">Rig Control via flrig</a></li>
+          <li><a href="#rig-control" class="hover:underline" style="color: #58a6ff;">Rig Control (flrig &amp; Hamlib)</a></li>
           <li><a href="#logging" class="hover:underline" style="color: #58a6ff;">Logging a QSO, Sorting &amp; Filtering</a></li>
           <li><a href="#call-history" class="hover:underline" style="color: #58a6ff;">Call History &amp; Exchange Autofill</a></li>
           <li><a href="#cw-ssb-memories" class="hover:underline" style="color: #58a6ff;">CW &amp; SSB Memories</a></li>
@@ -74,31 +74,75 @@ import Layout from '../layouts/Layout.astro';
 
         <!-- Rig Control -->
         <section id="rig-control" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
-          <h2 class="text-2xl font-semibold mb-4">2. Rig Control via <a href="https://www.w1hkj.org/" class="underline" style="color: #58a6ff;">flrig</a></h2>
+          <h2 class="text-2xl font-semibold mb-4">2. Rig Control (flrig &amp; Hamlib)</h2>
 
           <p class="opacity-80 mb-4">
-            ContestLogX integrates with <a href="https://www.w1hkj.org/" class="underline" style="color: #58a6ff;">flrig</a> for rig control.
-            When connected, frequency and mode are polled automatically and reflected in the logging entry fields.
+            ContestLogX supports two rig control backends. Choose the one that fits your setup in
+            <strong>Rig &rarr; Rig Connection</strong>.
           </p>
 
-          <h3 class="text-lg font-semibold mb-2">Setup Steps</h3>
-          <ol class="list-decimal list-inside space-y-2 opacity-80">
+          <!-- flrig -->
+          <h3 class="text-lg font-semibold mb-2">Option A &mdash; <a href="https://www.w1hkj.org/" class="underline" style="color: #58a6ff;">flrig</a> (recommended)</h3>
+          <p class="opacity-80 mb-3">
+            flrig provides full rig control including frequency, mode, CW keying, PTT, power, and bandwidth.
+            This is the recommended backend for CW operators.
+          </p>
+          <ol class="list-decimal list-inside space-y-2 opacity-80 mb-6">
             <li>Start flrig and connect it to your radio.</li>
-            <li>In flrig, go to <strong>Config → Server</strong>, enable the XML-RPC server, and note the port (default: <code>12345</code>).</li>
-            <li>In ContestLogX, go to <strong>Rig → flrig Connection</strong>.</li>
+            <li>In flrig, go to <strong>Config &rarr; Server</strong>, enable the XML-RPC server, and note the port (default: <code>12345</code>).</li>
+            <li>In ContestLogX, go to <strong>Rig &rarr; Rig Connection</strong>, select <strong>flrig (XML-RPC)</strong> as the backend.</li>
             <li>Enter <code>localhost</code> as the host and <code>12345</code> as the port, then click <strong>Connect</strong>.</li>
             <li>The status bar will show the current frequency and mode (e.g., <code>14025.0 CW</code>), updated every 500 ms.</li>
           </ol>
 
+          <!-- Hamlib -->
+          <h3 class="text-lg font-semibold mb-2">Option B &mdash; <a href="https://hamlib.github.io/" class="underline" style="color: #58a6ff;">Hamlib</a> (rigctld)</h3>
+          <p class="opacity-80 mb-3">
+            Hamlib supports over 400 radio models via the <code>rigctld</code> network daemon.
+            It provides frequency and mode control; CW keying and some other features depend on individual rig support
+            and are unavailable for most radios.
+          </p>
+
+          <h4 class="font-semibold mb-1 opacity-90">1. Find your rig model number</h4>
+          <pre class="rounded p-3 text-sm overflow-x-auto mb-4" style="background-color: #0d1117; color: #e6edf3;">rigctl -l | grep -i alinco
+# Example output:
+# 17001  Alinco     DX-77        0.6     Stable      RS-232</pre>
+
+          <h4 class="font-semibold mb-1 opacity-90">2. Start rigctld</h4>
+          <p class="opacity-80 mb-2">Use the model number, serial port, baud rate, and any rig-specific options:</p>
+          <pre class="rounded p-3 text-sm overflow-x-auto mb-4" style="background-color: #0d1117; color: #e6edf3;">rigctld -m 17001 \
+  -r /dev/serial/by-id/usb-FTDI_FT232R_USB_UART_FTHJCZ32-if00-port0 \
+  -s 9600 \
+  --set-conf=post_write_delay=200,timeout=800</pre>
+          <p class="opacity-80 mb-2">Common options:</p>
+          <ul class="space-y-1 opacity-80 mb-4" style="list-style-type: disc; padding-left: 1.5rem;">
+            <li><code>-m</code> &mdash; rig model number (from <code>rigctl -l</code>)</li>
+            <li><code>-r</code> &mdash; serial device path</li>
+            <li><code>-s</code> &mdash; serial baud rate</li>
+            <li><code>-t</code> &mdash; TCP port for ContestLogX to connect to (default: <code>4532</code>)</li>
+            <li><code>--set-conf</code> &mdash; rig-specific tuning (timeouts, write delays, etc.)</li>
+          </ul>
+
+          <h4 class="font-semibold mb-1 opacity-90">3. Connect ContestLogX</h4>
+          <ol class="list-decimal list-inside space-y-2 opacity-80 mb-6">
+            <li>Go to <strong>Rig &rarr; Rig Connection</strong>, select <strong>Hamlib (rigctld)</strong> as the backend.</li>
+            <li>Enter <code>localhost</code> and the port rigctld is listening on (default: <code>4532</code>).</li>
+            <li>Click <strong>Connect</strong>. The status bar will show the current frequency and mode.</li>
+          </ol>
+
+          <!-- Troubleshooting -->
           <h3 class="text-lg font-semibold mb-2 mt-6">Troubleshooting</h3>
           <ul class="space-y-2 opacity-80">
-            <li><strong>Connection refused:</strong> flrig is not running, or the XML-RPC server is not enabled.</li>
-            <li><strong>Frequency shows 0:</strong> Check the port number and verify flrig is responding. You can test with:<br />
+            <li><strong>Connection refused:</strong> flrig or rigctld is not running.</li>
+            <li><strong>Frequency shows 0 (flrig):</strong> Check the port number and verify flrig is responding. You can test with:<br />
               <pre class="rounded p-3 text-sm overflow-x-auto mt-2" style="background-color: #0d1117; color: #e6edf3;">curl -X POST http://localhost:12345/RPC2 \
   -H "Content-Type: text/xml" \
   -d '&lt;?xml version="1.0"?&gt;&lt;methodCall&gt;&lt;methodName&gt;rig.get_vfo&lt;/methodName&gt;&lt;/methodCall&gt;'</pre>
             </li>
-            <li><strong>Debug mode:</strong> Run <code>./clx --debug</code> and enable flrig debug messages from the Debug menu to see full XML-RPC traffic.</li>
+            <li><strong>Frequency shows 0 (Hamlib):</strong> Verify rigctld is responding:<br />
+              <pre class="rounded p-3 text-sm overflow-x-auto mt-2" style="background-color: #0d1117; color: #e6edf3;">echo "f" | nc localhost 4532</pre>
+            </li>
+            <li><strong>Debug mode:</strong> Run <code>./clx --debug</code> and enable <strong>Rig Debug Logging</strong> from the Debug menu to see command/response traffic.</li>
           </ul>
         </section>
 

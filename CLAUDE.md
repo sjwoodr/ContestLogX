@@ -39,7 +39,7 @@ make test-logs    # automated contest log validation with multiplier verificatio
 
 | Directory    | Contents                                                        |
 |--------------|-----------------------------------------------------------------|
-| `src/`       | Source code organized by module (`ui/`, `core/`, `database/`, `engine/`) |
+| `src/`       | Source code organized by module (`ui/`, `core/`, `database/`, `engine/`, `rig/`) |
 | `include/`   | Header files                                                    |
 | `contests/`  | Contest definition JSON files (naqp.json, arrl_10m.json, etc.)  |
 | `tests/`     | Unit and integration tests                                      |
@@ -66,6 +66,12 @@ Main application window - QSO data entry/logging, contest setup, user prompts, s
 
 ### QsoRecord (`src/qsorecord.cpp`)
 Single QSO data structure. Fields: DATE, TIME, CALL, FREQ, MODE, RSTs/RSTr, SNs/SNr, GRIDs/GRIDr, POINTS, and contest-specific multiplier fields.
+
+### Rig Control (`src/rig/`, `include/rigInterface.h`)
+Two rig backends behind a common `RigInterface` abstract base class:
+- **FlrigClient** (`src/rig/flrigClient.cpp`) — XML-RPC client for flrig. Full feature set: freq, mode, CW keying (cwio), PTT, power, bandwidth. Synchronous I/O on main thread.
+- **HamlibClient** (`src/rig/hamlibClient.cpp`) — TCP text protocol client for rigctld. Freq/mode control; CW/PTT/power depend on rig. Uses `HamlibWorker` on a background `QThread` to avoid blocking the UI. Getters return cached values from background polling; setters are fire-and-forget.
+- Backend selected in Settings (`rig.backend`: `"flrig"` or `"hamlib"`), each with independent host/port/autoConnect.
 
 ## Naming Conventions
 
