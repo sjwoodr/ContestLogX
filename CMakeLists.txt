@@ -65,6 +65,7 @@ set(SOURCES
     src/fileformats/csvFile.cpp
     src/rig/flrigClient.cpp
     src/rig/hamlibClient.cpp
+    src/rig/mockedRigClient.cpp
     src/utils/settings.cpp
     src/utils/debugLogger.cpp
     src/utils/bandPlan.cpp
@@ -119,6 +120,7 @@ set(HEADERS
      include/rigInterface.h
      include/flrigClient.h
      include/hamlibClient.h
+     include/mockedRigClient.h
      include/settings.h
      include/callHistory.h
      include/superCheckPartial.h

@@ -351,6 +351,19 @@ void Settings::setHamlibAutoConnect(bool autoConnect)
     save();
 }
 
+bool Settings::getMockedAutoConnect() const
+{
+    return m_settings["rig"].toObject()["mockedAutoConnect"].toBool(false);
+}
+
+void Settings::setMockedAutoConnect(bool autoConnect)
+{
+    QJsonObject rig = m_settings["rig"].toObject();
+    rig["mockedAutoConnect"] = autoConnect;
+    m_settings["rig"] = rig;
+    save();
+}
+
 // SO2R settings
 
 bool Settings::getSo2rEnabled() const
@@ -466,6 +479,21 @@ void Settings::setRadioRHamlibAutoConnect(bool autoConnect)
     QJsonObject so2r = m_settings["so2r"].toObject();
     QJsonObject radioR = so2r["radioR"].toObject();
     radioR["hamlibAutoConnect"] = autoConnect;
+    so2r["radioR"] = radioR;
+    m_settings["so2r"] = so2r;
+    save();
+}
+
+bool Settings::getRadioRMockedAutoConnect() const
+{
+    return m_settings["so2r"].toObject()["radioR"].toObject()["mockedAutoConnect"].toBool(false);
+}
+
+void Settings::setRadioRMockedAutoConnect(bool autoConnect)
+{
+    QJsonObject so2r = m_settings["so2r"].toObject();
+    QJsonObject radioR = so2r["radioR"].toObject();
+    radioR["mockedAutoConnect"] = autoConnect;
     so2r["radioR"] = radioR;
     m_settings["so2r"] = so2r;
     save();

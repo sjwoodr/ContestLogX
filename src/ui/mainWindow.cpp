@@ -107,6 +107,9 @@ MainWindow::MainWindow(QWidget *parent)
     , m_rigStatusLabel(nullptr)
     , m_wpmLabel(nullptr)
     , m_propagationLabel(nullptr)
+    , m_noaaNetworkManager(nullptr)
+    , m_noaaPropagationTimer(nullptr)
+    , m_noaaPropagationReceived(false)
     , m_entryDock(nullptr)
     , m_dxClusterPanel(nullptr)
     , m_cwConsole(nullptr)
@@ -222,11 +225,15 @@ MainWindow::MainWindow(QWidget *parent)
     statusBar()->addPermanentWidget(new QLabel(" | "));
     
     m_propagationLabel = new QLabel("");
+    m_propagationLabel->setCursor(Qt::PointingHandCursor);
+    m_propagationLabel->installEventFilter(this);
     statusBar()->addPermanentWidget(m_propagationLabel);
 
+    m_onlineScoringSeparator = new QLabel(" | ");
+    m_onlineScoringSeparator->hide();
     m_onlineScoringLabel = new QLabel("");
     m_onlineScoringLabel->hide();
-    statusBar()->addPermanentWidget(new QLabel(" | "));
+    statusBar()->addPermanentWidget(m_onlineScoringSeparator);
     statusBar()->addPermanentWidget(m_onlineScoringLabel);
 
     // Online score publishing signal connections
@@ -240,6 +247,8 @@ MainWindow::MainWindow(QWidget *parent)
     m_rigBackend = settings.getRigBackend();
     if (m_rigBackend == "hamlib") {
         m_rigClient = new HamlibClient(this);
+    } else if (m_rigBackend == "mocked") {
+        m_rigClient = new MockedRigClient(this);
     } else {
         m_rigClient = new FlrigClient(this);
         m_rigBackend = "flrig";
@@ -266,52 +275,69 @@ MainWindow::MainWindow(QWidget *parent)
     // Load CW memories
     loadCWMemories();
 
-    // Auto-reconnect to rig if previously connected
-    bool autoConnect = false;
-    QString host;
-    int port;
-
-    if (m_rigBackend == "hamlib") {
-        autoConnect = settings.getHamlibAutoConnect();
-        host = settings.getHamlibHost();
-        port = settings.getHamlibPort();
-    } else {
-        autoConnect = settings.getFlrigAutoConnect();
-        host = settings.getFlrigHost();
-        port = settings.getFlrigPort();
-    }
-
-    DebugLogger::instance().log("MainWindow", QString("Rig backend: %1, AutoConnect: %2")
-        .arg(m_rigBackend).arg(autoConnect ? "true" : "false"));
-    if (autoConnect) {
-        DebugLogger::instance().log("MainWindow", QString("Will auto-connect to %1 at %2:%3 in 500ms")
-            .arg(m_rigBackend).arg(host).arg(port));
-        QTimer::singleShot(500, this, [this, host, port]() {
-            DebugLogger::instance().log("MainWindow", QString("Auto-connect timer fired, connecting to %1:%2").arg(host).arg(port));
-            if (m_rigClient->connectToRig(host, port)) {
-                onRigConnected();
-            }
-        });
-    } else {
-        DebugLogger::instance().log("MainWindow", "Auto-connect disabled");
-    }
-
-    // Restore SO2R mode if previously enabled
-    if (settings.getSo2rEnabled()) {
-        QTimer::singleShot(600, this, [this]() {
-            enableSo2r();
-            if (m_so2rAction) m_so2rAction->setChecked(true);
-        });
-    }
-
-    // Check for --test-only and --log command-line arguments first
+    // Check for --test-only mode early so we can skip rig/SO2R setup
     QStringList args = QApplication::arguments();
     int logIndex = args.indexOf("--log");
     int testIndex = args.indexOf("--test-only");
 
     if (testIndex != -1) {
         m_testMode = true;
-        DebugLogger::instance().log("MainWindow", "Test mode enabled");
+        DebugLogger::instance().log("MainWindow", "Test mode enabled — skipping rig auto-connect and SO2R");
+    }
+
+    if (!m_testMode) {
+        // Auto-reconnect to rig if previously connected
+        bool autoConnect = false;
+        QString host;
+        int port = 0;
+
+        if (m_rigBackend == "hamlib") {
+            autoConnect = settings.getHamlibAutoConnect();
+            host = settings.getHamlibHost();
+            port = settings.getHamlibPort();
+        } else if (m_rigBackend == "mocked") {
+            autoConnect = settings.getMockedAutoConnect();
+            host = "mocked";
+        } else {
+            autoConnect = settings.getFlrigAutoConnect();
+            host = settings.getFlrigHost();
+            port = settings.getFlrigPort();
+        }
+
+        DebugLogger::instance().log("MainWindow", QString("Rig backend: %1, AutoConnect: %2")
+            .arg(m_rigBackend).arg(autoConnect ? "true" : "false"));
+        if (autoConnect) {
+            DebugLogger::instance().log("MainWindow", QString("Will auto-connect to %1 at %2:%3 in 500ms")
+                .arg(m_rigBackend).arg(host).arg(port));
+            QTimer::singleShot(500, this, [this, host, port]() {
+                DebugLogger::instance().log("MainWindow", QString("Auto-connect timer fired, connecting to %1:%2").arg(host).arg(port));
+                if (m_rigClient->connectToRig(host, port)) {
+                    onRigConnected();
+                }
+            });
+        } else {
+            DebugLogger::instance().log("MainWindow", "Auto-connect disabled");
+        }
+
+        // Restore SO2R mode if previously enabled
+        if (settings.getSo2rEnabled()) {
+            QTimer::singleShot(600, this, [this]() {
+                enableSo2r();
+                if (m_so2rAction) m_so2rAction->setChecked(true);
+            });
+        }
+    }
+
+    // Fetch propagation data from NOAA on startup and every 15 minutes
+    if (!m_testMode) {
+        m_noaaNetworkManager = new QNetworkAccessManager(this);
+        connect(m_noaaNetworkManager, &QNetworkAccessManager::finished,
+                this, &MainWindow::onNoaaPropagationReply);
+        m_noaaPropagationTimer = new QTimer(this);
+        m_noaaPropagationTimer->setInterval(15 * 60 * 1000);  // 15 minutes
+        connect(m_noaaPropagationTimer, &QTimer::timeout, this, &MainWindow::fetchNoaaPropagation);
+        m_noaaPropagationTimer->start();
+        QTimer::singleShot(2000, this, &MainWindow::fetchNoaaPropagation);
     }
 
     // Prompt for station setup if callsign is not configured (skip in test mode)
@@ -516,7 +542,13 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
                 }
                 for (auto it = shortcuts.begin(); it != shortcuts.end(); ++it) {
                     if (QKeySequence(it.value()).toString() != eventSeqStr) continue;
-                    if (it.key() == "clearQsoEntry")    { clearEntryForm();       return true; }
+                    if (it.key() == "clearQsoEntry")    {
+                        if (m_so2rEnabled && m_activeRadio == ActiveRadio::Right)
+                            clearEntryFormR();
+                        else
+                            clearEntryForm();
+                        return true;
+                    }
                     if (it.key() == "preSaveCall")      { preSaveCall();          return true; }
                     if (it.key() == "qsoViewFilter")    {
                         m_filterBar->setVisible(true);
@@ -545,7 +577,7 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
             m_filterBar->setVisible(false);
             m_qsoModel->setFilter("");
             m_statusLabel->setText("Ready");
-            m_callEdit->setFocus();
+            activeCallEdit()->setFocus();
             return true;
         }
         
@@ -644,6 +676,13 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
     // Click on rig status label opens rig connection settings
     if (event->type() == QEvent::MouseButtonRelease && obj == m_rigStatusLabel) {
         onRigControl();
+        return true;
+    }
+
+    // Click on propagation label opens NOAA space weather page
+    if (event->type() == QEvent::MouseButtonRelease && obj == m_propagationLabel
+        && !m_propagationLabel->text().isEmpty()) {
+        QDesktopServices::openUrl(QUrl("https://www.swpc.noaa.gov/communities/radio-communications"));
         return true;
     }
 
@@ -804,9 +843,10 @@ QWidget* MainWindow::createEntryPanel(EntryPanelWidgets& w, const QString& radio
 
     w.freqModeButton = new QPushButton("14250.0 USB", this);
     w.freqModeButton->setFlat(false);
-    w.freqModeButton->setMinimumWidth(120);
+    w.freqModeButton->setMinimumWidth(100);
+    w.freqModeButton->setMaximumWidth(130);
     w.freqModeButton->setMinimumHeight(50);
-    w.freqModeButton->setStyleSheet("QPushButton { text-align: center; padding: 8px; font-weight: bold; font-size: 11pt; }");
+    w.freqModeButton->setStyleSheet("QPushButton { text-align: center; padding: 4px; font-weight: bold; font-size: 10pt; }");
     panelLayout->addWidget(w.freqModeButton);
 
     w.entryGroup = new QGroupBox(this);
@@ -3159,7 +3199,10 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
         // Compare the key sequences as strings
         if (eventSeqStr == storedSeqStr) {
             if (it.key() == "clearQsoEntry") {
-                clearEntryForm();
+                if (m_so2rEnabled && m_activeRadio == ActiveRadio::Right)
+                    clearEntryFormR();
+                else
+                    clearEntryForm();
                 return;
             } else if (it.key() == "preSaveCall") {
                 preSaveCall();
@@ -3200,13 +3243,26 @@ void MainWindow::resizeEvent(QResizeEvent *event)
 
 void MainWindow::onCallChanged(const QString& text)
 {
+    // Determine which call field triggered this
+    QLineEdit* callEdit = qobject_cast<QLineEdit*>(sender());
+    if (!callEdit) callEdit = m_callEdit;
+
     // Force uppercase
     if (text != text.toUpper()) {
-        int cursorPos = m_callEdit->cursorPosition();
-        m_callEdit->setText(text.toUpper());
-        m_callEdit->setCursorPosition(cursorPos);
+        int cursorPos = callEdit->cursorPosition();
+        callEdit->setText(text.toUpper());
+        callEdit->setCursorPosition(cursorPos);
         return;  // Return early to avoid processing twice
     }
+
+    // If Radio R's call field changed but Radio R is not the active radio,
+    // skip the rest (dupe check, exchange pre-fill) to avoid cross-contamination
+    if (m_so2rEnabled && callEdit == m_entryWidgetsR.callEdit
+        && m_activeRadio != ActiveRadio::Right)
+        return;
+    if (m_so2rEnabled && callEdit == m_callEdit
+        && m_activeRadio != ActiveRadio::Left)
+        return;
     
     // Look up previous QSO with this callsign and pre-fill exchange
     QString callsign = text.trimmed().toUpper();
@@ -3255,13 +3311,16 @@ void MainWindow::onCallChanged(const QString& text)
             // Log regardless of whether we found fields (the call might be in history even without exchange data)
             DebugLogger::instance().log("MainWindow", 
                 QString("Pre-filled exchange from call history for %1").arg(callsign));
-            // Check for dupe
+            // Check for dupe using active radio's freq/mode
+            bool isRight = m_so2rEnabled && m_activeRadio == ActiveRadio::Right;
+            double activeFreq = isRight ? m_lastFrequencyR : m_lastFrequency;
+            const QString& activeMode = isRight ? m_lastModeR : m_lastMode;
             QsoRecord tempQso;
             tempQso.setCall(callsign);
-            tempQso.setFrequency(QString::number(m_lastFrequency, 'f', 1));
-            tempQso.setMode(m_lastMode);
+            tempQso.setFrequency(QString::number(activeFreq, 'f', 1));
+            tempQso.setMode(activeMode);
             // Set band from current frequency - use same method as logged QSO
-            QString band = m_contestEngine->getBandFromFrequency(m_lastFrequency);
+            QString band = m_contestEngine->getBandFromFrequency(activeFreq);
             if (!band.isEmpty()) {
                 tempQso.setBandName(band);
             }
@@ -3322,13 +3381,17 @@ void MainWindow::onCallChanged(const QString& text)
             QString("Pre-filled exchange from last QSO with %1").arg(callsign));
     }
     
-    // Check for dupe regardless of pre-fill success
+    // Check for dupe regardless of pre-fill success — use active radio's freq/mode
+    {
+    bool isRight = m_so2rEnabled && m_activeRadio == ActiveRadio::Right;
+    double activeFreq = isRight ? m_lastFrequencyR : m_lastFrequency;
+    const QString& activeMode = isRight ? m_lastModeR : m_lastMode;
     QsoRecord tempQso;
     tempQso.setCall(callsign);
-    tempQso.setFrequency(QString::number(m_lastFrequency, 'f', 1));
-    tempQso.setMode(m_lastMode);
+    tempQso.setFrequency(QString::number(activeFreq, 'f', 1));
+    tempQso.setMode(activeMode);
     // Set band from current frequency
-    QString band = m_contestEngine->getBandFromFrequency(m_lastFrequency);
+    QString band = m_contestEngine->getBandFromFrequency(activeFreq);
     if (!band.isEmpty()) {
         tempQso.setBandName(band);
     }
@@ -3345,6 +3408,7 @@ void MainWindow::onCallChanged(const QString& text)
     } else {
         m_statusLabel->setText("Ready");
     }
+    } // dupe check scope
 }
 
 void MainWindow::onModeChanged(int index)
@@ -3799,8 +3863,8 @@ void MainWindow::onLogQso()
 
 void MainWindow::onQrzLookup()
 {
-    // Get callsign from the entry field
-    QString callsign = m_callEdit->text().trimmed().toUpper();
+    // Get callsign from the active radio's entry field
+    QString callsign = activeCallEdit()->text().trimmed().toUpper();
     
     // If empty, use the last QSO's callsign
     if (callsign.isEmpty()) {
@@ -3877,6 +3941,8 @@ void MainWindow::onRigBackendChanged(const QString& backend)
 
     if (backend == "hamlib") {
         m_rigClient = new HamlibClient(this);
+    } else if (backend == "mocked") {
+        m_rigClient = new MockedRigClient(this);
     } else {
         m_rigClient = new FlrigClient(this);
     }
@@ -3894,11 +3960,22 @@ void MainWindow::onRigBackendChanged(const QString& backend)
 
     // Auto-connect the new backend if it has auto-connect enabled
     Settings& settings = Settings::instance();
-    bool autoConnect = (backend == "hamlib") ? settings.getHamlibAutoConnect()
-                                             : settings.getFlrigAutoConnect();
+    bool autoConnect = false;
+    QString host;
+    int port = 0;
+    if (backend == "hamlib") {
+        autoConnect = settings.getHamlibAutoConnect();
+        host = settings.getHamlibHost();
+        port = settings.getHamlibPort();
+    } else if (backend == "mocked") {
+        autoConnect = settings.getMockedAutoConnect();
+        host = "mocked";
+    } else {
+        autoConnect = settings.getFlrigAutoConnect();
+        host = settings.getFlrigHost();
+        port = settings.getFlrigPort();
+    }
     if (autoConnect) {
-        QString host = (backend == "hamlib") ? settings.getHamlibHost() : settings.getFlrigHost();
-        int port = (backend == "hamlib") ? settings.getHamlibPort() : settings.getFlrigPort();
         DebugLogger::instance().log("MainWindow", QString("Auto-connecting new %1 backend to %2:%3")
             .arg(backend).arg(host).arg(port));
         QTimer::singleShot(200, this, [this, host, port]() {
@@ -3921,6 +3998,25 @@ void MainWindow::onRigDisconnected()
     DebugLogger::instance().log("MainWindow", "onRigDisconnected - stopping rig poll timer");
     m_rigPollTimer->stop();
     updateRigStatusLabel();
+}
+
+void MainWindow::updateRstDefaults(const QString& oldMode, const QString& newMode,
+                                    QMap<QString, QLineEdit*>& exchangeFields)
+{
+    auto rstFor = [](const QString& m) {
+        return (m == "CW" || m == "RTTY" || m == "DIG") ? "599" : "59";
+    };
+    QString oldRst = rstFor(oldMode);
+    QString newRst = rstFor(newMode);
+    if (oldRst == newRst) return;
+
+    for (auto it = exchangeFields.begin(); it != exchangeFields.end(); ++it) {
+        if (it.key().contains("RST", Qt::CaseSensitive)) {
+            // Only update if the field still has the old default (user hasn't edited it)
+            if (it.value()->text().isEmpty() || it.value()->text() == oldRst)
+                it.value()->setText(newRst);
+        }
+    }
 }
 
 void MainWindow::updateRigStatusLabel()
@@ -4024,9 +4120,13 @@ void MainWindow::onUpdateRigDisplay()
         if (mode == "SSB" || mode == "PKTUSB") mappedMode = "USB";
         else if (mode == "PKTLSB") mappedMode = "LSB";
         else if (mode == "RTTY" || mode == "RTTYR") mappedMode = "DIG";
-        
+
+        QString oldMode = m_lastMode;
         m_lastMode = mappedMode;
         DebugLogger::instance().log("MainWindow", QString("Updated mode to %1").arg(mappedMode));
+
+        // Refresh RST pre-fills if the RST default changed (CW/RTTY use 599, others 59)
+        updateRstDefaults(oldMode, mappedMode, m_exchangeFields);
     }
     
     // Update WPM if changed and valid
@@ -4045,36 +4145,47 @@ void MainWindow::onUpdateRigDisplay()
 
 void MainWindow::onFreqModeButtonClicked()
 {
+    // Determine which radio's button was clicked
+    bool isRadioR = m_so2rEnabled && sender() == m_entryWidgetsR.freqModeButton;
+
+    double& lastFreq = isRadioR ? m_lastFrequencyR : m_lastFrequency;
+    QString& lastMode = isRadioR ? m_lastModeR : m_lastMode;
+    RigInterface* rigClient = isRadioR ? m_rigClientR : m_rigClient;
+    QPushButton* freqButton = isRadioR ? m_entryWidgetsR.freqModeButton : m_freqModeButton;
+    QLineEdit* callField = isRadioR ? m_entryWidgetsR.callEdit : m_callEdit;
+
     // Show frequency/mode entry dialog
     FreqModeDialog dialog(this);
-    dialog.setFrequency(m_lastFrequency);
-    dialog.setMode(m_lastMode);
-    
+    dialog.setFrequency(lastFreq);
+    dialog.setMode(lastMode);
+
     if (dialog.exec() == QDialog::Accepted) {
         double newFreq = dialog.frequency();
         QString newMode = dialog.mode();
-        
-        // Update local display
-        m_lastFrequency = newFreq;
-        m_lastMode = newMode;
-        m_freqModeButton->setText(QString("%1 %2")
+
+        // Update local display and refresh RST defaults if mode changed
+        QString oldMode = lastMode;
+        lastFreq = newFreq;
+        lastMode = newMode;
+        auto& exchFields = isRadioR ? m_entryWidgetsR.exchangeFields : m_exchangeFields;
+        updateRstDefaults(oldMode, newMode, exchFields);
+        freqButton->setText(QString("%1 %2")
             .arg(newFreq, 0, 'f', 1)
             .arg(newMode));
-        
+
         // Send to rig if connected
-        if (m_rigClient->isConnected()) {
-            // Convert kHz to Hz for flrig
-            m_rigClient->setFrequency(newFreq * 1000.0);
-            m_rigClient->setMode(newMode);
+        if (rigClient && rigClient->isConnected()) {
+            rigClient->setFrequency(newFreq * 1000.0);
+            rigClient->setMode(newMode);
             m_statusLabel->setText(QString("Rig set to %1 kHz %2")
                 .arg(newFreq, 0, 'f', 1)
                 .arg(newMode));
         }
-        
-        // Return focus to call field
-        if (m_callEdit) {
-            m_callEdit->setFocus();
-            m_callEdit->selectAll();
+
+        // Return focus to call field for the correct radio
+        if (callField) {
+            callField->setFocus();
+            callField->selectAll();
         }
     }
 }
@@ -4217,9 +4328,11 @@ void MainWindow::onSsbMemoryTriggered(int memoryNumber, const QString& text)
     DebugLogger::instance().log("MainWindow",
         QString("SSB Memory F%1 triggered: %2").arg(memoryNumber).arg(text));
 
+    QLineEdit* callEdit = activeCallEdit();
+
     // Substitute macros in memory text
     QString expandedText = text;
-    expandedText.replace("{CALL}", callsignToPhonetic(m_callEdit->text().trimmed()), Qt::CaseInsensitive);
+    expandedText.replace("{CALL}", callsignToPhonetic(callEdit->text().trimmed()), Qt::CaseInsensitive);
     expandedText.replace("{MYCALL}", callsignToPhonetic(getSessionCallsign()), Qt::CaseInsensitive);
 
     // Serial number: {SNs}, {SN}, {serial} all resolve to next serial
@@ -4241,9 +4354,8 @@ void MainWindow::onSsbMemoryTriggered(int memoryNumber, const QString& text)
         DebugLogger::instance().log("MainWindow", "SSB keying disabled, skipping TTS");
     }
 
-    // Return focus to call field for run mode continuity
-    if (m_callEdit)
-        m_callEdit->setFocus();
+    // Return focus to call field of active radio
+    callEdit->setFocus();
 }
 
 void MainWindow::onCwMemoryTriggered(int fKey, const QString& text)
@@ -4251,8 +4363,10 @@ void MainWindow::onCwMemoryTriggered(int fKey, const QString& text)
     DebugLogger::instance().log("MainWindow",
         QString("CW Memory F%1 triggered: %2").arg(fKey + 1).arg(text));
 
+    QLineEdit* callEdit = activeCallEdit();
+
     QString expandedText = text;
-    expandedText.replace("{CALL}", m_callEdit->text().trimmed(), Qt::CaseInsensitive);
+    expandedText.replace("{CALL}", callEdit->text().trimmed(), Qt::CaseInsensitive);
     expandedText.replace("{MYCALL}", getSessionCallsign(), Qt::CaseInsensitive);
 
     int serialNum = m_qsoModel->count() + 1;
@@ -4285,9 +4399,8 @@ void MainWindow::onCwMemoryTriggered(int fKey, const QString& text)
         m_cwConsole->sendCWText(expandedText);
     }
 
-    // Return focus to call field for run mode continuity
-    if (m_callEdit)
-        m_callEdit->setFocus();
+    // Return focus to call field of active radio
+    callEdit->setFocus();
 }
 
 void MainWindow::onTtsFinished()
@@ -5114,7 +5227,7 @@ void MainWindow::clearEntryForm()
 
 void MainWindow::preSaveCall()
 {
-    QString callsign = m_callEdit->text().trimmed().toUpper();
+    QString callsign = activeCallEdit()->text().trimmed().toUpper();
     
     if (callsign.isEmpty()) {
         m_statusLabel->setText("No callsign entered");
@@ -5385,8 +5498,59 @@ void MainWindow::restoreColumnWidths()
 
 void MainWindow::onPropagationDataReceived(int sfi, int aIndex, int kIndex)
 {
+    // DX cluster propagation data — only use as fallback if NOAA hasn't provided data
+    if (m_noaaPropagationReceived) return;
+
     QString propText = QString("SFI %1  A %2  K %3").arg(sfi).arg(aIndex).arg(kIndex);
     m_propagationLabel->setText(propText);
+}
+
+void MainWindow::fetchNoaaPropagation()
+{
+    if (!m_noaaNetworkManager) return;
+    QNetworkRequest request(QUrl("https://services.swpc.noaa.gov/text/wwv.txt"));
+    request.setTransferTimeout(10000);
+    m_noaaNetworkManager->get(request);
+}
+
+void MainWindow::onNoaaPropagationReply(QNetworkReply* reply)
+{
+    reply->deleteLater();
+
+    if (reply->error() != QNetworkReply::NoError) {
+        DebugLogger::instance().log("MainWindow",
+            QString("NOAA propagation fetch failed: %1").arg(reply->errorString()));
+        return;
+    }
+
+    QString data = QString::fromUtf8(reply->readAll());
+
+    // Parse: "Solar flux 142 and estimated planetary A-index 10."
+    // Parse: "The estimated planetary K-index at 2100 UTC on 01 April was 1.67."
+    int sfi = 0, aIndex = 0, kIndex = 0;
+
+    QRegularExpression sfiRegex("Solar flux (\\d+)");
+    QRegularExpressionMatch sfiMatch = sfiRegex.match(data);
+    if (sfiMatch.hasMatch())
+        sfi = sfiMatch.captured(1).toInt();
+
+    QRegularExpression aRegex("A-index (\\d+)");
+    QRegularExpressionMatch aMatch = aRegex.match(data);
+    if (aMatch.hasMatch())
+        aIndex = aMatch.captured(1).toInt();
+
+    QRegularExpression kRegex("K-index.*was ([\\d.]+)");
+    QRegularExpressionMatch kMatch = kRegex.match(data);
+    if (kMatch.hasMatch())
+        kIndex = qRound(kMatch.captured(1).toDouble());
+
+    if (sfi > 0) {
+        m_noaaPropagationReceived = true;
+        QString propText = QString("SFI %1  A %2  K %3").arg(sfi).arg(aIndex).arg(kIndex);
+        m_propagationLabel->setText(propText);
+        DebugLogger::instance().log("MainWindow",
+            QString("NOAA propagation: SFI=%1 A=%2 K=%3").arg(sfi).arg(aIndex).arg(kIndex));
+    }
 }
 
 void MainWindow::onSpotLastQso()
@@ -7789,7 +7953,7 @@ void MainWindow::onToggleOnlineScoring(bool enabled)
     if (!enabled) {
         // Disable
         if (m_scorePostTimer) m_scorePostTimer->stop();
-        if (m_onlineScoringLabel) m_onlineScoringLabel->hide();
+        if (m_onlineScoringLabel) { m_onlineScoringLabel->hide(); m_onlineScoringSeparator->hide(); }
         DebugLogger::instance().log("OnlineScore", "Online scoring disabled");
         return;
     }
@@ -7848,6 +8012,7 @@ void MainWindow::onToggleOnlineScoring(bool enabled)
     if (m_onlineScoringLabel) {
         m_onlineScoringLabel->setText("Score: posting...");
         m_onlineScoringLabel->show();
+        m_onlineScoringSeparator->show();
     }
 
     // Post immediately on enable
@@ -8024,7 +8189,7 @@ void MainWindow::onScorePostAuthFailed()
     // Auto-disable
     if (m_onlineScoringAction) m_onlineScoringAction->setChecked(false);
     if (m_scorePostTimer) m_scorePostTimer->stop();
-    if (m_onlineScoringLabel) m_onlineScoringLabel->hide();
+    if (m_onlineScoringLabel) { m_onlineScoringLabel->hide(); m_onlineScoringSeparator->hide(); }
 
     QMessageBox::warning(this, "Online Scoring Disabled",
         "Online scoring has been disabled after 3 consecutive authentication failures.\n\n"
@@ -8158,6 +8323,8 @@ void MainWindow::createRadioRRigClient()
     m_rigBackendR = settings.getRadioRRigBackend();
     if (m_rigBackendR == "hamlib") {
         m_rigClientR = new HamlibClient(this);
+    } else if (m_rigBackendR == "mocked") {
+        m_rigClientR = new MockedRigClient(this);
     } else {
         m_rigClientR = new FlrigClient(this);
         m_rigBackendR = "flrig";
@@ -8316,11 +8483,14 @@ void MainWindow::enableSo2r()
     Settings& settings = Settings::instance();
     bool autoConnect = false;
     QString host;
-    int port;
+    int port = 0;
     if (m_rigBackendR == "hamlib") {
         autoConnect = settings.getRadioRHamlibAutoConnect();
         host = settings.getRadioRHamlibHost();
         port = settings.getRadioRHamlibPort();
+    } else if (m_rigBackendR == "mocked") {
+        autoConnect = settings.getRadioRMockedAutoConnect();
+        host = "mocked";
     } else {
         autoConnect = settings.getRadioRFlrigAutoConnect();
         host = settings.getRadioRFlrigHost();
@@ -8439,8 +8609,11 @@ void MainWindow::onUpdateRigDisplayR()
     int wpm = m_rigClientR->getCWSpeed();
 
     m_lastFrequencyR = freqKHz;
-    if (!mode.isEmpty())
+    if (!mode.isEmpty() && mode != m_lastModeR) {
+        QString oldMode = m_lastModeR;
         m_lastModeR = mode;
+        updateRstDefaults(oldMode, mode, m_entryWidgetsR.exchangeFields);
+    }
     if (wpm > 0)
         m_lastWpmR = wpm;
 

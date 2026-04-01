@@ -124,7 +124,11 @@ public:
 
     bool getHamlibAutoConnect() const;
     void setHamlibAutoConnect(bool autoConnect);
-    
+
+    // Mocked rig connection
+    bool getMockedAutoConnect() const;
+    void setMockedAutoConnect(bool autoConnect);
+
     // SO2R settings
     bool getSo2rEnabled() const;
     void setSo2rEnabled(bool enabled);
@@ -148,6 +152,10 @@ public:
     void setRadioRHamlibPort(int port);
     bool getRadioRHamlibAutoConnect() const;
     void setRadioRHamlibAutoConnect(bool autoConnect);
+
+    // Radio R mocked rig connection
+    bool getRadioRMockedAutoConnect() const;
+    void setRadioRMockedAutoConnect(bool autoConnect);
 
     // CW settings
     int getCwWpm() const;

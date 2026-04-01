@@ -48,8 +48,11 @@ private slots:
 private:
     // Per-radio UI widgets
     struct RadioWidgets {
-        RigInterface* rigClient = nullptr;
+        RigInterface* originalClient = nullptr;  // MainWindow's client (never deleted by dialog)
+        RigInterface* tempClient = nullptr;      // dialog-owned temp for backend testing
+        RigInterface* rigClient = nullptr;       // active client (original or temp)
         bool isRadioR = false;
+        QString originalBackend;  // backend the live client was created with
         QComboBox* backendCombo = nullptr;
         QLabel* featureNoteLabel = nullptr;
         QStackedWidget* settingsStack = nullptr;
@@ -59,6 +62,7 @@ private:
         QLineEdit* hamlibHostEdit = nullptr;
         QSpinBox* hamlibPortSpin = nullptr;
         QCheckBox* hamlibAutoConnectCheck = nullptr;
+        QCheckBox* mockedAutoConnectCheck = nullptr;
         QPushButton* connectButton = nullptr;
         QPushButton* disconnectButton = nullptr;
         QPushButton* testButton = nullptr;
@@ -77,6 +81,8 @@ private:
     void onDisconnectClicked(RadioWidgets& w);
     void onTestClicked(RadioWidgets& w);
     void updateConnectionStatus(RadioWidgets& w);
+    void swapToTempClient(RadioWidgets& w, const QString& backend);
+    void cleanupTempClient(RadioWidgets& w);
 
     RadioWidgets m_radioL;
     RadioWidgets m_radioR;

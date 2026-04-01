@@ -7,6 +7,9 @@
 
 #include "rigControlDialog.h"
 #include "settings.h"
+#include "flrigClient.h"
+#include "hamlibClient.h"
+#include "mockedRigClient.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QFormLayout>
@@ -27,10 +30,15 @@ RigControlDialog::RigControlDialog(RigInterface* clientL, RigInterface* clientR,
 {
     setWindowTitle("Rig Connection Settings");
 
+    Settings& settings = Settings::instance();
+    m_radioL.originalClient = clientL;
     m_radioL.rigClient = clientL;
     m_radioL.isRadioR = false;
+    m_radioL.originalBackend = settings.getRigBackend();
+    m_radioR.originalClient = clientR;
     m_radioR.rigClient = clientR;
     m_radioR.isRadioR = true;
+    m_radioR.originalBackend = settings.getRadioRRigBackend();
 
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
 
@@ -79,6 +87,38 @@ RigControlDialog::RigControlDialog(RigInterface* clientL, RigInterface* clientR,
 
 RigControlDialog::~RigControlDialog()
 {
+    // Clean up any temp clients not adopted on OK
+    cleanupTempClient(m_radioL);
+    cleanupTempClient(m_radioR);
+}
+
+void RigControlDialog::swapToTempClient(RadioWidgets& w, const QString& backend)
+{
+    cleanupTempClient(w);
+
+    if (backend == "hamlib")
+        w.tempClient = new HamlibClient(this);
+    else if (backend == "mocked")
+        w.tempClient = new MockedRigClient(this);
+    else
+        w.tempClient = new FlrigClient(this);
+
+    w.rigClient = w.tempClient;
+
+    w.statusLabel->setText("Disconnected");
+    w.statusLabel->setStyleSheet("QLabel { color: red; font-weight: bold; }");
+    w.rigNameLabel->setText("N/A");
+    updateConnectionStatus(w);
+}
+
+void RigControlDialog::cleanupTempClient(RadioWidgets& w)
+{
+    if (w.tempClient) {
+        if (w.tempClient->isConnected())
+            w.tempClient->disconnectFromRig();
+        delete w.tempClient;
+        w.tempClient = nullptr;
+    }
 }
 
 void RigControlDialog::onSo2rToggled(bool checked)
@@ -107,6 +147,7 @@ QWidget* RigControlDialog::createRadioPage(RadioWidgets& w)
     w.backendCombo = new QComboBox();
     w.backendCombo->addItem("flrig (XML-RPC)");
     w.backendCombo->addItem("Hamlib (rigctld)");
+    w.backendCombo->addItem("Mocked (testing)");
     comboLayout->addWidget(w.backendCombo);
     comboLayout->addStretch();
     backendLayout->addLayout(comboLayout);
@@ -156,6 +197,14 @@ QWidget* RigControlDialog::createRadioPage(RadioWidgets& w)
     hamlibForm->addRow("", w.hamlibAutoConnectCheck);
 
     w.settingsStack->addWidget(hamlibPage);
+
+    // --- Mocked settings page ---
+    QWidget *mockedPage = new QWidget();
+    QVBoxLayout *mockedLayout = new QVBoxLayout(mockedPage);
+    w.mockedAutoConnectCheck = new QCheckBox("Auto-connect on startup");
+    mockedLayout->addWidget(w.mockedAutoConnectCheck);
+    mockedLayout->addStretch();
+    w.settingsStack->addWidget(mockedPage);
 
     layout->addWidget(w.settingsStack);
 
@@ -236,13 +285,40 @@ void RigControlDialog::onBackendChanged(RadioWidgets& w, int index)
         w.attributionLabel->setText(
             "Rig control powered by <b>flrig</b>"
             " — <a href=\"https://www.w1hkj.org/\">https://www.w1hkj.org/</a>");
-    } else {
+    } else if (index == 1) {
         w.featureNoteLabel->setText(
             "Hamlib provides frequency and mode control. CW keying and other features "
             "depend on rig capabilities. Requires rigctld to be running.");
         w.attributionLabel->setText(
             "Rig control powered by <b>Hamlib</b>"
             " — <a href=\"https://hamlib.github.io/\">https://hamlib.github.io/</a>");
+    } else {
+        w.featureNoteLabel->setText(
+            "Simulated rig for testing and SO2R practice. No real hardware required. "
+            "Defaults to 14.200 MHz USB.");
+        w.attributionLabel->setText("");
+    }
+
+    // Swap to temp client if backend changed, or restore original
+    QString backend = selectedBackend(w);
+    if (backend != w.originalBackend) {
+        swapToTempClient(w, backend);
+    } else {
+        cleanupTempClient(w);
+        w.rigClient = w.originalClient;
+        // Restore original status display
+        if (w.rigClient && w.rigClient->isConnected()) {
+            w.statusLabel->setText("Connected");
+            w.statusLabel->setStyleSheet("QLabel { color: green; font-weight: bold; }");
+            QString rigName = w.rigClient->getRigName();
+            if (!rigName.isEmpty())
+                w.rigNameLabel->setText(rigName);
+        } else {
+            w.statusLabel->setText("Disconnected");
+            w.statusLabel->setStyleSheet("QLabel { color: red; font-weight: bold; }");
+            w.rigNameLabel->setText("N/A");
+        }
+        updateConnectionStatus(w);
     }
 }
 
@@ -250,9 +326,14 @@ void RigControlDialog::loadSettings(RadioWidgets& w)
 {
     Settings& settings = Settings::instance();
 
+    auto backendToIndex = [](const QString& b) {
+        if (b == "hamlib") return 1;
+        if (b == "mocked") return 2;
+        return 0;  // flrig
+    };
+
     if (w.isRadioR) {
-        QString backend = settings.getRadioRRigBackend();
-        w.backendCombo->setCurrentIndex(backend == "hamlib" ? 1 : 0);
+        w.backendCombo->setCurrentIndex(backendToIndex(settings.getRadioRRigBackend()));
 
         w.flrigHostEdit->setText(settings.getRadioRFlrigHost());
         w.flrigPortSpin->setValue(settings.getRadioRFlrigPort());
@@ -261,9 +342,10 @@ void RigControlDialog::loadSettings(RadioWidgets& w)
         w.hamlibHostEdit->setText(settings.getRadioRHamlibHost());
         w.hamlibPortSpin->setValue(settings.getRadioRHamlibPort());
         w.hamlibAutoConnectCheck->setChecked(settings.getRadioRHamlibAutoConnect());
+
+        w.mockedAutoConnectCheck->setChecked(settings.getRadioRMockedAutoConnect());
     } else {
-        QString backend = settings.getRigBackend();
-        w.backendCombo->setCurrentIndex(backend == "hamlib" ? 1 : 0);
+        w.backendCombo->setCurrentIndex(backendToIndex(settings.getRigBackend()));
 
         w.flrigHostEdit->setText(settings.getFlrigHost());
         w.flrigPortSpin->setValue(settings.getFlrigPort());
@@ -272,6 +354,8 @@ void RigControlDialog::loadSettings(RadioWidgets& w)
         w.hamlibHostEdit->setText(settings.getHamlibHost());
         w.hamlibPortSpin->setValue(settings.getHamlibPort());
         w.hamlibAutoConnectCheck->setChecked(settings.getHamlibAutoConnect());
+
+        w.mockedAutoConnectCheck->setChecked(settings.getMockedAutoConnect());
     }
 
     // Trigger UI update for current backend
@@ -292,6 +376,8 @@ void RigControlDialog::saveSettings(RadioWidgets& w)
         settings.setRadioRHamlibHost(w.hamlibHostEdit->text());
         settings.setRadioRHamlibPort(w.hamlibPortSpin->value());
         settings.setRadioRHamlibAutoConnect(w.hamlibAutoConnectCheck->isChecked());
+
+        settings.setRadioRMockedAutoConnect(w.mockedAutoConnectCheck->isChecked());
     } else {
         settings.setRigBackend(selectedBackend(w));
 
@@ -302,12 +388,19 @@ void RigControlDialog::saveSettings(RadioWidgets& w)
         settings.setHamlibHost(w.hamlibHostEdit->text());
         settings.setHamlibPort(w.hamlibPortSpin->value());
         settings.setHamlibAutoConnect(w.hamlibAutoConnectCheck->isChecked());
+
+        settings.setMockedAutoConnect(w.mockedAutoConnectCheck->isChecked());
     }
 }
 
 QString RigControlDialog::selectedBackend(const RadioWidgets& w) const
 {
-    return w.backendCombo->currentIndex() == 0 ? "flrig" : "hamlib";
+    switch (w.backendCombo->currentIndex()) {
+    case 0: return "flrig";
+    case 1: return "hamlib";
+    case 2: return "mocked";
+    default: return "flrig";
+    }
 }
 
 void RigControlDialog::onConnectClicked(RadioWidgets& w)
@@ -320,14 +413,16 @@ void RigControlDialog::onConnectClicked(RadioWidgets& w)
 
     QString backend = selectedBackend(w);
     QString host;
-    int port;
+    int port = 0;
 
     if (backend == "flrig") {
         host = w.flrigHostEdit->text();
         port = w.flrigPortSpin->value();
-    } else {
+    } else if (backend == "hamlib") {
         host = w.hamlibHostEdit->text();
         port = w.hamlibPortSpin->value();
+    } else {
+        host = "mocked";
     }
 
     if (host.isEmpty()) {
@@ -346,33 +441,10 @@ void RigControlDialog::onConnectClicked(RadioWidgets& w)
         if (!rigName.isEmpty())
             w.rigNameLabel->setText(rigName);
 
-        // Save connection settings and enable auto-connect on success
-        Settings& settings = Settings::instance();
-        if (w.isRadioR) {
-            if (backend == "flrig") {
-                settings.setRadioRFlrigHost(host);
-                settings.setRadioRFlrigPort(port);
-                settings.setRadioRFlrigAutoConnect(true);
-            } else {
-                settings.setRadioRHamlibHost(host);
-                settings.setRadioRHamlibPort(port);
-                settings.setRadioRHamlibAutoConnect(true);
-            }
-            settings.setRadioRRigBackend(backend);
-        } else {
-            if (backend == "flrig") {
-                settings.setFlrigHost(host);
-                settings.setFlrigPort(port);
-                settings.setFlrigAutoConnect(true);
-            } else {
-                settings.setHamlibHost(host);
-                settings.setHamlibPort(port);
-                settings.setHamlibAutoConnect(true);
-            }
-            settings.setRigBackend(backend);
-        }
-        w.flrigAutoConnectCheck->setChecked(backend == "flrig");
-        w.hamlibAutoConnectCheck->setChecked(backend == "hamlib");
+        // Update auto-connect checkboxes in the UI (saved to Settings on OK)
+        if (backend == "flrig") w.flrigAutoConnectCheck->setChecked(true);
+        else if (backend == "hamlib") w.hamlibAutoConnectCheck->setChecked(true);
+        else w.mockedAutoConnectCheck->setChecked(true);
 
         updateConnectionStatus(w);
     } else {
@@ -395,21 +467,10 @@ void RigControlDialog::onDisconnectClicked(RadioWidgets& w)
     w.statusLabel->setStyleSheet("QLabel { color: red; font-weight: bold; }");
     w.rigNameLabel->setText("N/A");
 
-    // Disable auto-connect when user manually disconnects
-    Settings& settings = Settings::instance();
-    if (w.isRadioR) {
-        if (selectedBackend(w) == "flrig")
-            settings.setRadioRFlrigAutoConnect(false);
-        else
-            settings.setRadioRHamlibAutoConnect(false);
-    } else {
-        if (selectedBackend(w) == "flrig")
-            settings.setFlrigAutoConnect(false);
-        else
-            settings.setHamlibAutoConnect(false);
-    }
+    // Update auto-connect checkboxes in the UI (saved to Settings on OK)
     w.flrigAutoConnectCheck->setChecked(false);
     w.hamlibAutoConnectCheck->setChecked(false);
+    w.mockedAutoConnectCheck->setChecked(false);
 
     updateConnectionStatus(w);
 }
@@ -444,23 +505,26 @@ void RigControlDialog::onAccepted()
     // Shared poll interval
     Settings::instance().setFlrigPollInterval(m_pollIntervalSpin->value());
 
-    // Capture connection states before emitting signals, which may
-    // destroy and replace rig clients (making pointers dangling).
-    bool lConnected = m_radioL.rigClient && m_radioL.rigClient->isConnected();
-    bool rConnected = m_radioR.rigClient && m_radioR.rigClient->isConnected();
-
     // Notify about SO2R change first (creates/destroys Radio R client)
     if (so2rNow != m_so2rEnabled)
         emit so2rChanged(so2rNow);
 
-    // Notify about backend changes
-    emit backendChanged(selectedBackend(m_radioL));
-    if (so2rNow)
-        emit backendChangedR(selectedBackend(m_radioR));
+    // Notify about backend changes (only if actually changed)
+    // Clean up temp clients — MainWindow will create its own
+    QString backendL = selectedBackend(m_radioL);
+    if (backendL != m_radioL.originalBackend) {
+        cleanupTempClient(m_radioL);
+        emit backendChanged(backendL);
+    }
+
+    QString backendR = selectedBackend(m_radioR);
+    if (so2rNow && backendR != m_radioR.originalBackend) {
+        cleanupTempClient(m_radioR);
+        emit backendChangedR(backendR);
+    }
 
     // Apply poll interval change
-    if (lConnected || rConnected)
-        emit pollIntervalChanged(m_pollIntervalSpin->value());
+    emit pollIntervalChanged(m_pollIntervalSpin->value());
 
     accept();
 }

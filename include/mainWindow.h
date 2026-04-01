@@ -20,11 +20,14 @@
 #include <QComboBox>
 #include <QTimer>
 #include <QJsonObject>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
 #include "qsoListModel.h"
 #include "qsoRecord.h"
 #include "rigInterface.h"
 #include "flrigClient.h"
 #include "hamlibClient.h"
+#include "mockedRigClient.h"
 #include "bandMapWidget.h"
 #include "qsoEditDialog.h"
 #include "qrzcqApi.h"
@@ -81,6 +84,8 @@ private slots:
     void onRigConnected();
     void onRigDisconnected();
     void updateRigStatusLabel();
+    void updateRstDefaults(const QString& oldMode, const QString& newMode,
+                           QMap<QString, QLineEdit*>& exchangeFields);
     void onUpdateRigDisplay();
     void onRigBackendChanged(const QString& backend);
     void onRigConnectedR();
@@ -124,6 +129,8 @@ private slots:
     void onAbout();
     void onColumnResized(int logicalIndex, int oldSize, int newSize);
     void onPropagationDataReceived(int sfi, int aIndex, int kIndex);
+    void fetchNoaaPropagation();
+    void onNoaaPropagationReply(QNetworkReply* reply);
     void onDxSpotClicked(const QString& callsign, double frequency, const QString& mode);
     void onSpotLastQso();
     void onToggleDxCluster(bool checked);
@@ -269,6 +276,9 @@ private:
     QLabel *m_rigStatusLabel;
     QLabel *m_wpmLabel;
     QLabel *m_propagationLabel;
+    QNetworkAccessManager *m_noaaNetworkManager;
+    QTimer *m_noaaPropagationTimer;
+    bool m_noaaPropagationReceived;
     
     // QSO entry docks (floatable, bottom area only)
     class QDockWidget *m_entryDock;       // Radio L (or single radio)
@@ -374,6 +384,7 @@ private:
     QTimer *m_scorePostTimer;
     QAction *m_onlineScoringAction;
     QLabel *m_onlineScoringLabel;
+    QLabel *m_onlineScoringSeparator;
     bool m_scorePostInFlight = false;
 
     // Callsign lookup APIs
