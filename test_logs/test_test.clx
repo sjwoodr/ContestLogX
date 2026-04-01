@@ -1,0 +1,42 @@
+{
+    "contest": {
+        "categories": {
+            "station_class": "GENERAL_DXCC",
+            "station_class_exchange_id": "FL",
+            "station_class_exchange_name": "STEVE"
+        },
+        "contest_file": "general_dxcc.json",
+        "mode": "",
+        "name": "General Purpose DXCC Log",
+        "type": "General Purpose DXCC Log",
+        "version": "1.0.0",
+        "year": 2026
+    },
+    "created": "2026-04-01T15:46:51",
+    "exchange_fields": [
+    ],
+    "format": "ContestLogX",
+    "format_version": "1.0",
+    "modified": "2026-04-01T15:46:51",
+    "qsos": [
+    ],
+    "station": {
+        "callsign": "N9OH",
+        "equipment": {
+            "power": 100
+        },
+        "location": {
+            "arrl_section": "SFL",
+            "cq_zone": 5,
+            "grid": "EL96",
+            "itu_zone": 8,
+            "state": "FL"
+        },
+        "operator": "Steve"
+    },
+    "statistics": {
+        "score": 0,
+        "total_points": 0,
+        "total_qsos": 0
+    }
+}

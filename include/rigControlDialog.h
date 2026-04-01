@@ -17,72 +17,74 @@
 #include <QLabel>
 #include <QGroupBox>
 #include <QStackedWidget>
+#include <QTabWidget>
 #include "rigInterface.h"
 
 /**
  * @brief Dialog for configuring and testing rig connections
  *
- * Supports multiple rig backends (flrig, Hamlib rigctld)
+ * Supports multiple rig backends (flrig, Hamlib rigctld).
+ * When SO2R is enabled, shows tabbed interface for Radio L and Radio R.
  */
 class RigControlDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit RigControlDialog(RigInterface* client, QWidget *parent = nullptr, bool isRadioR = false);
+    explicit RigControlDialog(RigInterface* clientL, RigInterface* clientR,
+                              bool so2rEnabled, QWidget *parent = nullptr);
     ~RigControlDialog();
-
-    /**
-     * @brief Returns the selected backend name ("flrig" or "hamlib")
-     */
-    QString selectedBackend() const;
 
 signals:
     void pollIntervalChanged(int ms);
     void backendChanged(const QString& backend);
+    void backendChangedR(const QString& backend);
+    void so2rChanged(bool enabled);
 
 private slots:
-    void onBackendChanged(int index);
-    void onConnectClicked();
-    void onDisconnectClicked();
-    void onTestClicked();
     void onAccepted();
-    void onRigConnected();
-    void onRigDisconnected();
-    void onRigError(const QString& error);
+    void onSo2rToggled(bool checked);
 
 private:
-    void setupUi();
-    void updateConnectionStatus();
-    void loadSettings();
-    void saveSettings();
+    // Per-radio UI widgets
+    struct RadioWidgets {
+        RigInterface* rigClient = nullptr;
+        bool isRadioR = false;
+        QComboBox* backendCombo = nullptr;
+        QLabel* featureNoteLabel = nullptr;
+        QStackedWidget* settingsStack = nullptr;
+        QLineEdit* flrigHostEdit = nullptr;
+        QSpinBox* flrigPortSpin = nullptr;
+        QCheckBox* flrigAutoConnectCheck = nullptr;
+        QLineEdit* hamlibHostEdit = nullptr;
+        QSpinBox* hamlibPortSpin = nullptr;
+        QCheckBox* hamlibAutoConnectCheck = nullptr;
+        QPushButton* connectButton = nullptr;
+        QPushButton* disconnectButton = nullptr;
+        QPushButton* testButton = nullptr;
+        QLabel* statusLabel = nullptr;
+        QLabel* rigNameLabel = nullptr;
+        QLabel* attributionLabel = nullptr;
+    };
 
-    RigInterface* m_rigClient;
-    bool m_isRadioR;
+    QWidget* createRadioPage(RadioWidgets& w);
+    void initRadioPage(RadioWidgets& w);
+    void loadSettings(RadioWidgets& w);
+    void saveSettings(RadioWidgets& w);
+    QString selectedBackend(const RadioWidgets& w) const;
+    void onBackendChanged(RadioWidgets& w, int index);
+    void onConnectClicked(RadioWidgets& w);
+    void onDisconnectClicked(RadioWidgets& w);
+    void onTestClicked(RadioWidgets& w);
+    void updateConnectionStatus(RadioWidgets& w);
 
-    // Backend selection
-    QComboBox* m_backendCombo;
-    QStackedWidget* m_settingsStack;
-    QLabel* m_featureNoteLabel;
-
-    // flrig settings (page 0)
-    QLineEdit* m_flrigHostEdit;
-    QSpinBox* m_flrigPortSpin;
-    QCheckBox* m_flrigAutoConnectCheck;
-
-    // Hamlib settings (page 1)
-    QLineEdit* m_hamlibHostEdit;
-    QSpinBox* m_hamlibPortSpin;
-    QCheckBox* m_hamlibAutoConnectCheck;
-
-    // Shared controls
+    RadioWidgets m_radioL;
+    RadioWidgets m_radioR;
+    bool m_so2rEnabled;
+    QCheckBox* m_so2rCheck;
     QSpinBox* m_pollIntervalSpin;
-    QPushButton* m_connectButton;
-    QPushButton* m_disconnectButton;
-    QPushButton* m_testButton;
-    QLabel* m_statusLabel;
-    QLabel* m_rigNameLabel;
-    QLabel* m_attributionLabel;
+    QTabWidget* m_tabWidget;
+    QWidget* m_radioRPage;
 };
 
 #endif // RIGCONTROLDIALOG_H

@@ -80,6 +80,7 @@ private slots:
     void onRigControl();
     void onRigConnected();
     void onRigDisconnected();
+    void updateRigStatusLabel();
     void onUpdateRigDisplay();
     void onRigBackendChanged(const QString& backend);
     void onRigConnectedR();

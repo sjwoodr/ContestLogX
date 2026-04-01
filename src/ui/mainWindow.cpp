@@ -210,6 +210,8 @@ MainWindow::MainWindow(QWidget *parent)
     statusBar()->addPermanentWidget(new QLabel(" | "));
     
     m_rigStatusLabel = new QLabel("Rig: Disconnected");
+    m_rigStatusLabel->setCursor(Qt::PointingHandCursor);
+    m_rigStatusLabel->installEventFilter(this);
     statusBar()->addPermanentWidget(m_rigStatusLabel);
     
     statusBar()->addPermanentWidget(new QLabel(" | "));
@@ -242,6 +244,10 @@ MainWindow::MainWindow(QWidget *parent)
         m_rigClient = new FlrigClient(this);
         m_rigBackend = "flrig";
     }
+
+    // Rig signal connections
+    connect(m_rigClient, SIGNAL(connected()), this, SLOT(onRigConnected()));
+    connect(m_rigClient, SIGNAL(disconnected()), this, SLOT(onRigDisconnected()));
 
     // Setup rig polling timer (500ms interval by default)
     int pollInterval = settings.getFlrigPollInterval();
@@ -635,6 +641,12 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
         }
     }
     
+    // Click on rig status label opens rig connection settings
+    if (event->type() == QEvent::MouseButtonRelease && obj == m_rigStatusLabel) {
+        onRigControl();
+        return true;
+    }
+
     // Pass event to base class
     return QMainWindow::eventFilter(obj, event);
 }
@@ -1536,10 +1548,8 @@ void MainWindow::createConnections()
         }
     });
     
-    // Rig connections — use SIGNAL/SLOT macros for cross-class signal inheritance
-    connect(m_rigClient, SIGNAL(connected()), this, SLOT(onRigConnected()));
-    connect(m_rigClient, SIGNAL(disconnected()), this, SLOT(onRigDisconnected()));
-    
+    // Rig connections are set up after m_rigClient creation in the constructor
+
     // CW Console WPM changes
     connect(m_cwConsole, &CWWindow::wpmChanged, this, [this](int wpm) {
         m_lastWpm = wpm;
@@ -3818,51 +3828,30 @@ void MainWindow::onQrzLookup()
 
 void MainWindow::onRigControl()
 {
-    // If SO2R is enabled, ask which radio to configure
-    bool configRadioR = false;
-    if (m_so2rEnabled && m_rigClientR) {
-        QStringList items;
-        items << "Radio L" << "Radio R";
-        bool ok;
-        QString choice = QInputDialog::getItem(this, "Rig Control",
-            "Select radio to configure:", items,
-            (m_activeRadio == ActiveRadio::Right) ? 1 : 0, false, &ok);
-        if (!ok) return;
-        configRadioR = (choice == "Radio R");
-    }
+    RigControlDialog dialog(m_rigClient, m_rigClientR, m_so2rEnabled, this);
 
-    RigInterface* client = configRadioR ? m_rigClientR : m_rigClient;
-    RigControlDialog dialog(client, this, configRadioR);
-
-    if (configRadioR) {
-        dialog.setWindowTitle("Rig Connection Settings — Radio R");
-        connect(&dialog, &RigControlDialog::pollIntervalChanged, this, [this](int ms) {
-            if (m_rigPollTimerR) m_rigPollTimerR->setInterval(ms);
-        });
-        connect(&dialog, &RigControlDialog::backendChanged, this, &MainWindow::onRigBackendChangedR);
-    } else {
-        dialog.setWindowTitle("Rig Connection Settings — Radio L");
-        connect(&dialog, &RigControlDialog::pollIntervalChanged, this, [this](int ms) {
-            m_rigPollTimer->setInterval(ms);
-            DebugLogger::instance().log("Rig", QString("Rig poll interval changed to %1 ms").arg(ms));
-        });
-        connect(&dialog, &RigControlDialog::backendChanged, this, &MainWindow::onRigBackendChanged);
-    }
+    connect(&dialog, &RigControlDialog::pollIntervalChanged, this, [this](int ms) {
+        m_rigPollTimer->setInterval(ms);
+        if (m_rigPollTimerR) m_rigPollTimerR->setInterval(ms);
+        DebugLogger::instance().log("Rig", QString("Rig poll interval changed to %1 ms").arg(ms));
+    });
+    connect(&dialog, &RigControlDialog::backendChanged, this, &MainWindow::onRigBackendChanged);
+    connect(&dialog, &RigControlDialog::backendChangedR, this, &MainWindow::onRigBackendChangedR);
+    connect(&dialog, &RigControlDialog::so2rChanged, this, &MainWindow::onToggleSo2r);
 
     dialog.exec();
 
     // Sync poll timer state with connection after dialog closes
-    if (configRadioR) {
-        if (m_rigClientR && m_rigClientR->isConnected() && m_rigPollTimerR && !m_rigPollTimerR->isActive()) {
+    if (m_rigClient->isConnected() && !m_rigPollTimer->isActive()) {
+        onRigConnected();
+    } else if (!m_rigClient->isConnected() && m_rigPollTimer->isActive()) {
+        onRigDisconnected();
+    }
+    if (m_so2rEnabled && m_rigClientR) {
+        if (m_rigClientR->isConnected() && m_rigPollTimerR && !m_rigPollTimerR->isActive()) {
             onRigConnectedR();
-        } else if (m_rigClientR && !m_rigClientR->isConnected() && m_rigPollTimerR && m_rigPollTimerR->isActive()) {
+        } else if (!m_rigClientR->isConnected() && m_rigPollTimerR && m_rigPollTimerR->isActive()) {
             onRigDisconnectedR();
-        }
-    } else {
-        if (m_rigClient->isConnected() && !m_rigPollTimer->isActive()) {
-            onRigConnected();
-        } else if (!m_rigClient->isConnected() && m_rigPollTimer->isActive()) {
-            onRigDisconnected();
         }
     }
 }
@@ -3900,9 +3889,8 @@ void MainWindow::onRigBackendChanged(const QString& backend)
     m_cwConsole->setRigClient(m_rigClient);
     m_ttsManager->setRigClient(m_rigClient);
 
-    // Update status
-    m_rigStatusLabel->setText("Rig: Disconnected");
-    m_rigStatusLabel->setStyleSheet("QLabel { color: red; }");
+    // Update rig status label (Radio R may still be connected)
+    updateRigStatusLabel();
 
     // Auto-connect the new backend if it has auto-connect enabled
     Settings& settings = Settings::instance();
@@ -3924,17 +3912,43 @@ void MainWindow::onRigBackendChanged(const QString& backend)
 void MainWindow::onRigConnected()
 {
     DebugLogger::instance().log("MainWindow", "onRigConnected - starting rig poll timer");
-    m_rigStatusLabel->setText("Rig: Connected");
-    m_rigStatusLabel->setStyleSheet("QLabel { color: green; }");
     m_rigPollTimer->start();
+    updateRigStatusLabel();
 }
 
 void MainWindow::onRigDisconnected()
 {
     DebugLogger::instance().log("MainWindow", "onRigDisconnected - stopping rig poll timer");
-    m_rigStatusLabel->setText("Rig: Disconnected");
-    m_rigStatusLabel->setStyleSheet("QLabel { color: red; }");
     m_rigPollTimer->stop();
+    updateRigStatusLabel();
+}
+
+void MainWindow::updateRigStatusLabel()
+{
+    bool lConnected = m_rigClient && m_rigClient->isConnected();
+    bool rConnected = m_so2rEnabled && m_rigClientR && m_rigClientR->isConnected();
+
+    if (m_so2rEnabled) {
+        int count = (lConnected ? 1 : 0) + (rConnected ? 1 : 0);
+        if (count == 2) {
+            m_rigStatusLabel->setText("Rig: Connected (2 of 2)");
+            m_rigStatusLabel->setStyleSheet("QLabel { color: green; }");
+        } else if (count == 1) {
+            m_rigStatusLabel->setText("Rig: Connected (1 of 2)");
+            m_rigStatusLabel->setStyleSheet("QLabel { color: orange; }");
+        } else {
+            m_rigStatusLabel->setText("Rig: Disconnected");
+            m_rigStatusLabel->setStyleSheet("QLabel { color: red; }");
+        }
+    } else {
+        if (lConnected) {
+            m_rigStatusLabel->setText("Rig: Connected");
+            m_rigStatusLabel->setStyleSheet("QLabel { color: green; }");
+        } else {
+            m_rigStatusLabel->setText("Rig: Disconnected");
+            m_rigStatusLabel->setStyleSheet("QLabel { color: red; }");
+        }
+    }
 }
 
 void MainWindow::onUpdateRigDisplay()
@@ -8326,6 +8340,7 @@ void MainWindow::enableSo2r()
     }
 
     Settings::instance().setSo2rEnabled(true);
+    updateRigStatusLabel();
     DebugLogger::instance().log("MainWindow", "SO2R mode enabled");
 }
 
@@ -8376,6 +8391,7 @@ void MainWindow::disableSo2r()
     }
 
     Settings::instance().setSo2rEnabled(false);
+    updateRigStatusLabel();
     m_statusLabel->setText("SO2R disabled");
     DebugLogger::instance().log("MainWindow", "SO2R mode disabled");
 }
@@ -8386,6 +8402,10 @@ void MainWindow::onToggleSo2r(bool enabled)
         enableSo2r();
     else
         disableSo2r();
+
+    // Keep menu action in sync (may be triggered from rig dialog)
+    if (m_so2rAction && m_so2rAction->isChecked() != enabled)
+        m_so2rAction->setChecked(enabled);
 }
 
 void MainWindow::onRigConnectedR()
@@ -8395,6 +8415,7 @@ void MainWindow::onRigConnectedR()
     QString rigName = m_rigClientR->getRigName();
     DebugLogger::instance().log("MainWindow", QString("Radio R connected: %1").arg(rigName));
     m_statusLabel->setText(QString("Radio R connected: %1").arg(rigName.isEmpty() ? m_rigBackendR : rigName));
+    updateRigStatusLabel();
 }
 
 void MainWindow::onRigDisconnectedR()
@@ -8405,6 +8426,7 @@ void MainWindow::onRigDisconnectedR()
     m_statusLabel->setText("Radio R disconnected");
     if (m_entryWidgetsR.freqModeButton)
         m_entryWidgetsR.freqModeButton->setText("--- ---");
+    updateRigStatusLabel();
 }
 
 void MainWindow::onUpdateRigDisplayR()

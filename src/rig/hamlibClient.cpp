@@ -38,13 +38,13 @@ void HamlibWorker::doConnect(const QString& host, int port)
     m_socket->connectToHost(host, port);
 
     if (!m_socket->waitForConnected(3000)) {
-        DebugLogger::instance().log("Hamlib", QString("Connection failed: %1").arg(m_socket->errorString()));
+        DebugLogger::instance().log("RigClient", QString("Hamlib connection failed: %1").arg(m_socket->errorString()));
         emit connectResult(false);
         return;
     }
 
     m_connected = true;
-    DebugLogger::instance().log("Hamlib", "Connected to rigctld");
+    DebugLogger::instance().log("RigClient", "Connected to rigctld");
     emit connectResult(true);
 }
 
@@ -239,8 +239,9 @@ void HamlibWorker::doSetVFO(const QString& vfo)
 void HamlibWorker::doGetRigName()
 {
     QString response = sendCommand("_");
-    m_lastRigName = (response.isEmpty() || response.startsWith("RPRT"))
-        ? "rigctld" : response.trimmed();
+    QString name = response.trimmed();
+    m_lastRigName = (name.isEmpty() || name.startsWith("RPRT") || name == "None")
+        ? "rigctld" : name;
     emit rigNameResult(m_lastRigName);
 }
 
@@ -263,8 +264,8 @@ HamlibClient::HamlibClient(QObject *parent)
     // Worker signals -> HamlibClient slots (cross-thread, auto queued)
     connect(m_worker, &HamlibWorker::connectResult, this, [this](bool success) {
         m_connected = success;
-        if (success)
-            emit connected();
+        // Note: connected() is emitted by connectToRig() after the blocking call returns,
+        // so we don't emit it here to avoid duplicate onRigConnected calls.
     });
 
     connect(m_worker, &HamlibWorker::disconnected, this, [this]() {
@@ -295,7 +296,7 @@ HamlibClient::~HamlibClient()
 
 bool HamlibClient::connectToRig(const QString& host, int port)
 {
-    DebugLogger::instance().log("Hamlib", QString("Connecting to rigctld at %1:%2").arg(host).arg(port));
+    DebugLogger::instance().log("RigClient", QString("Connecting to rigctld at %1:%2").arg(host).arg(port));
 
     QMetaObject::invokeMethod(m_worker, "doConnect", Qt::BlockingQueuedConnection,
                               Q_ARG(QString, host), Q_ARG(int, port));

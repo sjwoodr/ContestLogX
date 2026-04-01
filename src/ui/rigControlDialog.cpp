@@ -16,151 +16,47 @@
 #include <QLabel>
 #include <QMessageBox>
 
-RigControlDialog::RigControlDialog(RigInterface* client, QWidget *parent, bool isRadioR)
+RigControlDialog::RigControlDialog(RigInterface* clientL, RigInterface* clientR,
+                                   bool so2rEnabled, QWidget *parent)
     : QDialog(parent)
-    , m_rigClient(client)
-    , m_isRadioR(isRadioR)
+    , m_so2rEnabled(so2rEnabled)
+    , m_so2rCheck(nullptr)
+    , m_pollIntervalSpin(nullptr)
+    , m_tabWidget(nullptr)
+    , m_radioRPage(nullptr)
 {
     setWindowTitle("Rig Connection Settings");
-    setupUi();
-    loadSettings();
 
-    // Update status based on actual connection state
-    if (m_rigClient->isConnected()) {
-        m_statusLabel->setText("Connected");
-        m_statusLabel->setStyleSheet("QLabel { color: green; font-weight: bold; }");
-        QString rigName = m_rigClient->getRigName();
-        if (!rigName.isEmpty()) {
-            m_rigNameLabel->setText(rigName);
-        }
-    }
-    updateConnectionStatus();
-}
+    m_radioL.rigClient = clientL;
+    m_radioL.isRadioR = false;
+    m_radioR.rigClient = clientR;
+    m_radioR.isRadioR = true;
 
-RigControlDialog::~RigControlDialog()
-{
-}
-
-QString RigControlDialog::selectedBackend() const
-{
-    return m_backendCombo->currentIndex() == 0 ? "flrig" : "hamlib";
-}
-
-void RigControlDialog::setupUi()
-{
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
 
-    // Backend selection
-    QGroupBox *backendGroup = new QGroupBox("Rig Interface", this);
-    QVBoxLayout *backendLayout = new QVBoxLayout(backendGroup);
+    // Tab widget — always used, Radio R tab shown/hidden by SO2R checkbox
+    m_tabWidget = new QTabWidget(this);
+    m_tabWidget->addTab(createRadioPage(m_radioL), "Radio L");
+    m_radioRPage = createRadioPage(m_radioR);
+    if (m_so2rEnabled)
+        m_tabWidget->addTab(m_radioRPage, "Radio R");
+    mainLayout->addWidget(m_tabWidget);
 
-    QHBoxLayout *comboLayout = new QHBoxLayout();
-    comboLayout->addWidget(new QLabel("Backend:"));
-    m_backendCombo = new QComboBox();
-    m_backendCombo->addItem("flrig (XML-RPC)");
-    m_backendCombo->addItem("Hamlib (rigctld)");
-    comboLayout->addWidget(m_backendCombo);
-    comboLayout->addStretch();
-    backendLayout->addLayout(comboLayout);
-
-    m_featureNoteLabel = new QLabel();
-    m_featureNoteLabel->setWordWrap(true);
-    m_featureNoteLabel->setStyleSheet("QLabel { color: gray; font-style: italic; }");
-    backendLayout->addWidget(m_featureNoteLabel);
-
-    mainLayout->addWidget(backendGroup);
-
-    // Stacked settings pages
-    m_settingsStack = new QStackedWidget(this);
-
-    // --- flrig settings page ---
-    QWidget *flrigPage = new QWidget();
-    QFormLayout *flrigForm = new QFormLayout(flrigPage);
-
-    m_flrigHostEdit = new QLineEdit();
-    m_flrigHostEdit->setPlaceholderText("localhost or 127.0.0.1");
-    flrigForm->addRow("Host:", m_flrigHostEdit);
-
-    m_flrigPortSpin = new QSpinBox();
-    m_flrigPortSpin->setRange(1, 65535);
-    m_flrigPortSpin->setValue(12345);
-    flrigForm->addRow("Port:", m_flrigPortSpin);
-
-    m_flrigAutoConnectCheck = new QCheckBox("Auto-connect on startup");
-    flrigForm->addRow("", m_flrigAutoConnectCheck);
-
-    m_settingsStack->addWidget(flrigPage);
-
-    // --- Hamlib settings page ---
-    QWidget *hamlibPage = new QWidget();
-    QFormLayout *hamlibForm = new QFormLayout(hamlibPage);
-
-    m_hamlibHostEdit = new QLineEdit();
-    m_hamlibHostEdit->setPlaceholderText("localhost or 127.0.0.1");
-    hamlibForm->addRow("Host:", m_hamlibHostEdit);
-
-    m_hamlibPortSpin = new QSpinBox();
-    m_hamlibPortSpin->setRange(1, 65535);
-    m_hamlibPortSpin->setValue(4532);
-    hamlibForm->addRow("Port:", m_hamlibPortSpin);
-
-    m_hamlibAutoConnectCheck = new QCheckBox("Auto-connect on startup");
-    hamlibForm->addRow("", m_hamlibAutoConnectCheck);
-
-    m_settingsStack->addWidget(hamlibPage);
-
-    mainLayout->addWidget(m_settingsStack);
-
-    // Shared poll interval
-    QHBoxLayout *pollLayout = new QHBoxLayout();
-    pollLayout->addWidget(new QLabel("Poll Interval:"));
+    // SO2R checkbox + shared poll interval on same row
+    QHBoxLayout *bottomRow = new QHBoxLayout();
+    m_so2rCheck = new QCheckBox("SO2R (two radios)");
+    m_so2rCheck->setChecked(m_so2rEnabled);
+    bottomRow->addWidget(m_so2rCheck);
+    bottomRow->addStretch();
+    bottomRow->addWidget(new QLabel("Poll Interval:"));
     m_pollIntervalSpin = new QSpinBox();
     m_pollIntervalSpin->setRange(100, 5000);
     m_pollIntervalSpin->setSingleStep(100);
-    m_pollIntervalSpin->setValue(500);
+    m_pollIntervalSpin->setValue(Settings::instance().getFlrigPollInterval());
     m_pollIntervalSpin->setSuffix(" ms");
-    pollLayout->addWidget(m_pollIntervalSpin);
-    pollLayout->addStretch();
-    mainLayout->addLayout(pollLayout);
+    bottomRow->addWidget(m_pollIntervalSpin);
+    mainLayout->addLayout(bottomRow);
 
-    // Connection control buttons
-    QHBoxLayout *buttonLayout = new QHBoxLayout();
-    m_connectButton = new QPushButton("Connect");
-    m_disconnectButton = new QPushButton("Disconnect");
-    m_testButton = new QPushButton("Test");
-
-    buttonLayout->addWidget(m_connectButton);
-    buttonLayout->addWidget(m_disconnectButton);
-    buttonLayout->addWidget(m_testButton);
-    buttonLayout->addStretch();
-
-    mainLayout->addLayout(buttonLayout);
-
-    // Status group
-    QGroupBox *statusGroup = new QGroupBox("Status", this);
-    QVBoxLayout *statusLayout = new QVBoxLayout(statusGroup);
-
-    m_statusLabel = new QLabel("Disconnected");
-    m_statusLabel->setStyleSheet("QLabel { color: red; font-weight: bold; }");
-    statusLayout->addWidget(m_statusLabel);
-
-    QLabel *rigLabel = new QLabel("Rig:");
-    m_rigNameLabel = new QLabel("N/A");
-    QHBoxLayout *rigLayout = new QHBoxLayout();
-    rigLayout->addWidget(rigLabel);
-    rigLayout->addWidget(m_rigNameLabel);
-    rigLayout->addStretch();
-    statusLayout->addLayout(rigLayout);
-
-    mainLayout->addWidget(statusGroup);
-
-    // Attribution label (changes with backend)
-    m_attributionLabel = new QLabel(this);
-    m_attributionLabel->setTextFormat(Qt::RichText);
-    m_attributionLabel->setOpenExternalLinks(true);
-    m_attributionLabel->setAlignment(Qt::AlignCenter);
-    m_attributionLabel->setStyleSheet("QLabel { color: gray; }");
-    mainLayout->addWidget(m_attributionLabel);
     mainLayout->addSpacing(8);
 
     // Dialog buttons
@@ -172,117 +68,266 @@ void RigControlDialog::setupUi()
         btn->setIcon(style()->standardIcon(QStyle::SP_DialogCancelButton));
     mainLayout->addWidget(buttonBox);
 
-    connect(m_backendCombo, QOverload<int>::of(&QComboBox::currentIndexChanged),
-            this, &RigControlDialog::onBackendChanged);
-    connect(m_connectButton, &QPushButton::clicked, this, &RigControlDialog::onConnectClicked);
-    connect(m_disconnectButton, &QPushButton::clicked, this, &RigControlDialog::onDisconnectClicked);
-    connect(m_testButton, &QPushButton::clicked, this, &RigControlDialog::onTestClicked);
+    connect(m_so2rCheck, &QCheckBox::toggled, this, &RigControlDialog::onSo2rToggled);
     connect(buttonBox, &QDialogButtonBox::accepted, this, &RigControlDialog::onAccepted);
     connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
+
+    // Initialize pages (load settings, update status)
+    initRadioPage(m_radioL);
+    initRadioPage(m_radioR);
 }
 
-void RigControlDialog::onBackendChanged(int index)
+RigControlDialog::~RigControlDialog()
 {
-    m_settingsStack->setCurrentIndex(index);
+}
+
+void RigControlDialog::onSo2rToggled(bool checked)
+{
+    if (checked) {
+        m_tabWidget->addTab(m_radioRPage, "Radio R");
+        m_tabWidget->setCurrentWidget(m_radioRPage);
+    } else {
+        int idx = m_tabWidget->indexOf(m_radioRPage);
+        if (idx >= 0)
+            m_tabWidget->removeTab(idx);
+    }
+}
+
+QWidget* RigControlDialog::createRadioPage(RadioWidgets& w)
+{
+    QWidget *page = new QWidget();
+    QVBoxLayout *layout = new QVBoxLayout(page);
+
+    // Backend selection
+    QGroupBox *backendGroup = new QGroupBox("Rig Interface", page);
+    QVBoxLayout *backendLayout = new QVBoxLayout(backendGroup);
+
+    QHBoxLayout *comboLayout = new QHBoxLayout();
+    comboLayout->addWidget(new QLabel("Backend:"));
+    w.backendCombo = new QComboBox();
+    w.backendCombo->addItem("flrig (XML-RPC)");
+    w.backendCombo->addItem("Hamlib (rigctld)");
+    comboLayout->addWidget(w.backendCombo);
+    comboLayout->addStretch();
+    backendLayout->addLayout(comboLayout);
+
+    w.featureNoteLabel = new QLabel();
+    w.featureNoteLabel->setWordWrap(true);
+    w.featureNoteLabel->setStyleSheet("QLabel { color: gray; font-style: italic; }");
+    backendLayout->addWidget(w.featureNoteLabel);
+
+    layout->addWidget(backendGroup);
+
+    // Stacked settings pages
+    w.settingsStack = new QStackedWidget(page);
+
+    // --- flrig settings page ---
+    QWidget *flrigPage = new QWidget();
+    QFormLayout *flrigForm = new QFormLayout(flrigPage);
+
+    w.flrigHostEdit = new QLineEdit();
+    w.flrigHostEdit->setPlaceholderText("localhost or 127.0.0.1");
+    flrigForm->addRow("Host:", w.flrigHostEdit);
+
+    w.flrigPortSpin = new QSpinBox();
+    w.flrigPortSpin->setRange(1, 65535);
+    w.flrigPortSpin->setValue(12345);
+    flrigForm->addRow("Port:", w.flrigPortSpin);
+
+    w.flrigAutoConnectCheck = new QCheckBox("Auto-connect on startup");
+    flrigForm->addRow("", w.flrigAutoConnectCheck);
+
+    w.settingsStack->addWidget(flrigPage);
+
+    // --- Hamlib settings page ---
+    QWidget *hamlibPage = new QWidget();
+    QFormLayout *hamlibForm = new QFormLayout(hamlibPage);
+
+    w.hamlibHostEdit = new QLineEdit();
+    w.hamlibHostEdit->setPlaceholderText("localhost or 127.0.0.1");
+    hamlibForm->addRow("Host:", w.hamlibHostEdit);
+
+    w.hamlibPortSpin = new QSpinBox();
+    w.hamlibPortSpin->setRange(1, 65535);
+    w.hamlibPortSpin->setValue(4532);
+    hamlibForm->addRow("Port:", w.hamlibPortSpin);
+
+    w.hamlibAutoConnectCheck = new QCheckBox("Auto-connect on startup");
+    hamlibForm->addRow("", w.hamlibAutoConnectCheck);
+
+    w.settingsStack->addWidget(hamlibPage);
+
+    layout->addWidget(w.settingsStack);
+
+    // Connection control buttons
+    QHBoxLayout *buttonLayout = new QHBoxLayout();
+    w.connectButton = new QPushButton("Connect");
+    w.disconnectButton = new QPushButton("Disconnect");
+    w.testButton = new QPushButton("Test");
+
+    buttonLayout->addWidget(w.connectButton);
+    buttonLayout->addWidget(w.disconnectButton);
+    buttonLayout->addWidget(w.testButton);
+    buttonLayout->addStretch();
+
+    layout->addLayout(buttonLayout);
+
+    // Status group
+    QGroupBox *statusGroup = new QGroupBox("Status", page);
+    QVBoxLayout *statusLayout = new QVBoxLayout(statusGroup);
+
+    w.statusLabel = new QLabel("Disconnected");
+    w.statusLabel->setStyleSheet("QLabel { color: red; font-weight: bold; }");
+    statusLayout->addWidget(w.statusLabel);
+
+    QLabel *rigLabel = new QLabel("Rig:");
+    w.rigNameLabel = new QLabel("N/A");
+    QHBoxLayout *rigLayout = new QHBoxLayout();
+    rigLayout->addWidget(rigLabel);
+    rigLayout->addWidget(w.rigNameLabel);
+    rigLayout->addStretch();
+    statusLayout->addLayout(rigLayout);
+
+    layout->addWidget(statusGroup);
+
+    // Attribution label
+    w.attributionLabel = new QLabel(page);
+    w.attributionLabel->setTextFormat(Qt::RichText);
+    w.attributionLabel->setOpenExternalLinks(true);
+    w.attributionLabel->setAlignment(Qt::AlignCenter);
+    w.attributionLabel->setStyleSheet("QLabel { color: gray; }");
+    layout->addWidget(w.attributionLabel);
+
+    // Wire signals using lambdas that capture the RadioWidgets reference
+    connect(w.backendCombo, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, [this, &w](int index) { onBackendChanged(w, index); });
+    connect(w.connectButton, &QPushButton::clicked,
+            this, [this, &w]() { onConnectClicked(w); });
+    connect(w.disconnectButton, &QPushButton::clicked,
+            this, [this, &w]() { onDisconnectClicked(w); });
+    connect(w.testButton, &QPushButton::clicked,
+            this, [this, &w]() { onTestClicked(w); });
+
+    return page;
+}
+
+void RigControlDialog::initRadioPage(RadioWidgets& w)
+{
+    loadSettings(w);
+
+    // Update status based on actual connection state
+    if (w.rigClient && w.rigClient->isConnected()) {
+        w.statusLabel->setText("Connected");
+        w.statusLabel->setStyleSheet("QLabel { color: green; font-weight: bold; }");
+        QString rigName = w.rigClient->getRigName();
+        if (!rigName.isEmpty())
+            w.rigNameLabel->setText(rigName);
+    }
+    updateConnectionStatus(w);
+}
+
+void RigControlDialog::onBackendChanged(RadioWidgets& w, int index)
+{
+    w.settingsStack->setCurrentIndex(index);
 
     if (index == 0) {
-        // flrig
-        m_featureNoteLabel->setText(
+        w.featureNoteLabel->setText(
             "flrig provides full rig control including CW keying, PTT, power, and bandwidth.");
-        m_attributionLabel->setText(
+        w.attributionLabel->setText(
             "Rig control powered by <b>flrig</b>"
             " — <a href=\"https://www.w1hkj.org/\">https://www.w1hkj.org/</a>");
     } else {
-        // Hamlib
-        m_featureNoteLabel->setText(
+        w.featureNoteLabel->setText(
             "Hamlib provides frequency and mode control. CW keying and other features "
             "depend on rig capabilities. Requires rigctld to be running.");
-        m_attributionLabel->setText(
+        w.attributionLabel->setText(
             "Rig control powered by <b>Hamlib</b>"
             " — <a href=\"https://hamlib.github.io/\">https://hamlib.github.io/</a>");
     }
 }
 
-void RigControlDialog::loadSettings()
+void RigControlDialog::loadSettings(RadioWidgets& w)
 {
     Settings& settings = Settings::instance();
 
-    if (m_isRadioR) {
-        // Radio R settings
+    if (w.isRadioR) {
         QString backend = settings.getRadioRRigBackend();
-        m_backendCombo->setCurrentIndex(backend == "hamlib" ? 1 : 0);
+        w.backendCombo->setCurrentIndex(backend == "hamlib" ? 1 : 0);
 
-        m_flrigHostEdit->setText(settings.getRadioRFlrigHost());
-        m_flrigPortSpin->setValue(settings.getRadioRFlrigPort());
-        m_flrigAutoConnectCheck->setChecked(settings.getRadioRFlrigAutoConnect());
+        w.flrigHostEdit->setText(settings.getRadioRFlrigHost());
+        w.flrigPortSpin->setValue(settings.getRadioRFlrigPort());
+        w.flrigAutoConnectCheck->setChecked(settings.getRadioRFlrigAutoConnect());
 
-        m_hamlibHostEdit->setText(settings.getRadioRHamlibHost());
-        m_hamlibPortSpin->setValue(settings.getRadioRHamlibPort());
-        m_hamlibAutoConnectCheck->setChecked(settings.getRadioRHamlibAutoConnect());
+        w.hamlibHostEdit->setText(settings.getRadioRHamlibHost());
+        w.hamlibPortSpin->setValue(settings.getRadioRHamlibPort());
+        w.hamlibAutoConnectCheck->setChecked(settings.getRadioRHamlibAutoConnect());
     } else {
-        // Radio L settings (existing)
         QString backend = settings.getRigBackend();
-        m_backendCombo->setCurrentIndex(backend == "hamlib" ? 1 : 0);
+        w.backendCombo->setCurrentIndex(backend == "hamlib" ? 1 : 0);
 
-        m_flrigHostEdit->setText(settings.getFlrigHost());
-        m_flrigPortSpin->setValue(settings.getFlrigPort());
-        m_flrigAutoConnectCheck->setChecked(settings.getFlrigAutoConnect());
+        w.flrigHostEdit->setText(settings.getFlrigHost());
+        w.flrigPortSpin->setValue(settings.getFlrigPort());
+        w.flrigAutoConnectCheck->setChecked(settings.getFlrigAutoConnect());
 
-        m_hamlibHostEdit->setText(settings.getHamlibHost());
-        m_hamlibPortSpin->setValue(settings.getHamlibPort());
-        m_hamlibAutoConnectCheck->setChecked(settings.getHamlibAutoConnect());
+        w.hamlibHostEdit->setText(settings.getHamlibHost());
+        w.hamlibPortSpin->setValue(settings.getHamlibPort());
+        w.hamlibAutoConnectCheck->setChecked(settings.getHamlibAutoConnect());
     }
-
-    // Shared
-    m_pollIntervalSpin->setValue(settings.getFlrigPollInterval());
 
     // Trigger UI update for current backend
-    onBackendChanged(m_backendCombo->currentIndex());
+    onBackendChanged(w, w.backendCombo->currentIndex());
 }
 
-void RigControlDialog::saveSettings()
+void RigControlDialog::saveSettings(RadioWidgets& w)
 {
     Settings& settings = Settings::instance();
 
-    if (m_isRadioR) {
-        // Radio R settings
-        settings.setRadioRRigBackend(selectedBackend());
+    if (w.isRadioR) {
+        settings.setRadioRRigBackend(selectedBackend(w));
 
-        settings.setRadioRFlrigHost(m_flrigHostEdit->text());
-        settings.setRadioRFlrigPort(m_flrigPortSpin->value());
-        settings.setRadioRFlrigAutoConnect(m_flrigAutoConnectCheck->isChecked());
+        settings.setRadioRFlrigHost(w.flrigHostEdit->text());
+        settings.setRadioRFlrigPort(w.flrigPortSpin->value());
+        settings.setRadioRFlrigAutoConnect(w.flrigAutoConnectCheck->isChecked());
 
-        settings.setRadioRHamlibHost(m_hamlibHostEdit->text());
-        settings.setRadioRHamlibPort(m_hamlibPortSpin->value());
-        settings.setRadioRHamlibAutoConnect(m_hamlibAutoConnectCheck->isChecked());
+        settings.setRadioRHamlibHost(w.hamlibHostEdit->text());
+        settings.setRadioRHamlibPort(w.hamlibPortSpin->value());
+        settings.setRadioRHamlibAutoConnect(w.hamlibAutoConnectCheck->isChecked());
     } else {
-        // Radio L settings (existing)
-        settings.setRigBackend(selectedBackend());
+        settings.setRigBackend(selectedBackend(w));
 
-        settings.setFlrigHost(m_flrigHostEdit->text());
-        settings.setFlrigPort(m_flrigPortSpin->value());
-        settings.setFlrigAutoConnect(m_flrigAutoConnectCheck->isChecked());
+        settings.setFlrigHost(w.flrigHostEdit->text());
+        settings.setFlrigPort(w.flrigPortSpin->value());
+        settings.setFlrigAutoConnect(w.flrigAutoConnectCheck->isChecked());
 
-        settings.setHamlibHost(m_hamlibHostEdit->text());
-        settings.setHamlibPort(m_hamlibPortSpin->value());
-        settings.setHamlibAutoConnect(m_hamlibAutoConnectCheck->isChecked());
+        settings.setHamlibHost(w.hamlibHostEdit->text());
+        settings.setHamlibPort(w.hamlibPortSpin->value());
+        settings.setHamlibAutoConnect(w.hamlibAutoConnectCheck->isChecked());
     }
-
-    // Shared
-    settings.setFlrigPollInterval(m_pollIntervalSpin->value());
 }
 
-void RigControlDialog::onConnectClicked()
+QString RigControlDialog::selectedBackend(const RadioWidgets& w) const
 {
+    return w.backendCombo->currentIndex() == 0 ? "flrig" : "hamlib";
+}
+
+void RigControlDialog::onConnectClicked(RadioWidgets& w)
+{
+    if (!w.rigClient) {
+        QMessageBox::information(this, "SO2R Not Active",
+            "Click OK to enable SO2R, then reopen this dialog to connect Radio R.");
+        return;
+    }
+
+    QString backend = selectedBackend(w);
     QString host;
     int port;
 
-    if (selectedBackend() == "flrig") {
-        host = m_flrigHostEdit->text();
-        port = m_flrigPortSpin->value();
+    if (backend == "flrig") {
+        host = w.flrigHostEdit->text();
+        port = w.flrigPortSpin->value();
     } else {
-        host = m_hamlibHostEdit->text();
-        port = m_hamlibPortSpin->value();
+        host = w.hamlibHostEdit->text();
+        port = w.hamlibPortSpin->value();
     }
 
     if (host.isEmpty()) {
@@ -290,22 +335,21 @@ void RigControlDialog::onConnectClicked()
         return;
     }
 
-    m_statusLabel->setText("Connecting...");
-    m_statusLabel->setStyleSheet("QLabel { color: orange; font-weight: bold; }");
+    w.statusLabel->setText("Connecting...");
+    w.statusLabel->setStyleSheet("QLabel { color: orange; font-weight: bold; }");
 
-    if (m_rigClient->connectToRig(host, port)) {
-        m_statusLabel->setText("Connected");
-        m_statusLabel->setStyleSheet("QLabel { color: green; font-weight: bold; }");
+    if (w.rigClient->connectToRig(host, port)) {
+        w.statusLabel->setText("Connected");
+        w.statusLabel->setStyleSheet("QLabel { color: green; font-weight: bold; }");
 
-        QString rigName = m_rigClient->getRigName();
-        if (!rigName.isEmpty()) {
-            m_rigNameLabel->setText(rigName);
-        }
+        QString rigName = w.rigClient->getRigName();
+        if (!rigName.isEmpty())
+            w.rigNameLabel->setText(rigName);
 
-        // Save connection settings on successful connection
+        // Save connection settings and enable auto-connect on success
         Settings& settings = Settings::instance();
-        if (m_isRadioR) {
-            if (selectedBackend() == "flrig") {
+        if (w.isRadioR) {
+            if (backend == "flrig") {
                 settings.setRadioRFlrigHost(host);
                 settings.setRadioRFlrigPort(port);
                 settings.setRadioRFlrigAutoConnect(true);
@@ -314,9 +358,9 @@ void RigControlDialog::onConnectClicked()
                 settings.setRadioRHamlibPort(port);
                 settings.setRadioRHamlibAutoConnect(true);
             }
-            settings.setRadioRRigBackend(selectedBackend());
+            settings.setRadioRRigBackend(backend);
         } else {
-            if (selectedBackend() == "flrig") {
+            if (backend == "flrig") {
                 settings.setFlrigHost(host);
                 settings.setFlrigPort(port);
                 settings.setFlrigAutoConnect(true);
@@ -325,16 +369,17 @@ void RigControlDialog::onConnectClicked()
                 settings.setHamlibPort(port);
                 settings.setHamlibAutoConnect(true);
             }
-            settings.setRigBackend(selectedBackend());
+            settings.setRigBackend(backend);
         }
-        m_flrigAutoConnectCheck->setChecked(true);
+        w.flrigAutoConnectCheck->setChecked(backend == "flrig");
+        w.hamlibAutoConnectCheck->setChecked(backend == "hamlib");
 
-        updateConnectionStatus();
+        updateConnectionStatus(w);
     } else {
-        m_statusLabel->setText("Connection Failed");
-        m_statusLabel->setStyleSheet("QLabel { color: red; font-weight: bold; }");
+        w.statusLabel->setText("Connection Failed");
+        w.statusLabel->setStyleSheet("QLabel { color: red; font-weight: bold; }");
 
-        QString serverName = selectedBackend() == "flrig" ? "flrig" : "rigctld";
+        QString serverName = backend == "flrig" ? "flrig" : "rigctld";
         QMessageBox::critical(this, "Connection Failed",
             QString("Failed to connect to %1 server.\n\n"
                     "Make sure %1 is running and configured to accept connections.")
@@ -342,45 +387,44 @@ void RigControlDialog::onConnectClicked()
     }
 }
 
-void RigControlDialog::onDisconnectClicked()
+void RigControlDialog::onDisconnectClicked(RadioWidgets& w)
 {
-    m_rigClient->disconnectFromRig();
-    m_statusLabel->setText("Disconnected");
-    m_statusLabel->setStyleSheet("QLabel { color: red; font-weight: bold; }");
-    m_rigNameLabel->setText("N/A");
+    if (!w.rigClient) return;
+    w.rigClient->disconnectFromRig();
+    w.statusLabel->setText("Disconnected");
+    w.statusLabel->setStyleSheet("QLabel { color: red; font-weight: bold; }");
+    w.rigNameLabel->setText("N/A");
 
     // Disable auto-connect when user manually disconnects
     Settings& settings = Settings::instance();
-    if (m_isRadioR) {
-        if (selectedBackend() == "flrig") {
+    if (w.isRadioR) {
+        if (selectedBackend(w) == "flrig")
             settings.setRadioRFlrigAutoConnect(false);
-        } else {
+        else
             settings.setRadioRHamlibAutoConnect(false);
-        }
     } else {
-        if (selectedBackend() == "flrig") {
+        if (selectedBackend(w) == "flrig")
             settings.setFlrigAutoConnect(false);
-        } else {
+        else
             settings.setHamlibAutoConnect(false);
-        }
     }
-    m_flrigAutoConnectCheck->setChecked(false);
-    m_hamlibAutoConnectCheck->setChecked(false);
+    w.flrigAutoConnectCheck->setChecked(false);
+    w.hamlibAutoConnectCheck->setChecked(false);
 
-    updateConnectionStatus();
+    updateConnectionStatus(w);
 }
 
-void RigControlDialog::onTestClicked()
+void RigControlDialog::onTestClicked(RadioWidgets& w)
 {
-    if (!m_rigClient->isConnected()) {
-        QString serverName = selectedBackend() == "flrig" ? "flrig" : "rigctld";
+    if (!w.rigClient || !w.rigClient->isConnected()) {
+        QString serverName = selectedBackend(w) == "flrig" ? "flrig" : "rigctld";
         QMessageBox::information(this, "Not Connected",
             QString("Please connect to %1 first.").arg(serverName));
         return;
     }
 
-    double freq = m_rigClient->getFrequency();
-    QString mode = m_rigClient->getMode();
+    double freq = w.rigClient->getFrequency();
+    QString mode = w.rigClient->getMode();
 
     QString msg = QString("Current Settings:\n\nFrequency: %1 Hz\nMode: %2")
         .arg(QString::number(freq, 'f', 0))
@@ -391,44 +435,46 @@ void RigControlDialog::onTestClicked()
 
 void RigControlDialog::onAccepted()
 {
-    saveSettings();
+    bool so2rNow = m_so2rCheck->isChecked();
 
-    // Notify about backend change
-    emit backendChanged(selectedBackend());
+    // Save settings for both radios (Radio R settings are always saveable)
+    saveSettings(m_radioL);
+    saveSettings(m_radioR);
 
-    // Apply poll interval change immediately if connected
-    if (m_rigClient->isConnected()) {
+    // Shared poll interval
+    Settings::instance().setFlrigPollInterval(m_pollIntervalSpin->value());
+
+    // Capture connection states before emitting signals, which may
+    // destroy and replace rig clients (making pointers dangling).
+    bool lConnected = m_radioL.rigClient && m_radioL.rigClient->isConnected();
+    bool rConnected = m_radioR.rigClient && m_radioR.rigClient->isConnected();
+
+    // Notify about SO2R change first (creates/destroys Radio R client)
+    if (so2rNow != m_so2rEnabled)
+        emit so2rChanged(so2rNow);
+
+    // Notify about backend changes
+    emit backendChanged(selectedBackend(m_radioL));
+    if (so2rNow)
+        emit backendChangedR(selectedBackend(m_radioR));
+
+    // Apply poll interval change
+    if (lConnected || rConnected)
         emit pollIntervalChanged(m_pollIntervalSpin->value());
-    }
 
     accept();
 }
 
-void RigControlDialog::onRigConnected()
+void RigControlDialog::updateConnectionStatus(RadioWidgets& w)
 {
-    m_statusLabel->setText("Connected");
-    m_statusLabel->setStyleSheet("QLabel { color: green; font-weight: bold; }");
-    updateConnectionStatus();
-}
-
-void RigControlDialog::onRigDisconnected()
-{
-    m_statusLabel->setText("Disconnected");
-    m_statusLabel->setStyleSheet("QLabel { color: red; font-weight: bold; }");
-    m_rigNameLabel->setText("N/A");
-    updateConnectionStatus();
-}
-
-void RigControlDialog::onRigError(const QString& error)
-{
-    m_statusLabel->setText("Error: " + error);
-    m_statusLabel->setStyleSheet("QLabel { color: red; font-weight: bold; }");
-}
-
-void RigControlDialog::updateConnectionStatus()
-{
-    bool connected = m_rigClient->isConnected();
-    m_connectButton->setEnabled(!connected);
-    m_disconnectButton->setEnabled(connected);
-    m_testButton->setEnabled(connected);
+    if (!w.rigClient) {
+        w.connectButton->setEnabled(false);
+        w.disconnectButton->setEnabled(false);
+        w.testButton->setEnabled(false);
+        return;
+    }
+    bool connected = w.rigClient->isConnected();
+    w.connectButton->setEnabled(!connected);
+    w.disconnectButton->setEnabled(connected);
+    w.testButton->setEnabled(connected);
 }

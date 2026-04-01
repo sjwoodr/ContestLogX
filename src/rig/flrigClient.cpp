@@ -43,7 +43,7 @@ bool FlrigClient::connectToRig(const QString& host, int port)
         return true;
     }
     
-    if (DebugLogger::instance().isFlrigDebugEnabled()) DebugLogger::instance().log("Flrig", QString("Connecting to flrig at %1:%2").arg(host).arg(port).toStdString().c_str());
+    DebugLogger::instance().log("RigClient", QString("Connecting to flrig at %1:%2").arg(host).arg(port));
     m_socket->connectToHost(host, port);
     return m_socket->waitForConnected(3000);
 }
@@ -235,13 +235,13 @@ bool FlrigClient::sendCW(const QString& text)
 
 void FlrigClient::onSocketConnected()
 {
-    if (DebugLogger::instance().isFlrigDebugEnabled()) DebugLogger::instance().log("Flrig", QString("Connected to flrig at %1:%2").arg(m_host).arg(m_port));
+    DebugLogger::instance().log("RigClient", QString("Connected to flrig at %1:%2").arg(m_host).arg(m_port));
     emit connected();
 }
 
 void FlrigClient::onSocketDisconnected()
 {
-    if (DebugLogger::instance().isFlrigDebugEnabled()) DebugLogger::instance().log("Flrig", "Disconnected from flrig");
+    DebugLogger::instance().log("RigClient", "Disconnected from flrig");
     emit disconnected();
 }
 
