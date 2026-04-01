@@ -1,6 +1,6 @@
 # Rig Control Guide
 
-ContestLogX supports two rig control backends, selectable in **Rig → Rig Connection**.
+ContestLogX supports three rig control backends, selectable in **Rig → Rig Connection**.
 
 ## Option A — flrig (recommended)
 
@@ -80,6 +80,22 @@ rigctl -m 17001 -r /dev/ttyUSB0 -s 9600 b "TEST"
 
 If the response is `RPRT -11` (Feature not available) or `RPRT -4` (Feature not implemented), CW keying is not supported for your rig. Use flrig for CW keying instead.
 
+## Option C — Mocked (testing)
+
+The mocked backend simulates a radio without any real hardware. It is useful for:
+
+- **SO2R practice** — configure Radio R as mocked when you only have one physical radio
+- **UI testing** — verify QSO entry, CW memories, and freq/mode changes without a rig
+- **Demo/training** — show the application workflow without station equipment
+
+### Setup
+
+1. **Rig → Rig Connection** → select **Mocked (testing)**.
+2. Click **Connect** — the simulated radio connects instantly.
+3. Default state: 14.200 MHz USB, 25 WPM, 100W.
+
+All commands (set frequency, set mode, CW keying, PTT, power, bandwidth) are accepted and the mocked radio returns the last-set values. The rig name shows as "Mocked Rig" in the status display.
+
 ## Debugging
 
 Run ContestLogX in debug mode and enable rig debug logging:
@@ -92,12 +108,12 @@ Then in the app: **Debug → Rig Debug Logging** (checkbox). This logs all comma
 
 ## Backend Comparison
 
-| Feature | flrig | Hamlib (rigctld) |
-|---------|-------|------------------|
-| Frequency control | Yes | Yes |
-| Mode control | Yes | Yes |
-| CW keying | Yes (cwio) | Depends on rig |
-| PTT control | Yes | Yes |
-| Power control | Yes | Depends on rig |
-| Bandwidth control | Yes | Depends on rig |
-| Supported radios | [flrig list](https://www.w1hkj.org/) | [400+ models](https://hamlib.github.io/) |
+| Feature | flrig | Hamlib (rigctld) | Mocked |
+|---------|-------|------------------|--------|
+| Frequency control | Yes | Yes | Yes (simulated) |
+| Mode control | Yes | Yes | Yes (simulated) |
+| CW keying | Yes (cwio) | Depends on rig | Yes (simulated) |
+| PTT control | Yes | Yes | Yes (simulated) |
+| Power control | Yes | Depends on rig | Yes (simulated) |
+| Bandwidth control | Yes | Depends on rig | Yes (simulated) |
+| Supported radios | [flrig list](https://www.w1hkj.org/) | [400+ models](https://hamlib.github.io/) | None (virtual) |

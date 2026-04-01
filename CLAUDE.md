@@ -68,10 +68,11 @@ Main application window - QSO data entry/logging, contest setup, user prompts, s
 Single QSO data structure. Fields: DATE, TIME, CALL, FREQ, MODE, RSTs/RSTr, SNs/SNr, GRIDs/GRIDr, POINTS, and contest-specific multiplier fields.
 
 ### Rig Control (`src/rig/`, `include/rigInterface.h`)
-Two rig backends behind a common `RigInterface` abstract base class:
+Three rig backends behind a common `RigInterface` abstract base class:
 - **FlrigClient** (`src/rig/flrigClient.cpp`) — XML-RPC client for flrig. Full feature set: freq, mode, CW keying (cwio), PTT, power, bandwidth. Synchronous I/O on main thread.
 - **HamlibClient** (`src/rig/hamlibClient.cpp`) — TCP text protocol client for rigctld. Freq/mode control; CW/PTT/power depend on rig. Uses `HamlibWorker` on a background `QThread` to avoid blocking the UI. Getters return cached values from background polling; setters are fire-and-forget.
-- Backend selected in Settings (`rig.backend`: `"flrig"` or `"hamlib"`), each with independent host/port/autoConnect.
+- **MockedRigClient** (`src/rig/mockedRigClient.cpp`) — Simulated rig for testing and SO2R practice. Accepts all commands, returns last-set values. Defaults to 14.200 MHz USB.
+- Backend selected in Settings (`rig.backend`: `"flrig"`, `"hamlib"`, or `"mocked"`), each with independent host/port/autoConnect.
 
 ## Naming Conventions
 

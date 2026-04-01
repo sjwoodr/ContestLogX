@@ -17,7 +17,7 @@ import Layout from '../layouts/Layout.astro';
         <h2 class="text-lg font-semibold mb-3">Contents</h2>
         <ul class="space-y-1 opacity-80" style="list-style-type: disc; padding-left: 1.5rem;">
           <li><a href="#getting-started" class="hover:underline" style="color: #58a6ff;">Getting Started</a></li>
-          <li><a href="#rig-control" class="hover:underline" style="color: #58a6ff;">Rig Control (flrig &amp; Hamlib)</a></li>
+          <li><a href="#rig-control" class="hover:underline" style="color: #58a6ff;">Rig Control (flrig, Hamlib &amp; Mocked)</a></li>
           <li><a href="#logging" class="hover:underline" style="color: #58a6ff;">Logging a QSO, Sorting &amp; Filtering</a></li>
           <li><a href="#call-history" class="hover:underline" style="color: #58a6ff;">Call History &amp; Exchange Autofill</a></li>
           <li><a href="#cw-ssb-memories" class="hover:underline" style="color: #58a6ff;">CW &amp; SSB Memories</a></li>
@@ -74,10 +74,10 @@ import Layout from '../layouts/Layout.astro';
 
         <!-- Rig Control -->
         <section id="rig-control" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
-          <h2 class="text-2xl font-semibold mb-4">Rig Control (flrig &amp; Hamlib)</h2>
+          <h2 class="text-2xl font-semibold mb-4">Rig Control</h2>
 
           <p class="opacity-80 mb-4">
-            ContestLogX supports two rig control backends. Choose the one that fits your setup in
+            ContestLogX supports three rig control backends. Choose the one that fits your setup in
             <strong>Rig &rarr; Rig Connection</strong>.
           </p>
 
@@ -128,6 +128,18 @@ import Layout from '../layouts/Layout.astro';
             <li>Go to <strong>Rig &rarr; Rig Connection</strong>, select <strong>Hamlib (rigctld)</strong> as the backend.</li>
             <li>Enter <code>localhost</code> and the port rigctld is listening on (default: <code>4532</code>).</li>
             <li>Click <strong>Connect</strong>. The status bar will show the current frequency and mode.</li>
+          </ol>
+
+          <!-- Mocked -->
+          <h3 class="text-lg font-semibold mb-2">Option C &mdash; Mocked (testing)</h3>
+          <p class="opacity-80 mb-3">
+            The mocked backend simulates a radio without any real hardware. Useful for SO2R practice
+            when you only have one physical radio, UI testing, or demo/training scenarios.
+          </p>
+          <ol class="list-decimal list-inside space-y-2 opacity-80 mb-6">
+            <li>Go to <strong>Rig &rarr; Rig Connection</strong>, select <strong>Mocked (testing)</strong> as the backend.</li>
+            <li>Click <strong>Connect</strong> &mdash; the simulated radio connects instantly.</li>
+            <li>Default state: 14.200 MHz USB, 25 WPM, 100W. All commands (frequency, mode, CW, PTT) are accepted and return the last-set values.</li>
           </ol>
 
           <!-- Troubleshooting -->
@@ -345,17 +357,18 @@ F8  N9OH`}</pre>
 
           <h3 class="text-lg font-semibold mb-2">Enabling SO2R</h3>
           <ol class="list-decimal list-inside space-y-2 opacity-80 mb-4">
-            <li>Go to <strong>Rig &rarr; SO2R Mode</strong> and check it to enable.</li>
+            <li>Go to <strong>Rig &rarr; SO2R Mode</strong>, or check the <strong>SO2R</strong> checkbox in the Rig Connection Settings dialog.</li>
             <li>A second QSO entry panel (<strong>Radio R</strong>) appears below the existing panel (<strong>Radio L</strong>).</li>
             <li>Both panels are always visible &mdash; visual continuity is essential for maintaining rate.</li>
           </ol>
 
           <h3 class="text-lg font-semibold mb-2 mt-4">Connecting Two Rigs</h3>
           <p class="opacity-80 mb-3">
-            Each radio can use a different rig backend (flrig or Hamlib) with independent host and port settings.
+            Each radio can use a different rig backend (flrig, Hamlib, or Mocked) with independent host and port settings.
+            The <strong>Mocked</strong> backend is ideal for SO2R practice when you only have one physical radio.
           </p>
           <ol class="list-decimal list-inside space-y-2 opacity-80 mb-4">
-            <li>Go to <strong>Rig &rarr; Rig Connection</strong>. You will be prompted to select <strong>Radio L</strong> or <strong>Radio R</strong>.</li>
+            <li>Go to <strong>Rig &rarr; Rig Connection</strong>. The dialog shows <strong>Radio L</strong> and <strong>Radio R</strong> tabs.</li>
             <li>Configure each radio&rsquo;s backend, host, and port independently.</li>
             <li>Click <strong>Connect</strong> for each radio. Both frequency/mode displays update independently.</li>
           </ol>
