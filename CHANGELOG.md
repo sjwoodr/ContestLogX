@@ -3,6 +3,20 @@
 All notable changes to ContestLogX are documented in this file.
 
 ## [0.7.3]
+- Added SP DX Contest (SPDX) definition with support for both SP and DX station perspectives
+- Added mocked rig backend for SO2R testing and practice without a second radio
+- Added tabbed Rig Connection Settings dialog (Radio L / Radio R tabs when SO2R enabled)
+- Added SO2R toggle checkbox in Rig Connection Settings dialog
+- Added NOAA space weather propagation data (SFI, A-index, K-index) fetched automatically
+- Added clickable status bar labels: rig status opens connection dialog, propagation opens NOAA
+- Added Polish callsign generation support (-p flag) to callsign generator script
+- Added contest engine support for userPrompt-based stationClassMultipliers and invalidPartners
+- RST defaults update automatically on mode change (599 for CW/RTTY, 59 for SSB)
+- Fixed multiple SO2R focus and input routing issues (CW memories, freq/mode, field clearing, call entry, QRZ lookup, dupe checking)
+- Fixed rig status bar showing wrong state (signal connections made against nullptr at startup)
+- Fixed Flrig connect/disconnect log messages hidden behind debug flag
+- Fixed trailing separator visible in status bar when online scoring is inactive
+- Skip rig auto-connect and SO2R restore in --test-only mode
 
 ## [0.7.2]
 - Added SO2R (Single Operator, 2 Radio) support with dual independent QSO entry dock widgets

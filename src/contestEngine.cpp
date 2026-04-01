@@ -206,15 +206,33 @@ void ContestEngine::cacheContestProperties()
 
             // Multiplier categories (may be station-class specific)
             // JSON key is "stationClassMultipliers"; also accept legacy "stationClassCategories"
+            // Resolves from m_stationClass first, then falls back to userPrompt values
             m_cachedMultCategories.clear();
-            if (!m_stationClass.isEmpty()) {
+            {
+                QString effectiveClass = m_stationClass;
                 for (const QString& key : {"stationClassMultipliers", "stationClassCategories"}) {
                     if (mults.contains(key)) {
                         QJsonObject scCats = mults[key].toObject();
-                        if (scCats.contains(m_stationClass)) {
-                            for (const QJsonValue& v : scCats[m_stationClass].toArray())
+                        // If formal station class matches, use it
+                        if (!effectiveClass.isEmpty() && scCats.contains(effectiveClass)) {
+                            for (const QJsonValue& v : scCats[effectiveClass].toArray())
                                 m_cachedMultCategories.append(v.toString());
                             break;
+                        }
+                        // Fallback: check if any userPrompt value matches a key
+                        if (effectiveClass.isEmpty()) {
+                            for (const QString& scKey : scCats.keys()) {
+                                for (const QString& pv : m_userPromptValues.values()) {
+                                    if (pv == scKey) {
+                                        for (const QJsonValue& v : scCats[scKey].toArray())
+                                            m_cachedMultCategories.append(v.toString());
+                                        effectiveClass = scKey;
+                                        break;
+                                    }
+                                }
+                                if (!m_cachedMultCategories.isEmpty()) break;
+                            }
+                            if (!m_cachedMultCategories.isEmpty()) break;
                         }
                     }
                 }
@@ -739,15 +757,26 @@ int ContestEngine::calculatePoints(const QsoRecord& qso, const QString& myCallsi
 
         // Check if the partner station is an invalid contact for this station class
         // (e.g., W/VE stations may not work other W/VE stations in ARRL DX)
-        if (!m_stationClass.isEmpty() && scoring.contains("invalidPartners")) {
+        if (scoring.contains("invalidPartners")) {
             QJsonObject invalidPartners = scoring["invalidPartners"].toObject();
-            if (invalidPartners.contains(m_stationClass)) {
+            // Resolve effective class: formal station class or userPrompt value
+            QString effectiveClass = m_stationClass;
+            if (effectiveClass.isEmpty()) {
+                for (const QString& ipKey : invalidPartners.keys()) {
+                    if (ipKey.startsWith("_")) continue;
+                    for (const QString& pv : m_userPromptValues.values()) {
+                        if (pv == ipKey) { effectiveClass = ipKey; break; }
+                    }
+                    if (!effectiveClass.isEmpty()) break;
+                }
+            }
+            if (!effectiveClass.isEmpty() && invalidPartners.contains(effectiveClass)) {
                 QString theirPrefix = theirEntity.primaryPrefix;
-                for (const QJsonValue& v : invalidPartners[m_stationClass].toArray()) {
+                for (const QJsonValue& v : invalidPartners[effectiveClass].toArray()) {
                     if (v.toString() == theirPrefix) {
                         DebugLogger::instance().log("ContestEngine",
                             QString("  Partner %1 (%2) is invalid for station class %3 - 0 points")
-                                .arg(theirCall).arg(theirPrefix).arg(m_stationClass));
+                                .arg(theirCall).arg(theirPrefix).arg(effectiveClass));
                         return 0;
                     }
                 }
@@ -1019,18 +1048,29 @@ QList<ContestEngine::MultiplierInfo> ContestEngine::getMultipliersWithCategory(c
     QList<MultiplierInfo> result;
 
     // Check if the partner station is invalid for this station class (no mults awarded)
-    if (!m_stationClass.isEmpty() && m_cachedDxccIsMult && m_dxccDatabase) {
+    if (m_cachedDxccIsMult && m_dxccDatabase) {
         QJsonObject scoring = m_contestDef["scoring"].toObject();
         if (scoring.contains("invalidPartners")) {
             QJsonObject invalidPartners = scoring["invalidPartners"].toObject();
-            if (invalidPartners.contains(m_stationClass)) {
+            // Resolve effective class: formal station class or userPrompt value
+            QString effectiveClass = m_stationClass;
+            if (effectiveClass.isEmpty()) {
+                for (const QString& ipKey : invalidPartners.keys()) {
+                    if (ipKey.startsWith("_")) continue;
+                    for (const QString& pv : m_userPromptValues.values()) {
+                        if (pv == ipKey) { effectiveClass = ipKey; break; }
+                    }
+                    if (!effectiveClass.isEmpty()) break;
+                }
+            }
+            if (!effectiveClass.isEmpty() && invalidPartners.contains(effectiveClass)) {
                 DxccEntity theirEntity = dxccLookup(qso.getCall());
                 QString theirPrefix = theirEntity.primaryPrefix;
-                for (const QJsonValue& v : invalidPartners[m_stationClass].toArray()) {
+                for (const QJsonValue& v : invalidPartners[effectiveClass].toArray()) {
                     if (v.toString() == theirPrefix) {
                         DebugLogger::instance().log("ContestEngine",
                             QString("  Partner %1 (%2) is invalid for station class %3 - no mults")
-                                .arg(qso.getCall()).arg(theirPrefix).arg(m_stationClass));
+                                .arg(qso.getCall()).arg(theirPrefix).arg(effectiveClass));
                         return result;  // empty
                     }
                 }
@@ -2739,8 +2779,13 @@ QString ContestEngine::getRestrictedMode() const
 void ContestEngine::setUserPromptValue(const QString& promptId, const QString& value)
 {
     m_userPromptValues[promptId] = value;
-    DebugLogger::instance().log("ContestEngine", 
+    DebugLogger::instance().log("ContestEngine",
         QString("User prompt '%1' set to: '%2'").arg(promptId, value));
+
+    // Re-cache contest properties since multiplier categories and invalidPartners
+    // may depend on userPrompt values (e.g., stationClassMultipliers in SPDX)
+    if (!m_contestDef.isEmpty())
+        cacheContestProperties();
 }
 
 QString ContestEngine::getUserPromptValue(const QString& promptId) const

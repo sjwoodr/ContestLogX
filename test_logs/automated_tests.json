@@ -119,6 +119,16 @@
       "name": "RDXC Russian (UA station, 146 QSOs, mixed bands/modes)",
       "log_file": "test_rdxc_from_russia.clx",
       "expected_score": 85150
+    },
+    {
+      "name": "SP DX Contest (DX station, 151 QSOs, mixed bands/modes)",
+      "log_file": "test_spdx_wve.clx",
+      "expected_score": 36240
+    },
+    {
+      "name": "SP DX Contest (SP station, 101 QSOs, mixed bands/modes)",
+      "log_file": "test_spdx_sp.clx",
+      "expected_score": 18000
     }
   ]
 }

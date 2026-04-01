@@ -1,0 +1,253 @@
+{
+  "contest": {
+    "name": "SP DX Contest",
+    "abbreviation": "SPDX",
+    "version": "1.0.0",
+    "sponsor": "PZK (Polski Związek Krótkofalowców) and SP DX Club",
+    "description": "International contest encouraging contacts with Polish stations. Non-Polish stations exchange RST and serial number; Polish stations exchange RST and province (voivodeship) designator.",
+    "startDate": "First full weekend of April",
+    "duration": 24,
+    "offTimeGapMinutes": 0,
+    "modes": ["CW", "SSB"],
+    "bands": ["160m", "80m", "40m", "20m", "15m", "10m"],
+    "url": "https://www.spdxcontest.org",
+    "categories": {
+      "stations": ["SINGLE_OP", "MULTI_SINGLE"],
+      "power": ["HIGH", "LOW", "QRP"],
+      "modes": ["CW", "SSB", "MIXED"]
+    }
+  },
+  "frequencies": {
+    "160m": {
+      "start": 1800,
+      "end": 2000,
+      "cw": {"start": 1800, "end": 1850},
+      "phone": {"start": 1850, "end": 2000}
+    },
+    "80m": {
+      "start": 3500,
+      "end": 4000,
+      "cw": {"start": 3500, "end": 3600},
+      "phone": {"start": 3600, "end": 4000}
+    },
+    "40m": {
+      "start": 7000,
+      "end": 7300,
+      "cw": {"start": 7000, "end": 7125},
+      "phone": {"start": 7125, "end": 7300}
+    },
+    "20m": {
+      "start": 14000,
+      "end": 14350,
+      "cw": {"start": 14000, "end": 14150},
+      "phone": {"start": 14150, "end": 14350}
+    },
+    "15m": {
+      "start": 21000,
+      "end": 21450,
+      "cw": {"start": 21000, "end": 21200},
+      "phone": {"start": 21200, "end": 21450}
+    },
+    "10m": {
+      "start": 28000,
+      "end": 29700,
+      "cw": {"start": 28000, "end": 28300},
+      "phone": {"start": 28300, "end": 29700}
+    }
+  },
+  "stationClasses": {
+    "enabled": false
+  },
+  "userPrompts": [
+    {
+      "id": "stationType",
+      "question": "Are you a Polish or non-Polish station?",
+      "type": "select",
+      "options": [
+        {"value": "DX", "label": "Non-Polish (DX) — send RST + serial number"},
+        {"value": "SP", "label": "Polish (SP) — send RST + province designator"}
+      ],
+      "required": true,
+      "storeInMeta": true
+    },
+    {
+      "id": "myProvince",
+      "question": "Enter your province designator (B, C, D, F, G, J, K, L, M, O, P, R, S, U, W, Z)",
+      "type": "text",
+      "required": true,
+      "storeInMeta": true,
+      "visibleWhen": {"promptId": "stationType", "values": ["SP"]},
+      "exchangeFieldMapping": {"myProvince": "EXCHs"}
+    },
+    {
+      "id": "operatingCategory",
+      "question": "Select your operating category",
+      "type": "select",
+      "options": [
+        {"value": "SOAB-MIX-HP", "label": "Single-Op All Band Mixed High Power"},
+        {"value": "SOAB-MIX-LP", "label": "Single-Op All Band Mixed Low Power"},
+        {"value": "SOAB-MIX-QRP", "label": "Single-Op All Band Mixed QRP"},
+        {"value": "SOAB-SSB-HP", "label": "Single-Op All Band Phone High Power"},
+        {"value": "SOAB-SSB-LP", "label": "Single-Op All Band Phone Low Power"},
+        {"value": "SOAB-CW-HP", "label": "Single-Op All Band CW High Power"},
+        {"value": "SOAB-CW-LP", "label": "Single-Op All Band CW Low Power"},
+        {"value": "SOTB-MIX", "label": "Single-Op Three Band Mixed"},
+        {"value": "SOSB-SSB", "label": "Single-Op Single Band Phone"},
+        {"value": "SOSB-CW", "label": "Single-Op Single Band CW"},
+        {"value": "MOAB-MIX-HP", "label": "Multi-Op All Band Mixed High Power"},
+        {"value": "MOAB-MIX-LP", "label": "Multi-Op All Band Mixed Low Power"},
+        {"value": "CHECKLOG", "label": "Checklog"}
+      ],
+      "required": true,
+      "storeInMeta": true
+    }
+  ],
+  "exchangeFields": {
+    "sent": [
+      {
+        "name": "RST",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report sent"
+      },
+      {
+        "name": "SNs",
+        "type": "serial",
+        "required": true,
+        "description": "Serial number sent (auto-incremented)"
+      }
+    ],
+    "received": [
+      {
+        "name": "RST",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report received"
+      },
+      {
+        "name": "EXCHr",
+        "type": "string",
+        "required": true,
+        "description": "Serial number (non-Polish stations) or province designator (Polish stations)"
+      }
+    ]
+  },
+  "qsoFields": [
+    {"name": "Date",      "column": "DATE",   "type": "date",   "format": "yyyy-MM-dd", "required": true},
+    {"name": "Time",      "column": "TIME",   "type": "time",   "format": "HH:mm:ss",   "required": true},
+    {"name": "Callsign",  "column": "CALL",   "type": "string", "required": true, "uppercase": true},
+    {"name": "Frequency", "column": "FREQ",   "type": "number", "unit": "kHz",    "required": true},
+    {"name": "Mode",      "column": "MODE",   "type": "enum",   "values": ["CW", "SSB"], "required": true},
+    {"name": "RST Sent",  "column": "RSTs",   "type": "string", "required": true, "default": "599"},
+    {"name": "RST Rcvd",  "column": "RSTr",   "type": "string", "required": true},
+    {"name": "SN Sent",         "column": "SNs",    "type": "serial", "required": true, "visibleWhen": {"promptId": "stationType", "values": ["DX"]}},
+    {"name": "Province Sent",   "column": "EXCHs",  "type": "string", "required": true, "visibleWhen": {"promptId": "stationType", "values": ["SP"]}},
+    {"name": "Exch Rcvd",       "column": "EXCHr",  "type": "string", "required": true, "description": "Serial number or province designator"},
+    {"name": "Points",    "column": "POINTS", "type": "number", "calculated": true},
+    {"name": "Mult",      "column": "M",      "type": "string", "calculated": true}
+  ],
+  "scoring": {
+    "polishStationPrefixes": ["3Z", "HF", "SN", "SO", "SP", "SQ"],
+    "scoringRuleConditions": {
+      "polishStation": {"promptId": "stationType", "values": ["DX"]}
+    },
+    "points": {
+      "polishStation": {
+        "CW": 3,
+        "SSB": 3
+      },
+      "sameContinent": {
+        "CW": 1,
+        "SSB": 1
+      },
+      "differentContinent": {
+        "CW": 3,
+        "SSB": 3
+      }
+    },
+    "precedence": [
+      "polishStation",
+      "sameContinent",
+      "differentContinent"
+    ],
+    "multipliers": {
+      "type": "multsPerBand",
+      "description": "Polish provinces per band (DX stations) or DXCC entities per band (SP stations)",
+      "categories": ["namedMults", "dxcc"],
+      "namedMultSource": "exchange",
+      "stationClassMultipliers": {
+        "SP": ["dxcc"],
+        "DX": ["namedMults"]
+      }
+    },
+    "invalidPartners": {
+      "SP": ["SP"],
+      "__comment": "Polish stations cannot work other Polish stations for points"
+    },
+    "finalScore": "SUM(points) * (namedMults + dxccMultipliers)"
+  },
+  "dupeChecking": {
+    "type": "perBandAndMode",
+    "description": "Station may be worked once per band per mode (CW and SSB count separately)"
+  },
+  "logging": {
+    "requiredFields": ["date", "time", "frequency", "mode", "callsign", "rstSent", "rstReceived", "serialSent", "exchReceived"],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "SP-DX",
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {rst_sent} {sn_sent} {call} {rst_rcvd} {exch_rcvd}",
+      "requiredHeaders": ["CONTEST", "CALLSIGN", "CATEGORY-OPERATOR", "CATEGORY-BAND", "CATEGORY-POWER", "CATEGORY-MODE", "CLAIMED-SCORE", "CLUB", "NAME", "ADDRESS", "OPERATORS"]
+    }
+  },
+  "callHistory": {
+    "fieldsToSave": ["EXCHr"],
+    "description": "Save received exchange (province designator or serial) for future lookups"
+  },
+  "validation": {
+    "minimumQSOs": 1,
+    "maxOperatingTime": 24,
+    "offTimesRequired": false,
+    "namedMults": [
+      "B", "C", "D", "F", "G", "J", "K", "L", "M", "O", "P", "R", "S", "U", "W", "Z"
+    ],
+    "namedMultDescriptions": {
+      "B": "lubuskie",
+      "C": "łódzkie",
+      "D": "dolnośląskie",
+      "F": "pomorskie",
+      "G": "śląskie",
+      "J": "warmińsko-mazurskie",
+      "K": "podkarpackie",
+      "L": "lubelskie",
+      "M": "małopolskie",
+      "O": "podlaskie",
+      "P": "kujawsko-pomorskie",
+      "R": "mazowieckie",
+      "S": "świętokrzyskie",
+      "U": "opolskie",
+      "W": "wielkopolskie",
+      "Z": "zachodniopomorskie"
+    },
+    "exchangeValidation": {
+      "type": "provinceOrSerial",
+      "description": "Accept province designator (for Polish stations) or serial number (for non-Polish stations)",
+      "serialFormat": "^[0-9]+$"
+    }
+  },
+  "ui": {
+    "showMultiplierPanel": true,
+    "logColumns": ["DATE", "TIME", "CALL", "FREQ", "MODE", "RSTs", "RSTr", "SNs", "EXCHs", "EXCHr", "POINTS", "M"],
+    "entryFields": ["CALL", "RSTr", "EXCHr"],
+    "fieldNavigation": {
+      "keys": "tab"
+    },
+    "bandMap": {
+      "enabled": true,
+      "bands": ["160m", "80m", "40m", "20m", "15m", "10m"]
+    },
+    "multiplierDisplay": {
+      "showProvinces": true,
+      "showDXCC": true
+    }
+  }
+}
