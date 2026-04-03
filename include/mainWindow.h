@@ -156,6 +156,7 @@ private slots:
     void onDownloadScp();
     void checkDataFileStaleness();
     void onManageCallHistory();
+    void onImportCallHistory();
     void onScpDialog();
     void onPreferences();
     void applyFontSettings();

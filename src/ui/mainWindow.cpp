@@ -1205,6 +1205,9 @@ void MainWindow::setupMenus()
     QAction *callHistoryAction = fileMenu->addAction("Manage &Call History...");
     connect(callHistoryAction, &QAction::triggered, this, &MainWindow::onManageCallHistory);
 
+    QAction *importCallHistoryAction = fileMenu->addAction("&Import Call History...");
+    connect(importCallHistoryAction, &QAction::triggered, this, &MainWindow::onImportCallHistory);
+
     fileMenu->addSeparator();
 
     QAction *preferencesAction = fileMenu->addAction("&Preferences...");
@@ -3129,6 +3132,195 @@ void MainWindow::onManageCallHistory()
     dialog.exec();
 }
 
+void MainWindow::onImportCallHistory()
+{
+    if (!m_contestEngine) {
+        QMessageBox::warning(this, "Import Call History", "Please load a contest before importing call history.");
+        return;
+    }
+
+    // Get the exchange fields defined for the current contest (received side)
+    QStringList contestFields = m_contestEngine->getCallHistoryFieldsToSave();
+    if (contestFields.isEmpty()) {
+        QMessageBox::warning(this, "Import Call History", "Current contest has no exchange fields defined for call history.");
+        return;
+    }
+
+    // Open file dialog
+    QString fileName = QFileDialog::getOpenFileName(this, "Import Call History",
+        QString(), "Call History Files (*.txt *.csv);;All Files (*)");
+    if (fileName.isEmpty()) return;
+
+    // Read and parse the file
+    QFile file(fileName);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        QMessageBox::critical(this, "Import Call History",
+            QString("Could not open file: %1").arg(file.errorString()));
+        return;
+    }
+
+    QStringList fileFieldNames;
+    QList<QStringList> dataRows;
+
+    QTextStream in(&file);
+    while (!in.atEnd()) {
+        QString line = in.readLine().trimmed();
+        if (line.isEmpty()) continue;
+
+        // Skip comments
+        if (line.startsWith('#')) continue;
+
+        // Parse format specifier: !!Order!!,Call,Field1,Field2,...
+        if (line.startsWith("!!")) {
+            // Remove the !!Order!! tag and split
+            int firstComma = line.indexOf(',');
+            if (firstComma >= 0) {
+                QString fieldsPart = line.mid(firstComma + 1);
+                fileFieldNames = fieldsPart.split(',');
+                for (QString& f : fileFieldNames)
+                    f = f.trimmed();
+            }
+            continue;
+        }
+
+        // Data line — split by comma
+        QStringList fields = line.split(',');
+        for (QString& f : fields)
+            f = f.trimmed();
+        if (!fields.isEmpty())
+            dataRows.append(fields);
+    }
+    file.close();
+
+    if (fileFieldNames.isEmpty()) {
+        QMessageBox::warning(this, "Import Call History",
+            "No format specifier (!!Order!!) found in file.");
+        return;
+    }
+    if (dataRows.isEmpty()) {
+        QMessageBox::warning(this, "Import Call History", "No data records found in file.");
+        return;
+    }
+
+    // Find the Call field index (skip it in mapping since it's always the callsign)
+    int callIndex = -1;
+    for (int i = 0; i < fileFieldNames.size(); ++i) {
+        if (fileFieldNames[i].compare("Call", Qt::CaseInsensitive) == 0) {
+            callIndex = i;
+            break;
+        }
+    }
+    if (callIndex < 0) {
+        QMessageBox::warning(this, "Import Call History",
+            "No 'Call' field found in format specifier.");
+        return;
+    }
+
+    // Build list of non-Call file fields that need mapping
+    QStringList fieldsToMap;
+    QList<int> fieldsToMapIndices;
+    for (int i = 0; i < fileFieldNames.size(); ++i) {
+        if (i == callIndex) continue;
+        fieldsToMap.append(fileFieldNames[i]);
+        fieldsToMapIndices.append(i);
+    }
+
+    if (fieldsToMap.isEmpty()) {
+        QMessageBox::warning(this, "Import Call History",
+            "No exchange fields found to map (only 'Call' was in the format).");
+        return;
+    }
+
+    // Show mapping dialog
+    QDialog mappingDialog(this);
+    mappingDialog.setWindowTitle("Map Call History Fields");
+    mappingDialog.setMinimumWidth(400);
+
+    QVBoxLayout *layout = new QVBoxLayout(&mappingDialog);
+
+    QLabel *infoLabel = new QLabel(
+        QString("File contains %1 records with fields: %2\n\n"
+                "Map each file field to a contest exchange field:")
+            .arg(dataRows.size())
+            .arg(fileFieldNames.join(", ")));
+    infoLabel->setWordWrap(true);
+    layout->addWidget(infoLabel);
+
+    QFormLayout *formLayout = new QFormLayout();
+    QList<QComboBox*> mappingCombos;
+
+    for (const QString& fileField : fieldsToMap) {
+        QComboBox *combo = new QComboBox();
+        combo->addItem("(skip)", QString());
+        for (const QString& contestField : contestFields)
+            combo->addItem(contestField, contestField);
+
+        // Auto-select if there's a plausible match
+        for (int j = 0; j < contestFields.size(); ++j) {
+            if (contestFields[j].compare(fileField, Qt::CaseInsensitive) == 0) {
+                combo->setCurrentIndex(j + 1); // +1 for "(skip)"
+                break;
+            }
+        }
+
+        formLayout->addRow(QString("File field \"%1\" →").arg(fileField), combo);
+        mappingCombos.append(combo);
+    }
+    layout->addLayout(formLayout);
+
+    QDialogButtonBox *buttons = new QDialogButtonBox(
+        QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+    connect(buttons, &QDialogButtonBox::accepted, &mappingDialog, &QDialog::accept);
+    connect(buttons, &QDialogButtonBox::rejected, &mappingDialog, &QDialog::reject);
+    layout->addWidget(buttons);
+
+    if (mappingDialog.exec() != QDialog::Accepted) return;
+
+    // Build the field mapping: file column index → contest field name
+    QMap<int, QString> columnMapping;
+    for (int i = 0; i < fieldsToMapIndices.size(); ++i) {
+        QString contestField = mappingCombos[i]->currentData().toString();
+        if (!contestField.isEmpty())
+            columnMapping[fieldsToMapIndices[i]] = contestField;
+    }
+
+    if (columnMapping.isEmpty()) {
+        QMessageBox::warning(this, "Import Call History", "No fields were mapped. Import cancelled.");
+        return;
+    }
+
+    // Import the records
+    int imported = 0;
+    for (const QStringList& row : dataRows) {
+        if (callIndex >= row.size()) continue;
+
+        QString callsign = row[callIndex].toUpper().trimmed();
+        if (callsign.isEmpty()) continue;
+
+        QMap<QString, QString> fields;
+        for (auto it = columnMapping.begin(); it != columnMapping.end(); ++it) {
+            if (it.key() < row.size()) {
+                QString value = row[it.key()].trimmed().toUpper();
+                if (!value.isEmpty())
+                    fields[it.value()] = value;
+            }
+        }
+
+        if (!fields.isEmpty()) {
+            CallHistory::instance().addOrUpdateRecord(callsign, fields);
+            imported++;
+        }
+    }
+
+    CallHistory::instance().save();
+
+    DebugLogger::instance().log("MainWindow",
+        QString("Imported %1 call history records from %2").arg(imported).arg(fileName));
+
+    QMessageBox::information(this, "Import Call History",
+        QString("Successfully imported %1 call history records.").arg(imported));
+}
+
 void MainWindow::keyPressEvent(QKeyEvent *event)
 {
     // Handle F1-F8 function keys for CW/SSB memories (without modifiers)
@@ -5038,7 +5230,7 @@ void MainWindow::onAbout()
     msgBox.setTextFormat(Qt::RichText);
     msgBox.setTextInteractionFlags(Qt::TextBrowserInteraction);
     msgBox.setText(
-        "<b>ContestLogX - Version 0.7.4 (Beta)</b><br><br>"
+        "<b>ContestLogX - Version 0.7.5 (Beta)</b><br><br>"
         "Cross-platform amateur radio contest logging software<br><br>"
         "Copyright &copy; 2025-2026, by Steve Woodruff, N9OH<br><br>"
         "<a href=\"https://contestlogx.com\">https://contestlogx.com</a><br><br>"

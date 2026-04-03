@@ -2,6 +2,9 @@
 
 All notable changes to ContestLogX are documented in this file.
 
+## [0.7.5]
+- Added call history import (File > Import Call History) supporting !!Order!! format files with field mapping dialog
+
 ## [0.7.4]
 - Added Louisiana QSO Party (LAQP) contest definition with 64 parishes, multsPerBandAndMode scoring, and N5LCC bonus station
 - Added Contest Calendar menu item under Contest menu (opens contestcalendar.com weekly contest listing)
