@@ -1,0 +1,374 @@
+{
+  "contest": {
+    "name": "Louisiana QSO Party",
+    "abbreviation": "LAQP",
+    "version": "1.0.0",
+    "sponsor": "Louisiana Contest Club",
+    "description": "Annual Louisiana QSO Party. Non-LA stations work LA stations only for LA parish multipliers. LA stations work everyone for parishes, states, provinces, and DXCC multipliers.",
+    "startDate": "First Saturday in April (2026: April 4, 1400 UTC – April 5, 0200 UTC)",
+    "duration": 12,
+    "offTimeGapMinutes": 0,
+    "modes": ["CW", "SSB"],
+    "bands": ["160m", "80m", "40m", "20m", "15m", "10m", "6m", "2m"],
+    "url": "https://laqp.org/",
+    "categories": {
+      "stations": ["SINGLE_OP", "ROVER"],
+      "power": ["QRP", "LOW_POWER", "HIGH_POWER"],
+      "modes": ["MIXED", "CW_DIGITAL", "PHONE"]
+    }
+  },
+  "contestOnlineScore": {
+    "contestId": "LA-QSO-PARTY",
+    "mult1Name": "Parish/DXCC/St./Prov.",
+    "mult1Attribute": "state"
+  },
+  "frequencies": {
+    "160m": {
+      "start": 1800,
+      "end": 2000,
+      "cw":    {"start": 1800, "end": 1860},
+      "phone": {"start": 1860, "end": 2000}
+    },
+    "80m": {
+      "start": 3500,
+      "end": 4000,
+      "cw":    {"start": 3500, "end": 3600},
+      "phone": {"start": 3600, "end": 4000}
+    },
+    "40m": {
+      "start": 7000,
+      "end": 7300,
+      "cw":    {"start": 7000, "end": 7125},
+      "phone": {"start": 7125, "end": 7300}
+    },
+    "20m": {
+      "start": 14000,
+      "end": 14350,
+      "cw":    {"start": 14000, "end": 14150},
+      "phone": {"start": 14150, "end": 14350}
+    },
+    "15m": {
+      "start": 21000,
+      "end": 21450,
+      "cw":    {"start": 21000, "end": 21200},
+      "phone": {"start": 21200, "end": 21450}
+    },
+    "10m": {
+      "start": 28000,
+      "end": 29700,
+      "cw":    {"start": 28000, "end": 28300},
+      "phone": {"start": 28300, "end": 29700}
+    },
+    "6m": {
+      "start": 50000,
+      "end": 54000,
+      "cw":    {"start": 50000, "end": 50125},
+      "phone": {"start": 50125, "end": 54000}
+    },
+    "2m": {
+      "start": 144000,
+      "end": 148000,
+      "cw":    {"start": 144000, "end": 144150},
+      "phone": {"start": 144150, "end": 148000}
+    }
+  },
+
+  "stationClasses": {
+    "enabled": false
+  },
+
+  "userPrompts": [
+    {
+      "id": "stationType",
+      "question": "Select your station location",
+      "type": "select",
+      "options": [
+        {"value": "LA",  "label": "Louisiana (in-state) — send LA parish abbreviation"},
+        {"value": "WVE", "label": "W/VE (US or Canada outside LA) — send state or province"},
+        {"value": "DX",  "label": "DX (outside US/Canada) — send DXCC entity prefix"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "LA stations work everyone. Non-LA stations work LA stations only."
+    },
+    {
+      "id": "operatingClass",
+      "question": "Select your operating class",
+      "type": "select",
+      "options": [
+        {"value": "LA_PHONE",      "label": "LA Fixed: Phone Only"},
+        {"value": "LA_CWDIG",      "label": "LA Fixed: CW/Digital Only"},
+        {"value": "LA_MIXED",      "label": "LA Fixed: Mixed Mode"},
+        {"value": "LA_ROV_PHONE",  "label": "LA Rover: Phone Only"},
+        {"value": "LA_ROV_CWDIG",  "label": "LA Rover: CW/Digital Only"},
+        {"value": "LA_ROV_MIXED",  "label": "LA Rover: Mixed Mode"},
+        {"value": "OUT_PHONE",     "label": "Non-LA: Phone Only"},
+        {"value": "OUT_CWDIG",     "label": "Non-LA: CW/Digital Only"},
+        {"value": "OUT_MIXED",     "label": "Non-LA: Mixed Mode"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "LA Rovers: +50 bonus points per parish activated. Rovers may be re-worked in each parish."
+    },
+    {
+      "id": "powerCategory",
+      "question": "Select your power level",
+      "type": "select",
+      "options": [
+        {"value": "HIGH", "label": "High Power — up to 1500 watts"},
+        {"value": "LOW",  "label": "Low Power — up to 100 watts"},
+        {"value": "QRP",  "label": "QRP — up to 5 watts"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "If ANY contacts are made at a higher power level, the entire log is classified at that higher level."
+    },
+    {
+      "id": "overlayCategory",
+      "question": "Select overlay category (optional)",
+      "type": "select",
+      "options": [
+        {"value": "NONE",     "label": "None"},
+        {"value": "WIRES",    "label": "WIRES — antennas made of wires only, no aluminum tubing"},
+        {"value": "TB-WIRES", "label": "TB-WIRES — tribander for 10/15/20m and wires for 40/80/160m"},
+        {"value": "POTA",     "label": "POTA — Parks on the Air, campground, or federal wildlife refuge"}
+      ],
+      "required": false,
+      "storeInMeta": true,
+      "description": "Optional overlay category for both LA and non-LA stations."
+    },
+    {
+      "id": "myExchange",
+      "question": "Enter your exchange (LA parish abbrev e.g. EBR, state e.g. FL, province e.g. ON, or DXCC prefix e.g. G)",
+      "type": "text",
+      "required": true,
+      "forceUppercase": true,
+      "storeInMeta": true,
+      "description": "LA parish abbreviation (4 letters) for LA stations; 2-letter state or province for W/VE; DXCC entity prefix for DX.",
+      "exchangeFieldMapping": {
+        "myExchange": "EXCHs"
+      }
+    }
+  ],
+
+  "exchangeFields": {
+    "sent": [
+      {
+        "name": "RSTs",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report sent (RS on phone, RST on CW/digital)"
+      },
+      {
+        "name": "EXCHs",
+        "type": "string",
+        "required": true,
+        "description": "LA parish (LA stations), state/province (W/VE), or DXCC prefix (DX)"
+      }
+    ],
+    "received": [
+      {
+        "name": "RSTr",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report received"
+      },
+      {
+        "name": "EXCHr",
+        "type": "string",
+        "required": true,
+        "description": "LA parish (from LA stations), state/province (from W/VE), or DXCC prefix (from DX)"
+      }
+    ]
+  },
+
+  "qsoFields": [
+    {"name": "Date",      "column": "DATE",   "type": "date",   "format": "yyyy-MM-dd", "required": true},
+    {"name": "Time",      "column": "TIME",   "type": "time",   "format": "HH:mm:ss",   "required": true},
+    {"name": "Callsign",  "column": "CALL",   "type": "string", "required": true, "uppercase": true},
+    {"name": "Frequency", "column": "FREQ",   "type": "number", "unit": "kHz",    "required": true},
+    {"name": "Mode",      "column": "MODE",   "type": "enum",   "values": ["CW", "SSB"], "required": true},
+    {"name": "RST Sent",  "column": "RSTs",   "type": "string", "required": true},
+    {"name": "RST Rcvd",  "column": "RSTr",   "type": "string", "required": true},
+    {"name": "Exch Sent", "column": "EXCHs",  "type": "string", "required": true},
+    {"name": "Exch Rcvd", "column": "EXCHr",  "type": "string", "required": true},
+    {"name": "Points",    "column": "POINTS", "type": "number", "calculated": true},
+    {"name": "Mult",      "column": "M",      "type": "string", "calculated": true}
+  ],
+
+  "scoring": {
+    "points": {
+      "phone": 2,
+      "cw":    4,
+      "digital": 4
+    },
+    "multipliers": {
+      "type": "multsPerBandAndMode",
+      "description": "Non-LA: LA parishes per band/mode. LA: LA parishes + US states (excl LA) + 13 Canadian provinces + DXCC per band/mode. CW/Digital count as one mode group, Phone as another.",
+      "categories": ["namedMults", "dxcc"],
+      "alaskaAndHawaiiCountDxcc": false,
+      "usAndCanadaCountDxcc": false
+    },
+    "finalScore": "SUM(points) * SUM(multipliers)"
+  },
+
+  "dupeChecking": {
+    "type": "perBandAndMode",
+    "description": "Work each fixed station once on CW/Digital and once on Phone per band. Rovers may be re-worked in each parish they activate."
+  },
+
+  "logging": {
+    "requiredFields": ["date", "time", "frequency", "mode", "callsign", "rstSent", "rstReceived", "exchSent", "exchReceived"],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "LA-QSO-PARTY",
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {rst_sent} {exch_sent} {call} {rst_rcvd} {exch_rcvd}",
+      "requiredHeaders": ["CONTEST", "CALLSIGN", "CATEGORY-OPERATOR", "CATEGORY-POWER", "CATEGORY-MODE", "CLAIMED-SCORE", "CREATED-BY", "NAME", "EMAIL"]
+    }
+  },
+
+  "callHistory": {
+    "fieldsToSave": ["EXCHr"],
+    "description": "Save parish/state/province/DXCC prefix for future autofill"
+  },
+
+  "bonusStations": [
+    {
+      "name": "Louisiana Contest Club",
+      "pointsEach": 100,
+      "type": "bonusOnce",
+      "stations": ["N5LCC"],
+      "note": "One-time 100-point bonus for working N5LCC. Additional QSOs with N5LCC count for QSO points but no extra bonus."
+    }
+  ],
+
+  "validation": {
+    "minimumQSOs": 1,
+    "maxOperatingTime": 12,
+    "offTimesRequired": false,
+    "namedMults": [
+      "ACAD", "ALLE", "ASCE", "ASSU", "AVOY", "BEAU", "BIEN", "BOSS",
+      "CADD", "CALC", "CALD", "CAME", "CATA", "CLAI", "CONC", "DESO",
+      "EBR",  "ECAR", "EFEL", "EVAN", "FRAN", "GRAN", "IBER", "IBVL",
+      "JACK", "JEFF", "JFDV", "LASA", "LAFA", "LAFO", "LINC", "LIVI",
+      "MADI", "MORE", "NATC", "ORLE", "OUAC", "PLAQ", "PCP",  "RAPI",
+      "REDR", "RICH", "SABI", "SBND", "SCHL", "SHEL", "SJAM", "SJB",
+      "SLAN", "SMT",  "SMAR", "STAM", "TANG", "TENS", "TERR", "UNIO",
+      "VERM", "VERN", "WASH", "WEBS", "WBR",  "WCAR", "WFEL", "WINN",
+      "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL",
+      "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "ME",
+      "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH",
+      "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI",
+      "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY",
+      "AB", "BC", "MB", "NB", "NL", "NS", "NT", "NU", "ON", "PE", "QC", "SK", "YT"
+    ],
+    "inStateMults": [
+      "ACAD", "ALLE", "ASCE", "ASSU", "AVOY", "BEAU", "BIEN", "BOSS",
+      "CADD", "CALC", "CALD", "CAME", "CATA", "CLAI", "CONC", "DESO",
+      "EBR",  "ECAR", "EFEL", "EVAN", "FRAN", "GRAN", "IBER", "IBVL",
+      "JACK", "JEFF", "JFDV", "LASA", "LAFA", "LAFO", "LINC", "LIVI",
+      "MADI", "MORE", "NATC", "ORLE", "OUAC", "PLAQ", "PCP",  "RAPI",
+      "REDR", "RICH", "SABI", "SBND", "SCHL", "SHEL", "SJAM", "SJB",
+      "SLAN", "SMT",  "SMAR", "STAM", "TANG", "TENS", "TERR", "UNIO",
+      "VERM", "VERN", "WASH", "WEBS", "WBR",  "WCAR", "WFEL", "WINN"
+    ],
+    "exchangeValidation": {
+      "type": "namedMultOrDxcc",
+      "description": "LA parish (3-4 letter abbrev), US state (2-letter), Canadian province (2-letter), or DXCC entity prefix. Non-LA stations: received exchange must be a valid LA parish abbreviation."
+    },
+    "receivedExchangeFilter": {
+      "promptId": "stationType",
+      "rules": {
+        "WVE": "inStateMults",
+        "DX":  "inStateMults"
+      }
+    }
+  },
+
+  "parishAbbreviations": {
+    "description": "Louisiana Parish abbreviations (64 parishes)",
+    "ACAD": "Acadia",
+    "ALLE": "Allen",
+    "ASCE": "Ascension",
+    "ASSU": "Assumption",
+    "AVOY": "Avoyelles",
+    "BEAU": "Beauregard",
+    "BIEN": "Bienville",
+    "BOSS": "Bossier",
+    "CADD": "Caddo",
+    "CALC": "Calcasieu",
+    "CALD": "Caldwell",
+    "CAME": "Cameron",
+    "CATA": "Catahoula",
+    "CLAI": "Claiborne",
+    "CONC": "Concordia",
+    "DESO": "De Soto",
+    "EBR":  "East Baton Rouge",
+    "ECAR": "East Carroll",
+    "EFEL": "East Feliciana",
+    "EVAN": "Evangeline",
+    "FRAN": "Franklin",
+    "GRAN": "Grant",
+    "IBER": "Iberia",
+    "IBVL": "Iberville",
+    "JACK": "Jackson",
+    "JEFF": "Jefferson",
+    "JFDV": "Jefferson Davis",
+    "LASA": "La Salle",
+    "LAFA": "Lafayette",
+    "LAFO": "Lafourche",
+    "LINC": "Lincoln",
+    "LIVI": "Livingston",
+    "MADI": "Madison",
+    "MORE": "Morehouse",
+    "NATC": "Natchitoches",
+    "ORLE": "Orleans",
+    "OUAC": "Ouachita",
+    "PLAQ": "Plaquemines",
+    "PCP":  "Pointe Coupee",
+    "RAPI": "Rapides",
+    "REDR": "Red River",
+    "RICH": "Richland",
+    "SABI": "Sabine",
+    "SBND": "St. Bernard",
+    "SCHL": "St. Charles",
+    "SHEL": "St. Helena",
+    "SJAM": "St. James",
+    "SJB":  "St. John the Baptist",
+    "SLAN": "St. Landry",
+    "SMT":  "St. Martin",
+    "SMAR": "St. Mary",
+    "STAM": "St. Tammany",
+    "TANG": "Tangipahoa",
+    "TENS": "Tensas",
+    "TERR": "Terrebonne",
+    "UNIO": "Union",
+    "VERM": "Vermilion",
+    "VERN": "Vernon",
+    "WASH": "Washington",
+    "WEBS": "Webster",
+    "WBR":  "West Baton Rouge",
+    "WCAR": "West Carroll",
+    "WFEL": "West Feliciana",
+    "WINN": "Winn"
+  },
+
+  "ui": {
+    "showMultiplierPanel": true,
+    "logColumns": ["DATE", "TIME", "CALL", "FREQ", "MODE", "RSTs", "RSTr", "EXCHs", "EXCHr", "POINTS", "M", "COMMENT"],
+    "entryFields": ["CALL", "RSTr", "EXCHr"],
+    "fieldNavigation": {
+      "keys": "tab"
+    },
+    "bandMap": {
+      "enabled": true,
+      "bands": ["160m", "80m", "40m", "20m", "15m", "10m", "6m", "2m"]
+    },
+    "multiplierDisplay": {
+      "showCounties":  true,
+      "showStates":    true,
+      "showProvinces": true,
+      "showDXCC":      true
+    }
+  }
+}

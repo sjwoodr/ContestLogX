@@ -2,6 +2,10 @@
 
 All notable changes to ContestLogX are documented in this file.
 
+## [0.7.4]
+- Added Louisiana QSO Party (LAQP) contest definition with 64 parishes, multsPerBandAndMode scoring, and N5LCC bonus station
+- Added Contest Calendar menu item under Contest menu (opens contestcalendar.com weekly contest listing)
+
 ## [0.7.3]
 - Added SP DX Contest (SPDX) definition with support for both SP and DX station perspectives
 - Added contest engine support for userPrompt-based stationClassMultipliers and invalidPartners

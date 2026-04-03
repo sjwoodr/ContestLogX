@@ -129,6 +129,16 @@
       "name": "SP DX Contest (SP station, 101 QSOs, mixed bands/modes)",
       "log_file": "test_spdx_sp.clx",
       "expected_score": 18000
+    },
+    {
+      "name": "LAQP Out-of-State (WVE station, 101 QSOs, multsPerBandAndMode, N5LCC bonus)",
+      "log_file": "test_laqp_outofstate.clx",
+      "expected_score": 29200
+    },
+    {
+      "name": "LAQP In-State (LA station, 102 QSOs, multsPerBandAndMode, parishes+states+VE+DXCC)",
+      "log_file": "test_laqp_instate.clx",
+      "expected_score": 31924
     }
   ]
 }
