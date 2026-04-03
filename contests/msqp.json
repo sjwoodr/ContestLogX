@@ -1,0 +1,369 @@
+{
+  "contest": {
+    "name": "Mississippi QSO Party",
+    "abbreviation": "MSQP",
+    "version": "1.0.0",
+    "sponsor": "Vicksburg Amateur Radio Club",
+    "description": "Annual Mississippi QSO Party. Non-MS stations work MS stations for county and grid square multipliers. MS stations work everyone for counties, states, provinces, DXCC, and grid square multipliers.",
+    "startDate": "First Saturday in April (2026: April 4, 1500 UTC – April 5, 0300 UTC)",
+    "duration": 12,
+    "offTimeGapMinutes": 0,
+    "modes": ["CW", "SSB", "RTTY", "FT8"],
+    "bands": ["160m", "80m", "40m", "20m", "15m", "10m", "6m", "2m"],
+    "url": "https://www.arrlmiss.org/msqp",
+    "categories": {
+      "stations": ["SINGLE_OP", "MULTI_OP", "MOBILE", "PORTABLE"],
+      "power": [],
+      "modes": ["MIXED"]
+    }
+  },
+  "contestOnlineScore": {
+    "contestId": "MS-QSO-PARTY",
+    "mult1Name": "County/Grid/St./Prov.",
+    "mult1Attribute": "state"
+  },
+  "frequencies": {
+    "160m": {
+      "start": 1800,
+      "end": 2000,
+      "cw":    {"start": 1800, "end": 1860},
+      "phone": {"start": 1860, "end": 2000}
+    },
+    "80m": {
+      "start": 3500,
+      "end": 4000,
+      "cw":    {"start": 3500, "end": 3600},
+      "phone": {"start": 3600, "end": 4000}
+    },
+    "40m": {
+      "start": 7000,
+      "end": 7300,
+      "cw":    {"start": 7000, "end": 7125},
+      "phone": {"start": 7125, "end": 7300}
+    },
+    "20m": {
+      "start": 14000,
+      "end": 14350,
+      "cw":    {"start": 14000, "end": 14150},
+      "phone": {"start": 14150, "end": 14350}
+    },
+    "15m": {
+      "start": 21000,
+      "end": 21450,
+      "cw":    {"start": 21000, "end": 21200},
+      "phone": {"start": 21200, "end": 21450}
+    },
+    "10m": {
+      "start": 28000,
+      "end": 29700,
+      "cw":    {"start": 28000, "end": 28300},
+      "phone": {"start": 28300, "end": 29700}
+    },
+    "6m": {
+      "start": 50000,
+      "end": 54000,
+      "cw":    {"start": 50000, "end": 50125},
+      "phone": {"start": 50125, "end": 54000}
+    },
+    "2m": {
+      "start": 144000,
+      "end": 148000,
+      "cw":    {"start": 144000, "end": 144150},
+      "phone": {"start": 144150, "end": 148000}
+    }
+  },
+
+  "stationClasses": {
+    "enabled": false
+  },
+
+  "userPrompts": [
+    {
+      "id": "stationType",
+      "question": "Select your station location",
+      "type": "select",
+      "options": [
+        {"value": "MS",  "label": "Mississippi (in-state) — send MS county abbreviation"},
+        {"value": "WVE", "label": "W/VE (US or Canada outside MS) — send state or province"},
+        {"value": "DX",  "label": "DX (outside US/Canada) — send DXCC entity prefix"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "MS stations work everyone. Non-MS stations work MS stations only. All FT4/8 stations send grid square."
+    },
+    {
+      "id": "operatingClass",
+      "question": "Select your operating class",
+      "type": "select",
+      "options": [
+        {"value": "MS_SO_FIXED",      "label": "MS: Single Operator Fixed"},
+        {"value": "MS_SO_PORTABLE",   "label": "MS: Single Operator Portable"},
+        {"value": "MS_SO_MOB_DRV",    "label": "MS: Single Operator Mobile With Driver"},
+        {"value": "MS_SO_MOB_NODRV",  "label": "MS: Single Operator Mobile Without Driver"},
+        {"value": "MS_UNL_FIXED",     "label": "MS: Unlimited Operators/Transceivers Fixed"},
+        {"value": "MS_UNL_PORTABLE",  "label": "MS: Unlimited Operators/Transceivers Portable"},
+        {"value": "MS_UNL_MOBILE",    "label": "MS: Unlimited Operators/Transceivers Mobile"},
+        {"value": "OUT_SO_FIXED",     "label": "Non-MS: Single Operator Fixed"},
+        {"value": "OUT_SO_PORTABLE",  "label": "Non-MS: Single Operator Portable"},
+        {"value": "OUT_UNL_FIXED",    "label": "Non-MS: Unlimited Operators/Transceivers Fixed"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "No separate mode or power categories. Mobile/Portable MS stations may self-spot."
+    },
+    {
+      "id": "myExchange",
+      "question": "Enter your exchange (MS county abbrev e.g. HIN, state e.g. FL, province e.g. ON, or DXCC prefix e.g. G). For FT4/8, enter your grid square.",
+      "type": "text",
+      "required": true,
+      "forceUppercase": true,
+      "storeInMeta": true,
+      "description": "MS county (3 letters) for MS stations; 2-letter state or province for W/VE; DXCC entity prefix for DX. FT4/8 contacts use grid square exchange.",
+      "exchangeFieldMapping": {
+        "myExchange": "EXCHs"
+      }
+    }
+  ],
+
+  "exchangeFields": {
+    "sent": [
+      {
+        "name": "RSTs",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report sent"
+      },
+      {
+        "name": "EXCHs",
+        "type": "string",
+        "required": true,
+        "description": "MS county (MS stations), state/province (W/VE), DXCC prefix (DX), or grid square (FT4/8)"
+      }
+    ],
+    "received": [
+      {
+        "name": "RSTr",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report received"
+      },
+      {
+        "name": "EXCHr",
+        "type": "string",
+        "required": true,
+        "description": "MS county (from MS stations), state/province (from W/VE), DXCC prefix (from DX), or grid square (FT4/8)"
+      }
+    ]
+  },
+
+  "qsoFields": [
+    {"name": "Date",      "column": "DATE",   "type": "date",   "format": "yyyy-MM-dd", "required": true},
+    {"name": "Time",      "column": "TIME",   "type": "time",   "format": "HH:mm:ss",   "required": true},
+    {"name": "Callsign",  "column": "CALL",   "type": "string", "required": true, "uppercase": true},
+    {"name": "Frequency", "column": "FREQ",   "type": "number", "unit": "kHz",    "required": true},
+    {"name": "Mode",      "column": "MODE",   "type": "enum",   "values": ["CW", "SSB", "RTTY", "FT8"], "required": true},
+    {"name": "RST Sent",  "column": "RSTs",   "type": "string", "required": true},
+    {"name": "RST Rcvd",  "column": "RSTr",   "type": "string", "required": true},
+    {"name": "Exch Sent", "column": "EXCHs",  "type": "string", "required": true},
+    {"name": "Exch Rcvd", "column": "EXCHr",  "type": "string", "required": true},
+    {"name": "Points",    "column": "POINTS", "type": "number", "calculated": true},
+    {"name": "Mult",      "column": "M",      "type": "string", "calculated": true}
+  ],
+
+  "scoring": {
+    "points": {
+      "phone": 1,
+      "cw":    2,
+      "digital": 2
+    },
+    "multipliers": {
+      "type": "multsOnce",
+      "description": "Non-MS: MS counties (82, from CW/SSB/RTTY) + MS grid squares (9, from FT4/8), each counted once. MS: MS counties + US states (excl MS) + 13 Canadian provinces + DXCC, each counted once. Note: MS station FT4/8 grid-square-divided-by-4 formula requires manual calculation.",
+      "categories": ["namedMults", "dxcc"],
+      "alaskaAndHawaiiCountDxcc": false,
+      "usAndCanadaCountDxcc": false
+    },
+    "finalScore": "SUM(points) * SUM(multipliers)"
+  },
+
+  "dupeChecking": {
+    "type": "perBandAndMode",
+    "description": "Same station can be worked once per band per mode (CW, SSB, RTTY, FT4/8). Note: engine groups RTTY and FT8 as DIGITAL, so only one digital QSO per band per station."
+  },
+
+  "logging": {
+    "requiredFields": ["date", "time", "frequency", "mode", "callsign", "rstSent", "rstReceived", "exchSent", "exchReceived"],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "MS-QSO-PARTY",
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {rst_sent} {exch_sent} {call} {rst_rcvd} {exch_rcvd}",
+      "requiredHeaders": ["CONTEST", "CALLSIGN", "CATEGORY-OPERATOR", "CATEGORY-STATION", "CLAIMED-SCORE", "CREATED-BY", "NAME", "EMAIL"]
+    }
+  },
+
+  "callHistory": {
+    "fieldsToSave": ["EXCHr"],
+    "description": "Save county/state/province/grid for future autofill"
+  },
+
+  "validation": {
+    "minimumQSOs": 1,
+    "maxOperatingTime": 12,
+    "offTimesRequired": false,
+    "namedMults": [
+      "ADA", "ALC", "AMI", "ATT", "BEN", "BOL", "CAL", "CAR",
+      "CHI", "CHO", "CLA", "CLB", "CLK", "COA", "COP", "COV",
+      "DES", "FOR", "FRA", "GEO", "GRE", "GRN", "HAN", "HAR",
+      "HIN", "HOL", "HUM", "ISS", "ITA", "JAC", "JAS", "JDV",
+      "JEF", "JON", "KEM", "LAF", "LAM", "LAU", "LAW", "LEA",
+      "LEE", "LEF", "LIN", "LOW", "MAD", "MAR", "MGY", "MON",
+      "MRN", "NES", "NEW", "NOX", "OKT", "PAN", "PEA", "PER",
+      "PIK", "PON", "PRE", "QUI", "RAN", "SCO", "SHA", "SIM",
+      "SMI", "STO", "SUN", "TAL", "TAT", "TIP", "TIS", "TUN",
+      "UNI", "WAL", "WAR", "WAS", "WAY", "WEB", "WIL", "WIN",
+      "YAL", "YAZ",
+      "EM41", "EM42", "EM43", "EM44", "EM50", "EM51", "EM52", "EM53", "EM54",
+      "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL",
+      "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME",
+      "MD", "MA", "MI", "MN", "MO", "MT", "NE", "NV", "NH",
+      "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI",
+      "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY",
+      "AB", "BC", "MB", "NB", "NL", "NS", "NT", "NU", "ON", "PE", "QC", "SK", "YT"
+    ],
+    "inStateMults": [
+      "ADA", "ALC", "AMI", "ATT", "BEN", "BOL", "CAL", "CAR",
+      "CHI", "CHO", "CLA", "CLB", "CLK", "COA", "COP", "COV",
+      "DES", "FOR", "FRA", "GEO", "GRE", "GRN", "HAN", "HAR",
+      "HIN", "HOL", "HUM", "ISS", "ITA", "JAC", "JAS", "JDV",
+      "JEF", "JON", "KEM", "LAF", "LAM", "LAU", "LAW", "LEA",
+      "LEE", "LEF", "LIN", "LOW", "MAD", "MAR", "MGY", "MON",
+      "MRN", "NES", "NEW", "NOX", "OKT", "PAN", "PEA", "PER",
+      "PIK", "PON", "PRE", "QUI", "RAN", "SCO", "SHA", "SIM",
+      "SMI", "STO", "SUN", "TAL", "TAT", "TIP", "TIS", "TUN",
+      "UNI", "WAL", "WAR", "WAS", "WAY", "WEB", "WIL", "WIN",
+      "YAL", "YAZ",
+      "EM41", "EM42", "EM43", "EM44", "EM50", "EM51", "EM52", "EM53", "EM54"
+    ],
+    "exchangeValidation": {
+      "type": "namedMultOrDxcc",
+      "description": "MS county (3 letters), US state (2 letters), Canadian province (2 letters), DXCC entity prefix, or 4-character Maidenhead grid square for FT4/8."
+    },
+    "receivedExchangeFilter": {
+      "promptId": "stationType",
+      "rules": {
+        "WVE": "inStateMults",
+        "DX":  "inStateMults"
+      }
+    }
+  },
+
+  "countyAbbreviations": {
+    "description": "Mississippi County abbreviations (82 counties) — official MSQP abbreviations from arrlmiss.org",
+    "ADA": "Adams",
+    "ALC": "Alcorn",
+    "AMI": "Amite",
+    "ATT": "Attala",
+    "BEN": "Benton",
+    "BOL": "Bolivar",
+    "CAL": "Calhoun",
+    "CAR": "Carroll",
+    "CHI": "Chickasaw",
+    "CHO": "Choctaw",
+    "CLA": "Clay",
+    "CLB": "Claiborne",
+    "CLK": "Clarke",
+    "COA": "Coahoma",
+    "COP": "Copiah",
+    "COV": "Covington",
+    "DES": "DeSoto",
+    "FOR": "Forrest",
+    "FRA": "Franklin",
+    "GEO": "George",
+    "GRE": "Grenada",
+    "GRN": "Greene",
+    "HAN": "Hancock",
+    "HAR": "Harrison",
+    "HIN": "Hinds",
+    "HOL": "Holmes",
+    "HUM": "Humphreys",
+    "ISS": "Issaquena",
+    "ITA": "Itawamba",
+    "JAC": "Jackson",
+    "JAS": "Jasper",
+    "JDV": "Jefferson Davis",
+    "JEF": "Jefferson",
+    "JON": "Jones",
+    "KEM": "Kemper",
+    "LAF": "Lafayette",
+    "LAM": "Lamar",
+    "LAU": "Lauderdale",
+    "LAW": "Lawrence",
+    "LEA": "Leake",
+    "LEE": "Lee",
+    "LEF": "Leflore",
+    "LIN": "Lincoln",
+    "LOW": "Lowndes",
+    "MAD": "Madison",
+    "MAR": "Marshall",
+    "MGY": "Montgomery",
+    "MON": "Monroe",
+    "MRN": "Marion",
+    "NES": "Neshoba",
+    "NEW": "Newton",
+    "NOX": "Noxubee",
+    "OKT": "Oktibbeha",
+    "PAN": "Panola",
+    "PEA": "Pearl River",
+    "PER": "Perry",
+    "PIK": "Pike",
+    "PON": "Pontotoc",
+    "PRE": "Prentiss",
+    "QUI": "Quitman",
+    "RAN": "Rankin",
+    "SCO": "Scott",
+    "SHA": "Sharkey",
+    "SIM": "Simpson",
+    "SMI": "Smith",
+    "STO": "Stone",
+    "SUN": "Sunflower",
+    "TAL": "Tallahatchie",
+    "TAT": "Tate",
+    "TIP": "Tippah",
+    "TIS": "Tishomingo",
+    "TUN": "Tunica",
+    "UNI": "Union",
+    "WAL": "Walthall",
+    "WAR": "Warren",
+    "WAS": "Washington",
+    "WAY": "Wayne",
+    "WEB": "Webster",
+    "WIL": "Wilkinson",
+    "WIN": "Winston",
+    "YAL": "Yalobusha",
+    "YAZ": "Yazoo"
+  },
+
+  "gridSquares": {
+    "description": "Mississippi grid squares (9 possible for FT4/8 multipliers)",
+    "squares": ["EM41", "EM42", "EM43", "EM44", "EM50", "EM51", "EM52", "EM53", "EM54"]
+  },
+
+  "ui": {
+    "showMultiplierPanel": true,
+    "logColumns": ["DATE", "TIME", "CALL", "FREQ", "MODE", "RSTs", "RSTr", "EXCHs", "EXCHr", "POINTS", "M", "COMMENT"],
+    "entryFields": ["CALL", "RSTr", "EXCHr"],
+    "fieldNavigation": {
+      "keys": "tab"
+    },
+    "bandMap": {
+      "enabled": true,
+      "bands": ["160m", "80m", "40m", "20m", "15m", "10m", "6m", "2m"]
+    },
+    "multiplierDisplay": {
+      "showCounties":  true,
+      "showStates":    true,
+      "showProvinces": true,
+      "showDXCC":      true
+    }
+  }
+}
