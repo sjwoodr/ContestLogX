@@ -2,6 +2,10 @@
 
 All notable changes to ContestLogX are documented in this file.
 
+## [0.7.6]
+- Fixed dock widget visibility (DX Cluster, CW Console) not persisting across restarts
+- Made MainWindow and CWWindow debug logging always enabled for easier issue triage
+
 ## [0.7.5]
 - Added call history import (File > Import Call History) supporting !!Order!! format files with field mapping dialog
 

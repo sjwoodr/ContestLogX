@@ -143,10 +143,8 @@ private slots:
     void onShowMultipliers();
     void onResetWidgetPositions();
     void onToggleFlrigDebug(bool checked);
-    void onToggleMainWindowDebug(bool checked);
     void onToggleContestEngineDebug(bool checked);
     void onToggleContestSelectDialogDebug(bool checked);
-    void onToggleCWWindowDebug(bool checked);
     void onToggleDxccDatabaseDebug(bool checked);
     void onToggleDxClusterDebug(bool checked);
     void onToggleScpDebug(bool checked);
@@ -319,10 +317,8 @@ private:
     QAction *m_multiplierWidgetAction;
     QAction *m_rateWidgetAction;
     QAction *m_flrigDebugAction;
-    QAction *m_mainWindowDebugAction;
     QAction *m_contestEngineDebugAction;
     QAction *m_contestSelectDialogDebugAction;
-    QAction *m_cwWindowDebugAction;
     QAction *m_dxccDatabaseDebugAction;
     QAction *m_dxClusterDebugAction;
     QAction *m_scpDebugAction;

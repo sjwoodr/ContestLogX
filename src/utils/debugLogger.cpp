@@ -208,10 +208,9 @@ void DebugLogger::log(const QString& component, const QString& message)
 {
     // Fast-path guards — cheap boolean checks before any lock or allocation.
     if (!m_flrigDebugEnabled && component == "Flrig") return;
-    if (!m_mainWindowDebugEnabled && component == "MainWindow") return;
+    // MainWindow and CWWindow are always logged — too critical for triage to disable
     if (!m_contestEngineDebugEnabled && component == "ContestEngine") return;
     if (!m_contestSelectDialogDebugEnabled && component == "ContestSelectDialog") return;
-    if (!m_cwWindowDebugEnabled && component == "CWWindow") return;
     if (!m_dxccDatabaseDebugEnabled && component == "DxccDatabase") return;
     if (!m_dxClusterDebugEnabled && component == "DxCluster") return;
     if (!m_scpDebugEnabled && (component == "ScpDialog" || component == "ScpLineEdit")) return;

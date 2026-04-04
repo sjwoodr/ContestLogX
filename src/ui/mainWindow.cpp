@@ -503,6 +503,8 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
                 }
                 if (fKeyIndex >= 0) {
                     QString mode = m_lastMode.toUpper();
+                    DebugLogger::instance().log("MainWindow",
+                        QString("Hardware Function key F%1 pressed (eventFilter), current mode: %2").arg(fKeyIndex + 1).arg(mode));
                     if ((mode == "CW" || mode == "CWR") && m_cwConsole) {
                         m_cwConsole->onMemoryButton(fKeyIndex);
                         return true;
@@ -1360,33 +1362,21 @@ void MainWindow::setupMenus()
     DebugLogger::instance().setFlrigDebugEnabled(flrigDebugEnabled);
     connect(m_flrigDebugAction, &QAction::triggered, this, &MainWindow::onToggleFlrigDebug);
     
-    m_mainWindowDebugAction = debugMenu->addAction("Enable &MainWindow Debug Logging");
-    m_mainWindowDebugAction->setCheckable(true);
-    bool mainWindowDebugEnabled = Settings::instance().getMainWindowDebugEnabled();
-    m_mainWindowDebugAction->setChecked(mainWindowDebugEnabled);
-    DebugLogger::instance().setMainWindowDebugEnabled(mainWindowDebugEnabled);
-    connect(m_mainWindowDebugAction, &QAction::triggered, this, &MainWindow::onToggleMainWindowDebug);
-    
+    // MainWindow and CWWindow debug logging are always enabled — too critical for triage
+
     m_contestEngineDebugAction = debugMenu->addAction("Enable &ContestEngine Debug Logging");
     m_contestEngineDebugAction->setCheckable(true);
     bool contestEngineDebugEnabled = Settings::instance().getContestEngineDebugEnabled();
     m_contestEngineDebugAction->setChecked(contestEngineDebugEnabled);
     DebugLogger::instance().setContestEngineDebugEnabled(contestEngineDebugEnabled);
     connect(m_contestEngineDebugAction, &QAction::triggered, this, &MainWindow::onToggleContestEngineDebug);
-    
+
     m_contestSelectDialogDebugAction = debugMenu->addAction("Enable Contest&SelectDialog Debug Logging");
     m_contestSelectDialogDebugAction->setCheckable(true);
     bool contestSelectDialogDebugEnabled = Settings::instance().getContestSelectDialogDebugEnabled();
     m_contestSelectDialogDebugAction->setChecked(contestSelectDialogDebugEnabled);
     DebugLogger::instance().setContestSelectDialogDebugEnabled(contestSelectDialogDebugEnabled);
     connect(m_contestSelectDialogDebugAction, &QAction::triggered, this, &MainWindow::onToggleContestSelectDialogDebug);
-    
-    m_cwWindowDebugAction = debugMenu->addAction("Enable C&WWindow Debug Logging");
-    m_cwWindowDebugAction->setCheckable(true);
-    bool cwWindowDebugEnabled = Settings::instance().getCWWindowDebugEnabled();
-    m_cwWindowDebugAction->setChecked(cwWindowDebugEnabled);
-    DebugLogger::instance().setCWWindowDebugEnabled(cwWindowDebugEnabled);
-    connect(m_cwWindowDebugAction, &QAction::triggered, this, &MainWindow::onToggleCWWindowDebug);
     
     m_dxccDatabaseDebugAction = debugMenu->addAction("Enable &DxccDatabase Debug Logging");
     m_dxccDatabaseDebugAction->setCheckable(true);
@@ -3341,7 +3331,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
         if (fKeyIndex >= 0) {
             QString mode = m_lastMode.toUpper();
             DebugLogger::instance().log("MainWindow",
-                QString("Function key F%1 pressed, current mode: %2").arg(fKeyIndex + 1).arg(mode));
+                QString("Hardware Function key F%1 pressed, current mode: %2").arg(fKeyIndex + 1).arg(mode));
 
             if (mode == "CW" || mode == "CWR") {
                 // Trigger CW memory
@@ -3365,7 +3355,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
                 }
             } else {
                 DebugLogger::instance().log("MainWindow",
-                    QString("Function key F%1 ignored - mode %2 not supported for memories")
+                    QString("Hardware Function key F%1 ignored - mode %2 not supported for memories")
                     .arg(fKeyIndex + 1).arg(mode));
             }
             return;
@@ -4834,13 +4824,6 @@ void MainWindow::onToggleFlrigDebug(bool checked)
     m_statusLabel->setText(checked ? "Flrig debug logging enabled" : "Flrig debug logging disabled");
 }
 
-void MainWindow::onToggleMainWindowDebug(bool checked)
-{
-    DebugLogger::instance().setMainWindowDebugEnabled(checked);
-    Settings::instance().setMainWindowDebugEnabled(checked);
-    m_statusLabel->setText(checked ? "MainWindow debug logging enabled" : "MainWindow debug logging disabled");
-}
-
 void MainWindow::onToggleContestEngineDebug(bool checked)
 {
     DebugLogger::instance().setContestEngineDebugEnabled(checked);
@@ -4853,13 +4836,6 @@ void MainWindow::onToggleContestSelectDialogDebug(bool checked)
     DebugLogger::instance().setContestSelectDialogDebugEnabled(checked);
     Settings::instance().setContestSelectDialogDebugEnabled(checked);
     m_statusLabel->setText(checked ? "ContestSelectDialog debug logging enabled" : "ContestSelectDialog debug logging disabled");
-}
-
-void MainWindow::onToggleCWWindowDebug(bool checked)
-{
-    DebugLogger::instance().setCWWindowDebugEnabled(checked);
-    Settings::instance().setCWWindowDebugEnabled(checked);
-    m_statusLabel->setText(checked ? "CWWindow debug logging enabled" : "CWWindow debug logging disabled");
 }
 
 void MainWindow::onToggleDxccDatabaseDebug(bool checked)
@@ -5230,7 +5206,7 @@ void MainWindow::onAbout()
     msgBox.setTextFormat(Qt::RichText);
     msgBox.setTextInteractionFlags(Qt::TextBrowserInteraction);
     msgBox.setText(
-        "<b>ContestLogX - Version 0.7.5 (Beta)</b><br><br>"
+        "<b>ContestLogX - Version 0.7.6 (Beta)</b><br><br>"
         "Cross-platform amateur radio contest logging software<br><br>"
         "Copyright &copy; 2025-2026, by Steve Woodruff, N9OH<br><br>"
         "<a href=\"https://contestlogx.com\">https://contestlogx.com</a><br><br>"
@@ -6147,26 +6123,11 @@ void MainWindow::savePanelState()
 void MainWindow::restorePanelState()
 {
     Settings& settings = Settings::instance();
-    
-    // Restore dock widget visibility
+
+    // Read visibility settings (applied AFTER restoreState below)
     bool dxVisible = settings.getDxClusterVisible();
     bool cwVisible = settings.getCwConsoleVisible();
-    
-    if (m_dxClusterDock) {
-        m_dxClusterDock->setVisible(dxVisible);
-    }
-    if (m_cwConsoleDock) {
-        m_cwConsoleDock->setVisible(cwVisible);
-    }
-    
-    // Update menu actions
-    if (m_dxClusterAction) {
-        m_dxClusterAction->setChecked(dxVisible);
-    }
-    if (m_cwConsoleAction) {
-        m_cwConsoleAction->setChecked(cwVisible);
-    }
-    
+
     // Restore splitter state
     if (m_mainSplitter) {
         QByteArray state = settings.getMainSplitterState();
@@ -6174,7 +6135,7 @@ void MainWindow::restorePanelState()
             m_mainSplitter->restoreState(state);
         }
     }
-    
+
     // Restore dock widget state (positions, sizes, floating state)
     QByteArray dockState = settings.getDockWidgetState();
     DebugLogger::instance().log("MainWindow",
@@ -6206,9 +6167,14 @@ void MainWindow::restorePanelState()
             DebugLogger::instance().log("MainWindow", "State restoration complete, save timer unblocked");
         });
 
+        // Override dock visibility AFTER restoreState — restoreState sets visibility
+        // from the binary blob which may be stale; the boolean settings are authoritative.
+        if (m_dxClusterDock) m_dxClusterDock->setVisible(dxVisible);
+        if (m_cwConsoleDock) m_cwConsoleDock->setVisible(cwVisible);
+
         DebugLogger::instance().log("MainWindow",
             QString("Dock state restore %1, blocking saves for 2s").arg(success ? "succeeded" : "failed"));
-        
+
         // Log dock widget positions after restore
         DebugLogger::instance().log("MainWindow", 
             QString("DX Cluster area: %1, floating: %2")
@@ -6246,7 +6212,14 @@ void MainWindow::restorePanelState()
         });
     } else {
         DebugLogger::instance().log("MainWindow", "No saved dock widget state found");
+        // No dock state blob — apply visibility from boolean settings directly
+        if (m_dxClusterDock) m_dxClusterDock->setVisible(dxVisible);
+        if (m_cwConsoleDock) m_cwConsoleDock->setVisible(cwVisible);
     }
+
+    // Sync menu checkmarks with actual visibility
+    if (m_dxClusterAction) m_dxClusterAction->setChecked(dxVisible);
+    if (m_cwConsoleAction) m_cwConsoleAction->setChecked(cwVisible);
 }
 
 void MainWindow::onResetWidgetPositions()
