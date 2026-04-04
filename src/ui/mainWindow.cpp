@@ -254,6 +254,16 @@ MainWindow::MainWindow(QWidget *parent)
         m_rigBackend = "flrig";
     }
 
+    // Push the freshly-created rig client into widgets that were constructed
+    // before m_rigClient existed (CWWindow is created in setupUi() above).
+    if (m_cwConsole) {
+        m_cwConsole->setRigClient(m_rigClient);
+        DebugLogger::instance().log("MainWindow", "CWWindow rigClient pointer set post-construction");
+    }
+    if (m_ttsManager) {
+        m_ttsManager->setRigClient(m_rigClient);
+    }
+
     // Rig signal connections
     connect(m_rigClient, SIGNAL(connected()), this, SLOT(onRigConnected()));
     connect(m_rigClient, SIGNAL(disconnected()), this, SLOT(onRigDisconnected()));
@@ -5206,7 +5216,7 @@ void MainWindow::onAbout()
     msgBox.setTextFormat(Qt::RichText);
     msgBox.setTextInteractionFlags(Qt::TextBrowserInteraction);
     msgBox.setText(
-        "<b>ContestLogX - Version 0.7.6 (Beta)</b><br><br>"
+        "<b>ContestLogX - Version 0.7.7 (Beta)</b><br><br>"
         "Cross-platform amateur radio contest logging software<br><br>"
         "Copyright &copy; 2025-2026, by Steve Woodruff, N9OH<br><br>"
         "<a href=\"https://contestlogx.com\">https://contestlogx.com</a><br><br>"

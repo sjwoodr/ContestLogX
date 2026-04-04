@@ -128,19 +128,26 @@ void CWWindow::sendCWText(const QString& text)
         return;
     }
 
-    if (rigClient && rigClient->isConnected()) {
-        int currentWpm = wpmSpinBox->value();
-        rigClient->setCWSpeed(currentWpm);
+    if (!rigClient) {
+        DebugLogger::instance().log("CWWindow", QString("Cannot send CW - rigClient is NULL: %1").arg(text));
+        return;
+    }
+    if (!rigClient->isConnected()) {
+        DebugLogger::instance().log("CWWindow", QString("Cannot send CW - rig not connected: %1").arg(text));
+        return;
+    }
 
-        bool success = rigClient->sendCW(text);
-        
-        if (success) {
-            QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss");
-            historyText->append(QString("[%1] %2").arg(timestamp, text));
-            DebugLogger::instance().log("CWWindow", QString("Sent CW at %1 WPM: %2").arg(currentWpm).arg(text));
-        } else {
-            DebugLogger::instance().log("CWWindow", QString("Failed to send CW: %1").arg(text));
-        }
+    int currentWpm = wpmSpinBox->value();
+    rigClient->setCWSpeed(currentWpm);
+
+    bool success = rigClient->sendCW(text);
+
+    if (success) {
+        QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss");
+        historyText->append(QString("[%1] %2").arg(timestamp, text));
+        DebugLogger::instance().log("CWWindow", QString("Sent CW at %1 WPM: %2").arg(currentWpm).arg(text));
+    } else {
+        DebugLogger::instance().log("CWWindow", QString("Failed to send CW: %1").arg(text));
     }
 }
 

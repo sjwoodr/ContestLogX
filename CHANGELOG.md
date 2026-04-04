@@ -2,6 +2,9 @@
 
 All notable changes to ContestLogX are documented in this file.
 
+## [0.7.7]
+- Fixed CW sending completely broken (F-key memories silently did nothing) caused by CWWindow being constructed before the rig client existed
+
 ## [0.7.6]
 - Fixed dock widget visibility (DX Cluster, CW Console) not persisting across restarts
 - Made MainWindow and CWWindow debug logging always enabled for easier issue triage
