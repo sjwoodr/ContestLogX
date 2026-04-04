@@ -3033,9 +3033,9 @@ void MainWindow::onImportAdif()
 
 void MainWindow::onExit()
 {
-    if (maybeSave()) {
-        qApp->quit();
-    }
+    // Route through close() so closeEvent() runs and saves window geometry
+    // and panel state. closeEvent() also handles the unsaved-log prompt.
+    close();
 }
 
 void MainWindow::onPreferences()
