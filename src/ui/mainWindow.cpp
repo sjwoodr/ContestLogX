@@ -5668,6 +5668,20 @@ void MainWindow::restoreWindowGeometry()
 {
     Settings& settings = Settings::instance();
 
+    // Compute a safe fallback: 80% of the current screen's available rect,
+    // centered. Used whenever Qt's restoreGeometry() fails or no saved
+    // state exists, so we never open off-screen or larger than the desktop.
+    auto safeFallbackRect = [this]() {
+        QScreen* scr = screen();
+        if (!scr) scr = QGuiApplication::primaryScreen();
+        QRect avail = scr ? scr->availableGeometry() : QRect(0, 0, 1024, 768);
+        int w = static_cast<int>(avail.width() * 0.80);
+        int h = static_cast<int>(avail.height() * 0.80);
+        int x = avail.x() + (avail.width() - w) / 2;
+        int y = avail.y() + (avail.height() - h) / 2;
+        return QRect(x, y, w, h);
+    };
+
     // Try Qt's built-in geometry restore first (handles window managers better)
     QByteArray savedGeometry = settings.getWindowGeometryState();
     if (!savedGeometry.isEmpty()) {
@@ -5680,23 +5694,24 @@ void MainWindow::restoreWindowGeometry()
             .arg(restored ? "true" : "false").arg(pos().x()).arg(pos().y()));
 
         if (!restored) {
-            DebugLogger::instance().log("MainWindow", "restoreGeometry() failed, trying fallback method");
-            // Fallback if restoreGeometry fails
-            QRect geom = settings.getWindowGeometry();
-            resize(geom.width(), geom.height());
-            move(geom.topLeft());
+            QRect safe = safeFallbackRect();
+            DebugLogger::instance().log("MainWindow",
+                QString("restoreGeometry() failed, using 80%% safe fallback: pos=(%1,%2) size=(%3x%4)")
+                .arg(safe.x()).arg(safe.y()).arg(safe.width()).arg(safe.height()));
+            resize(safe.width(), safe.height());
+            move(safe.topLeft());
         }
     } else {
-        // Fallback to old method if no saved state
-        QRect geom = settings.getWindowGeometry();
+        // No saved state — open at 80% of available screen, centered.
+        QRect safe = safeFallbackRect();
         DebugLogger::instance().log("MainWindow",
-            QString("No saved geometry state, using fallback: pos=(%1,%2) size=(%3x%4)")
-            .arg(geom.x()).arg(geom.y()).arg(geom.width()).arg(geom.height()));
-        resize(geom.width(), geom.height());
+            QString("No saved geometry state, using 80%% safe fallback: pos=(%1,%2) size=(%3x%4)")
+            .arg(safe.x()).arg(safe.y()).arg(safe.width()).arg(safe.height()));
+        resize(safe.width(), safe.height());
 
         // Delay move to after window is shown
-        QTimer::singleShot(100, this, [this, geom]() {
-            move(geom.topLeft());
+        QTimer::singleShot(100, this, [this, safe]() {
+            move(safe.topLeft());
         });
     }
 
