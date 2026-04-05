@@ -5668,15 +5668,15 @@ void MainWindow::restoreWindowGeometry()
 {
     Settings& settings = Settings::instance();
 
-    // Compute a safe fallback: 80% of the current screen's available rect,
+    // Compute a safe fallback: 50% of the current screen's available rect,
     // centered. Used whenever Qt's restoreGeometry() fails or no saved
     // state exists, so we never open off-screen or larger than the desktop.
     auto safeFallbackRect = [this]() {
         QScreen* scr = screen();
         if (!scr) scr = QGuiApplication::primaryScreen();
         QRect avail = scr ? scr->availableGeometry() : QRect(0, 0, 1024, 768);
-        int w = static_cast<int>(avail.width() * 0.80);
-        int h = static_cast<int>(avail.height() * 0.80);
+        int w = static_cast<int>(avail.width() * 0.50);
+        int h = static_cast<int>(avail.height() * 0.50);
         int x = avail.x() + (avail.width() - w) / 2;
         int y = avail.y() + (avail.height() - h) / 2;
         return QRect(x, y, w, h);
@@ -5696,16 +5696,16 @@ void MainWindow::restoreWindowGeometry()
         if (!restored) {
             QRect safe = safeFallbackRect();
             DebugLogger::instance().log("MainWindow",
-                QString("restoreGeometry() failed, using 80%% safe fallback: pos=(%1,%2) size=(%3x%4)")
+                QString("restoreGeometry() failed, using 50%% safe fallback: pos=(%1,%2) size=(%3x%4)")
                 .arg(safe.x()).arg(safe.y()).arg(safe.width()).arg(safe.height()));
             resize(safe.width(), safe.height());
             move(safe.topLeft());
         }
     } else {
-        // No saved state — open at 80% of available screen, centered.
+        // No saved state — open at 50% of available screen, centered.
         QRect safe = safeFallbackRect();
         DebugLogger::instance().log("MainWindow",
-            QString("No saved geometry state, using 80%% safe fallback: pos=(%1,%2) size=(%3x%4)")
+            QString("No saved geometry state, using 50%% safe fallback: pos=(%1,%2) size=(%3x%4)")
             .arg(safe.x()).arg(safe.y()).arg(safe.width()).arg(safe.height()));
         resize(safe.width(), safe.height());
 
