@@ -19,6 +19,7 @@
 #include <QHBoxLayout>
 #include <QComboBox>
 #include <QTimer>
+#include <QHash>
 #include <QJsonObject>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
@@ -191,6 +192,7 @@ private:
     void setupMenus();
     void createConnections();
     void createBandMapDock();
+    void installRedockOnMinimize(QDockWidget* dock);
     ContactStatus resolveSpotStatus(const QString &callsign);
     void loadQsosIntoModel(const QList<QsoRecord>& qsos, QProgressDialog* progressDialog);
     void applyRestrictedModeFromUserPrompts();
@@ -340,6 +342,7 @@ private:
     bool m_firstShow;  // Track first show event for geometry restoration
     bool m_restoringState;  // Block save timer during state restoration
     QMetaObject::Connection m_entryWindowVisConn;  // QWindow::visibilityChanged for floating entry dock
+    QHash<QDockWidget*, QMetaObject::Connection> m_floatingDockVisConn;  // Per-dock redock-on-minimize wiring
 
     // Session station info - loaded from file or defaults to Settings, NOT saved to Settings
     class StationInfo *m_sessionStationInfo;

@@ -11,6 +11,8 @@
 #include <QDockWidget>
 #include <QTableWidget>
 #include <QTableWidgetItem>
+#include <QStackedWidget>
+#include <QPushButton>
 
 class ScpWidget : public QDockWidget
 {
@@ -38,6 +40,9 @@ signals:
     // Emitted when a callsign is selected (double-clicked)
     void callsignSelected(const QString& callsign);
 
+    // Emitted when the user clicks the "disabled" placeholder to configure SCP
+    void configureRequested();
+
 protected:
     void resizeEvent(QResizeEvent *event) override;
 
@@ -50,6 +55,8 @@ private:
     int getColumnCount() const;
     
     QTableWidget *m_callsignTable;
+    QStackedWidget *m_stack;
+    QPushButton *m_configureButton;
 };
 
 #endif // SCPWIDGET_H

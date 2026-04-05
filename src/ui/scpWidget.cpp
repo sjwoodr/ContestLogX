@@ -11,6 +11,8 @@
 #include <QVBoxLayout>
 #include <QWidget>
 #include <QHeaderView>
+#include <QStackedWidget>
+#include <QPushButton>
 #include <QResizeEvent>
 #include <QStandardPaths>
 #include <QFile>
@@ -35,12 +37,15 @@ void ScpWidget::setupUi()
     QVBoxLayout *layout = new QVBoxLayout(widget);
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(0);
-    
+
+    m_stack = new QStackedWidget(this);
+
+    // Page 0: the results table (shown when SCP is enabled)
     m_callsignTable = new QTableWidget(this);
     m_callsignTable->setColumnCount(1);
     m_callsignTable->setMinimumHeight(100);
     m_callsignTable->setMaximumHeight(200);
-    
+
     // Style as borderless table
     m_callsignTable->setStyleSheet("QTableWidget { border: none; gridline-color: transparent; }"
                                    "QTableWidget::item { padding: 0px; }");
@@ -50,13 +55,26 @@ void ScpWidget::setupUi()
     m_callsignTable->setSelectionMode(QAbstractItemView::SingleSelection);
     m_callsignTable->setShowGrid(false);
     m_callsignTable->setAlternatingRowColors(true);
-    
+
     m_callsignTable->setFocusPolicy(Qt::NoFocus);
     connect(m_callsignTable, &QTableWidget::cellDoubleClicked,
             this, &ScpWidget::onCellDoubleClicked);
-    
-    layout->addWidget(m_callsignTable);
-    
+
+    m_stack->addWidget(m_callsignTable);
+
+    // Page 1: clickable "configure" button (shown when SCP is disabled)
+    m_configureButton = new QPushButton("SCP is disabled — click to configure", this);
+    m_configureButton->setFocusPolicy(Qt::NoFocus);
+    m_configureButton->setCursor(Qt::PointingHandCursor);
+    m_configureButton->setStyleSheet("QPushButton { border: none; padding: 20px; font-size: 10pt; "
+                                     "color: palette(link); text-decoration: underline; }"
+                                     "QPushButton:hover { color: palette(highlight); }");
+    connect(m_configureButton, &QPushButton::clicked,
+            this, &ScpWidget::configureRequested);
+    m_stack->addWidget(m_configureButton);
+
+    layout->addWidget(m_stack);
+
     setWidget(widget);
 }
 
@@ -141,22 +159,31 @@ void ScpWidget::setSearchPrefix(const QString& prefix)
 void ScpWidget::updateTitle()
 {
     QString title = "Super Check Partial";
-    
-    // Check if SCP is enabled
-    if (!Settings::instance().getScpEnabled()) {
-        setWindowTitle(title + " - disabled");
-        return;
+    bool enabled = Settings::instance().getScpEnabled();
+
+    // Also require that master.scp exists
+    if (enabled) {
+        QString dataPath = Settings::getUserDataPath();
+        QString scpPath = QDir(dataPath).filePath("master.scp");
+        if (!QFile::exists(scpPath)) enabled = false;
     }
-    
-    // Check if master.scp file exists
-    QString dataPath = Settings::getUserDataPath();
-    QString scpPath = QDir(dataPath).filePath("master.scp");
-    if (!QFile::exists(scpPath)) {
+
+    if (enabled) {
+        setWindowTitle(title);
+        if (m_stack) m_stack->setCurrentWidget(m_callsignTable);
+        if (m_configureButton) m_configureButton->setText("SCP is disabled — click to configure");
+    } else {
+        // Determine the specific reason so the button text is informative
+        QString reason = "SCP is disabled — click to configure";
+        if (!Settings::instance().getScpEnabled()) {
+            reason = "SCP is disabled — click to enable";
+        } else {
+            reason = "master.scp not found — click to download";
+        }
         setWindowTitle(title + " - disabled");
-        return;
+        if (m_stack) m_stack->setCurrentWidget(m_configureButton);
+        if (m_configureButton) m_configureButton->setText(reason);
     }
-    
-    setWindowTitle(title);
 }
 
 void ScpWidget::resizeEvent(QResizeEvent *event)

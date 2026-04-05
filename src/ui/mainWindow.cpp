@@ -977,9 +977,13 @@ void MainWindow::setupDocks(QSplitter* mainSplitter)
     m_dxClusterPanel->setMinimumHeight(200);
     m_dxClusterDock->setWidget(m_dxClusterPanel);
     m_dxClusterDock->setAllowedAreas(Qt::AllDockWidgetAreas);
-    m_dxClusterDock->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
+    m_dxClusterDock->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable | QDockWidget::DockWidgetClosable);
     addDockWidget(Qt::RightDockWidgetArea, m_dxClusterDock);
-    
+    connect(m_dxClusterDock, &QDockWidget::visibilityChanged, this, [this](bool visible) {
+        if (m_dxClusterAction) m_dxClusterAction->setChecked(visible);
+        Settings::instance().setDxClusterVisible(visible);
+    });
+
     // Connect propagation data signal
     connect(m_dxClusterPanel, &DxClusterPanel::propagationDataReceived, 
             this, &MainWindow::onPropagationDataReceived);
@@ -999,9 +1003,13 @@ void MainWindow::setupDocks(QSplitter* mainSplitter)
     m_cwConsole->setMinimumHeight(160);
     m_cwConsoleDock->setWidget(m_cwConsole);
     m_cwConsoleDock->setAllowedAreas(Qt::AllDockWidgetAreas);
-    m_cwConsoleDock->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
+    m_cwConsoleDock->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable | QDockWidget::DockWidgetClosable);
     addDockWidget(Qt::RightDockWidgetArea, m_cwConsoleDock);
-    
+    connect(m_cwConsoleDock, &QDockWidget::visibilityChanged, this, [this](bool visible) {
+        if (m_cwConsoleAction) m_cwConsoleAction->setChecked(visible);
+        Settings::instance().setCwConsoleVisible(visible);
+    });
+
     // Score Widget as QDockWidget
     m_scoreDock = new QDockWidget("Score", this);
     m_scoreDock->setObjectName("scoreDock");  // Required for saveState/restoreState
@@ -1009,9 +1017,12 @@ void MainWindow::setupDocks(QSplitter* mainSplitter)
     m_scoreWidget->setMinimumHeight(160);
     m_scoreDock->setWidget(m_scoreWidget);
     m_scoreDock->setAllowedAreas(Qt::AllDockWidgetAreas);
-    m_scoreDock->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
+    m_scoreDock->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable | QDockWidget::DockWidgetClosable);
     addDockWidget(Qt::RightDockWidgetArea, m_scoreDock);
-    
+    connect(m_scoreDock, &QDockWidget::visibilityChanged, this, [this](bool visible) {
+        if (m_scoreWidgetAction) m_scoreWidgetAction->setChecked(visible);
+    });
+
     // SCP Widget as QDockWidget
     m_scpWidget = new ScpWidget(this);
     m_scpWidget->setMinimumHeight(80);
@@ -1026,6 +1037,9 @@ void MainWindow::setupDocks(QSplitter* mainSplitter)
     
     m_scpWidget->hide();  // Hidden by default, user can show via Window menu
 
+    // Open SCP config dialog when the user clicks the "disabled" placeholder
+    connect(m_scpWidget, &ScpWidget::configureRequested, this, &MainWindow::onScpDialog);
+
     // Store as m_scpDock for consistency with other docks
     m_scpDock = m_scpWidget;
 
@@ -1038,6 +1052,10 @@ void MainWindow::setupDocks(QSplitter* mainSplitter)
     m_ssbMemoriesWidget->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable | QDockWidget::DockWidgetClosable);
     addDockWidget(Qt::RightDockWidgetArea, m_ssbMemoriesWidget);
     m_ssbMemoriesWidget->hide();  // Hidden by default, user can show via Window menu
+    connect(m_ssbMemoriesWidget, &QDockWidget::visibilityChanged, this, [this](bool visible) {
+        if (m_ssbMemoriesWidgetAction)
+            m_ssbMemoriesWidgetAction->setChecked(visible);
+    });
 
     // Multiplier Widget as QDockWidget
     m_multiplierDock = new QDockWidget("Multipliers", this);
@@ -1070,6 +1088,18 @@ void MainWindow::setupDocks(QSplitter* mainSplitter)
     });
 
     createBandMapDock();
+
+    // Install redock-on-minimize for all right-side docks — consistent with the
+    // entry dock behaviour (clicking the OS minimize button re-docks instead
+    // of minimizing to the taskbar, which confuses users looking for the dock).
+    installRedockOnMinimize(m_dxClusterDock);
+    installRedockOnMinimize(m_cwConsoleDock);
+    installRedockOnMinimize(m_scoreDock);
+    installRedockOnMinimize(m_scpWidget);
+    installRedockOnMinimize(m_ssbMemoriesWidget);
+    installRedockOnMinimize(m_multiplierDock);
+    installRedockOnMinimize(m_rateDock);
+    installRedockOnMinimize(m_bandMapWidget);
 
     // Load SSB memories (from contest or settings)
     loadSsbMemories();
@@ -1640,7 +1670,8 @@ void MainWindow::createConnections()
             updateScpWidgetMenuText();
         });
         connect(m_scpWidget, &QDockWidget::visibilityChanged, this, [this](bool visible) {
-            Q_UNUSED(visible);
+            if (m_scpWidgetAction)
+                m_scpWidgetAction->setChecked(visible);
             updateScpWidgetMenuText();
         });
     }
@@ -4715,6 +4746,33 @@ void MainWindow::onToggleRateWidget(bool checked)
         m_rateDock->setVisible(checked);
         savePanelState();
     }
+}
+
+void MainWindow::installRedockOnMinimize(QDockWidget* dock)
+{
+    if (!dock) return;
+    connect(dock, &QDockWidget::topLevelChanged, this, [this, dock](bool floating) {
+        // Disconnect any previous QWindow visibility watcher for this dock
+        auto it = m_floatingDockVisConn.find(dock);
+        if (it != m_floatingDockVisConn.end()) {
+            disconnect(*it);
+            m_floatingDockVisConn.erase(it);
+        }
+        if (!floating) return;
+
+        // Defer one tick so the native QWindow is fully created
+        QTimer::singleShot(0, this, [this, dock]() {
+            if (!dock->isFloating()) return;
+            QWindow *win = dock->window()->windowHandle();
+            if (!win) return;
+            win->setFlag(Qt::WindowMaximizeButtonHint, false);
+            m_floatingDockVisConn[dock] = connect(win, &QWindow::visibilityChanged,
+                    this, [this, dock](QWindow::Visibility v) {
+                if (v == QWindow::Minimized || v == QWindow::Maximized || v == QWindow::Hidden)
+                    QTimer::singleShot(0, this, [dock]() { dock->setFloating(false); });
+            });
+        });
+    });
 }
 
 void MainWindow::createBandMapDock()
