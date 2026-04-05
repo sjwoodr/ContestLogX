@@ -5216,7 +5216,7 @@ void MainWindow::onAbout()
     msgBox.setTextFormat(Qt::RichText);
     msgBox.setTextInteractionFlags(Qt::TextBrowserInteraction);
     msgBox.setText(
-        "<b>ContestLogX - Version 0.7.7 (Beta)</b><br><br>"
+        "<b>ContestLogX - Version 0.7.8 (Beta)</b><br><br>"
         "Cross-platform amateur radio contest logging software<br><br>"
         "Copyright &copy; 2025-2026, by Steve Woodruff, N9OH<br><br>"
         "<a href=\"https://contestlogx.com\">https://contestlogx.com</a><br><br>"
@@ -5274,13 +5274,60 @@ void MainWindow::updateRunSPButtons()
     }
 }
 
+bool MainWindow::validateRunSPRoles(RunMode mode)
+{
+    if (mode == RunMode::Off) return true;
+
+    QString currentMode = m_lastMode.toUpper();
+    bool isCw = (currentMode == "CW" || currentMode == "CWR");
+    QString memType = isCw ? "CW" : "SSB";
+
+    QList<MemoryRole> required;
+    QStringList requiredNames;
+    if (mode == RunMode::Run) {
+        required = { MemoryRole::CQ, MemoryRole::RunExchange, MemoryRole::TU };
+        requiredNames = { "CQ", "Run Exchange", "TU" };
+    } else {
+        required = { MemoryRole::MyCall, MemoryRole::SPExchange };
+        requiredNames = { "My Call", "S&P Exchange" };
+    }
+
+    QStringList missing;
+    for (int i = 0; i < required.size(); ++i) {
+        if (findMemoryIndexByRole(required[i]) < 0)
+            missing.append(requiredNames[i]);
+    }
+
+    if (missing.isEmpty()) return true;
+
+    QString modeName = (mode == RunMode::Run) ? "Run" : "S&P";
+    QString message = QString("%1 mode requires the following %2 memory role(s) to be assigned:\n\n  • %3\n\n"
+                              "Opening the %2 Memories editor so you can assign them.")
+                          .arg(modeName, memType, missing.join("\n  • "));
+
+    DebugLogger::instance().log("MainWindow",
+        QString("%1 mode activation blocked - missing %2 memory roles: %3")
+        .arg(modeName, memType, missing.join(", ")));
+
+    QMessageBox::warning(this, "Missing Memory Roles", message);
+
+    if (isCw) onEditCWMemories();
+    else      onEditSsbMemories();
+
+    return false;
+}
+
 void MainWindow::onToggleRunSP()
 {
     // Cycle: Off → Run → SP → Off — applies to the active radio
     RunMode& mode = (m_so2rEnabled && m_activeRadio == ActiveRadio::Right) ? m_runModeR : m_runMode;
-    if (mode == RunMode::Off)      mode = RunMode::Run;
-    else if (mode == RunMode::Run) mode = RunMode::SP;
-    else                           mode = RunMode::Off;
+    RunMode next;
+    if (mode == RunMode::Off)      next = RunMode::Run;
+    else if (mode == RunMode::Run) next = RunMode::SP;
+    else                           next = RunMode::Off;
+
+    if (!validateRunSPRoles(next)) return;
+    mode = next;
     updateRunSPButtons();
 }
 
@@ -8569,10 +8616,12 @@ void MainWindow::wireEntryPanelConnections(EntryPanelWidgets& w, bool isRadioR)
         updateRunSPButtons();
     });
     connect(w.runButton, &QPushButton::clicked, this, [this, isRadioR]() {
+        if (!validateRunSPRoles(RunMode::Run)) { updateRunSPButtons(); return; }
         if (isRadioR) m_runModeR = RunMode::Run; else m_runMode = RunMode::Run;
         updateRunSPButtons();
     });
     connect(w.spButton, &QPushButton::clicked, this, [this, isRadioR]() {
+        if (!validateRunSPRoles(RunMode::SP)) { updateRunSPButtons(); return; }
         if (isRadioR) m_runModeR = RunMode::SP; else m_runMode = RunMode::SP;
         updateRunSPButtons();
     });

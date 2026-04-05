@@ -139,4 +139,4 @@ See the [LICENSE](LICENSE) file for the full license text.
 
 ---
 
-**[contestlogx.com](https://contestlogx.com)** | **ContestLogX v0.7.7** | *Copyright (c) 2025-2026 Steve Woodruff, N9OH*
+**[contestlogx.com](https://contestlogx.com)** | **ContestLogX v0.7.8** | *Copyright (c) 2025-2026 Steve Woodruff, N9OH*

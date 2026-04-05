@@ -224,6 +224,7 @@ private:
     void preSaveCall();
     void triggerMemoryByRole(MemoryRole role);
     int findMemoryIndexByRole(MemoryRole role) const;
+    bool validateRunSPRoles(RunMode mode);
     void updateRunSPButtons();
     QMap<QString, QString> getExchangeFieldsForQso();
     QString getDupeQsoDetails(const QString& callsign, const QList<QsoRecord>& allQsos);
