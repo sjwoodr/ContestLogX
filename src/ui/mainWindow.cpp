@@ -5285,8 +5285,8 @@ bool MainWindow::validateRunSPRoles(RunMode mode)
     QList<MemoryRole> required;
     QStringList requiredNames;
     if (mode == RunMode::Run) {
-        required = { MemoryRole::CQ, MemoryRole::RunExchange, MemoryRole::TU };
-        requiredNames = { "CQ", "Run Exchange", "TU" };
+        required = { MemoryRole::MyCall, MemoryRole::CQ, MemoryRole::RunExchange, MemoryRole::TU };
+        requiredNames = { "My Call", "CQ", "Run Exchange", "TU" };
     } else {
         required = { MemoryRole::MyCall, MemoryRole::SPExchange };
         requiredNames = { "My Call", "S&P Exchange" };

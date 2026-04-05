@@ -19,6 +19,8 @@
 #include <QComboBox>
 #include <QCheckBox>
 #include <QFrame>
+#include <QMessageBox>
+#include <QSet>
 
 CwMemoriesDialog::CwMemoriesDialog(QWidget *parent)
     : QDialog(parent)
@@ -165,6 +167,47 @@ void CwMemoriesDialog::onModeToggled()
 
 void CwMemoriesDialog::onSave()
 {
+    // Validate: a given role (other than NoRole) must not be assigned
+    // to more than one memory slot in EITHER the station or contest set.
+    auto findDuplicate = [](const QList<CwMemory>& memories) -> MemoryRole {
+        QSet<int> seen;
+        for (const CwMemory& m : memories) {
+            if (m.role == MemoryRole::NoRole) continue;
+            int r = static_cast<int>(m.role);
+            if (seen.contains(r)) return m.role;
+            seen.insert(r);
+        }
+        return MemoryRole::NoRole;
+    };
+
+    // Current UI state is the set being edited — make sure it's captured first
+    QList<CwMemory> currentUi = getMemoriesFromUi();
+    const QList<CwMemory>& stationMems = m_currentIsContest ? m_stationMemories : currentUi;
+    const QList<CwMemory>& contestMems = m_currentIsContest ? currentUi : m_contestMemories;
+
+    MemoryRole dup = findDuplicate(stationMems);
+    QString setName = "Station";
+    if (dup == MemoryRole::NoRole) {
+        dup = findDuplicate(contestMems);
+        setName = "Contest";
+    }
+
+    if (dup != MemoryRole::NoRole) {
+        QMessageBox::warning(this, "Duplicate Memory Role",
+            QString("The '%1' role is assigned to more than one %2 memory slot.\n\n"
+                    "Each role may only be assigned to a single slot. Please fix "
+                    "the duplicates before saving.")
+                .arg(memoryRoleToString(dup), setName));
+
+        // Switch the UI to the set with the duplicate so the user can see it
+        if ((setName == "Station" && m_currentIsContest) ||
+            (setName == "Contest" && !m_currentIsContest)) {
+            if (setName == "Station") m_stationRadio->setChecked(true);
+            else                      m_contestRadio->setChecked(true);
+        }
+        return;
+    }
+
     accept();
 }
 
