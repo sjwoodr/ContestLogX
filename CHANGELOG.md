@@ -7,6 +7,9 @@ All notable changes to ContestLogX are documented in this file.
 - Added duplicate-role validation in the CW and SSB memory editor dialogs — cannot save if the same role is assigned to more than one memory slot
 - Added "Copy from Station Memories" button in the CW and SSB memory editor dialogs, shown when viewing contest-specific memories, as a quick starting point
 - Clamped fallback window geometry to 50% of the current screen, centered, so the app never opens off-screen or larger than the desktop when saved geometry can't be restored (layout minimums may stretch the actual height larger)
+- Reduced minimum heights on CW Console, Score, SCP, and SSB Memories widgets so users can compress the dock rows more tightly; added layout stretch to CW Console so excess space sits at the bottom instead of inflating the history area
+- Fixed uneven SSB memory button row heights (empty slots now show "F#\n---" so all 8 buttons stay the same height)
+- Updated default_layout.json with a more compact dock arrangement
 
 ## [0.7.7]
 - Fixed CW sending completely broken (F-key memories silently did nothing) caused by CWWindow being constructed before the rig client existed

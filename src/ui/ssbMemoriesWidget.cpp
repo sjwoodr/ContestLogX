@@ -35,8 +35,9 @@ void SsbMemoriesWidget::setupUi()
     // Create F1-F8 buttons
     for (int i = 0; i < 8; i++) {
         m_memoryButtons[i] = new QPushButton(this);
-        m_memoryButtons[i]->setMinimumHeight(50);
+        m_memoryButtons[i]->setMaximumHeight(45);
         m_memoryButtons[i]->setMinimumWidth(80);
+        m_memoryButtons[i]->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
         // Set object name to identify which button was clicked
         m_memoryButtons[i]->setObjectName(QString("F%1").arg(i + 1));
@@ -81,6 +82,8 @@ void SsbMemoriesWidget::updateButtonLabels()
 
         if (!m_memories[i].abbreviation.isEmpty()) {
             label += "\n" + m_memories[i].abbreviation;
+        } else {
+            label += "\n---";
         }
 
         m_memoryButtons[i]->setText(label);

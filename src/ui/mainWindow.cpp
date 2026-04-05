@@ -996,7 +996,7 @@ void MainWindow::setupDocks(QSplitter* mainSplitter)
     m_cwConsoleDock = new QDockWidget("CW Console", this);
     m_cwConsoleDock->setObjectName("cwConsoleDock");  // Required for saveState/restoreState
     m_cwConsole = new CWWindow(m_rigClient, m_cwConsoleDock);
-    m_cwConsole->setMinimumHeight(250);
+    m_cwConsole->setMinimumHeight(160);
     m_cwConsoleDock->setWidget(m_cwConsole);
     m_cwConsoleDock->setAllowedAreas(Qt::AllDockWidgetAreas);
     m_cwConsoleDock->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
@@ -1006,7 +1006,7 @@ void MainWindow::setupDocks(QSplitter* mainSplitter)
     m_scoreDock = new QDockWidget("Score", this);
     m_scoreDock->setObjectName("scoreDock");  // Required for saveState/restoreState
     m_scoreWidget = new ScoreWidget(m_scoreDock);
-    m_scoreWidget->setMinimumHeight(300);
+    m_scoreWidget->setMinimumHeight(160);
     m_scoreDock->setWidget(m_scoreWidget);
     m_scoreDock->setAllowedAreas(Qt::AllDockWidgetAreas);
     m_scoreDock->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
@@ -1014,7 +1014,7 @@ void MainWindow::setupDocks(QSplitter* mainSplitter)
     
     // SCP Widget as QDockWidget
     m_scpWidget = new ScpWidget(this);
-    m_scpWidget->setMinimumHeight(100);
+    m_scpWidget->setMinimumHeight(80);
     // No maximum height - allow user to resize as needed
     m_scpWidget->setAllowedAreas(Qt::AllDockWidgetAreas);
     m_scpWidget->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable | QDockWidget::DockWidgetClosable);
@@ -1032,7 +1032,7 @@ void MainWindow::setupDocks(QSplitter* mainSplitter)
     // SSB Memories Widget (also a QDockWidget)
     m_ssbMemoriesWidget = new SsbMemoriesWidget(this);
     m_ssbMemoriesWidget->setObjectName("ssbMemoriesWidget");  // Required for saveState/restoreState
-    m_ssbMemoriesWidget->setMinimumHeight(120);
+    m_ssbMemoriesWidget->setMinimumHeight(100);
     // No maximum height - allow user to resize as needed
     m_ssbMemoriesWidget->setAllowedAreas(Qt::AllDockWidgetAreas);
     m_ssbMemoriesWidget->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable | QDockWidget::DockWidgetClosable);

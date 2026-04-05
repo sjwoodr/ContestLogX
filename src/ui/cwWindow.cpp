@@ -85,7 +85,11 @@ CWWindow::CWWindow(RigInterface* rigClient, QWidget *parent)
         memoryLayout->addWidget(memoryButtons[i]);
     }
     mainLayout->addLayout(memoryLayout);
-    
+
+    // Push content to the top; excess dock height becomes empty space at bottom
+    // rather than inflating the history area or inter-widget gaps.
+    mainLayout->addStretch();
+
     // Connections
     DebugLogger::instance().log("CWWindow", "Setting up signal connections...");
     bool connResult1 = connect(inputLine, &QLineEdit::returnPressed, this, &CWWindow::onSendCW);
