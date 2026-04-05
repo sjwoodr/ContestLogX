@@ -44,6 +44,7 @@ private slots:
     void onSave();
     void onCancel();
     void onModeToggled();
+    void onCopyFromStation();
 
 private:
     void setupUi();
@@ -58,6 +59,7 @@ private:
     // Station/Contest radio buttons
     QRadioButton *m_stationRadio;
     QRadioButton *m_contestRadio;
+    QPushButton *m_copyFromStationButton;
 
     // Internal storage for both sets
     QList<CwMemory> m_stationMemories;

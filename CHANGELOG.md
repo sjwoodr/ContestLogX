@@ -5,6 +5,7 @@ All notable changes to ContestLogX are documented in this file.
 ## [0.7.8]
 - Added validation when activating Run or S&P mode — if required memory roles (My Call/CQ/Run Exchange/TU for Run, My Call/S&P Exchange for S&P) are not assigned, an error dialog is shown and the CW or SSB memory editor opens automatically
 - Added duplicate-role validation in the CW and SSB memory editor dialogs — cannot save if the same role is assigned to more than one memory slot
+- Added "Copy from Station Memories" button in the CW and SSB memory editor dialogs, shown when viewing contest-specific memories, as a quick starting point
 
 ## [0.7.7]
 - Fixed CW sending completely broken (F-key memories silently did nothing) caused by CWWindow being constructed before the rig client existed

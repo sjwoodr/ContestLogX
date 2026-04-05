@@ -56,9 +56,16 @@ void CwMemoriesDialog::setupUi()
     radioLayout->addWidget(m_stationRadio);
     radioLayout->addWidget(m_contestRadio);
     radioLayout->addStretch();
+
+    m_copyFromStationButton = new QPushButton("Copy from Station Memories", this);
+    m_copyFromStationButton->setToolTip("Replace the Contest memories with a copy of your Station memories");
+    m_copyFromStationButton->setVisible(false);
+    radioLayout->addWidget(m_copyFromStationButton);
+
     mainLayout->addLayout(radioLayout);
 
     connect(m_stationRadio, &QRadioButton::toggled, this, &CwMemoriesDialog::onModeToggled);
+    connect(m_copyFromStationButton, &QPushButton::clicked, this, &CwMemoriesDialog::onCopyFromStation);
 
     // Create grid layout for compact display
     QGridLayout *gridLayout = new QGridLayout();
@@ -163,6 +170,25 @@ void CwMemoriesDialog::onModeToggled()
     }
 
     m_currentIsContest = switchingToContest;
+    if (m_copyFromStationButton)
+        m_copyFromStationButton->setVisible(m_currentIsContest);
+}
+
+void CwMemoriesDialog::onCopyFromStation()
+{
+    // Only meaningful while viewing the contest set. Pull the latest station
+    // memories from internal storage (the station UI state was already saved
+    // there when the user switched to contest view via onModeToggled).
+    if (!m_currentIsContest) return;
+
+    auto ret = QMessageBox::question(this, "Copy from Station Memories",
+        "Replace the current Contest memories with a copy of your Station memories?\n\n"
+        "This will overwrite every slot (title, text, and role) in the Contest set.",
+        QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+    if (ret != QMessageBox::Yes) return;
+
+    m_contestMemories = m_stationMemories;
+    loadMemoriesToUi(m_contestMemories);
 }
 
 void CwMemoriesDialog::onSave()
@@ -284,6 +310,9 @@ void CwMemoriesDialog::setContestMode(bool contest)
 
     m_stationRadio->blockSignals(false);
     m_contestRadio->blockSignals(false);
+
+    if (m_copyFromStationButton)
+        m_copyFromStationButton->setVisible(m_currentIsContest);
 }
 
 bool CwMemoriesDialog::isContestMode() const
