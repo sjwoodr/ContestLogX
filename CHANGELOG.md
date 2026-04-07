@@ -3,7 +3,7 @@
 All notable changes to ContestLogX are documented in this file.
 
 ## [0.7.13]
-- Fixed Windows SFX build — use 7z -sfx flag instead of missing 7zSD.sfx module
+- Improved Windows SFX build — fetch 7zSD.sfx (public domain) at build time for proper installer UX with default extract path to %LOCALAPPDATA%\ContestLogX
 
 ## [0.7.12]
 - Fixed Windows SFX build failing due to cmd.exe path escaping issue in CI

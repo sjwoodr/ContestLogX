@@ -175,17 +175,44 @@ jobs:
         shell: pwsh
         run: scripts/build-windows.ps1
 
+      - name: Download 7-Zip SFX installer module
+        shell: pwsh
+        run: |
+          curl -sL https://7-zip.org/a/7z2409-extra.7z -o 7z-extra.7z
+          & "C:\Program Files\7-Zip\7z.exe" e 7z-extra.7z 7zSD.sfx -y
+          if (!(Test-Path 7zSD.sfx)) { Write-Error "7zSD.sfx not found after extraction"; exit 1 }
+          Write-Host "7zSD.sfx: $((Get-Item 7zSD.sfx).Length / 1KB) KB"
+
       - name: Create self-extracting executable
         shell: pwsh
         run: |
           $VERSION = "${{ steps.version.outputs.version }}"
-          $output = "$PWD\dist\ContestLogX.${VERSION}.Windows.exe"
 
-          # Create SFX archive directly using 7z -sfx flag
+          # SFX config: extract to fixed location and launch
+          @"
+          ;!@Install@!UTF-8!
+          Title="ContestLogX $VERSION"
+          ExtractPathText="Install ContestLogX to:"
+          ExtractPathDefault="%LOCALAPPDATA%\ContestLogX"
+          RunProgram="%LOCALAPPDATA%\ContestLogX\ContestLogX.exe"
+          ;!@InstallEnd@!
+          "@ | Set-Content -Path sfx_config.txt -Encoding UTF8
+
+          # Create 7z archive of distribution contents
           Push-Location dist\ContestLogX
-          & "C:\Program Files\7-Zip\7z.exe" a -t7z -mx=5 -sfx"C:\Program Files\7-Zip\7z.sfx" $output *
+          & "C:\Program Files\7-Zip\7z.exe" a -t7z -mx=5 ..\..\payload.7z *
           Pop-Location
 
+          # Concatenate: SFX module + config + archive = single exe
+          $output = "dist\ContestLogX.${VERSION}.Windows.exe"
+          $sfxBytes  = [System.IO.File]::ReadAllBytes("7zSD.sfx")
+          $cfgBytes  = [System.IO.File]::ReadAllBytes("sfx_config.txt")
+          $archBytes = [System.IO.File]::ReadAllBytes("payload.7z")
+          $out = New-Object byte[] ($sfxBytes.Length + $cfgBytes.Length + $archBytes.Length)
+          [System.Buffer]::BlockCopy($sfxBytes,  0, $out, 0, $sfxBytes.Length)
+          [System.Buffer]::BlockCopy($cfgBytes,  0, $out, $sfxBytes.Length, $cfgBytes.Length)
+          [System.Buffer]::BlockCopy($archBytes, 0, $out, $sfxBytes.Length + $cfgBytes.Length, $archBytes.Length)
+          [System.IO.File]::WriteAllBytes($output, $out)
           Get-Item $output | ForEach-Object { Write-Host "$($_.Name): $([math]::Round($_.Length/1MB, 1)) MB" }
 
       - name: Upload Windows artifact
