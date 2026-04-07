@@ -194,11 +194,11 @@ jobs:
           $VERSION = "${{ steps.version.outputs.version }}"
 
           # SFX config: extract to fixed location and launch
-          $cfg = ";!@Install@!UTF-8!`n"
-          $cfg += "Title=""ContestLogX $VERSION""`n"
-          $cfg += "ExtractPathText=""Install ContestLogX to:""`n"
-          $cfg += "ExtractPathDefault=""%LOCALAPPDATA%\ContestLogX""`n"
-          $cfg += "RunProgram=""%%T\ContestLogX.exe""`n"
+          $cfg = ";!@Install@!UTF-8!`r`n"
+          $cfg += "Title=""ContestLogX $VERSION""`r`n"
+          $cfg += "ExtractPathText=""Install ContestLogX to:""`r`n"
+          $cfg += "ExtractPathDefault=""%LOCALAPPDATA%\ContestLogX""`r`n"
+          $cfg += "RunProgram=""ContestLogX.exe""`r`n"
           $cfg += ";!@InstallEnd@!"
           [System.IO.File]::WriteAllText("sfx_config.txt", $cfg)
           Write-Host "Config file contents:"
