@@ -2,6 +2,9 @@
 
 All notable changes to ContestLogX are documented in this file.
 
+## [0.7.12]
+- Fixed Windows SFX build failing due to cmd.exe path escaping issue in CI
+
 ## [0.7.11]
 - Changed Windows build from zip to self-extracting exe that installs to %LOCALAPPDATA%\ContestLogX
 

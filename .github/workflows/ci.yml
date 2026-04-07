@@ -198,7 +198,14 @@ jobs:
 
           # Concatenate: SFX module + config + archive = single exe
           $output = "dist\ContestLogX.${VERSION}.Windows.exe"
-          cmd /c copy /b `"$sfxModule`" + dist\sfx_config.txt + dist\payload.7z `"$output`"
+          $sfxBytes   = [System.IO.File]::ReadAllBytes($sfxModule)
+          $cfgBytes   = [System.IO.File]::ReadAllBytes("dist\sfx_config.txt")
+          $archBytes  = [System.IO.File]::ReadAllBytes("dist\payload.7z")
+          $out = New-Object byte[] ($sfxBytes.Length + $cfgBytes.Length + $archBytes.Length)
+          [System.Buffer]::BlockCopy($sfxBytes,  0, $out, 0, $sfxBytes.Length)
+          [System.Buffer]::BlockCopy($cfgBytes,  0, $out, $sfxBytes.Length, $cfgBytes.Length)
+          [System.Buffer]::BlockCopy($archBytes, 0, $out, $sfxBytes.Length + $cfgBytes.Length, $archBytes.Length)
+          [System.IO.File]::WriteAllBytes($output, $out)
           Get-Item $output | ForEach-Object { Write-Host "$($_.Name): $([math]::Round($_.Length/1MB, 1)) MB" }
 
       - name: Upload Windows artifact
