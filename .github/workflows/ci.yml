@@ -175,58 +175,9 @@ jobs:
         shell: pwsh
         run: scripts/build-windows.ps1
 
-      - name: Download 7-Zip SFX installer module
-        shell: pwsh
-        run: |
-          # 7zSD.sfx is public domain, sourced from the LZMA SDK
-          $url = "https://7-zip.org/a/lzma2600.7z"
-          Invoke-WebRequest -Uri $url -OutFile lzma-sdk.7z -UserAgent "ContestLogX-CI"
-          $size = (Get-Item lzma-sdk.7z).Length
-          Write-Host "Downloaded lzma-sdk.7z: $size bytes"
-          if ($size -lt 10000) { Write-Error "Download too small ($size bytes) — likely blocked or redirected"; exit 1 }
-          & "C:\Program Files\7-Zip\7z.exe" e lzma-sdk.7z bin\7zSD.sfx -y
-          if (!(Test-Path 7zSD.sfx)) { Write-Error "7zSD.sfx not found after extraction"; exit 1 }
-          Write-Host "7zSD.sfx: $([math]::Round((Get-Item 7zSD.sfx).Length / 1KB)) KB"
-
-      - name: Create self-extracting executable
-        shell: pwsh
-        run: |
-          $VERSION = "${{ steps.version.outputs.version }}"
-
-          # SFX config: extract to fixed location and launch
-          $cfg = ";!@Install@!UTF-8!`r`n"
-          $cfg += "Title=""ContestLogX $VERSION""`r`n"
-          $cfg += "ExtractPathText=""Install ContestLogX to:""`r`n"
-          $cfg += "ExtractPathDefault=""%LOCALAPPDATA%\ContestLogX""`r`n"
-          $cfg += "RunProgram=""ContestLogX.exe""`r`n"
-          $cfg += ";!@InstallEnd@!"
-          [System.IO.File]::WriteAllText("sfx_config.txt", $cfg)
-          Write-Host "Config file contents:"
-          Get-Content sfx_config.txt | ForEach-Object { Write-Host "  $_" }
-          Write-Host "Config first 20 bytes (hex):"
-          $bytes = [System.IO.File]::ReadAllBytes("sfx_config.txt")
-          Write-Host ("  " + (($bytes[0..19] | ForEach-Object { "{0:X2}" -f $_ }) -join " "))
-
-          # List distribution contents for verification
-          Write-Host "Contents of dist\ContestLogX:"
-          Get-ChildItem -Path dist\ContestLogX -Recurse | ForEach-Object { Write-Host "  $($_.FullName)" }
-
-          # Create 7z archive of distribution contents
-          Push-Location dist\ContestLogX
-          & "C:\Program Files\7-Zip\7z.exe" a -t7z -mx=5 ..\..\payload.7z *
-          Pop-Location
-
-          # Concatenate: SFX module + config + archive = single exe
-          $output = "dist\ContestLogX.${VERSION}.Windows.exe"
-          $sfxBytes  = [System.IO.File]::ReadAllBytes("7zSD.sfx")
-          $cfgBytes  = [System.IO.File]::ReadAllBytes("sfx_config.txt")
-          $archBytes = [System.IO.File]::ReadAllBytes("payload.7z")
-          $out = New-Object byte[] ($sfxBytes.Length + $cfgBytes.Length + $archBytes.Length)
-          [System.Buffer]::BlockCopy($sfxBytes,  0, $out, 0, $sfxBytes.Length)
-          [System.Buffer]::BlockCopy($cfgBytes,  0, $out, $sfxBytes.Length, $cfgBytes.Length)
-          [System.Buffer]::BlockCopy($archBytes, 0, $out, $sfxBytes.Length + $cfgBytes.Length, $archBytes.Length)
-          [System.IO.File]::WriteAllBytes($output, $out)
-          Get-Item $output | ForEach-Object { Write-Host "$($_.Name): $([math]::Round($_.Length/1MB, 1)) MB" }
+      - name: Build Windows installer
+        shell: cmd
+        run: iscc.exe /DMyAppVersion=${{ steps.version.outputs.version }} scripts\installer.iss
 
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
