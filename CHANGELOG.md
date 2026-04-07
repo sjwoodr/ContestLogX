@@ -2,6 +2,9 @@
 
 All notable changes to ContestLogX are documented in this file.
 
+## [0.7.11]
+- Changed Windows build from zip to self-extracting exe that installs to %LOCALAPPDATA%\ContestLogX
+
 ## [0.7.10]
 - Added Windows build to CI pipeline — produces a self-contained portable zip via MSVC + windeployqt
 - Updated download page with Windows download link and version bumps for all platforms

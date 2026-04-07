@@ -175,19 +175,37 @@ jobs:
         shell: pwsh
         run: scripts/build-windows.ps1
 
-      - name: Compress Windows distribution
-        shell: bash
+      - name: Create self-extracting executable
+        shell: pwsh
         run: |
-          VERSION="${{ steps.version.outputs.version }}"
-          cd dist
-          7z a -tzip "ContestLogX.${VERSION}.Windows.zip" ContestLogX/
-          ls -lh
+          $VERSION = "${{ steps.version.outputs.version }}"
+          $sfxModule = "C:\Program Files\7-Zip\7zSD.sfx"
+
+          # SFX config: extract to fixed location and launch
+          @"
+          ;!@Install@!UTF-8!
+          Title="ContestLogX $VERSION"
+          ExtractPathText="Install ContestLogX to:"
+          ExtractPathDefault="%LOCALAPPDATA%\ContestLogX"
+          RunProgram="%LOCALAPPDATA%\ContestLogX\ContestLogX.exe"
+          ;!@InstallEnd@!
+          "@ | Set-Content -Path dist\sfx_config.txt -Encoding UTF8
+
+          # Create 7z archive of the distribution contents (not the folder)
+          cd dist\ContestLogX
+          & "C:\Program Files\7-Zip\7z.exe" a -t7z -mx=5 ..\payload.7z *
+          cd ..\..
+
+          # Concatenate: SFX module + config + archive = single exe
+          $output = "dist\ContestLogX.${VERSION}.Windows.exe"
+          cmd /c copy /b `"$sfxModule`" + dist\sfx_config.txt + dist\payload.7z `"$output`"
+          Get-Item $output | ForEach-Object { Write-Host "$($_.Name): $([math]::Round($_.Length/1MB, 1)) MB" }
 
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
         with:
           name: windows-app
-          path: dist/ContestLogX.${{ steps.version.outputs.version }}.Windows.zip
+          path: dist/ContestLogX.${{ steps.version.outputs.version }}.Windows.exe
           retention-days: 1
 
   create-release:
@@ -251,10 +269,10 @@ jobs:
             ## Downloads
             - **Linux AppImage**: ContestLogX.${{ steps.version.outputs.version }}.AppImage.tar.gz
             - **macOS App Bundle**: ContestLogX.${{ steps.version.outputs.version }}.macOS.tar.gz
-            - **Windows**: ContestLogX.${{ steps.version.outputs.version }}.Windows.zip
+            - **Windows**: ContestLogX.${{ steps.version.outputs.version }}.Windows.exe
           draft: false
           prerelease: false
           files: |
             artifacts/ContestLogX.${{ steps.version.outputs.version }}.AppImage.tar.gz
             artifacts/ContestLogX.${{ steps.version.outputs.version }}.macOS.tar.gz
-            artifacts/ContestLogX.${{ steps.version.outputs.version }}.Windows.zip
+            artifacts/ContestLogX.${{ steps.version.outputs.version }}.Windows.exe
