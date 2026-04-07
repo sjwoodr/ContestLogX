@@ -195,13 +195,13 @@ jobs:
 
           # SFX config: extract to fixed location and launch
           @"
-          ;!@Install@!UTF-8!
-          Title="ContestLogX $VERSION"
-          ExtractPathText="Install ContestLogX to:"
-          ExtractPathDefault="%LOCALAPPDATA%\ContestLogX"
-          RunProgram="%LOCALAPPDATA%\ContestLogX\ContestLogX.exe"
-          ;!@InstallEnd@!
-          "@ | Set-Content -Path sfx_config.txt -Encoding UTF8
+;!@Install@!UTF-8!
+Title="ContestLogX $VERSION"
+ExtractPathText="Install ContestLogX to:"
+ExtractPathDefault="%LOCALAPPDATA%\ContestLogX"
+RunProgram="%%T\ContestLogX.exe"
+;!@InstallEnd@!
+"@ | Set-Content -Path sfx_config.txt -Encoding UTF8
 
           # Create 7z archive of distribution contents
           Push-Location dist\ContestLogX

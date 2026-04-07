@@ -2,6 +2,9 @@
 
 All notable changes to ContestLogX are documented in this file.
 
+## [0.7.15]
+- Fixed Windows SFX installer failing to launch after extraction — use %%T extract path variable and fix config whitespace
+
 ## [0.7.14]
 - Fixed 7zSD.sfx download failing in CI (7-zip.org blocking bare curl requests)
 
