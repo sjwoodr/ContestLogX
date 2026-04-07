@@ -194,14 +194,13 @@ jobs:
           $VERSION = "${{ steps.version.outputs.version }}"
 
           # SFX config: extract to fixed location and launch
-          @"
-;!@Install@!UTF-8!
-Title="ContestLogX $VERSION"
-ExtractPathText="Install ContestLogX to:"
-ExtractPathDefault="%LOCALAPPDATA%\ContestLogX"
-RunProgram="%%T\ContestLogX.exe"
-;!@InstallEnd@!
-"@ | Set-Content -Path sfx_config.txt -Encoding UTF8
+          $cfg = ";!@Install@!UTF-8!`n"
+          $cfg += "Title=""ContestLogX $VERSION""`n"
+          $cfg += "ExtractPathText=""Install ContestLogX to:""`n"
+          $cfg += "ExtractPathDefault=""%LOCALAPPDATA%\ContestLogX""`n"
+          $cfg += "RunProgram=""%%T\ContestLogX.exe""`n"
+          $cfg += ";!@InstallEnd@!"
+          $cfg | Set-Content -Path sfx_config.txt -Encoding UTF8 -NoNewline
 
           # Create 7z archive of distribution contents
           Push-Location dist\ContestLogX
