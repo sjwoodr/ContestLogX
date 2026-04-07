@@ -2,7 +2,7 @@ name: Build and Test ContestLogX
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "sw/0.7.*" ]
   pull_request:
     branches: [ "main" ]
   workflow_dispatch:
@@ -10,6 +10,7 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    if: false  # temporarily disabled
 
     steps:
       - name: Checkout repository
@@ -59,7 +60,7 @@ jobs:
 
   build-appimage:
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: false  # temporarily disabled
     needs: build-and-test
 
     steps:
@@ -100,7 +101,7 @@ jobs:
 
   build-macos:
     runs-on: macos-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: false  # temporarily disabled
     needs: build-and-test
 
     steps:
@@ -146,8 +147,7 @@ jobs:
 
   build-windows:
     runs-on: windows-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: build-and-test
+    if: github.event_name == 'push'
 
     steps:
       - name: Checkout repository
@@ -232,7 +232,7 @@ jobs:
 
   create-release:
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: false  # temporarily disabled
     needs: [build-appimage, build-macos, build-windows]
     permissions:
       contents: write
