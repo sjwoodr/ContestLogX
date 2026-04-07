@@ -202,6 +202,10 @@ jobs:
           $cfg += ";!@InstallEnd@!"
           $cfg | Set-Content -Path sfx_config.txt -Encoding UTF8 -NoNewline
 
+          # List distribution contents for verification
+          Write-Host "Contents of dist\ContestLogX:"
+          Get-ChildItem -Path dist\ContestLogX -Recurse | ForEach-Object { Write-Host "  $($_.FullName)" }
+
           # Create 7z archive of distribution contents
           Push-Location dist\ContestLogX
           & "C:\Program Files\7-Zip\7z.exe" a -t7z -mx=5 ..\..\payload.7z *

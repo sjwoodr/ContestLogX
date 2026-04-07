@@ -2,6 +2,8 @@
 
 All notable changes to ContestLogX are documented in this file.
 
+## [0.7.16]
+
 ## [0.7.15]
 - Fixed Windows SFX installer failing to launch after extraction — use %%T extract path variable and fix config whitespace
 

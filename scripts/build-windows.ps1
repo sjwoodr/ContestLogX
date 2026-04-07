@@ -45,6 +45,9 @@ Copy-Item "data\*.json" "$distDir\data\"
 Copy-Item "resources\contestlogx.png" "$distDir\"
 
 Write-Host ""
+Write-Host "Distribution contents:"
+Get-ChildItem -Path $distDir -Recurse | ForEach-Object { Write-Host "  $($_.FullName)" }
+Write-Host ""
 Write-Host "Windows build complete: dist\$AppName\"
 Write-Host "  Version: $Version"
 Write-Host "  Bundled contest definitions, data files, and Qt runtime"
