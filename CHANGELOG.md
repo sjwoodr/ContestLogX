@@ -2,6 +2,10 @@
 
 All notable changes to ContestLogX are documented in this file.
 
+## [0.7.10]
+- Added Windows build to CI pipeline — produces a self-contained portable zip via MSVC + windeployqt
+- Updated download page with Windows download link and version bumps for all platforms
+
 ## [0.7.9]
 - Fixed hidden dock widgets (DX Cluster, CW Console) reappearing on restart due to startup race condition where visibilityChanged signals overwrote saved settings before they could be read
 

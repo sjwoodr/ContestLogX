@@ -144,10 +144,56 @@ jobs:
           path: dist/ContestLogX.${{ steps.version.outputs.version }}.macOS.tar.gz
           retention-days: 1  # Intermediate — attached to Release by create-release job
 
+  build-windows:
+    runs-on: windows-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: build-and-test
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract version from CMakeLists.txt
+        id: version
+        shell: bash
+        run: |
+          VERSION=$(grep 'project(ContestLogX VERSION' CMakeLists.txt | sed 's/.*VERSION \([0-9.]*\).*/\1/')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "VERSION: $VERSION"
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.5.*'
+          host: 'windows'
+          target: 'desktop'
+          arch: 'win64_msvc2019_64'
+          modules: 'qtnetworkauth qtmultimedia'
+          cache: true
+
+      - name: Build Windows distribution
+        shell: pwsh
+        run: scripts/build-windows.ps1
+
+      - name: Compress Windows distribution
+        shell: bash
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          cd dist
+          7z a -tzip "ContestLogX.${VERSION}.Windows.zip" ContestLogX/
+          ls -lh
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-app
+          path: dist/ContestLogX.${{ steps.version.outputs.version }}.Windows.zip
+          retention-days: 1
+
   create-release:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [build-appimage, build-macos]
+    needs: [build-appimage, build-macos, build-windows]
     permissions:
       contents: write
 
@@ -172,6 +218,12 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: macos-app
+          path: artifacts/
+
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-app
           path: artifacts/
 
       - name: Extract release notes from CHANGELOG.md
@@ -199,8 +251,10 @@ jobs:
             ## Downloads
             - **Linux AppImage**: ContestLogX.${{ steps.version.outputs.version }}.AppImage.tar.gz
             - **macOS App Bundle**: ContestLogX.${{ steps.version.outputs.version }}.macOS.tar.gz
+            - **Windows**: ContestLogX.${{ steps.version.outputs.version }}.Windows.zip
           draft: false
           prerelease: false
           files: |
             artifacts/ContestLogX.${{ steps.version.outputs.version }}.AppImage.tar.gz
             artifacts/ContestLogX.${{ steps.version.outputs.version }}.macOS.tar.gz
+            artifacts/ContestLogX.${{ steps.version.outputs.version }}.Windows.zip
