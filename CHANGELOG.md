@@ -2,6 +2,9 @@
 
 All notable changes to ContestLogX are documented in this file.
 
+## [0.7.14]
+- Fixed 7zSD.sfx download failing in CI (7-zip.org blocking bare curl requests)
+
 ## [0.7.13]
 - Improved Windows SFX build — fetch 7zSD.sfx (public domain) at build time for proper installer UX with default extract path to %LOCALAPPDATA%\ContestLogX
 
