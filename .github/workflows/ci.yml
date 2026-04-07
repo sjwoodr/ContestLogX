@@ -200,7 +200,12 @@ jobs:
           $cfg += "ExtractPathDefault=""%LOCALAPPDATA%\ContestLogX""`n"
           $cfg += "RunProgram=""%%T\ContestLogX.exe""`n"
           $cfg += ";!@InstallEnd@!"
-          $cfg | Set-Content -Path sfx_config.txt -Encoding UTF8 -NoNewline
+          [System.IO.File]::WriteAllText("sfx_config.txt", $cfg)
+          Write-Host "Config file contents:"
+          Get-Content sfx_config.txt | ForEach-Object { Write-Host "  $_" }
+          Write-Host "Config first 20 bytes (hex):"
+          $bytes = [System.IO.File]::ReadAllBytes("sfx_config.txt")
+          Write-Host ("  " + (($bytes[0..19] | ForEach-Object { "{0:X2}" -f $_ }) -join " "))
 
           # List distribution contents for verification
           Write-Host "Contents of dist\ContestLogX:"
