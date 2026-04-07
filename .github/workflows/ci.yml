@@ -179,7 +179,7 @@ jobs:
         shell: pwsh
         run: |
           # 7zSD.sfx is public domain (LZMA SDK), fetched from 7-Zip Extra package
-          $url = "https://7-zip.org/a/7z2409-extra.7z"
+          $url = "https://github.com/ip7z/7zip/releases/download/26.00/7z2600-extra.7z"
           Invoke-WebRequest -Uri $url -OutFile 7z-extra.7z -UserAgent "ContestLogX-CI"
           $size = (Get-Item 7z-extra.7z).Length
           Write-Host "Downloaded 7z-extra.7z: $size bytes"
