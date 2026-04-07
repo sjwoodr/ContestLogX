@@ -2,7 +2,7 @@ name: Build and Test ContestLogX
 
 on:
   push:
-    branches: [ "main", "sw/0.7.*" ]
+    branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
   workflow_dispatch:
@@ -59,7 +59,7 @@ jobs:
 
   build-appimage:
     runs-on: ubuntu-latest
-    if: false  # temporarily disabled while debugging Windows build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: build-and-test
 
     steps:
@@ -100,7 +100,7 @@ jobs:
 
   build-macos:
     runs-on: macos-latest
-    if: false  # temporarily disabled while debugging Windows build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: build-and-test
 
     steps:
@@ -146,7 +146,7 @@ jobs:
 
   build-windows:
     runs-on: windows-latest
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: build-and-test
 
     steps:
@@ -229,7 +229,7 @@ jobs:
 
   create-release:
     runs-on: ubuntu-latest
-    if: false  # temporarily disabled while debugging Windows build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: [build-appimage, build-macos, build-windows]
     permissions:
       contents: write
