@@ -145,12 +145,18 @@ set(RESOURCES
     resources/resources.qrc
 )
 
+# Windows application icon
+if(WIN32)
+    set(WIN_RESOURCES resources/contestlogx.rc)
+endif()
+
 # Create executable
 add_executable(${PROJECT_NAME}
     ${SOURCES}
     ${HEADERS}
     ${UI_FILES}
     ${RESOURCES}
+    ${WIN_RESOURCES}
 )
 
 # Link Qt libraries

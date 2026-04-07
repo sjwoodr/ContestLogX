@@ -4,6 +4,7 @@ All notable changes to ContestLogX are documented in this file.
 
 ## [0.7.16]
 - Replaced 7-Zip SFX with Inno Setup installer for Windows — proper install wizard, Start Menu shortcut, desktop shortcut, uninstaller, and post-install launch
+- Added Windows application icon — exe, installer, taskbar, and shortcuts all show the ContestLogX icon
 
 ## [0.7.15]
 - Fixed Windows SFX installer failing to launch after extraction — use %%T extract path variable and fix config whitespace
