@@ -2,6 +2,9 @@
 
 All notable changes to ContestLogX are documented in this file.
 
+## [0.7.9]
+- Fixed hidden dock widgets (DX Cluster, CW Console) reappearing on restart due to startup race condition where visibilityChanged signals overwrote saved settings before they could be read
+
 ## [0.7.8]
 - Added validation when activating Run or S&P mode — if required memory roles (My Call/CQ/Run Exchange/TU for Run, My Call/S&P Exchange for S&P) are not assigned, an error dialog is shown and the CW or SSB memory editor opens automatically
 - Added duplicate-role validation in the CW and SSB memory editor dialogs — cannot save if the same role is assigned to more than one memory slot

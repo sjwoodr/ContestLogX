@@ -120,7 +120,7 @@ MainWindow::MainWindow(QWidget *parent)
     , m_testMode(false)
     , m_debugLogMode(false)
     , m_firstShow(true)
-    , m_restoringState(false)
+    , m_restoringState(true)
     , m_sessionStationInfo(new StationInfo())
     , m_contestEngine(new ContestEngine(this))
     , m_dxccDatabase(new DxccDatabase(this))
@@ -981,7 +981,7 @@ void MainWindow::setupDocks(QSplitter* mainSplitter)
     addDockWidget(Qt::RightDockWidgetArea, m_dxClusterDock);
     connect(m_dxClusterDock, &QDockWidget::visibilityChanged, this, [this](bool visible) {
         if (m_dxClusterAction) m_dxClusterAction->setChecked(visible);
-        Settings::instance().setDxClusterVisible(visible);
+        if (!m_restoringState && m_dockStateSaveTimer) m_dockStateSaveTimer->start();
     });
 
     // Connect propagation data signal
@@ -1007,7 +1007,7 @@ void MainWindow::setupDocks(QSplitter* mainSplitter)
     addDockWidget(Qt::RightDockWidgetArea, m_cwConsoleDock);
     connect(m_cwConsoleDock, &QDockWidget::visibilityChanged, this, [this](bool visible) {
         if (m_cwConsoleAction) m_cwConsoleAction->setChecked(visible);
-        Settings::instance().setCwConsoleVisible(visible);
+        if (!m_restoringState && m_dockStateSaveTimer) m_dockStateSaveTimer->start();
     });
 
     // Score Widget as QDockWidget
@@ -5274,7 +5274,7 @@ void MainWindow::onAbout()
     msgBox.setTextFormat(Qt::RichText);
     msgBox.setTextInteractionFlags(Qt::TextBrowserInteraction);
     msgBox.setText(
-        "<b>ContestLogX - Version 0.7.8 (Beta)</b><br><br>"
+        "<b>ContestLogX - Version 0.7.9 (Beta)</b><br><br>"
         "Cross-platform amateur radio contest logging software<br><br>"
         "Copyright &copy; 2025-2026, by Steve Woodruff, N9OH<br><br>"
         "<a href=\"https://contestlogx.com\">https://contestlogx.com</a><br><br>"
@@ -6274,9 +6274,6 @@ void MainWindow::restorePanelState()
         DebugLogger::instance().log("MainWindow",
             QString("Restoring dock widget state (%1 bytes)").arg(dockState.size()));
 
-        // Block save timer during restore to prevent overwriting restored state
-        m_restoringState = true;
-
         // Use version 0 for compatibility
         bool success = restoreState(dockState, 0);
 
@@ -6345,6 +6342,11 @@ void MainWindow::restorePanelState()
         // No dock state blob — apply visibility from boolean settings directly
         if (m_dxClusterDock) m_dxClusterDock->setVisible(dxVisible);
         if (m_cwConsoleDock) m_cwConsoleDock->setVisible(cwVisible);
+        // Unblock save timer after a brief delay for layout to settle
+        QTimer::singleShot(500, this, [this]() {
+            m_restoringState = false;
+            DebugLogger::instance().log("MainWindow", "State restoration complete (no saved state), save timer unblocked");
+        });
     }
 
     // Sync menu checkmarks with actual visibility
