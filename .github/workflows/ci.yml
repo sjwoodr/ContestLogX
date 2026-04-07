@@ -179,33 +179,13 @@ jobs:
         shell: pwsh
         run: |
           $VERSION = "${{ steps.version.outputs.version }}"
-          $sfxModule = "C:\Program Files\7-Zip\7zSD.sfx"
+          $output = "$PWD\dist\ContestLogX.${VERSION}.Windows.exe"
 
-          # SFX config: extract to fixed location and launch
-          @"
-          ;!@Install@!UTF-8!
-          Title="ContestLogX $VERSION"
-          ExtractPathText="Install ContestLogX to:"
-          ExtractPathDefault="%LOCALAPPDATA%\ContestLogX"
-          RunProgram="%LOCALAPPDATA%\ContestLogX\ContestLogX.exe"
-          ;!@InstallEnd@!
-          "@ | Set-Content -Path dist\sfx_config.txt -Encoding UTF8
+          # Create SFX archive directly using 7z -sfx flag
+          Push-Location dist\ContestLogX
+          & "C:\Program Files\7-Zip\7z.exe" a -t7z -mx=5 -sfx"C:\Program Files\7-Zip\7z.sfx" $output *
+          Pop-Location
 
-          # Create 7z archive of the distribution contents (not the folder)
-          cd dist\ContestLogX
-          & "C:\Program Files\7-Zip\7z.exe" a -t7z -mx=5 ..\payload.7z *
-          cd ..\..
-
-          # Concatenate: SFX module + config + archive = single exe
-          $output = "dist\ContestLogX.${VERSION}.Windows.exe"
-          $sfxBytes   = [System.IO.File]::ReadAllBytes($sfxModule)
-          $cfgBytes   = [System.IO.File]::ReadAllBytes("dist\sfx_config.txt")
-          $archBytes  = [System.IO.File]::ReadAllBytes("dist\payload.7z")
-          $out = New-Object byte[] ($sfxBytes.Length + $cfgBytes.Length + $archBytes.Length)
-          [System.Buffer]::BlockCopy($sfxBytes,  0, $out, 0, $sfxBytes.Length)
-          [System.Buffer]::BlockCopy($cfgBytes,  0, $out, $sfxBytes.Length, $cfgBytes.Length)
-          [System.Buffer]::BlockCopy($archBytes, 0, $out, $sfxBytes.Length + $cfgBytes.Length, $archBytes.Length)
-          [System.IO.File]::WriteAllBytes($output, $out)
           Get-Item $output | ForEach-Object { Write-Host "$($_.Name): $([math]::Round($_.Length/1MB, 1)) MB" }
 
       - name: Upload Windows artifact
