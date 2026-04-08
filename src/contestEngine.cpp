@@ -946,9 +946,28 @@ int ContestEngine::calculatePoints(const QsoRecord& qso, const QString& myCallsi
                 // If rule applies and points are defined, return them
                 if (ruleApplies && points.contains(rule)) {
                     QJsonObject rulePoints = points[rule].toObject();
+
+                    // Check for per-prompt point overrides (e.g., sameDxccEntity = 1 for DX, 2 for OK/OM)
+                    if (rulePoints.contains("byPrompt")) {
+                        QJsonObject byPrompt = rulePoints["byPrompt"].toObject();
+                        for (const QString& promptId : byPrompt.keys()) {
+                            QString actual = m_userPromptValues.value(promptId);
+                            QJsonObject promptVals = byPrompt[promptId].toObject();
+                            if (promptVals.contains(actual)) {
+                                QJsonObject overridePoints = promptVals[actual].toObject();
+                                if (overridePoints.contains(mode)) {
+                                    int pts = overridePoints[mode].toInt();
+                                    DebugLogger::instance().log("ContestEngine",
+                                        QString("  Points: %1 (%2, byPrompt %3=%4)").arg(pts).arg(rule, promptId, actual));
+                                    return pts;
+                                }
+                            }
+                        }
+                    }
+
                     if (rulePoints.contains(mode)) {
                         int pts = rulePoints[mode].toInt();
-                        DebugLogger::instance().log("ContestEngine", 
+                        DebugLogger::instance().log("ContestEngine",
                             QString("  Points: %1 (%2)").arg(pts).arg(rule));
                         return pts;
                     }
@@ -1348,11 +1367,16 @@ QString ContestEngine::getNamedMultsLabel() const
 {
     if (m_contestDef.contains("scoring")) {
         QJsonObject mults = m_contestDef["scoring"].toObject()["multipliers"].toObject();
-        // Check for station-class-specific label first
         if (mults.contains("namedMultsLabels")) {
             QJsonObject labels = mults["namedMultsLabels"].toObject();
+            // Check formal station class first
             if (!m_stationClass.isEmpty() && labels.contains(m_stationClass))
                 return labels[m_stationClass].toString();
+            // Fall back to matching a userPrompt value
+            for (const QString& pv : m_userPromptValues.values()) {
+                if (labels.contains(pv))
+                    return labels[pv].toString();
+            }
         }
         // Fall back to a single label
         if (mults.contains("namedMultsLabel"))

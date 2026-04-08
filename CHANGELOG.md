@@ -7,6 +7,8 @@ All notable changes to ContestLogX are documented in this file.
 - Added direct band-based scoring to contest engine (byBand without month nesting)
 - Added 1:1 named mult aliases for exchange normalization (e.g., "5" → "05")
 - Added per-station-class named mult display lists and labels (e.g., "CQ Zones" for JA, "Prefectures" for DX)
+- Added OK-OM DX Contest — CW and SSB, OK/OM and DX station classes, 165 Czech/Slovak county multipliers, DXCC+WAE entities per band
+- Added per-station-class point overrides (byPrompt) to contest engine for asymmetric scoring rules
 
 ## [0.7.17]
 - Fixed light theme not working when running directly on GNOME/Wayland — use stylesheet-based theming that overrides GTK platform integration

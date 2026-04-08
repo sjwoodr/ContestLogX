@@ -1,0 +1,271 @@
+{
+  "contest": {
+    "name": "OK-OM DX Contest",
+    "abbreviation": "OKOMDX",
+    "version": "1.0.0",
+    "sponsor": "Czech Radio Club (ČRK) and Slovak Radio Club (SARA)",
+    "description": "International contest encouraging contacts with Czech and Slovak stations. CW second weekend in November; SSB second weekend in April. OK/OM stations send RST + county code; DX stations send RST + serial number.",
+    "startDate": "CW: Second full weekend in November; SSB: Second weekend in April",
+    "duration": 24,
+    "offTimeGapMinutes": 0,
+    "modes": ["CW", "SSB"],
+    "bands": ["160m", "80m", "40m", "20m", "15m", "10m"],
+    "url": "http://okomdx.crk.cz/",
+    "categories": {
+      "stations": ["SINGLE_OP", "MULTI_SINGLE", "MULTI_TWO"],
+      "power": ["HIGH", "LOW", "QRP"]
+    }
+  },
+  "frequencies": {
+    "160m": {
+      "start": 1800,
+      "end": 2000,
+      "cw": {"start": 1800, "end": 1850},
+      "phone": {"start": 1850, "end": 2000}
+    },
+    "80m": {
+      "start": 3500,
+      "end": 4000,
+      "cw": {"start": 3500, "end": 3600},
+      "phone": {"start": 3600, "end": 4000}
+    },
+    "40m": {
+      "start": 7000,
+      "end": 7300,
+      "cw": {"start": 7000, "end": 7125},
+      "phone": {"start": 7125, "end": 7300}
+    },
+    "20m": {
+      "start": 14000,
+      "end": 14350,
+      "cw": {"start": 14000, "end": 14150},
+      "phone": {"start": 14150, "end": 14350}
+    },
+    "15m": {
+      "start": 21000,
+      "end": 21450,
+      "cw": {"start": 21000, "end": 21200},
+      "phone": {"start": 21200, "end": 21450}
+    },
+    "10m": {
+      "start": 28000,
+      "end": 29700,
+      "cw": {"start": 28000, "end": 28300},
+      "phone": {"start": 28300, "end": 29700}
+    }
+  },
+  "stationClasses": {
+    "enabled": false
+  },
+  "userPrompts": [
+    {
+      "id": "contestMode",
+      "question": "Which contest weekend are you entering?",
+      "type": "select",
+      "options": [
+        {"value": "CW", "label": "CW (Second full weekend in November)"},
+        {"value": "SSB", "label": "SSB (Second weekend in April)"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "restrictMode": true,
+      "description": "CW and SSB are separate contest weekends with separate results"
+    },
+    {
+      "id": "stationType",
+      "question": "Are you a Czech/Slovak or DX station?",
+      "type": "select",
+      "options": [
+        {"value": "DX", "label": "DX (non-OK/OM) — send RST + serial number"},
+        {"value": "OK_OM", "label": "OK/OM (Czech/Slovak) — send RST + county code"}
+      ],
+      "required": true,
+      "storeInMeta": true
+    },
+    {
+      "id": "myCounty",
+      "question": "Enter your county code (3-letter OK/OM district code)",
+      "type": "text",
+      "required": true,
+      "storeInMeta": true,
+      "visibleWhen": {"promptId": "stationType", "values": ["OK_OM"]},
+      "exchangeFieldMapping": {"myCounty": "EXCHs"}
+    },
+    {
+      "id": "operatingCategory",
+      "question": "Select your operating category",
+      "type": "select",
+      "options": [
+        {"value": "SOAB-HP", "label": "Single Op All Band - High Power"},
+        {"value": "SOAB-LP", "label": "Single Op All Band - Low Power (100W)"},
+        {"value": "SOAB-QRP", "label": "Single Op All Band - QRP (5W)"},
+        {"value": "SOSB-160", "label": "Single Op Single Band - 160m"},
+        {"value": "SOSB-80", "label": "Single Op Single Band - 80m"},
+        {"value": "SOSB-40", "label": "Single Op Single Band - 40m"},
+        {"value": "SOSB-20", "label": "Single Op Single Band - 20m"},
+        {"value": "SOSB-15", "label": "Single Op Single Band - 15m"},
+        {"value": "SOSB-10", "label": "Single Op Single Band - 10m"},
+        {"value": "MOST", "label": "Multi Op Single Transmitter"},
+        {"value": "MO2T", "label": "Multi Op Two Transmitters"}
+      ],
+      "required": true,
+      "storeInMeta": true
+    }
+  ],
+  "exchangeFields": {
+    "sent": [
+      {
+        "name": "RST",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report sent"
+      },
+      {
+        "name": "SNs",
+        "type": "serial",
+        "required": true,
+        "description": "Serial number sent (auto-incremented)"
+      }
+    ],
+    "received": [
+      {
+        "name": "RST",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report received"
+      },
+      {
+        "name": "EXCHr",
+        "type": "string",
+        "required": true,
+        "description": "Serial number (DX stations) or county code (OK/OM stations)"
+      }
+    ]
+  },
+  "qsoFields": [
+    {"name": "Date",      "column": "DATE",   "type": "date",   "format": "yyyy-MM-dd", "required": true},
+    {"name": "Time",      "column": "TIME",   "type": "time",   "format": "HH:mm:ss",   "required": true},
+    {"name": "Callsign",  "column": "CALL",   "type": "string", "required": true, "uppercase": true},
+    {"name": "Frequency", "column": "FREQ",   "type": "number", "unit": "kHz",    "required": true},
+    {"name": "Mode",      "column": "MODE",   "type": "enum",   "values": ["CW", "SSB"], "required": true},
+    {"name": "RST Sent",  "column": "RSTs",   "type": "string", "required": true, "default": "599"},
+    {"name": "RST Rcvd",  "column": "RSTr",   "type": "string", "required": true},
+    {"name": "SN Sent",      "column": "SNs",    "type": "serial", "required": true, "visibleWhen": {"promptId": "stationType", "values": ["DX"]}},
+    {"name": "County Sent",  "column": "EXCHs",  "type": "string", "required": true, "visibleWhen": {"promptId": "stationType", "values": ["OK_OM"]}},
+    {"name": "Exch Rcvd",    "column": "EXCHr",  "type": "string", "required": true, "description": "Serial number or county code"},
+    {"name": "Points",    "column": "POINTS", "type": "number", "calculated": true},
+    {"name": "Mult",      "column": "M",      "type": "string", "calculated": true}
+  ],
+  "scoring": {
+    "okOmStationPrefixes": ["OK", "OL", "OM"],
+    "scoringRuleConditions": {
+      "okOmStation": {"promptId": "stationType", "values": ["DX"]}
+    },
+    "points": {
+      "__comment": "DX: OK/OM=10, own country=1, same continent=3, diff continent=5. OK/OM: own country=2, same continent=3, diff continent=5.",
+      "okOmStation": {
+        "CW": 10,
+        "SSB": 10
+      },
+      "sameDxccEntity": {
+        "CW": 1,
+        "SSB": 1,
+        "byPrompt": {
+          "stationType": {
+            "OK_OM": {"CW": 2, "SSB": 2}
+          }
+        }
+      },
+      "sameContinent": {
+        "CW": 3,
+        "SSB": 3
+      },
+      "differentContinent": {
+        "CW": 5,
+        "SSB": 5
+      }
+    },
+    "precedence": [
+      "okOmStation",
+      "sameDxccEntity",
+      "sameContinent",
+      "differentContinent"
+    ],
+    "multipliers": {
+      "type": "multsPerBand",
+      "description": "OK/OM county codes and DXCC entities (including WAE) per band",
+      "categories": ["namedMults", "dxcc"],
+      "includeWaeEntities": true,
+      "namedMultsLabels": {
+        "OK_OM": "Counties",
+        "DX": "Counties"
+      }
+    },
+    "finalScore": "SUM(points) * (namedMults + dxccMultipliers)"
+  },
+  "dupeChecking": {
+    "type": "perBand",
+    "description": "Station may be worked once per band"
+  },
+  "logging": {
+    "requiredFields": ["date", "time", "frequency", "mode", "callsign", "rstSent", "rstReceived", "serialSent", "exchReceived"],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "OK-OM-DX",
+      "contestMapping": {
+        "CW": "OK-OM-DX-CW",
+        "SSB": "OK-OM-DX-SSB"
+      },
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {rst_sent} {sn_sent} {call} {rst_rcvd} {exch_rcvd}",
+      "requiredHeaders": ["CONTEST", "CALLSIGN", "CATEGORY-OPERATOR", "CATEGORY-BAND", "CATEGORY-POWER", "CLAIMED-SCORE", "CLUB", "NAME", "ADDRESS", "EMAIL", "OPERATORS"]
+    }
+  },
+  "callHistory": {
+    "fieldsToSave": ["EXCHr"],
+    "description": "Save received exchange (county code or serial) for future lookups"
+  },
+  "validation": {
+    "minimumQSOs": 1,
+    "maxOperatingTime": 24,
+    "offTimesRequired": false,
+    "namedMults": [
+      "APA", "APB", "APC", "APD", "APE", "APF", "APG", "APH", "API", "APJ",
+      "BBN", "BBE", "BKD", "BKO", "BKH", "BME", "BMB", "BNY", "BPZ", "BPV", "BPB", "BRA",
+      "CBU", "CCK", "CJH", "CPE", "CPI", "CPR", "CST", "CTA",
+      "DDO", "DCH", "DKV", "DKL", "DPM", "DPJ", "DPS", "DRO", "DSO", "DTA",
+      "ECL", "EDE", "ECH", "EJA", "ELI", "ELT", "ELO", "EMO", "ETE", "EUL",
+      "FHB", "FHK", "FCR", "FJI", "FNA", "FPA", "FRK", "FSE", "FSV", "FTR", "FUO",
+      "GBL", "GBM", "GBV", "GBR", "GHO", "GJI", "GKR", "GPR", "GTR", "GUH", "GVY", "GZL", "GZN", "GZS",
+      "HBR", "HFM", "HJE", "HKA", "HNJ", "HOL", "HOP", "HOS", "HPR", "HSU", "HVS",
+      "BAA", "BAB", "BAC", "BAD", "BAE", "MAL", "PEZ", "SEN",
+      "TRN", "DST", "GAL", "HLO", "PIE", "SEA", "SKA",
+      "TNC", "BAN", "ILA", "MYJ", "NMV", "PAR", "PBY", "PRI", "PUC",
+      "NIT", "KOM", "LVC", "NZA", "SAL", "TOP", "ZMO",
+      "ZIL", "BYT", "CAD", "DKU", "KNM", "LMI", "MAR", "NAM", "RUZ", "TTE", "TVR",
+      "BBY", "BRE", "DET", "KRU", "LUC", "POL", "REV", "RSO", "VKR", "ZVO", "ZAR", "ZIH", "BST",
+      "KEA", "KEB", "KEC", "KED", "KEO", "GEL", "MIC", "ROZ", "SOB", "SNV", "TRE",
+      "PRE", "BAR", "HUM", "KEZ", "LEV", "MED", "POP", "SAB", "SNI", "SLU", "STR", "SVI", "VRT"
+    ],
+    "exchangeValidation": {
+      "type": "countyOrSerial",
+      "description": "Accept 3-letter county code (for OK/OM stations) or serial number (for DX stations)",
+      "serialFormat": "^[0-9]+$"
+    }
+  },
+  "ui": {
+    "showMultiplierPanel": true,
+    "logColumns": ["DATE", "TIME", "CALL", "FREQ", "MODE", "RSTs", "RSTr", "SNs", "EXCHs", "EXCHr", "POINTS", "M"],
+    "entryFields": ["CALL", "RSTr", "EXCHr"],
+    "fieldNavigation": {
+      "keys": "tab"
+    },
+    "bandMap": {
+      "enabled": true,
+      "bands": ["160m", "80m", "40m", "20m", "15m", "10m"]
+    },
+    "multiplierDisplay": {
+      "showCounties": true,
+      "showDXCC": true
+    }
+  }
+}
