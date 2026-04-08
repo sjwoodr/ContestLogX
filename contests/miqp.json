@@ -1,0 +1,262 @@
+{
+  "contest": {
+    "name": "Michigan QSO Party",
+    "abbreviation": "MIQP",
+    "version": "1.0.0",
+    "sponsor": "Mad River Radio Club",
+    "description": "Annual Michigan QSO party held the third full weekend of April. MI stations work anyone; non-MI stations work MI only. CW and SSB only.",
+    "startDate": "Third full weekend of April (16Z Sat to 04Z Sun)",
+    "duration": 12,
+    "offTimeGapMinutes": 0,
+    "modes": ["CW", "SSB"],
+    "bands": ["80m", "40m", "20m", "15m", "10m"],
+    "url": "https://www.miqp.org/",
+    "categories": {
+      "stations": ["SINGLE_OP", "MULTI_SINGLE", "MULTI_MULTI", "MOBILE", "ROVER", "EOC"],
+      "power": ["HIGH", "LOW", "QRP"]
+    }
+  },
+  "frequencies": {
+    "80m": {
+      "start": 3500, "end": 4000,
+      "cw": {"start": 3500, "end": 3600},
+      "phone": {"start": 3600, "end": 4000}
+    },
+    "40m": {
+      "start": 7000, "end": 7300,
+      "cw": {"start": 7000, "end": 7125},
+      "phone": {"start": 7125, "end": 7300}
+    },
+    "20m": {
+      "start": 14000, "end": 14350,
+      "cw": {"start": 14000, "end": 14150},
+      "phone": {"start": 14150, "end": 14350}
+    },
+    "15m": {
+      "start": 21000, "end": 21450,
+      "cw": {"start": 21000, "end": 21200},
+      "phone": {"start": 21200, "end": 21450}
+    },
+    "10m": {
+      "start": 28000, "end": 29700,
+      "cw": {"start": 28000, "end": 28300},
+      "phone": {"start": 28300, "end": 29700}
+    }
+  },
+  "stationClasses": {
+    "enabled": false
+  },
+  "userPrompts": [
+    {
+      "id": "stationType",
+      "question": "Are you a Michigan or non-MI station?",
+      "type": "select",
+      "options": [
+        {"value": "MI", "label": "Michigan (In-State) — send RST + MI county"},
+        {"value": "NON_MI", "label": "Non-Michigan (US/VE/DX) — send RST + state/province/DX"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "MI stations work anyone. Non-MI stations work MI only."
+    },
+    {
+      "id": "myExchange",
+      "question": "Enter your exchange: MI county or state/province (2 letters) or DX",
+      "type": "text",
+      "required": true,
+      "forceUppercase": true,
+      "storeInMeta": true,
+      "description": "County abbreviation for MI stations, state/province for US/VE, or DX",
+      "exchangeFieldMapping": {
+        "myExchange": "EXCHs"
+      }
+    },
+    {
+      "id": "operatingClass",
+      "question": "Select your operating class",
+      "type": "select",
+      "options": [
+        {"value": "MI_SO_HP", "label": "MI: Single Op High Power (>100W)"},
+        {"value": "MI_SO_LP", "label": "MI: Single Op Low Power (100W or less)"},
+        {"value": "MI_SO_QRP", "label": "MI: Single Op QRP (5W or less)"},
+        {"value": "MI_MS", "label": "MI: Multi-Op Single Transmitter"},
+        {"value": "MI_MM", "label": "MI: Multi-Op Multi Transmitter"},
+        {"value": "MI_MOB", "label": "MI: Mobile"},
+        {"value": "MI_ROV", "label": "MI: Rover"},
+        {"value": "MI_EOC", "label": "MI: Emergency Operations Center"},
+        {"value": "NON_MI_SO_HP", "label": "Non-MI: Single Op High Power"},
+        {"value": "NON_MI_SO_LP", "label": "Non-MI: Single Op Low Power"},
+        {"value": "NON_MI_SO_QRP", "label": "Non-MI: Single Op QRP"},
+        {"value": "NON_MI_MO", "label": "Non-MI: Multi-Op"}
+      ],
+      "required": true,
+      "storeInMeta": true
+    }
+  ],
+  "exchangeFields": {
+    "sent": [
+      {
+        "name": "RST",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report sent"
+      },
+      {
+        "name": "EXCHs",
+        "type": "string",
+        "required": true,
+        "description": "MI county or state/province or DX"
+      }
+    ],
+    "received": [
+      {
+        "name": "RST",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report received"
+      },
+      {
+        "name": "EXCHr",
+        "type": "string",
+        "required": true,
+        "description": "MI county or state/province or DX"
+      }
+    ]
+  },
+  "qsoFields": [
+    {"name": "Date",      "column": "DATE",   "type": "date",   "format": "yyyy-MM-dd", "required": true},
+    {"name": "Time",      "column": "TIME",   "type": "time",   "format": "HH:mm:ss",   "required": true},
+    {"name": "Callsign",  "column": "CALL",   "type": "string", "required": true, "uppercase": true},
+    {"name": "Frequency", "column": "FREQ",   "type": "number", "unit": "kHz",    "required": true},
+    {"name": "Mode",      "column": "MODE",   "type": "enum",   "values": ["CW", "SSB"], "required": true},
+    {"name": "RST Sent",  "column": "RSTs",   "type": "string", "required": true, "default": "599"},
+    {"name": "RST Rcvd",  "column": "RSTr",   "type": "string", "required": true},
+    {"name": "Exch Sent", "column": "EXCHs",  "type": "string", "required": true, "description": "County/State/Province/DX"},
+    {"name": "Exch Rcvd", "column": "EXCHr",  "type": "string", "required": true, "description": "County/State/Province/DX"},
+    {"name": "Points",    "column": "POINTS", "type": "number", "calculated": true},
+    {"name": "Mult",      "column": "M",      "type": "string", "calculated": true}
+  ],
+  "scoring": {
+    "points": {
+      "sameDxccEntity": {
+        "CW": 2,
+        "SSB": 1
+      },
+      "differentDxccEntity": {
+        "CW": 2,
+        "SSB": 1
+      },
+      "sameContinent": {
+        "CW": 2,
+        "SSB": 1
+      },
+      "differentContinent": {
+        "CW": 2,
+        "SSB": 1
+      }
+    },
+    "precedence": [
+      "sameDxccEntity",
+      "differentDxccEntity",
+      "sameContinent",
+      "differentContinent"
+    ],
+    "multipliers": {
+      "type": "multsPerMode",
+      "description": "MI counties (83) for non-MI; states+DC (50) + provinces (13) + DX (1) for MI — each counted once per mode (CW/SSB).",
+      "categories": ["namedMults"]
+    },
+    "finalScore": "SUM(points) * SUM(multipliers)"
+  },
+  "dupeChecking": {
+    "type": "perBandAndMode",
+    "description": "Station may be worked once per mode per band"
+  },
+  "logging": {
+    "requiredFields": ["date", "time", "frequency", "mode", "callsign", "rstSent", "rstReceived", "exchSent", "exchReceived"],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "MI-QSO-PARTY",
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {rst_sent} {exch_sent} {call} {rst_rcvd} {exch_rcvd}",
+      "requiredHeaders": ["CONTEST", "CALLSIGN", "CATEGORY-OPERATOR", "CATEGORY-POWER", "CATEGORY-STATION", "CATEGORY-TRANSMITTER", "CLAIMED-SCORE", "CLUB", "NAME", "ADDRESS", "OPERATORS"]
+    }
+  },
+  "callHistory": {
+    "fieldsToSave": ["EXCHr"],
+    "description": "Save received exchange (county/state/province/DX) for future lookups"
+  },
+  "validation": {
+    "minimumQSOs": 1,
+    "maxOperatingTime": 12,
+    "offTimesRequired": false,
+    "namedMults": [
+      "ALCO", "ALGE", "ALLE", "ALPE", "ANTR", "AREN", "BARA", "BARR", "BAY", "BENZ",
+      "BERR", "BRAN", "CALH", "CASS", "CHAR", "CHEB", "CHIP", "CLAR", "CLIN", "CRAW",
+      "DELT", "DICK", "EATO", "EMME", "GENE", "GLAD", "GOGE", "GRAT", "GRTR", "HILL",
+      "HOUG", "HURO", "INGH", "IONI", "IOSC", "IRON", "ISAB", "JACK", "KALK", "KENT",
+      "KEWE", "KZOO", "LAKE", "LAPE", "LEEL", "LENA", "LIVI", "LUCE", "MACK", "MACO",
+      "MANI", "MARQ", "MASO", "MCLM", "MECO", "MENO", "MIDL", "MISS", "MONR", "MTMO",
+      "MUSK", "NEWA", "OAKL", "OCEA", "OGEM", "ONTO", "OSCE", "OSCO", "OTSE", "OTTA",
+      "PRES", "ROSC", "SAGI", "SANI", "SCHO", "SHIA", "STCL", "STJO", "TUSC", "VANB",
+      "WASH", "WAYN", "WEXF",
+      "AK", "AL", "AR", "AZ", "CA", "CO", "CT", "DC", "DE", "FL",
+      "GA", "HI", "IA", "ID", "IL", "IN", "KS", "KY", "LA", "MA",
+      "MD", "ME", "MN", "MO", "MS", "MT", "NC", "ND", "NE", "NH", "NJ",
+      "NM", "NV", "NY", "OH", "OK", "OR", "PA", "RI", "SC",
+      "SD", "TN", "TX", "UT", "VA", "VT", "WA", "WI", "WV", "WY",
+      "AB", "BC", "MB", "NB", "NL", "NS", "NT", "NU", "ON", "PE", "QC", "SK", "YT",
+      "DX"
+    ],
+    "receivedExchangeFilter": {
+      "promptId": "stationType",
+      "rules": {
+        "NON_MI": "inStateMults"
+      }
+    },
+    "inStateMults": [
+      "ALCO", "ALGE", "ALLE", "ALPE", "ANTR", "AREN", "BARA", "BARR", "BAY", "BENZ",
+      "BERR", "BRAN", "CALH", "CASS", "CHAR", "CHEB", "CHIP", "CLAR", "CLIN", "CRAW",
+      "DELT", "DICK", "EATO", "EMME", "GENE", "GLAD", "GOGE", "GRAT", "GRTR", "HILL",
+      "HOUG", "HURO", "INGH", "IONI", "IOSC", "IRON", "ISAB", "JACK", "KALK", "KENT",
+      "KEWE", "KZOO", "LAKE", "LAPE", "LEEL", "LENA", "LIVI", "LUCE", "MACK", "MACO",
+      "MANI", "MARQ", "MASO", "MCLM", "MECO", "MENO", "MIDL", "MISS", "MONR", "MTMO",
+      "MUSK", "NEWA", "OAKL", "OCEA", "OGEM", "ONTO", "OSCE", "OSCO", "OTSE", "OTTA",
+      "PRES", "ROSC", "SAGI", "SANI", "SCHO", "SHIA", "STCL", "STJO", "TUSC", "VANB",
+      "WASH", "WAYN", "WEXF"
+    ],
+    "namedMultsByStationClass": {
+      "NON_MI": [
+        "ALCO", "ALGE", "ALLE", "ALPE", "ANTR", "AREN", "BARA", "BARR", "BAY", "BENZ",
+        "BERR", "BRAN", "CALH", "CASS", "CHAR", "CHEB", "CHIP", "CLAR", "CLIN", "CRAW",
+        "DELT", "DICK", "EATO", "EMME", "GENE", "GLAD", "GOGE", "GRAT", "GRTR", "HILL",
+        "HOUG", "HURO", "INGH", "IONI", "IOSC", "IRON", "ISAB", "JACK", "KALK", "KENT",
+        "KEWE", "KZOO", "LAKE", "LAPE", "LEEL", "LENA", "LIVI", "LUCE", "MACK", "MACO",
+        "MANI", "MARQ", "MASO", "MCLM", "MECO", "MENO", "MIDL", "MISS", "MONR", "MTMO",
+        "MUSK", "NEWA", "OAKL", "OCEA", "OGEM", "ONTO", "OSCE", "OSCO", "OTSE", "OTTA",
+        "PRES", "ROSC", "SAGI", "SANI", "SCHO", "SHIA", "STCL", "STJO", "TUSC", "VANB",
+        "WASH", "WAYN", "WEXF"
+      ]
+    },
+    "exchangeValidation": {
+      "type": "namedMultOnly",
+      "description": "MI county (3-4 letters), state/province (2 letters), or DX"
+    }
+  },
+  "ui": {
+    "showMultiplierPanel": true,
+    "logColumns": ["DATE", "TIME", "CALL", "FREQ", "MODE", "RSTs", "RSTr", "EXCHs", "EXCHr", "POINTS", "M", "COMMENT"],
+    "entryFields": ["CALL", "RSTr", "EXCHr"],
+    "fieldNavigation": {
+      "keys": "tab"
+    },
+    "bandMap": {
+      "enabled": true,
+      "bands": ["80m", "40m", "20m", "15m", "10m"]
+    },
+    "multiplierDisplay": {
+      "showCounties": true,
+      "showStates": true,
+      "showProvinces": true
+    }
+  }
+}

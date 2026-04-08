@@ -209,6 +209,16 @@
       "name": "NDQP ND Station (77 QSOs, multsOnce, counties+states+prov, DX=pts only, NL alias)",
       "log_file": "test_ndqp_nd.clx",
       "expected_score": 4940
+    },
+    {
+      "name": "MIQP Non-MI Station (100 QSOs, multsPerMode, MI counties only)",
+      "log_file": "test_miqp_nonmi.clx",
+      "expected_score": 13172
+    },
+    {
+      "name": "MIQP MI Station (70 QSOs, multsPerMode, counties+states+prov+DX)",
+      "log_file": "test_miqp_mi.clx",
+      "expected_score": 6262
     }
   ]
 }

@@ -4,6 +4,9 @@ All notable changes to ContestLogX are documented in this file.
 
 ## [0.7.20]
 
+### Contest Updates
+- Added Michigan QSO Party (MIQP) — MI and non-MI station classes, 83 MI counties, states/provinces/DX multipliers per mode, CW and SSB only
+
 ### Other Changes and Bugfixes
 - Added QSY Back (Alt+B) — tunes rig to the frequency/mode of the previous QSO; press repeatedly to walk further back through the log
 
