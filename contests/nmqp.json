@@ -266,7 +266,7 @@
       ]
     },
     "exchangeValidation": {
-      "type": "countyOrStateOrDX",
+      "type": "namedMultOnly",
       "description": "NM county (3 letters), state/province (2 letters), or DX"
     }
   },

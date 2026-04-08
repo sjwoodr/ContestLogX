@@ -247,7 +247,7 @@
       "PRE", "BAR", "HUM", "KEZ", "LEV", "MED", "POP", "SAB", "SNI", "SLU", "STR", "SVI", "VRT"
     ],
     "exchangeValidation": {
-      "type": "countyOrSerial",
+      "type": "namedMultOrSerial",
       "description": "Accept 3-letter county code (for OK/OM stations) or serial number (for DX stations)",
       "serialFormat": "^[0-9]+$"
     }

@@ -312,9 +312,8 @@
       ]
     },
     "exchangeValidation": {
-      "type": "numeric",
-      "description": "Prefecture number (01-50) or CQ Zone number (1-40)",
-      "format": "^(0?[1-9]|[1-4][0-9]|50)$"
+      "type": "namedMultOnly",
+      "description": "Prefecture number (01-50) or CQ Zone number (1-40)"
     }
   },
   "ui": {

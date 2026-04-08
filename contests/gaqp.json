@@ -289,7 +289,7 @@
       ]
     },
     "exchangeValidation": {
-      "type": "countyOrStateOrDX",
+      "type": "namedMultOnly",
       "description": "GA county (4 letters), state/province (2 letters), or DX"
     }
   },

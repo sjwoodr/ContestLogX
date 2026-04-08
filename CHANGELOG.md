@@ -16,8 +16,10 @@ All notable changes to ContestLogX are documented in this file.
 - Added 1:1 named mult aliases for exchange normalization (e.g., "5" → "05")
 - Added per-station-class named mult display lists and labels (e.g., "CQ Zones" for JA, "Prefectures" for DX)
 - Added per-station-class point overrides (byPrompt) for asymmetric scoring rules
+- Added received exchange validation — `namedMultOnly` blocks invalid exchanges (e.g., serial numbers where a county code is required); `namedMultOrSerial` accepts either named mults or serial numbers; both respect namedMultAliases
 
 ### Other Changes and Bugfixes
+- Fixed exchange validation in several contests
 
 ## [0.7.17]
 - Fixed light theme not working when running directly on GNOME/Wayland — use stylesheet-based theming that overrides GTK platform integration

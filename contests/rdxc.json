@@ -236,7 +236,7 @@
       "FJ", "AN"
     ],
     "exchangeValidation": {
-      "type": "oblastOrSerial",
+      "type": "namedMultOrSerial",
       "description": "Accept oblast code (for Russian stations) or serial number (for non-Russian stations)",
       "serialFormat": "^[0-9]+$"
     }

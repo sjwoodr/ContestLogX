@@ -495,11 +495,11 @@ bool ContestEngine::validateExchange(const QString& fieldName, const QString& va
                     QString("  Exchange validation type: %1").arg(validationType));
 
                 if (validationType == "namedMultOrSerial") {
-                    // Check if value is a valid multiplier OR a valid serial number
+                    // Check if value is a valid multiplier, alias, OR a valid serial number
                     QString upper = value.toUpper();
 
-                    // First check if it's a valid multiplier
-                    if (m_validMultipliers.contains(upper)) {
+                    // First check if it's a valid multiplier or alias
+                    if (m_validMultipliers.contains(upper) || m_namedMultAliases.contains(upper)) {
                         DebugLogger::instance().log("ContestEngine",
                             QString("  '%1' is a valid multiplier").arg(upper));
                         return true;
@@ -507,6 +507,8 @@ bool ContestEngine::validateExchange(const QString& fieldName, const QString& va
 
                     // Otherwise check if it matches serial number format
                     QString serialFormat = exchVal["serialNumberFormat"].toString();
+                    if (serialFormat.isEmpty())
+                        serialFormat = exchVal["serialFormat"].toString();
                     if (!serialFormat.isEmpty()) {
                         QRegularExpression serialRe(serialFormat);
                         if (serialRe.match(value).hasMatch()) {
@@ -521,20 +523,22 @@ bool ContestEngine::validateExchange(const QString& fieldName, const QString& va
                         QString("  '%1' is neither a valid mult nor serial").arg(upper));
                     errorMsg = QString("Invalid mult: %1").arg(value);
                     return false;
-                } else if (validationType == "nameAndMultiplier" && fieldName == "EXCHr") {
+                } else if ((validationType == "nameAndMultiplier" || validationType == "namedMultOnly")
+                           && fieldName == "EXCHr") {
                     // Validate received exchange against effective mults (filtered by station type)
+                    // Also accept namedMultAlias keys (e.g., "DC" → "MD", "5" → "05")
                     QString upper = value.toUpper();
                     QSet<QString> effectiveMults = getEffectiveValidMults();
-                    if (!effectiveMults.contains(upper)) {
-                        errorMsg = QString("Invalid exchange: %1").arg(value);
+                    if (effectiveMults.contains(upper) || m_namedMultAliases.contains(upper)) {
                         DebugLogger::instance().log("ContestEngine",
-                            QString("  '%1' not in effective mults (%2 entries)")
-                                .arg(upper).arg(effectiveMults.size()));
-                        return false;
+                            QString("  '%1' is a valid exchange").arg(upper));
+                        return true;
                     }
+                    errorMsg = QString("Invalid exchange: %1").arg(value);
                     DebugLogger::instance().log("ContestEngine",
-                        QString("  '%1' is a valid exchange").arg(upper));
-                    return true;
+                        QString("  '%1' not in effective mults (%2 entries) or aliases (%3)")
+                            .arg(upper).arg(effectiveMults.size()).arg(m_namedMultAliases.size()));
+                    return false;
                 } else if (validationType == "namedMultOrDxcc" && fieldName == "EXCHr") {
                     // Validate received exchange against effective mults, with a DXCC prefix
                     // fallback for station types that use the full mult list (e.g., FL in-state ops
@@ -544,7 +548,7 @@ bool ContestEngine::validateExchange(const QString& fieldName, const QString& va
                     // of the required FL county abbreviation.
                     QString upper = value.toUpper();
                     QSet<QString> effectiveMults = getEffectiveValidMults();
-                    if (effectiveMults.contains(upper)) {
+                    if (effectiveMults.contains(upper) || m_namedMultAliases.contains(upper)) {
                         DebugLogger::instance().log("ContestEngine",
                             QString("  '%1' is a valid named mult").arg(upper));
                         return true;

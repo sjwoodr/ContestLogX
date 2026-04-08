@@ -229,7 +229,7 @@
       "Z": "zachodniopomorskie"
     },
     "exchangeValidation": {
-      "type": "provinceOrSerial",
+      "type": "namedMultOrSerial",
       "description": "Accept province designator (for Polish stations) or serial number (for non-Polish stations)",
       "serialFormat": "^[0-9]+$"
     }
