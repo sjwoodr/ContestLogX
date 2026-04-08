@@ -329,6 +329,7 @@ private:
     QAction *m_scpDebugAction;
     QAction *m_multiplierWidgetDebugAction;
     QAction *m_callsignLookupDebugAction;
+    QAction *m_wsjtxDebugAction;
 
     // QSO Entry widgets
     QGroupBox *m_qsoEntryGroup;

@@ -1017,6 +1017,19 @@ void Settings::setMultiplierWidgetDebugEnabled(bool enabled)
     save();
 }
 
+bool Settings::getWsjtxDebugEnabled() const
+{
+    return m_settings["debug"].toObject()["wsjtxDebugEnabled"].toBool(false);
+}
+
+void Settings::setWsjtxDebugEnabled(bool enabled)
+{
+    QJsonObject debug = m_settings["debug"].toObject();
+    debug["wsjtxDebugEnabled"] = enabled;
+    m_settings["debug"] = debug;
+    save();
+}
+
 bool Settings::getDxClusterDebugEnabled() const
 {
     return m_settings["debug"].toObject()["dxClusterDebugEnabled"].toBool(false);

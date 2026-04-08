@@ -42,6 +42,8 @@ public:
     bool isMultiplierWidgetDebugEnabled() const;
     void setCallsignLookupDebugEnabled(bool enabled);
     bool isCallsignLookupDebugEnabled() const;
+    void setWsjtxDebugEnabled(bool enabled);
+    bool isWsjtxDebugEnabled() const;
     void setStdoutEnabled(bool enabled);
 
 private:
@@ -56,6 +58,7 @@ private:
     bool m_scpDebugEnabled = false;
     bool m_multiplierWidgetDebugEnabled = false;
     bool m_callsignLookupDebugEnabled = false;
+    bool m_wsjtxDebugEnabled = false;
     bool m_stdoutEnabled = false;
     bool m_flushEnabled = false;  // true = flush after every write (--flush flag)
 

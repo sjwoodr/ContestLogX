@@ -168,6 +168,17 @@ bool DebugLogger::isCallsignLookupDebugEnabled() const
     return m_callsignLookupDebugEnabled;
 }
 
+void DebugLogger::setWsjtxDebugEnabled(bool enabled)
+{
+    m_wsjtxDebugEnabled = enabled;
+    log("INFO", enabled ? "WSJT-X debug logging enabled" : "WSJT-X debug logging disabled");
+}
+
+bool DebugLogger::isWsjtxDebugEnabled() const
+{
+    return m_wsjtxDebugEnabled;
+}
+
 void DebugLogger::setStdoutEnabled(bool enabled)
 {
     m_stdoutEnabled = enabled;
@@ -216,6 +227,7 @@ void DebugLogger::log(const QString& component, const QString& message)
     if (!m_scpDebugEnabled && (component == "ScpDialog" || component == "ScpLineEdit")) return;
     if (!m_multiplierWidgetDebugEnabled && component == "MultiplierWidget") return;
     if (!m_callsignLookupDebugEnabled && component == "CallsignLookup") return;
+    if (!m_wsjtxDebugEnabled && component == "WsjtxListener") return;
 
     QMutexLocker locker(&g_logMutex);
 

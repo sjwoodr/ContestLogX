@@ -248,6 +248,9 @@ public:
     bool getCallsignLookupDebugEnabled() const;
     void setCallsignLookupDebugEnabled(bool enabled);
 
+    bool getWsjtxDebugEnabled() const;
+    void setWsjtxDebugEnabled(bool enabled);
+
     // Splitter states (as byte arrays)
     QByteArray getMainSplitterState() const;
     void setMainSplitterState(const QByteArray& state);

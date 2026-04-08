@@ -61,6 +61,14 @@ void WsjtxListener::onReadyRead()
     while (m_socket->hasPendingDatagrams()) {
         QNetworkDatagram datagram = m_socket->receiveDatagram();
         QByteArray data = datagram.data();
+
+        DebugLogger::instance().log("WsjtxListener",
+            QString("Received %1 bytes from %2:%3, hex: %4")
+                .arg(data.size())
+                .arg(datagram.senderAddress().toString())
+                .arg(datagram.senderPort())
+                .arg(QString(data.left(40).toHex(' '))));
+
         QDataStream stream(data);
         stream.setByteOrder(QDataStream::BigEndian);
 
@@ -137,17 +145,30 @@ bool WsjtxListener::parseQsoLogged(QDataStream& stream, WsjtxQsoData& data)
 
 QString WsjtxListener::readUtf8(QDataStream& stream)
 {
-    // QDataStream serializes QString as: quint32 byte-length + UTF-16BE data
-    // A null QString is encoded as 0xFFFFFFFF
-    QString result;
-    stream >> result;
-    return result;
+    // WSJT-X encodes strings as QByteArray (quint32 length + raw UTF-8),
+    // NOT as Qt's QString (quint32 length + UTF-16BE).
+    quint32 length = 0;
+    stream >> length;
+    if (length == 0xFFFFFFFF || length == 0)
+        return QString();
+    QByteArray bytes(length, 0);
+    stream.readRawData(bytes.data(), length);
+    return QString::fromUtf8(bytes);
 }
 
 QDateTime WsjtxListener::readDateTime(QDataStream& stream)
 {
-    // QDataStream serializes QDateTime as: QDate + QTime + timespec
-    QDateTime dt;
-    stream >> dt;
-    return dt;
+    // WSJT-X serializes QDateTime as: QDate(qint64 julian) + QTime(quint32 ms) + timespec(quint8)
+    qint64 julianDay = 0;
+    quint32 msecsSinceMidnight = 0;
+    quint8 timeSpec = 0;
+
+    stream >> julianDay >> msecsSinceMidnight >> timeSpec;
+
+    if (julianDay == 0)
+        return QDateTime();
+
+    QDate date = QDate::fromJulianDay(julianDay);
+    QTime time = QTime::fromMSecsSinceStartOfDay(msecsSinceMidnight);
+    return QDateTime(date, time, Qt::UTC);
 }

@@ -1463,6 +1463,16 @@ void MainWindow::setupMenus()
     DebugLogger::instance().setCallsignLookupDebugEnabled(callsignLookupDebugEnabled);
     connect(m_callsignLookupDebugAction, &QAction::triggered, this, &MainWindow::onToggleCallsignLookupDebug);
 
+    m_wsjtxDebugAction = debugMenu->addAction("Enable &WSJT-X Debug Logging");
+    m_wsjtxDebugAction->setCheckable(true);
+    bool wsjtxDebugEnabled = Settings::instance().getWsjtxDebugEnabled();
+    m_wsjtxDebugAction->setChecked(wsjtxDebugEnabled);
+    DebugLogger::instance().setWsjtxDebugEnabled(wsjtxDebugEnabled);
+    connect(m_wsjtxDebugAction, &QAction::triggered, this, [this](bool checked) {
+        DebugLogger::instance().setWsjtxDebugEnabled(checked);
+        Settings::instance().setWsjtxDebugEnabled(checked);
+    });
+
     // Help menu
     QMenu *helpMenu = menuBar()->addMenu("&Help");
     
@@ -4531,8 +4541,8 @@ void MainWindow::onEditSsbMemories()
 void MainWindow::onWsjtxQsoReceived(const WsjtxQsoData& data)
 {
     DebugLogger::instance().log("MainWindow",
-        QString("WSJT-X QSO received: %1 on %2 Hz %3, exch='%4'")
-            .arg(data.callsign).arg(data.frequencyHz).arg(data.mode, data.exchangeReceived));
+        QString("WSJT-X QSO received: %1 on %2 Hz %3, RST='%4', exch='%5'")
+            .arg(data.callsign).arg(data.frequencyHz).arg(data.mode, data.reportReceived, data.exchangeReceived));
 
     QLineEdit* callEdit = activeCallEdit();
     auto& exchFields = activeExchangeFields();
