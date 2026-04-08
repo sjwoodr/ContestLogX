@@ -13,7 +13,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
@@ -64,7 +64,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Extract version from CMakeLists.txt
         id: version
@@ -74,7 +74,7 @@ jobs:
           echo "VERSION: $VERSION"
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v4
 
       - name: Build AppImage
         run: |
@@ -92,7 +92,7 @@ jobs:
           echo "COMPRESSED_ARTIFACT=$COMPRESSED_NAME" >> $GITHUB_ENV
 
       - name: Upload AppImage artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: appimage
           path: dist/ContestLogX.${{ steps.version.outputs.version }}.AppImage.tar.gz
@@ -105,7 +105,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Extract version from CMakeLists.txt
         id: version
@@ -138,7 +138,7 @@ jobs:
           echo "MACOS_ARTIFACT=$TARBALL_NAME" >> $GITHUB_ENV
 
       - name: Upload macOS artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: macos-app
           path: dist/ContestLogX.${{ steps.version.outputs.version }}.macOS.tar.gz
@@ -151,7 +151,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Extract version from CMakeLists.txt
         id: version
@@ -180,7 +180,7 @@ jobs:
         run: iscc.exe /DMyAppVersion=${{ steps.version.outputs.version }} scripts\installer.iss
 
       - name: Upload Windows artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: windows-app
           path: dist/ContestLogX.${{ steps.version.outputs.version }}.Windows.exe
@@ -195,7 +195,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Extract version from CMakeLists.txt
         id: version
@@ -205,19 +205,19 @@ jobs:
           echo "VERSION: $VERSION"
 
       - name: Download AppImage artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: appimage
           path: artifacts/
 
       - name: Download macOS artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: macos-app
           path: artifacts/
 
       - name: Download Windows artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: windows-app
           path: artifacts/
@@ -237,6 +237,8 @@ jobs:
           echo "CHANGELOG_EOF" >> $GITHUB_OUTPUT
 
       - name: Create Release and Upload Assets
+        # TODO: softprops/action-gh-release is still on node20 (no v3 yet).
+        # Update when a node24-compatible version is released (before Sept 2026).
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.version.outputs.version }}
