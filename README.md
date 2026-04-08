@@ -60,9 +60,13 @@ Most contest loggers are Windows-only, closed-source, or locked to a fixed set o
 | EU DX Contest | `eudx.json` |
 | Florida QSO Party | `fqp.json` |
 | General DXCC | `general_dxcc.json` |
+| Japan International DX Contest (JIDX) | `jidx.json` |
+| Louisiana QSO Party | `laqp.json` |
 | Minnesota QSO Party | `mnqp.json` |
+| Mississippi QSO Party | `msqp.json` |
 | North American QSO Party (CW/SSB/RTTY) | `naqp.json` |
 | Russian DX Contest | `rdxc.json` |
+| SP DX Contest | `spdx.json` |
 | Virginia QSO Party | `vaqp.json` |
 | Winter Field Day | `winter_field_day.json` |
 | YB DX Contest | `ybdx.json` |
