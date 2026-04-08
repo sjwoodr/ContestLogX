@@ -134,12 +134,6 @@ void DxClusterPanel::setupUi()
     m_spotTable->setFont(tableFont);
 
     m_spotTable->setStyleSheet(
-        "QTableWidget { "
-        "  gridline-color: #404040; "
-        "} "
-        "QTableWidget::item:alternate { "
-        "  background-color: #1a1a1a; "
-        "} "
         "QTableWidget::item:selected { "
         "  background-color: #0066cc; "
         "  color: white; "

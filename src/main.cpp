@@ -13,6 +13,9 @@
 #include <QApplication>
 #include <QCommandLineParser>
 #include <QFile>
+#include <QDir>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QDateTime>
 #include <QDebug>
 #include <QTextStream>
@@ -22,7 +25,7 @@
 #include <QIcon>
 
 // Application version
-static const char* APP_VERSION = "0.7.16";
+static const char* APP_VERSION = "0.7.17";
 
 // Bump this to force the terms dialog to re-appear for all users.
 // History: 1 = original terms, 2 = MIT license change
@@ -90,9 +93,38 @@ void applyTheme()
     QApplication::setStyle(QStyleFactory::create("Fusion"));
 
     QString theme = Settings::instance().getTheme();
+    // Use a stylesheet to force colors — this overrides the GNOME/GTK platform
+    // theme which would otherwise ignore QPalette changes on dark desktops.
     if (theme == "light") {
-        qApp->setPalette(QApplication::style()->standardPalette());
+        qApp->setStyleSheet(
+            "QWidget { background-color: #f0f0f0; color: #000000; }"
+            "QMainWindow { background-color: #f0f0f0; }"
+            "QMenuBar { background-color: #f0f0f0; color: #000000; }"
+            "QMenuBar::item:selected { background-color: #2a82da; color: #ffffff; }"
+            "QMenu { background-color: #ffffff; color: #000000; }"
+            "QMenu::item:selected { background-color: #2a82da; color: #ffffff; }"
+            "QTableView, QTreeView, QListView, QTextEdit, QPlainTextEdit, QLineEdit {"
+            "  background-color: #ffffff; color: #000000;"
+            "  alternate-background-color: #f5f5f5; }"
+            "QHeaderView::section { background-color: #e0e0e0; color: #000000; }"
+            "QPushButton { background-color: #e0e0e0; color: #000000; }"
+            "QComboBox { background-color: #ffffff; color: #000000; }"
+            "QTabWidget::pane { background-color: #f0f0f0; }"
+            "QTabBar::tab { background-color: #e0e0e0; color: #000000; }"
+            "QTabBar::tab:selected { background-color: #f0f0f0; }"
+            "QDockWidget { color: #000000; }"
+            "QDockWidget::title { background-color: #e0e0e0; }"
+            "QStatusBar { background-color: #f0f0f0; color: #000000; }"
+            "QToolTip { background-color: #ffffdc; color: #000000; border: 1px solid #767676; }"
+            "QSpinBox, QDoubleSpinBox { background-color: #ffffff; color: #000000; }"
+            "QCheckBox, QRadioButton { color: #000000; }"
+            "QGroupBox { color: #000000; }"
+            "QLabel { color: #000000; }"
+            "QScrollBar { background-color: #f0f0f0; }"
+        );
     } else {
+        qApp->setStyleSheet("");
+
         QPalette darkPalette;
         darkPalette.setColor(QPalette::Window, QColor(53, 53, 53));
         darkPalette.setColor(QPalette::WindowText, Qt::white);
@@ -116,6 +148,24 @@ void applyTheme()
 
 int main(int argc, char *argv[])
 {
+    // Force X11/XCB backend if user enabled it in settings (Linux only).
+    // Must be done before QApplication is constructed.
+#ifdef Q_OS_LINUX
+    if (qEnvironmentVariableIsEmpty("QT_QPA_PLATFORM")) {
+        QString configDir = qgetenv("XDG_CONFIG_HOME");
+        if (configDir.isEmpty())
+            configDir = QDir::homePath() + "/.config";
+        QFile settingsFile(configDir + "/ContestLogX/ContestLogX.json");
+        if (settingsFile.open(QIODevice::ReadOnly)) {
+            QJsonObject root = QJsonDocument::fromJson(settingsFile.readAll()).object();
+            if (root["ui"].toObject()["forceX11"].toBool(true)) {
+                qputenv("QT_QPA_PLATFORM", "xcb");
+            }
+            settingsFile.close();
+        }
+    }
+#endif
+
     QApplication app(argc, argv);
     app.setApplicationName("ContestLogX");
     app.setApplicationVersion(APP_VERSION);
@@ -162,6 +212,8 @@ int main(int argc, char *argv[])
     // They write to stdout when --debug is set; DebugLogger owns the log file.
     qInstallMessageHandler(debugMessageHandler);
     DebugLogger::instance().log("INFO", QString("ContestLogX v%1 started").arg(APP_VERSION));
+    if (qgetenv("QT_QPA_PLATFORM") == "xcb")
+        DebugLogger::instance().log("INFO", "Force X11 backend enabled (QT_QPA_PLATFORM=xcb)");
     
     applyTheme();
 

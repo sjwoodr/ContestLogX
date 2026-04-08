@@ -3082,6 +3082,8 @@ void MainWindow::onPreferences()
 
         if (dialog.themeChanged()) {
             applyTheme();
+            QMessageBox::information(this, "Theme Changed",
+                "Some elements may require a restart to fully apply the new theme.");
         }
         if (dialog.fontsChanged()) {
             applyFontSettings();
@@ -5274,7 +5276,7 @@ void MainWindow::onAbout()
     msgBox.setTextFormat(Qt::RichText);
     msgBox.setTextInteractionFlags(Qt::TextBrowserInteraction);
     msgBox.setText(
-        "<b>ContestLogX - Version 0.7.16 (Beta)</b><br><br>"
+        "<b>ContestLogX - Version 0.7.17 (Beta)</b><br><br>"
         "Cross-platform amateur radio contest logging software<br><br>"
         "Copyright &copy; 2025-2026, by Steve Woodruff, N9OH<br><br>"
         "<a href=\"https://contestlogx.com\">https://contestlogx.com</a><br><br>"

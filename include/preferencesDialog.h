@@ -74,6 +74,7 @@ private:
 
     // Display tab
     QComboBox *m_themeCombo;
+    QCheckBox *m_forceX11Check;
     QString m_originalTheme;
     bool m_themeChanged;
 

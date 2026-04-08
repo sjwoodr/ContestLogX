@@ -6,6 +6,16 @@ A C++ Qt6-based amateur radio contest logging application.
 - **Framework:** Qt6
 - **Build system:** CMake
 - **Version:** 0.0.9
+- **Platforms:** Linux, macOS, Windows
+
+## Cross-Platform Rules
+
+ContestLogX ships on Linux (AppImage), macOS (app bundle), and Windows (Inno Setup installer). All code changes must work on all three platforms:
+- Use `#ifdef Q_OS_LINUX`, `Q_OS_MACOS`, `Q_OS_WIN` for platform-specific code
+- Do not use platform-specific APIs without guarding them
+- Test that new features don't break the CI builds for other platforms
+- File paths: use `QDir`, `QStandardPaths`, and `/` separators (Qt normalizes them)
+- The Windows build uses MSVC; avoid GCC/Clang-only extensions
 
 ## Dependencies
 

@@ -114,6 +114,14 @@ void PreferencesDialog::setupUi()
 
     displayLayout->addRow("Theme:", m_themeCombo);
 
+    m_forceX11Check = new QCheckBox("Use X11 backend (fixes window position on Wayland, requires restart)", this);
+    m_forceX11Check->setChecked(Settings::instance().getForceX11());
+#ifdef Q_OS_LINUX
+    displayLayout->addRow("", m_forceX11Check);
+#else
+    m_forceX11Check->setVisible(false);
+#endif
+
     tabWidget->addTab(displayTab, "Display");
 
     // Shortcuts tab
@@ -399,6 +407,8 @@ void PreferencesDialog::onAccept()
         settings.setTheme(selected);
         m_themeChanged = true;
     }
+
+    settings.setForceX11(m_forceX11Check->isChecked());
 
     // Shortcuts
     m_shortcutsWidget->saveShortcuts();

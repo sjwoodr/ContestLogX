@@ -1657,6 +1657,19 @@ void Settings::setTheme(const QString& theme)
     save();
 }
 
+bool Settings::getForceX11() const
+{
+    return m_settings["ui"].toObject()["forceX11"].toBool(true);
+}
+
+void Settings::setForceX11(bool enabled)
+{
+    QJsonObject ui = m_settings["ui"].toObject();
+    ui["forceX11"] = enabled;
+    m_settings["ui"] = ui;
+    save();
+}
+
 int Settings::getTermsAcceptedVersion() const
 {
     QJsonValue v = m_settings["termsAccepted"];

@@ -319,6 +319,10 @@ public:
     QString getTheme() const;
     void setTheme(const QString& theme);
 
+    // Force X11/XCB backend (for Wayland window position restore)
+    bool getForceX11() const;
+    void setForceX11(bool enabled);
+
     // Terms of use — version-based re-acceptance
     int getTermsAcceptedVersion() const;
     void setTermsAcceptedVersion(int version);

@@ -2,6 +2,13 @@
 
 All notable changes to ContestLogX are documented in this file.
 
+## [0.7.17]
+- Fixed light theme not working when running directly on GNOME/Wayland — use stylesheet-based theming that overrides GTK platform integration
+- Removed hardcoded dark colors from DX Cluster spot table so it follows the active theme
+- Theme changes now apply immediately with a note that some elements may need a restart
+- Added "Use X11 backend" option in Preferences > Display (Linux only, on by default) — fixes window and floating dock position restore on Wayland
+- Added cross-platform rules to CLAUDE.md
+
 ## [0.7.16]
 - Replaced 7-Zip SFX with Inno Setup installer for Windows — proper install wizard, Start Menu shortcut, desktop shortcut, uninstaller, and post-install launch
 - Added Windows application icon — exe, installer, taskbar, and shortcuts all show the ContestLogX icon
