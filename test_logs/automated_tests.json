@@ -149,6 +149,16 @@
       "name": "MSQP Out-of-State (WVE station, 101 QSOs, multsOnce, 82 counties)",
       "log_file": "test_msqp_outofstate.clx",
       "expected_score": 13038
+    },
+    {
+      "name": "JIDX CW JA Station (99 QSOs, multsPerBand, CQ Zones+DXCC, byBand points)",
+      "log_file": "test_jadx_ja.clx",
+      "expected_score": 15544
+    },
+    {
+      "name": "JIDX SSB DX Station (102 QSOs, multsPerBand, Prefectures only, byBand points)",
+      "log_file": "test_jadx_wve.clx",
+      "expected_score": 12060
     }
   ]
 }

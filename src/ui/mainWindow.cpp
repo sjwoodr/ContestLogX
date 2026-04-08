@@ -5276,7 +5276,7 @@ void MainWindow::onAbout()
     msgBox.setTextFormat(Qt::RichText);
     msgBox.setTextInteractionFlags(Qt::TextBrowserInteraction);
     msgBox.setText(
-        "<b>ContestLogX - Version 0.7.17 (Beta)</b><br><br>"
+        "<b>ContestLogX - Version 0.7.18 (Beta)</b><br><br>"
         "Cross-platform amateur radio contest logging software<br><br>"
         "Copyright &copy; 2025-2026, by Steve Woodruff, N9OH<br><br>"
         "<a href=\"https://contestlogx.com\">https://contestlogx.com</a><br><br>"
@@ -7771,8 +7771,10 @@ QString MainWindow::generateSummaryString()
     } else {
         // Traditional multiplier display
         if (score.namedMultCount > 0) {
-            out << "Named Multipliers:        " << score.namedMultCount << "\n";
-            multTypes.append("Named");
+            QString namedLabel = m_contestEngine->getNamedMultsLabel();
+            QString namedLine = namedLabel + ":";
+            out << namedLine.leftJustified(26) << score.namedMultCount << "\n";
+            multTypes.append(namedLabel);
         }
         if (score.dxccMultCount > 0) {
             out << "DXCC Multipliers:         " << score.dxccMultCount << "\n";
@@ -7977,7 +7979,7 @@ QString MainWindow::generateSummaryString()
             }
 
             if (!workedMults.isEmpty()) {
-                QString categoryDisplay = (category == "namedMults") ? "Named Multipliers" : (category == "dxcc") ? "DXCC Entities" : (category == "namedCallPrefixes") ? "Call Prefixes" : (category == "gridSquares") ? "Grid Squares" : category;
+                QString categoryDisplay = (category == "named" || category == "namedMults") ? m_contestEngine->getNamedMultsLabel() : (category == "dxcc") ? "DXCC Entities" : (category == "namedCallPrefixes") ? "Call Prefixes" : (category == "gridSquares") ? "Grid Squares" : category;
                 out << categoryDisplay << " (Worked: " << workedMults.size() << ")\n";
 
                 QStringList sortedMults = QStringList(workedMults.begin(), workedMults.end());
@@ -8012,7 +8014,7 @@ QString MainWindow::generateSummaryString()
             }
 
             for (const auto& band : multsPerBand.keys()) {
-                QString categoryDisplay = (category == "named" || category == "namedMults") ? "Named Multipliers" : (category == "dxcc") ? "DXCC Entities" : (category == "namedCallPrefixes") ? "Call Prefixes" : (category == "gridSquares") ? "Grid Squares" : category;
+                QString categoryDisplay = (category == "named" || category == "namedMults") ? m_contestEngine->getNamedMultsLabel() : (category == "dxcc") ? "DXCC Entities" : (category == "namedCallPrefixes") ? "Call Prefixes" : (category == "gridSquares") ? "Grid Squares" : category;
                 out << categoryDisplay << " - " << band << " (Worked: " << multsPerBand[band].size() << ")\n";
 
                 QStringList sortedMults = QStringList(multsPerBand[band].begin(), multsPerBand[band].end());
@@ -8047,7 +8049,7 @@ QString MainWindow::generateSummaryString()
             }
 
             for (const auto& mode : multsPerMode.keys()) {
-                QString categoryDisplay = (category == "namedMults") ? "Named Multipliers" : (category == "dxcc") ? "DXCC Entities" : (category == "namedCallPrefixes") ? "Call Prefixes" : (category == "gridSquares") ? "Grid Squares" : category;
+                QString categoryDisplay = (category == "named" || category == "namedMults") ? m_contestEngine->getNamedMultsLabel() : (category == "dxcc") ? "DXCC Entities" : (category == "namedCallPrefixes") ? "Call Prefixes" : (category == "gridSquares") ? "Grid Squares" : category;
                 out << categoryDisplay << " - " << mode << " (Worked: " << multsPerMode[mode].size() << ")\n";
 
                 QStringList sortedMults = QStringList(multsPerMode[mode].begin(), multsPerMode[mode].end());
@@ -8084,7 +8086,7 @@ QString MainWindow::generateSummaryString()
             }
 
             for (const auto& key : multsPerBandMode.keys()) {
-                QString categoryDisplay = (category == "namedMults") ? "Named Multipliers" : (category == "dxcc") ? "DXCC Entities" : (category == "namedCallPrefixes") ? "Call Prefixes" : (category == "gridSquares") ? "Grid Squares" : category;
+                QString categoryDisplay = (category == "named" || category == "namedMults") ? m_contestEngine->getNamedMultsLabel() : (category == "dxcc") ? "DXCC Entities" : (category == "namedCallPrefixes") ? "Call Prefixes" : (category == "gridSquares") ? "Grid Squares" : category;
                 out << categoryDisplay << " - " << key << " (Worked: " << multsPerBandMode[key].size() << ")\n";
 
                 QStringList sortedMults = QStringList(multsPerBandMode[key].begin(), multsPerBandMode[key].end());

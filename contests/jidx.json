@@ -1,0 +1,337 @@
+{
+  "contest": {
+    "name": "Japan International DX Contest",
+    "abbreviation": "JIDX",
+    "version": "1.0.0",
+    "sponsor": "Five-Nine Magazine",
+    "description": "International DX contest encouraging contacts between JA and non-JA (DX) stations. CW weekend is the second full weekend of April; Phone weekend is the second full weekend of November. Only JA-DX contacts count.",
+    "startDate": "CW: Second full weekend of April; Phone: Second full weekend of November",
+    "duration": 30,
+    "offTimeGapMinutes": 0,
+    "modes": ["CW", "SSB"],
+    "bands": ["160m", "80m", "40m", "20m", "15m", "10m"],
+    "url": "https://jidx.org/",
+    "categories": {
+      "power": ["HIGH", "LOW"],
+      "stations": ["SINGLE_OP", "MULTI_SINGLE", "MULTI_TWO", "MARITIME_MOBILE"]
+    }
+  },
+  "frequencies": {
+    "160m": {
+      "start": 1800,
+      "end": 1913,
+      "cw": {"start": 1800, "end": 1830},
+      "phone": {"start": 1845, "end": 1913}
+    },
+    "80m": {
+      "start": 3500,
+      "end": 3805,
+      "cw": {"start": 3500, "end": 3580},
+      "phone": {"start": 3535, "end": 3805}
+    },
+    "40m": {
+      "start": 7000,
+      "end": 7300,
+      "cw": {"start": 7000, "end": 7045},
+      "phone": {"start": 7045, "end": 7300}
+    },
+    "20m": {
+      "start": 14000,
+      "end": 14350,
+      "cw": {"start": 14000, "end": 14150},
+      "phone": {"start": 14150, "end": 14350}
+    },
+    "15m": {
+      "start": 21000,
+      "end": 21450,
+      "cw": {"start": 21000, "end": 21200},
+      "phone": {"start": 21200, "end": 21450}
+    },
+    "10m": {
+      "start": 28000,
+      "end": 29700,
+      "cw": {"start": 28000, "end": 28300},
+      "phone": {"start": 28300, "end": 29700}
+    }
+  },
+  "stationClasses": {
+    "enabled": true,
+    "prompt": "Are you a JA or DX station?",
+    "classes": [
+      {
+        "id": "JA",
+        "name": "JA (Japan)",
+        "description": "Contact DX only; count DXCC entities and CQ Zones as multipliers.",
+        "exchangeSent": {
+          "type": "string",
+          "description": "Prefecture number (01-50)"
+        }
+      },
+      {
+        "id": "DX",
+        "name": "DX (non-Japan)",
+        "description": "Contact JA only; count Japanese prefectures as multipliers.",
+        "exchangeSent": {
+          "type": "string",
+          "description": "CQ Zone number"
+        }
+      }
+    ]
+  },
+  "userPrompts": [
+    {
+      "id": "contestMode",
+      "question": "Which contest weekend are you entering?",
+      "type": "select",
+      "options": [
+        {"value": "CW", "label": "CW (Second full weekend of April)"},
+        {"value": "SSB", "label": "Phone/SSB (Second full weekend of November)"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "restrictMode": true,
+      "description": "CW and Phone are separate contest weekends with separate results"
+    },
+    {
+      "id": "operatingCategory",
+      "question": "Select your operating category",
+      "type": "select",
+      "options": [
+        {"value": "SOHP-AB", "label": "Single Op All Band - High Power (>100W)"},
+        {"value": "SOHP-160", "label": "Single Op 160m - High Power"},
+        {"value": "SOHP-80", "label": "Single Op 80m - High Power"},
+        {"value": "SOHP-40", "label": "Single Op 40m - High Power"},
+        {"value": "SOHP-20", "label": "Single Op 20m - High Power"},
+        {"value": "SOHP-15", "label": "Single Op 15m - High Power"},
+        {"value": "SOHP-10", "label": "Single Op 10m - High Power"},
+        {"value": "SOLP-AB", "label": "Single Op All Band - Low Power (100W or less)"},
+        {"value": "SOLP-160", "label": "Single Op 160m - Low Power"},
+        {"value": "SOLP-80", "label": "Single Op 80m - Low Power"},
+        {"value": "SOLP-40", "label": "Single Op 40m - Low Power"},
+        {"value": "SOLP-20", "label": "Single Op 20m - Low Power"},
+        {"value": "SOLP-15", "label": "Single Op 15m - Low Power"},
+        {"value": "SOLP-10", "label": "Single Op 10m - Low Power"},
+        {"value": "M1", "label": "Multi Op Single Transmitter"},
+        {"value": "M2", "label": "Multi Op Two Transmitter"},
+        {"value": "MM", "label": "Maritime Mobile"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "High Power = over 100W; Low Power = 100W or less (includes QRP)"
+    }
+  ],
+  "exchangeFields": {
+    "sent": [
+      {
+        "name": "RST",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report sent"
+      },
+      {
+        "name": "EXCHs",
+        "type": "string",
+        "required": true,
+        "description": "Prefecture number 01-50 (JA) or CQ Zone number (DX)"
+      }
+    ],
+    "received": [
+      {
+        "name": "RST",
+        "type": "rst",
+        "required": true,
+        "validation": "^[1-5][1-9][1-9]?$",
+        "description": "Signal report received"
+      },
+      {
+        "name": "EXCHr",
+        "type": "string",
+        "required": true,
+        "description": "CQ Zone number (from DX) or Prefecture number 01-50 (from JA)"
+      }
+    ]
+  },
+  "qsoFields": [
+    {
+      "name": "Date",
+      "column": "DATE",
+      "type": "date",
+      "format": "yyyy-MM-dd",
+      "required": true
+    },
+    {
+      "name": "Time",
+      "column": "TIME",
+      "type": "time",
+      "format": "HH:mm:ss",
+      "required": true
+    },
+    {
+      "name": "Callsign",
+      "column": "CALL",
+      "type": "string",
+      "required": true,
+      "uppercase": true
+    },
+    {
+      "name": "Frequency",
+      "column": "FREQ",
+      "type": "number",
+      "unit": "kHz",
+      "required": true
+    },
+    {
+      "name": "Mode",
+      "column": "MODE",
+      "type": "enum",
+      "values": ["CW", "SSB"],
+      "required": true
+    },
+    {
+      "name": "RST Sent",
+      "column": "RSTs",
+      "type": "string",
+      "required": true,
+      "default": "599"
+    },
+    {
+      "name": "RST Received",
+      "column": "RSTr",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "Exchange Sent",
+      "column": "EXCHs",
+      "type": "string",
+      "required": true,
+      "description": "Prefecture number (JA) or CQ Zone (DX)"
+    },
+    {
+      "name": "Exchange Received",
+      "column": "EXCHr",
+      "type": "string",
+      "required": true,
+      "description": "CQ Zone (from DX) or Prefecture number (from JA)"
+    },
+    {
+      "name": "Points",
+      "column": "POINTS",
+      "type": "number",
+      "calculated": true
+    },
+    {
+      "name": "Multiplier",
+      "column": "M",
+      "type": "string",
+      "calculated": true
+    }
+  ],
+  "scoring": {
+    "points": {
+      "__comment": "Only JA-DX contacts score points. Points depend on band only.",
+      "byBand": {
+        "160m": 4,
+        "80m": 2,
+        "40m": 1,
+        "20m": 1,
+        "15m": 1,
+        "10m": 2
+      }
+    },
+    "multipliers": {
+      "__comment": "JA stations count DXCC entities (except JD1) and CQ Zones per band. DX stations count Japanese prefectures (01-50) per band. /MM contacts count for zone mult but not entity mult for JA stations.",
+      "type": "multsPerBand",
+      "description": "DXCC entities + CQ Zones (JA stations) or Japanese prefectures (DX stations), counted once per band",
+      "categories": ["namedMults", "dxcc"],
+      "stationClassMultipliers": {
+        "JA": ["namedMults", "dxcc"],
+        "DX": ["namedMults"]
+      },
+      "namedMultsLabels": {
+        "JA": "CQ Zones",
+        "DX": "Prefectures"
+      }
+    },
+    "invalidPartners": {
+      "JA": ["JA"],
+      "__comment": "JA stations may only work DX stations. JA-JA contacts score 0 points and no multipliers."
+    },
+    "finalScore": "SUM(points) * (namedMults + dxccMultipliers)"
+  },
+  "dupeChecking": {
+    "type": "perBand",
+    "description": "Same station may be worked once per band"
+  },
+  "logging": {
+    "requiredFields": ["date", "time", "frequency", "mode", "callsign", "rstSent", "rstReceived", "exchSent", "exchReceived"],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "JIDX-CW",
+      "contestMapping": {
+        "CW": "JIDX-CW",
+        "SSB": "JIDX-PH"
+      },
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {rst_sent} {exch_sent} {call} {rst_rcvd} {exch_rcvd}",
+      "requiredHeaders": ["CONTEST", "CALLSIGN", "CATEGORY-BAND", "CATEGORY-MODE", "CATEGORY-OPERATOR", "CATEGORY-POWER", "CATEGORY-TRANSMITTER", "CLAIMED-SCORE", "CLUB", "CREATED-BY", "NAME", "ADDRESS", "EMAIL", "OPERATORS", "SOAPBOX"]
+    }
+  },
+  "callHistory": {
+    "fieldsToSave": ["EXCHr"],
+    "description": "Save received exchange (prefecture or CQ zone) for future lookups"
+  },
+  "validation": {
+    "minimumQSOs": 1,
+    "maxOperatingTime": 30,
+    "offTimesRequired": false,
+    "__comment_namedMults": "Prefecture numbers 01-50 for DX stations receiving from JA. CQ Zone numbers 01-40 are a subset and also valid for JA stations receiving from DX. The full set covers both.",
+    "namedMults": [
+      "01", "02", "03", "04", "05", "06", "07", "08", "09", "10",
+      "11", "12", "13", "14", "15", "16", "17", "18", "19", "20",
+      "21", "22", "23", "24", "25", "26", "27", "28", "29", "30",
+      "31", "32", "33", "34", "35", "36", "37", "38", "39", "40",
+      "41", "42", "43", "44", "45", "46", "47", "48", "49", "50"
+    ],
+    "namedMultAliases": {
+      "1": "01", "2": "02", "3": "03", "4": "04", "5": "05",
+      "6": "06", "7": "07", "8": "08", "9": "09"
+    },
+    "namedMultsByStationClass": {
+      "JA": [
+        "01", "02", "03", "04", "05", "06", "07", "08", "09", "10",
+        "11", "12", "13", "14", "15", "16", "17", "18", "19", "20",
+        "21", "22", "23", "24", "25", "26", "27", "28", "29", "30",
+        "31", "32", "33", "34", "35", "36", "37", "38", "39", "40"
+      ],
+      "DX": [
+        "01", "02", "03", "04", "05", "06", "07", "08", "09", "10",
+        "11", "12", "13", "14", "15", "16", "17", "18", "19", "20",
+        "21", "22", "23", "24", "25", "26", "27", "28", "29", "30",
+        "31", "32", "33", "34", "35", "36", "37", "38", "39", "40",
+        "41", "42", "43", "44", "45", "46", "47", "48", "49", "50"
+      ]
+    },
+    "exchangeValidation": {
+      "type": "numeric",
+      "description": "Prefecture number (01-50) or CQ Zone number (1-40)",
+      "format": "^(0?[1-9]|[1-4][0-9]|50)$"
+    }
+  },
+  "ui": {
+    "showMultiplierPanel": true,
+    "logColumns": ["DATE", "TIME", "CALL", "FREQ", "MODE", "RSTs", "RSTr", "EXCHs", "EXCHr", "POINTS", "M", "COMMENT"],
+    "entryFields": ["CALL", "RSTr", "EXCHr"],
+    "fieldNavigation": {
+      "keys": "tab"
+    },
+    "bandMap": {
+      "enabled": true,
+      "bands": ["160m", "80m", "40m", "20m", "15m", "10m"]
+    },
+    "multiplierDisplay": {
+      "showPrefectures": true,
+      "showDXCC": true,
+      "showZones": true
+    }
+  }
+}

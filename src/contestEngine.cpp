@@ -54,7 +54,8 @@ bool ContestEngine::loadContest(const QJsonObject& contestDef)
     m_validCallPrefixes.clear();
     m_inStateMults.clear();
     m_multAliases.clear();
-    
+    m_namedMultAliases.clear();
+
     // Load from validation.namedMults array (this is the single source of truth)
     if (contestDef.contains("validation")) {
         QJsonObject validation = contestDef["validation"].toObject();
@@ -92,6 +93,16 @@ bool ContestEngine::loadContest(const QJsonObject& contestDef)
             for (const QJsonValue& val : inStateList) {
                 m_inStateMults.insert(val.toString().toUpper());
             }
+        }
+
+        // Load namedMultAliases — unconditional 1:1 mapping (e.g., "5" → "05")
+        if (validation.contains("namedMultAliases")) {
+            QJsonObject aliasObj = validation["namedMultAliases"].toObject();
+            for (auto it = aliasObj.begin(); it != aliasObj.end(); ++it) {
+                m_namedMultAliases.insert(it.key().toUpper(), it.value().toString().toUpper());
+            }
+            DebugLogger::instance().log("ContestEngine",
+                QString("Loaded %1 named mult alias(es)").arg(m_namedMultAliases.size()));
         }
     } else {
         DebugLogger::instance().log("ContestEngine", "No validation section found");
@@ -808,27 +819,37 @@ int ContestEngine::calculatePoints(const QsoRecord& qso, const QString& myCallsi
                 return pts;
             }
             
-            // Check for band-based scoring (e.g., ARRL VHF Contest)
+            // Check for band-based scoring (e.g., ARRL VHF Contest, JIDX)
             if (points.contains("byBand")) {
                 QJsonObject byBand = points["byBand"].toObject();
-                
-                // Get contest month from user prompt values (e.g., "january", "june", "september")
+                QString band = qso.getBand();
+
+                // Try direct band lookup first (e.g., {"160m": 4, "80m": 2})
+                if (byBand.contains(band)) {
+                    QJsonValue val = byBand[band];
+                    if (val.isDouble()) {
+                        int pts = val.toInt();
+                        DebugLogger::instance().log("ContestEngine",
+                            QString("  Points: %1 (byBand direct)").arg(pts));
+                        return pts;
+                    }
+                }
+
+                // Fall back to month-nested lookup (e.g., {"january": {"6m": 1}})
                 QString contestMonth = m_userPromptValues.value("contestMonth", "january").toLower();
-                DebugLogger::instance().log("ContestEngine", 
-                    QString("  Looking for byBand/%1 for band '%2'").arg(contestMonth, qso.getBand()));
-                
-                // Look up points for this band and month
+                DebugLogger::instance().log("ContestEngine",
+                    QString("  Looking for byBand/%1 for band '%2'").arg(contestMonth, band));
+
                 if (byBand.contains(contestMonth)) {
                     QJsonObject monthPoints = byBand[contestMonth].toObject();
-                    QString band = qso.getBand();
                     if (monthPoints.contains(band)) {
                         int pts = monthPoints[band].toInt();
-                        DebugLogger::instance().log("ContestEngine", 
+                        DebugLogger::instance().log("ContestEngine",
                             QString("  Points: %1 (byBand/%2)").arg(pts).arg(contestMonth));
                         return pts;
                     }
                 } else {
-                    DebugLogger::instance().log("ContestEngine", 
+                    DebugLogger::instance().log("ContestEngine",
                         QString("  byBand/%1 not found in points").arg(contestMonth));
                 }
             }
@@ -1323,6 +1344,23 @@ QStringList ContestEngine::getMultiplierCategories() const
     return m_cachedMultCategories;
 }
 
+QString ContestEngine::getNamedMultsLabel() const
+{
+    if (m_contestDef.contains("scoring")) {
+        QJsonObject mults = m_contestDef["scoring"].toObject()["multipliers"].toObject();
+        // Check for station-class-specific label first
+        if (mults.contains("namedMultsLabels")) {
+            QJsonObject labels = mults["namedMultsLabels"].toObject();
+            if (!m_stationClass.isEmpty() && labels.contains(m_stationClass))
+                return labels[m_stationClass].toString();
+        }
+        // Fall back to a single label
+        if (mults.contains("namedMultsLabel"))
+            return mults["namedMultsLabel"].toString();
+    }
+    return QStringLiteral("Named Multipliers");
+}
+
 bool ContestEngine::getAlaskaHawaiiCountDxcc() const
 {
     return m_cachedAkHiCountDxcc;
@@ -1385,6 +1423,20 @@ QStringList ContestEngine::getEffectiveNamedMultiplierList() const
     // display in the widget.
     if (!getMultiplierCategories().contains("namedMults")) {
         return QStringList();
+    }
+
+    // Check for station-class-specific named mult display list
+    if (!m_stationClass.isEmpty() && m_contestDef.contains("validation")) {
+        QJsonObject validation = m_contestDef["validation"].toObject();
+        if (validation.contains("namedMultsByStationClass")) {
+            QJsonObject byClass = validation["namedMultsByStationClass"].toObject();
+            if (byClass.contains(m_stationClass)) {
+                QStringList result;
+                for (const QJsonValue& val : byClass[m_stationClass].toArray())
+                    result.append(val.toString().toUpper());
+                return result;
+            }
+        }
     }
 
     QSet<QString> effective = getEffectiveValidMults();
@@ -1794,17 +1846,29 @@ QString ContestEngine::extractMultiplier(const QsoRecord& qso) const
     QStringList words = exchange.split(QRegularExpression("\\s+"));
     for (const QString& word : words) {
         QString cleanWord = word.trimmed();
-        if (!cleanWord.isEmpty() && m_validMultipliers.contains(cleanWord)) {
+        if (cleanWord.isEmpty()) continue;
+
+        // Direct match against valid multipliers
+        if (m_validMultipliers.contains(cleanWord)) {
             QString resolved = applyMultAlias(cleanWord);
             DebugLogger::instance().log("ContestEngine",
                 QString("Found multiplier: '%1'%2").arg(cleanWord,
                     resolved != cleanWord ? QString(" -> aliased to '%1'").arg(resolved) : QString()));
             return resolved;
         }
+
+        // Check 1:1 named mult aliases (e.g., "5" → "05")
+        if (m_namedMultAliases.contains(cleanWord)) {
+            QString canonical = m_namedMultAliases.value(cleanWord);
+            DebugLogger::instance().log("ContestEngine",
+                QString("Found multiplier via alias: '%1' -> '%2'").arg(cleanWord, canonical));
+            return canonical;
+        }
     }
-    
-    DebugLogger::instance().log("ContestEngine", 
-        QString("No multiplier found in exchange (checked %1 valid mults)").arg(m_validMultipliers.size()));
+
+    DebugLogger::instance().log("ContestEngine",
+        QString("No multiplier found in exchange (checked %1 valid mults, %2 aliases)")
+            .arg(m_validMultipliers.size()).arg(m_namedMultAliases.size()));
     
     return QString();
 }

@@ -73,6 +73,7 @@ public:
     void rescoreAll(QList<QsoRecord>& qsos, const QString& myCallsign);
     QString getMultiplierType() const;
     QStringList getMultiplierCategories() const;
+    QString getNamedMultsLabel() const;
     bool getAlaskaHawaiiCountDxcc() const;
     bool getUsAndCanadaCountDxcc() const;
 
@@ -202,6 +203,7 @@ private:
         QString mapsTo;
     };
     QList<MultAlias> m_multAliases;
+    QHash<QString, QString> m_namedMultAliases;  // 1:1 alias map (e.g., "5" → "05")
 
     QList<BonusStationGroup> m_bonusStationGroups;
 

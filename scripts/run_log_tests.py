@@ -57,6 +57,18 @@ def validate_multipliers(log_content, test_name):
     if named_match:
         claimed_mults['Named Multipliers'] = int(named_match.group(1))
 
+    # Custom named mult labels (e.g., "CQ Zones:", "Prefectures:")
+    # Look between "Contact Points" and "Score Calculation" for unknown mult lines
+    mults_section = re.search(r'Contact Points:.*?Score Calculation:', summary, re.DOTALL)
+    if mults_section:
+        known_labels = {'Contact Points', 'Named Multipliers', 'DXCC Multipliers',
+                        'Grid Square Multipliers', 'Call Prefix Multipliers',
+                        'ITU Region Multipliers'}
+        for m in re.finditer(r'^([A-Za-z][^:\n]+):\s+(\d+)\s*$', mults_section.group(0), re.MULTILINE):
+            label = m.group(1).strip()
+            if label not in known_labels:
+                claimed_mults[label] = int(m.group(2))
+
     dxcc_match = re.search(r'DXCC Multipliers:\s+(\d+)', summary)
     if dxcc_match:
         claimed_mults['DXCC Entities'] = int(dxcc_match.group(1))

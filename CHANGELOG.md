@@ -2,6 +2,12 @@
 
 All notable changes to ContestLogX are documented in this file.
 
+## [0.7.18]
+- Added Japan International DX Contest (JIDX) — CW and SSB, JA and DX station classes, band-based scoring, prefecture and CQ Zone multipliers per band
+- Added direct band-based scoring to contest engine (byBand without month nesting)
+- Added 1:1 named mult aliases for exchange normalization (e.g., "5" → "05")
+- Added per-station-class named mult display lists and labels (e.g., "CQ Zones" for JA, "Prefectures" for DX)
+
 ## [0.7.17]
 - Fixed light theme not working when running directly on GNOME/Wayland — use stylesheet-based theming that overrides GTK platform integration
 - Removed hardcoded dark colors from DX Cluster spot table so it follows the active theme
