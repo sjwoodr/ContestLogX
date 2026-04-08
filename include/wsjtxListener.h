@@ -43,7 +43,11 @@ private slots:
 
 private:
     static constexpr quint32 WSJTX_MAGIC = 0xADBCCBDA;
+    static constexpr quint32 MSG_HEARTBEAT = 0;
+    static constexpr quint32 MSG_STATUS = 1;
+    static constexpr quint32 MSG_DECODE = 2;
     static constexpr quint32 MSG_QSO_LOGGED = 5;
+    static constexpr quint32 MSG_ADIF_LOGGED = 12;
 
     bool parseHeader(QDataStream& stream, quint32& messageType, QString& clientId);
     bool parseQsoLogged(QDataStream& stream, WsjtxQsoData& data);

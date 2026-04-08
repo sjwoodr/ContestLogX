@@ -77,7 +77,34 @@ void WsjtxListener::onReadyRead()
         if (!parseHeader(stream, messageType, clientId))
             continue;
 
-        if (messageType == MSG_QSO_LOGGED) {
+        if (messageType == MSG_HEARTBEAT) {
+            quint32 maxSchema = 0;
+            stream >> maxSchema;
+            QString version = readUtf8(stream);
+            DebugLogger::instance().log("WsjtxListener",
+                QString("Heartbeat from %1 v%2 (schema %3)").arg(clientId, version).arg(maxSchema));
+        } else if (messageType == MSG_STATUS) {
+            quint64 dialFreq = 0;
+            stream >> dialFreq;
+            QString mode = readUtf8(stream);
+            QString dxCall = readUtf8(stream);
+            QString report = readUtf8(stream);
+            DebugLogger::instance().log("WsjtxListener",
+                QString("Status from %1: %2 Hz %3, DX=%4 rpt=%5")
+                    .arg(clientId).arg(dialFreq).arg(mode, dxCall, report));
+        } else if (messageType == MSG_DECODE) {
+            quint8 isNew = 0;
+            quint32 time = 0;
+            qint32 snr = 0;
+            double deltaTime = 0;
+            quint32 deltaFreq = 0;
+            stream >> isNew >> time >> snr >> deltaTime >> deltaFreq;
+            QString decodeMode = readUtf8(stream);
+            QString message = readUtf8(stream);
+            DebugLogger::instance().log("WsjtxListener",
+                QString("Decode from %1: %2 dB %3 Hz %4")
+                    .arg(clientId).arg(snr).arg(deltaFreq).arg(message));
+        } else if (messageType == MSG_QSO_LOGGED) {
             WsjtxQsoData qsoData;
             if (parseQsoLogged(stream, qsoData)) {
                 DebugLogger::instance().log("WsjtxListener",
@@ -87,6 +114,13 @@ void WsjtxListener::onReadyRead()
                         .arg(qsoData.mode));
                 emit qsoReceived(qsoData);
             }
+        } else if (messageType == MSG_ADIF_LOGGED) {
+            QString adif = readUtf8(stream);
+            DebugLogger::instance().log("WsjtxListener",
+                QString("ADIF logged from %1: %2").arg(clientId, adif.left(100)));
+        } else {
+            DebugLogger::instance().log("WsjtxListener",
+                QString("Unknown message type %1 from %2 (%3 bytes)").arg(messageType).arg(clientId).arg(data.size()));
         }
     }
 }
