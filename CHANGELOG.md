@@ -3,13 +3,19 @@
 All notable changes to ContestLogX are documented in this file.
 
 ## [0.7.18]
+
+### Contest Updates
 - Added Japan International DX Contest (JIDX) — CW and SSB, JA and DX station classes, band-based scoring, prefecture and CQ Zone multipliers per band
-- Added direct band-based scoring to contest engine (byBand without month nesting)
+- Added OK-OM DX Contest — CW and SSB, OK/OM and DX station classes, 165 Czech/Slovak county multipliers, DXCC+WAE entities per band
+- Added New Mexico QSO Party (NMQP) — NM and non-NM station classes, 33 NM counties, states/provinces/DXCC multipliers, power multiplier (QRP/LP/HP), DC/MDC alias to MD
+
+### Contest Engine Changes
+- Added direct band-based scoring (byBand without month nesting)
 - Added 1:1 named mult aliases for exchange normalization (e.g., "5" → "05")
 - Added per-station-class named mult display lists and labels (e.g., "CQ Zones" for JA, "Prefectures" for DX)
-- Added OK-OM DX Contest — CW and SSB, OK/OM and DX station classes, 165 Czech/Slovak county multipliers, DXCC+WAE entities per band
-- Added per-station-class point overrides (byPrompt) to contest engine for asymmetric scoring rules
-- Added New Mexico QSO Party (NMQP) — NM and non-NM station classes, 33 NM counties, states/provinces/DXCC multipliers, power multiplier (QRP/LP/HP), DC/MDC alias to MD
+- Added per-station-class point overrides (byPrompt) for asymmetric scoring rules
+
+### Other Changes and Bugfixes
 
 ## [0.7.17]
 - Fixed light theme not working when running directly on GNOME/Wayland — use stylesheet-based theming that overrides GTK platform integration
