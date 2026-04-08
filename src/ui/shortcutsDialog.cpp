@@ -21,7 +21,8 @@ const QList<ShortcutsWidget::DefaultShortcut> ShortcutsWidget::DEFAULT_SHORTCUTS
     {"qsoViewFilter",    "Filter QSO Log", "Ctrl+F"},
     {"toggleRunSP",      "Toggle Run / S&P Operating Mode", "Ctrl+M"},
     {"toggleMemoryType", "Toggle Contest / Station Memories", "Ctrl+T"},
-    {"switchRadio",      "Switch Active Radio (SO2R)", "`"}
+    {"switchRadio",      "Switch Active Radio (SO2R)", "`"},
+    {"qsyBack",          "QSY to Previous QSO Frequency/Mode", "Alt+B"}
 };
 
 ShortcutsWidget::ShortcutsWidget(QWidget* parent)

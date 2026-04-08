@@ -557,6 +557,7 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
                     {"qsoViewFilter",    "Ctrl+F"},
                     {"toggleRunSP",      "Ctrl+M"},
                     {"toggleMemoryType", "Ctrl+T"},
+                    {"qsyBack",          "Alt+B"},
                 };
                 for (auto dit = shortcutDefaults.begin(); dit != shortcutDefaults.end(); ++dit) {
                     if (!shortcuts.contains(dit.key()))
@@ -580,6 +581,7 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
                     }
                     if (it.key() == "toggleRunSP")      { onToggleRunSP();        return true; }
                     if (it.key() == "toggleMemoryType") { onToggleMemoryType();   return true; }
+                    if (it.key() == "qsyBack")          { onQsyBack();           return true; }
                 }
             }
         }
@@ -3438,6 +3440,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
         {"qsoViewFilter",    "Ctrl+F"},
         {"toggleMemoryType", "Ctrl+T"},
         {"switchRadio",      "`"},
+        {"qsyBack",          "Alt+B"},
     };
     for (auto dit = defaultShortcuts.begin(); dit != defaultShortcuts.end(); ++dit) {
         if (!shortcuts.contains(dit.key()))
@@ -3472,6 +3475,9 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
                 return;
             } else if (it.key() == "switchRadio") {
                 switchActiveRadio();
+                return;
+            } else if (it.key() == "qsyBack") {
+                onQsyBack();
                 return;
             }
         }
@@ -4034,6 +4040,9 @@ void MainWindow::onLogQso()
 
     // Add the QSO first so it's included in score calculations
     m_qsoModel->addQso(qso);
+
+    // Reset QSY Back index — new QSO becomes the most recent
+    m_qsyBackIndex = -1;
 
     // Initialize backup on first logged QSO of the session; write on every QSO
     if (m_backupPath.isEmpty() && m_backupEnabled)
@@ -5373,7 +5382,7 @@ void MainWindow::onAbout()
     msgBox.setTextFormat(Qt::RichText);
     msgBox.setTextInteractionFlags(Qt::TextBrowserInteraction);
     msgBox.setText(
-        "<b>ContestLogX - Version 0.7.19 (Beta)</b><br><br>"
+        "<b>ContestLogX - Version 0.7.20 (Beta)</b><br><br>"
         "Cross-platform amateur radio contest logging software<br><br>"
         "Copyright &copy; 2025-2026, by Steve Woodruff, N9OH<br><br>"
         "<a href=\"https://contestlogx.com\">https://contestlogx.com</a><br><br>"
@@ -5472,6 +5481,58 @@ bool MainWindow::validateRunSPRoles(RunMode mode)
     else      onEditSsbMemories();
 
     return false;
+}
+
+void MainWindow::onQsyBack()
+{
+    int totalQsos = m_qsoModel->count();
+    if (totalQsos == 0) {
+        m_statusLabel->setText("No QSOs to QSY back to");
+        return;
+    }
+
+    // First press: start at last QSO; subsequent presses walk further back
+    if (m_qsyBackIndex < 0)
+        m_qsyBackIndex = 0;
+    else
+        m_qsyBackIndex++;
+
+    if (m_qsyBackIndex >= totalQsos) {
+        m_statusLabel->setText("No more QSOs to QSY back to");
+        m_qsyBackIndex = totalQsos - 1;
+        return;
+    }
+
+    // Walk from end of log
+    QsoRecord qso = m_qsoModel->getQso(totalQsos - 1 - m_qsyBackIndex);
+    double freqKhz = qso.getFrequency().toDouble();
+    QString mode = qso.getMode();
+
+    if (freqKhz <= 0) {
+        m_statusLabel->setText("QSO has no frequency");
+        return;
+    }
+
+    // Tune the active rig
+    RigInterface* rig = (m_so2rEnabled && m_activeRadio == ActiveRadio::Right) ? m_rigClientR : m_rigClient;
+    if (rig && rig->isConnected()) {
+        rig->setFrequency(freqKhz * 1000.0);
+        if (!mode.isEmpty())
+            rig->setMode(mode);
+    }
+
+    // Update local state and display
+    m_lastFrequency = freqKhz;
+    if (!mode.isEmpty())
+        m_lastMode = mode;
+    m_freqModeButton->setText(QString("%1 %2").arg(freqKhz, 0, 'f', 1).arg(mode));
+
+    m_statusLabel->setText(QString("QSY Back: %1 kHz %2 (QSO #%3)")
+        .arg(freqKhz, 0, 'f', 1).arg(mode).arg(totalQsos - m_qsyBackIndex));
+
+    DebugLogger::instance().log("MainWindow",
+        QString("QSY Back to %1 kHz %2 (index %3, QSO #%4)")
+            .arg(freqKhz, 0, 'f', 1).arg(mode).arg(m_qsyBackIndex).arg(totalQsos - m_qsyBackIndex));
 }
 
 void MainWindow::onToggleRunSP()

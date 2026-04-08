@@ -98,6 +98,7 @@ private slots:
     void onEditSsbMemories();
     void onSsbKeyingSetup();
     void onWsjtxQsoReceived(const WsjtxQsoData& data);
+    void onQsyBack();
     
     void onCallChanged(const QString& text);
     void onModeChanged(int index);
@@ -413,6 +414,9 @@ private:
     // Run / S&P operating mode
     RunMode m_runMode = RunMode::Off;       // Radio L
     RunMode m_runModeR = RunMode::Off;      // Radio R
+
+    // QSY Back — index into QSO log for walking back through previous frequencies
+    int m_qsyBackIndex = -1;  // -1 = not active, 0+ = index from end of QSO list
     bool m_exchangeSent = false;   // True once Exchange memory has been sent this QSO
     bool m_exchangeSentR = false;  // Radio R
     QPushButton *m_offButton = nullptr;

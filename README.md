@@ -24,6 +24,7 @@ Most contest loggers are Windows-only, closed-source, or locked to a fixed set o
 - CW keying via CAT with programmable memories (F1-F8)
 - SSB voice keyer with programmable memories
 - WPM speed control
+- QSY Back (Alt+B) — return to the frequency/mode of previous QSOs
 
 ### WSJT-X Integration
 - Receives QSO Logged messages from WSJT-X via UDP (port 2237)
@@ -154,4 +155,4 @@ See the [LICENSE](LICENSE) file for the full license text.
 
 ---
 
-**[contestlogx.com](https://contestlogx.com)** | **ContestLogX v0.7.19** | *Copyright (c) 2025-2026 Steve Woodruff, N9OH*
+**[contestlogx.com](https://contestlogx.com)** | **ContestLogX v0.7.20** | *Copyright (c) 2025-2026 Steve Woodruff, N9OH*

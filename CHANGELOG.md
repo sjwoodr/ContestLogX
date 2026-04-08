@@ -2,6 +2,11 @@
 
 All notable changes to ContestLogX are documented in this file.
 
+## [0.7.20]
+
+### Other Changes and Bugfixes
+- Added QSY Back (Alt+B) — tunes rig to the frequency/mode of the previous QSO; press repeatedly to walk further back through the log
+
 ## [0.7.19]
 
 ### Other Changes and Bugfixes
