@@ -1454,15 +1454,25 @@ QStringList ContestEngine::getEffectiveNamedMultiplierList() const
     }
 
     // Check for station-class-specific named mult display list
-    if (!m_stationClass.isEmpty() && m_contestDef.contains("validation")) {
+    if (m_contestDef.contains("validation")) {
         QJsonObject validation = m_contestDef["validation"].toObject();
         if (validation.contains("namedMultsByStationClass")) {
             QJsonObject byClass = validation["namedMultsByStationClass"].toObject();
-            if (byClass.contains(m_stationClass)) {
+            // Check formal station class first
+            if (!m_stationClass.isEmpty() && byClass.contains(m_stationClass)) {
                 QStringList result;
                 for (const QJsonValue& val : byClass[m_stationClass].toArray())
                     result.append(val.toString().toUpper());
                 return result;
+            }
+            // Fall back to matching a userPrompt value
+            for (const QString& pv : m_userPromptValues.values()) {
+                if (byClass.contains(pv)) {
+                    QStringList result;
+                    for (const QJsonValue& val : byClass[pv].toArray())
+                        result.append(val.toString().toUpper());
+                    return result;
+                }
             }
         }
     }

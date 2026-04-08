@@ -1,0 +1,245 @@
+{
+  "contest": {
+    "name": "North Dakota QSO Party",
+    "abbreviation": "NDQP",
+    "version": "1.0.0",
+    "sponsor": "ARRL ND Section",
+    "description": "Annual North Dakota QSO party. ND stations work anyone for counties, states, provinces. Non-ND stations work ND only for ND counties. DX is points only, no DX multiplier.",
+    "startDate": "Second Saturday of April (1800Z Sat to 1800Z Sun)",
+    "duration": 24,
+    "offTimeGapMinutes": 0,
+    "modes": ["CW", "SSB", "RTTY"],
+    "bands": ["160m", "80m", "40m", "20m", "15m", "10m", "6m", "2m"],
+    "url": "https://www.ndarrlsection.com",
+    "categories": {
+      "stations": ["SINGLE_OP", "MOBILE"],
+      "power": ["ANY"]
+    }
+  },
+  "frequencies": {
+    "160m": {
+      "start": 1800, "end": 2000,
+      "cw": {"start": 1800, "end": 1870},
+      "phone": {"start": 1870, "end": 2000}
+    },
+    "80m": {
+      "start": 3500, "end": 4000,
+      "cw": {"start": 3500, "end": 3600},
+      "phone": {"start": 3600, "end": 4000}
+    },
+    "40m": {
+      "start": 7000, "end": 7300,
+      "cw": {"start": 7000, "end": 7125},
+      "phone": {"start": 7125, "end": 7300}
+    },
+    "20m": {
+      "start": 14000, "end": 14350,
+      "cw": {"start": 14000, "end": 14150},
+      "phone": {"start": 14150, "end": 14350}
+    },
+    "15m": {
+      "start": 21000, "end": 21450,
+      "cw": {"start": 21000, "end": 21200},
+      "phone": {"start": 21200, "end": 21450}
+    },
+    "10m": {
+      "start": 28000, "end": 29700,
+      "cw": {"start": 28000, "end": 28300},
+      "phone": {"start": 28300, "end": 29700}
+    },
+    "6m": {
+      "start": 50000, "end": 54000,
+      "cw": {"start": 50000, "end": 50100},
+      "phone": {"start": 50100, "end": 54000}
+    },
+    "2m": {
+      "start": 144000, "end": 148000,
+      "cw": {"start": 144000, "end": 144100},
+      "phone": {"start": 144100, "end": 148000}
+    }
+  },
+  "stationClasses": {
+    "enabled": false
+  },
+  "userPrompts": [
+    {
+      "id": "stationType",
+      "question": "Are you a North Dakota or non-ND station?",
+      "type": "select",
+      "options": [
+        {"value": "ND", "label": "North Dakota (In-State) — send RST + ND county"},
+        {"value": "NON_ND", "label": "Non-ND (US/VE/DX) — send RST + state/province/DX"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "ND stations work anyone. Non-ND stations work ND only."
+    },
+    {
+      "id": "myExchange",
+      "question": "Enter your exchange: ND county (3 letters) or state/province (2 letters) or DX",
+      "type": "text",
+      "required": true,
+      "forceUppercase": true,
+      "storeInMeta": true,
+      "description": "County abbreviation for ND stations, state/province for US/VE, or DX",
+      "exchangeFieldMapping": {
+        "myExchange": "EXCHs"
+      }
+    },
+    {
+      "id": "operatingClass",
+      "question": "Select your operating class",
+      "type": "select",
+      "options": [
+        {"value": "ND_FIXED", "label": "ND: Fixed Station"},
+        {"value": "ND_PORTABLE", "label": "ND: Portable Station"},
+        {"value": "ND_MOBILE", "label": "ND: Mobile Station"},
+        {"value": "NON_ND_US", "label": "Non-ND: US Station"},
+        {"value": "NON_ND_VE", "label": "Non-ND: Canadian Station"},
+        {"value": "NON_ND_DX", "label": "Non-ND: DX Station"}
+      ],
+      "required": true,
+      "storeInMeta": true
+    }
+  ],
+  "exchangeFields": {
+    "sent": [
+      {
+        "name": "RST",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report sent"
+      },
+      {
+        "name": "EXCHs",
+        "type": "string",
+        "required": true,
+        "description": "ND county (3 letters) or state/province (2 letters) or DX"
+      }
+    ],
+    "received": [
+      {
+        "name": "RST",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report received"
+      },
+      {
+        "name": "EXCHr",
+        "type": "string",
+        "required": true,
+        "description": "ND county or state/province or DX"
+      }
+    ]
+  },
+  "qsoFields": [
+    {"name": "Date",      "column": "DATE",   "type": "date",   "format": "yyyy-MM-dd", "required": true},
+    {"name": "Time",      "column": "TIME",   "type": "time",   "format": "HH:mm:ss",   "required": true},
+    {"name": "Callsign",  "column": "CALL",   "type": "string", "required": true, "uppercase": true},
+    {"name": "Frequency", "column": "FREQ",   "type": "number", "unit": "kHz",    "required": true},
+    {"name": "Mode",      "column": "MODE",   "type": "enum",   "values": ["CW", "SSB", "RTTY"], "required": true},
+    {"name": "RST Sent",  "column": "RSTs",   "type": "string", "required": true, "default": "599"},
+    {"name": "RST Rcvd",  "column": "RSTr",   "type": "string", "required": true},
+    {"name": "Exch Sent", "column": "EXCHs",  "type": "string", "required": true, "description": "County/State/Province/DX"},
+    {"name": "Exch Rcvd", "column": "EXCHr",  "type": "string", "required": true, "description": "County/State/Province/DX"},
+    {"name": "Points",    "column": "POINTS", "type": "number", "calculated": true},
+    {"name": "Mult",      "column": "M",      "type": "string", "calculated": true}
+  ],
+  "scoring": {
+    "points": {
+      "perQso": 1
+    },
+    "multipliers": {
+      "type": "multsOnce",
+      "description": "ND counties (53) + states+DC (50) + provinces (13) = 116 for ND stations. Non-ND/DX stations count ND counties (53) only. DX is points only, no multiplier.",
+      "categories": ["namedMults"]
+    },
+    "finalScore": "SUM(points) * SUM(multipliers)"
+  },
+  "dupeChecking": {
+    "type": "perBandAndMode",
+    "description": "Station may be worked once per mode per band"
+  },
+  "logging": {
+    "requiredFields": ["date", "time", "frequency", "mode", "callsign", "rstSent", "rstReceived", "exchSent", "exchReceived"],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "ND-QSO-PARTY",
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {rst_sent} {exch_sent} {call} {rst_rcvd} {exch_rcvd}",
+      "requiredHeaders": ["CONTEST", "CALLSIGN", "CATEGORY", "CLAIMED-SCORE", "NAME", "ADDRESS", "OPERATORS"]
+    }
+  },
+  "callHistory": {
+    "fieldsToSave": ["EXCHr"],
+    "description": "Save received exchange (county/state/province/DX) for future lookups"
+  },
+  "validation": {
+    "minimumQSOs": 1,
+    "maxOperatingTime": 24,
+    "offTimesRequired": false,
+    "namedMults": [
+      "ADM", "BRN", "BSN", "BLL", "BOT", "BOW", "BRK", "BUR", "CSS", "CAV",
+      "DIK", "DIV", "DUN", "EDY", "EMN", "FOS", "GNV", "GFK", "GNT", "GRG",
+      "HET", "KDR", "LMR", "LOG", "MCH", "MCI", "MCK", "MCL", "MCR", "MTN",
+      "MRL", "NEL", "OLR", "PBA", "PRC", "RMY", "RSM", "REN", "RLD", "ROL",
+      "SGT", "SRN", "SIX", "SLP", "STK", "STL", "STN", "TWR", "TRL", "WLH",
+      "WRD", "WLS", "WLM",
+      "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL",
+      "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME",
+      "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ",
+      "NM", "NY", "NC", "OH", "OK", "OR", "PA", "RI", "SC",
+      "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY",
+      "AB", "BC", "LB", "MB", "NB", "NF", "NS", "NT", "ON", "PE", "QC", "SK", "YT"
+    ],
+    "namedMultAliases": {
+      "NL": "NF",
+      "DX": "DX"
+    },
+    "__comment_aliases": "NL is standard ARRL for Newfoundland, NDQP uses NF. DX self-alias allows DX exchange entry without counting as a multiplier.",
+    "receivedExchangeFilter": {
+      "promptId": "stationType",
+      "rules": {
+        "NON_ND": "inStateMults"
+      }
+    },
+    "inStateMults": [
+      "ADM", "BRN", "BSN", "BLL", "BOT", "BOW", "BRK", "BUR", "CSS", "CAV",
+      "DIK", "DIV", "DUN", "EDY", "EMN", "FOS", "GNV", "GFK", "GNT", "GRG",
+      "HET", "KDR", "LMR", "LOG", "MCH", "MCI", "MCK", "MCL", "MCR", "MTN",
+      "MRL", "NEL", "OLR", "PBA", "PRC", "RMY", "RSM", "REN", "RLD", "ROL",
+      "SGT", "SRN", "SIX", "SLP", "STK", "STL", "STN", "TWR", "TRL", "WLH",
+      "WRD", "WLS", "WLM"
+    ],
+    "namedMultsByStationClass": {
+      "NON_ND": [
+        "ADM", "BRN", "BSN", "BLL", "BOT", "BOW", "BRK", "BUR", "CSS", "CAV",
+        "DIK", "DIV", "DUN", "EDY", "EMN", "FOS", "GNV", "GFK", "GNT", "GRG",
+        "HET", "KDR", "LMR", "LOG", "MCH", "MCI", "MCK", "MCL", "MCR", "MTN",
+        "MRL", "NEL", "OLR", "PBA", "PRC", "RMY", "RSM", "REN", "RLD", "ROL",
+        "SGT", "SRN", "SIX", "SLP", "STK", "STL", "STN", "TWR", "TRL", "WLH",
+        "WRD", "WLS", "WLM"
+      ]
+    },
+    "exchangeValidation": {
+      "type": "namedMultOnly",
+      "description": "ND county (3 letters), state/province (2 letters), or DX"
+    }
+  },
+  "ui": {
+    "showMultiplierPanel": true,
+    "logColumns": ["DATE", "TIME", "CALL", "FREQ", "MODE", "RSTs", "RSTr", "EXCHs", "EXCHr", "POINTS", "M", "COMMENT"],
+    "entryFields": ["CALL", "RSTr", "EXCHr"],
+    "fieldNavigation": {
+      "keys": "tab"
+    },
+    "bandMap": {
+      "enabled": true,
+      "bands": ["160m", "80m", "40m", "20m", "15m", "10m", "6m", "2m"]
+    },
+    "multiplierDisplay": {
+      "showCounties": true,
+      "showStates": true,
+      "showProvinces": true
+    }
+  }
+}

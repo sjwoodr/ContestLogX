@@ -199,6 +199,16 @@
       "name": "GAQP GA Station (90 QSOs, multsPerMode, states+provinces, no DX mult)",
       "log_file": "test_gaqp_ga.clx",
       "expected_score": 10000
+    },
+    {
+      "name": "NDQP Non-ND Station (100 QSOs, multsOnce, ND counties only, perQso=1)",
+      "log_file": "test_ndqp_nonnd.clx",
+      "expected_score": 5300
+    },
+    {
+      "name": "NDQP ND Station (77 QSOs, multsOnce, counties+states+prov, DX=pts only, NL alias)",
+      "log_file": "test_ndqp_nd.clx",
+      "expected_score": 4940
     }
   ]
 }
