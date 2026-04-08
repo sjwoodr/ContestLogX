@@ -169,6 +169,16 @@
       "name": "OK-OM DX CW OK/OM Station (106 QSOs, multsPerBand, Counties+DXCC+WAE, byPrompt points)",
       "log_file": "test_okom_okom.clx",
       "expected_score": 48076
+    },
+    {
+      "name": "NMQP Non-NM Station (100 QSOs, multsOnce, counties only, LP power mult)",
+      "log_file": "test_nmqp_wve.clx",
+      "expected_score": 9900
+    },
+    {
+      "name": "NMQP NM Station (102 QSOs, multsOnce, counties+states+prov+DXCC, QRP power mult)",
+      "log_file": "test_nmqp_nm.clx",
+      "expected_score": 65685
     }
   ]
 }

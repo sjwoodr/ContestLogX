@@ -1618,10 +1618,10 @@ int ContestEngine::calculateTotalScore(const QList<QsoRecord>& qsos, int& totalQ
         totalMults = multPerBandAndMode.size();
     }
     
-    DebugLogger::instance().log("ContestEngine", 
+    DebugLogger::instance().log("ContestEngine",
         QString("Total score: %1 points × %2 mults (type=%3) = %4")
             .arg(totalPoints).arg(totalMults).arg(multType).arg(totalPoints * totalMults));
-    
+
     return totalPoints * totalMults;
 }
 

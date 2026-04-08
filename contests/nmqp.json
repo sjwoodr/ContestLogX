@@ -1,0 +1,290 @@
+{
+  "contest": {
+    "name": "New Mexico QSO Party",
+    "abbreviation": "NMQP",
+    "version": "1.0.0",
+    "sponsor": "Amateur Radio Caravan Club",
+    "description": "Annual New Mexico state QSO party held the second Saturday of April. NM stations work anyone; non-NM stations work NM only.",
+    "startDate": "Second Saturday of April (1400-0200 UTC)",
+    "duration": 12,
+    "offTimeGapMinutes": 0,
+    "modes": ["CW", "SSB", "RTTY"],
+    "bands": ["160m", "80m", "40m", "20m", "15m", "10m", "6m", "2m"],
+    "url": "https://www.newmexicoqsoparty.org/",
+    "categories": {
+      "stations": ["SINGLE_OP", "MULTI_OP", "MOBILE"],
+      "power": ["HIGH", "LOW", "QRP"]
+    }
+  },
+  "frequencies": {
+    "160m": {
+      "start": 1800, "end": 2000,
+      "cw": {"start": 1800, "end": 1850},
+      "phone": {"start": 1850, "end": 2000}
+    },
+    "80m": {
+      "start": 3500, "end": 4000,
+      "cw": {"start": 3500, "end": 3600},
+      "phone": {"start": 3600, "end": 4000}
+    },
+    "40m": {
+      "start": 7000, "end": 7300,
+      "cw": {"start": 7000, "end": 7125},
+      "phone": {"start": 7125, "end": 7300}
+    },
+    "20m": {
+      "start": 14000, "end": 14350,
+      "cw": {"start": 14000, "end": 14150},
+      "phone": {"start": 14150, "end": 14350}
+    },
+    "15m": {
+      "start": 21000, "end": 21450,
+      "cw": {"start": 21000, "end": 21200},
+      "phone": {"start": 21200, "end": 21450}
+    },
+    "10m": {
+      "start": 28000, "end": 29700,
+      "cw": {"start": 28000, "end": 28300},
+      "phone": {"start": 28300, "end": 29700}
+    },
+    "6m": {
+      "start": 50000, "end": 54000,
+      "cw": {"start": 50000, "end": 50100},
+      "phone": {"start": 50100, "end": 54000}
+    },
+    "2m": {
+      "start": 144000, "end": 148000,
+      "cw": {"start": 144000, "end": 144100},
+      "phone": {"start": 144100, "end": 148000}
+    }
+  },
+  "stationClasses": {
+    "enabled": false
+  },
+  "userPrompts": [
+    {
+      "id": "stationType",
+      "question": "Are you a New Mexico or non-NM station?",
+      "type": "select",
+      "options": [
+        {"value": "NM", "label": "New Mexico (In-State) — send RST + NM county"},
+        {"value": "NON_NM", "label": "Non-NM (US/VE/DX) — send RST + state/province/DX"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "NM stations work anyone. Non-NM stations work NM only."
+    },
+    {
+      "id": "myExchange",
+      "question": "Enter your exchange: NM county (3 letters) or state/province (2 letters) or DX",
+      "type": "text",
+      "required": true,
+      "forceUppercase": true,
+      "storeInMeta": true,
+      "description": "County abbreviation for NM stations, state/province for US/VE, or DX",
+      "exchangeFieldMapping": {
+        "myExchange": "EXCHs"
+      }
+    },
+    {
+      "id": "powerCategory",
+      "question": "Select your power category",
+      "type": "select",
+      "options": [
+        {"value": "HP", "label": "High Power (> 150W) — ×1"},
+        {"value": "LP", "label": "Low Power (> 5W - 150W) — ×2"},
+        {"value": "QRP", "label": "QRP (5W or less) — ×5"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "Power multiplier applied to final score"
+    },
+    {
+      "id": "operatingClass",
+      "question": "Select your operating class",
+      "type": "select",
+      "options": [
+        {"value": "NM_SO", "label": "NM: Single Operator"},
+        {"value": "NM_MO", "label": "NM: Multi-Operator"},
+        {"value": "NM_MOB_SO", "label": "NM: Mobile Single Operator"},
+        {"value": "NM_MOB_MO", "label": "NM: Mobile Multi-Operator"},
+        {"value": "NM_EXPEDITION", "label": "NM: Expedition"},
+        {"value": "WVE_SO", "label": "Non-NM: Single Operator"}
+      ],
+      "required": true,
+      "storeInMeta": true
+    }
+  ],
+  "exchangeFields": {
+    "sent": [
+      {
+        "name": "RST",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report sent"
+      },
+      {
+        "name": "EXCHs",
+        "type": "string",
+        "required": true,
+        "description": "NM county (3 letters) or state/province (2 letters) or DX"
+      }
+    ],
+    "received": [
+      {
+        "name": "RST",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report received"
+      },
+      {
+        "name": "EXCHr",
+        "type": "string",
+        "required": true,
+        "description": "NM county or state/province or DX"
+      }
+    ]
+  },
+  "qsoFields": [
+    {"name": "Date",      "column": "DATE",   "type": "date",   "format": "yyyy-MM-dd", "required": true},
+    {"name": "Time",      "column": "TIME",   "type": "time",   "format": "HH:mm:ss",   "required": true},
+    {"name": "Callsign",  "column": "CALL",   "type": "string", "required": true, "uppercase": true},
+    {"name": "Frequency", "column": "FREQ",   "type": "number", "unit": "kHz",    "required": true},
+    {"name": "Mode",      "column": "MODE",   "type": "enum",   "values": ["CW", "SSB", "RTTY"], "required": true},
+    {"name": "RST Sent",  "column": "RSTs",   "type": "string", "required": true, "default": "599"},
+    {"name": "RST Rcvd",  "column": "RSTr",   "type": "string", "required": true},
+    {"name": "Exch Sent", "column": "EXCHs",  "type": "string", "required": true, "description": "County/State/Province/DX"},
+    {"name": "Exch Rcvd", "column": "EXCHr",  "type": "string", "required": true, "description": "County/State/Province/DX"},
+    {"name": "Points",    "column": "POINTS", "type": "number", "calculated": true},
+    {"name": "Mult",      "column": "M",      "type": "string", "calculated": true}
+  ],
+  "scoring": {
+    "points": {
+      "sameDxccEntity": {
+        "CW": 2,
+        "SSB": 1,
+        "DIGITAL": 2
+      },
+      "differentDxccEntity": {
+        "CW": 2,
+        "SSB": 1,
+        "DIGITAL": 2
+      },
+      "sameContinent": {
+        "CW": 2,
+        "SSB": 1,
+        "DIGITAL": 2
+      },
+      "differentContinent": {
+        "CW": 2,
+        "SSB": 1,
+        "DIGITAL": 2
+      }
+    },
+    "precedence": [
+      "sameDxccEntity",
+      "differentDxccEntity",
+      "sameContinent",
+      "differentContinent"
+    ],
+    "scoreMultiplier": {
+      "promptId": "powerCategory",
+      "values": {
+        "HP": 1,
+        "LP": 2,
+        "QRP": 5
+      }
+    },
+    "multipliers": {
+      "type": "multsOnce",
+      "description": "NM counties, US states, Canadian provinces, and DX entities — each counted once (not per band or mode). Non-NM stations count NM counties only.",
+      "categories": ["namedMults", "dxcc"],
+      "alaskaAndHawaiiCountDxcc": false,
+      "usAndCanadaCountDxcc": false,
+      "stationClassMultipliers": {
+        "NM": ["namedMults", "dxcc"],
+        "NON_NM": ["namedMults"]
+      }
+    },
+    "finalScore": "SUM(points) * powerMultiplier * SUM(multipliers)"
+  },
+  "dupeChecking": {
+    "type": "perBandAndMode",
+    "description": "Station may be worked once per mode per band"
+  },
+  "logging": {
+    "requiredFields": ["date", "time", "frequency", "mode", "callsign", "rstSent", "rstReceived", "exchSent", "exchReceived"],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "NM-QSO-PARTY",
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {rst_sent} {exch_sent} {call} {rst_rcvd} {exch_rcvd}",
+      "requiredHeaders": ["CONTEST", "CALLSIGN", "CATEGORY", "ARRL-SECTION", "CLAIMED-SCORE", "NAME", "ADDRESS", "OPERATORS", "SOAPBOX"]
+    }
+  },
+  "callHistory": {
+    "fieldsToSave": ["EXCHr"],
+    "description": "Save received exchange (county/state/province/DX) for future lookups"
+  },
+  "validation": {
+    "minimumQSOs": 1,
+    "maxOperatingTime": 12,
+    "offTimesRequired": false,
+    "namedMults": [
+      "BER", "CAT", "CHA", "CIB", "COL", "CUR", "DEB", "DON", "EDD",
+      "GRA", "GUA", "HAR", "HID", "LEA", "LIN", "LOS", "LUN", "MCK",
+      "MOR", "OTE", "QUA", "RIO", "ROO", "SJU", "SMI", "SAN", "SFE",
+      "SIE", "SOC", "TAO", "TOR", "UNI", "VAL",
+      "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL",
+      "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME",
+      "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ",
+      "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC",
+      "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY",
+      "AB", "BC", "MB", "NB", "NL", "NS", "ON", "PE", "QC", "SK", "NT", "NU", "YT"
+    ],
+    "namedMultAliases": {
+      "DC": "MD",
+      "MDC": "MD"
+    },
+    "receivedExchangeFilter": {
+      "promptId": "stationType",
+      "rules": {
+        "NON_NM": "inStateMults"
+      }
+    },
+    "inStateMults": [
+      "BER", "CAT", "CHA", "CIB", "COL", "CUR", "DEB", "DON", "EDD",
+      "GRA", "GUA", "HAR", "HID", "LEA", "LIN", "LOS", "LUN", "MCK",
+      "MOR", "OTE", "QUA", "RIO", "ROO", "SJU", "SMI", "SAN", "SFE",
+      "SIE", "SOC", "TAO", "TOR", "UNI", "VAL"
+    ],
+    "namedMultsByStationClass": {
+      "NON_NM": [
+        "BER", "CAT", "CHA", "CIB", "COL", "CUR", "DEB", "DON", "EDD",
+        "GRA", "GUA", "HAR", "HID", "LEA", "LIN", "LOS", "LUN", "MCK",
+        "MOR", "OTE", "QUA", "RIO", "ROO", "SJU", "SMI", "SAN", "SFE",
+        "SIE", "SOC", "TAO", "TOR", "UNI", "VAL"
+      ]
+    },
+    "exchangeValidation": {
+      "type": "countyOrStateOrDX",
+      "description": "NM county (3 letters), state/province (2 letters), or DX"
+    }
+  },
+  "ui": {
+    "showMultiplierPanel": true,
+    "logColumns": ["DATE", "TIME", "CALL", "FREQ", "MODE", "RSTs", "RSTr", "EXCHs", "EXCHr", "POINTS", "M", "COMMENT"],
+    "entryFields": ["CALL", "RSTr", "EXCHr"],
+    "fieldNavigation": {
+      "keys": "tab"
+    },
+    "bandMap": {
+      "enabled": true,
+      "bands": ["160m", "80m", "40m", "20m", "15m", "10m", "6m", "2m"]
+    },
+    "multiplierDisplay": {
+      "showCounties": true,
+      "showStates": true,
+      "showProvinces": true
+    }
+  }
+}

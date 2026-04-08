@@ -9,6 +9,7 @@ All notable changes to ContestLogX are documented in this file.
 - Added per-station-class named mult display lists and labels (e.g., "CQ Zones" for JA, "Prefectures" for DX)
 - Added OK-OM DX Contest — CW and SSB, OK/OM and DX station classes, 165 Czech/Slovak county multipliers, DXCC+WAE entities per band
 - Added per-station-class point overrides (byPrompt) to contest engine for asymmetric scoring rules
+- Added New Mexico QSO Party (NMQP) — NM and non-NM station classes, 33 NM counties, states/provinces/DXCC multipliers, power multiplier (QRP/LP/HP), DC/MDC alias to MD
 
 ## [0.7.17]
 - Fixed light theme not working when running directly on GNOME/Wayland — use stylesheet-based theming that overrides GTK platform integration
