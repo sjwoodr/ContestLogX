@@ -81,6 +81,7 @@ version:
 		exit 1; \
 	fi; \
 	echo "Updating version to $$NEW_VERSION..."; \
+	rm -rf build/Testing/ dist/ ; \
 	sed -i "s/project(ContestLogX VERSION [0-9.]*/project(ContestLogX VERSION $$NEW_VERSION/" CMakeLists.txt; \
 	sed -i "s/ContestLogX v[0-9.]*/ContestLogX v$$NEW_VERSION/" README.md; \
 	sed -i 's/Version [0-9.]*\( (Beta)\)/Version '"$$NEW_VERSION"'\1/' src/ui/mainWindow.cpp; \

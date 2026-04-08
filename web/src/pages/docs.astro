@@ -23,6 +23,7 @@ import Layout from '../layouts/Layout.astro';
           <li><a href="#cw-ssb-memories" class="hover:underline" style="color: #58a6ff;">CW &amp; SSB Memories</a></li>
           <li><a href="#run-sp" class="hover:underline" style="color: #58a6ff;">Run &amp; Search and Pounce Modes</a></li>
           <li><a href="#so2r" class="hover:underline" style="color: #58a6ff;">SO2R (Single Operator, 2 Radio)</a></li>
+          <li><a href="#wsjtx" class="hover:underline" style="color: #58a6ff;">WSJT-X Integration</a></li>
           <li><a href="#dx-cluster" class="hover:underline" style="color: #58a6ff;">DX Cluster</a></li>
           <li><a href="#band-map" class="hover:underline" style="color: #58a6ff;">Band Map</a></li>
           <li><a href="#import-export" class="hover:underline" style="color: #58a6ff;">Importing &amp; Exporting Logs</a></li>
@@ -416,6 +417,22 @@ F8  N9OH`}</pre>
             Uncheck <strong>Rig &rarr; SO2R Mode</strong>. The Radio R panel is removed, Radio R&rsquo;s rig connection is closed,
             and the entry dock returns to the standard single-radio layout. The setting is remembered across sessions.
           </p>
+        </section>
+
+        <!-- WSJT-X Integration -->
+        <section id="wsjtx" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
+          <h2 class="text-2xl font-semibold mb-4">WSJT-X Integration</h2>
+          <p class="leading-relaxed opacity-80 mb-4">
+            ContestLogX listens for UDP messages from <a href="https://wsjt.sourceforge.io/" target="_blank" rel="noopener noreferrer" style="color: #58a6ff;">WSJT-X</a> on port 2237 (configurable in settings). When WSJT-X logs a QSO, the callsign, exchange, RST, frequency, and mode are pre-filled in the QSO entry panel for operator review before logging.
+          </p>
+          <p class="leading-relaxed opacity-80 mb-4">
+            Digital modes (FT8, FT4, JT65, etc.) are automatically mapped to the appropriate contest mode. No configuration is needed — the listener starts automatically when ContestLogX launches.
+          </p>
+          <h3 class="text-lg font-semibold mb-2 mt-6">Supported WSJT-X Messages</h3>
+          <ul class="list-disc list-inside space-y-1 opacity-80">
+            <li><strong>QSO Logged</strong> — pre-fills entry fields with call, exchange, RST, frequency, and mode</li>
+            <li><strong>Status</strong>, <strong>Heartbeat</strong>, <strong>Decode</strong> — logged when WSJT-X debug is enabled (Debug menu)</li>
+          </ul>
         </section>
 
         <!-- DX Cluster -->

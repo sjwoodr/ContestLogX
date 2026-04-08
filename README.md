@@ -25,6 +25,11 @@ Most contest loggers are Windows-only, closed-source, or locked to a fixed set o
 - SSB voice keyer with programmable memories
 - WPM speed control
 
+### WSJT-X Integration
+- Receives QSO Logged messages from WSJT-X via UDP (port 2237)
+- Pre-fills call, exchange, RST, and frequency/mode for operator review before logging
+- Supports FT8, FT4, JT65, and other digital modes
+
 ### DX Cluster
 - Telnet connection to DX cluster servers
 - Spots table — click a spot to QSY and populate the callsign field
@@ -144,8 +149,9 @@ See the [LICENSE](LICENSE) file for the full license text.
 - **[QLog](https://github.com/foldynl/QLog)** by Ladislav Foldyna OK1MLG — open-source amateur radio logging application (GPL v3) that served as UI inspiration and a reference for flrig/CW integration
 - **[Country Files](https://www.country-files.com/)** by Jim Reisert AD1C — CTY.DAT DXCC country database
 - **[Super Check Partial](https://supercheckpartial.com/)** by Bruce Horn WA7BNM — MASTER.SCP callsign database used for partial callsign lookup during contest logging
+- **[WSJT-X](https://wsjt.sourceforge.io/)** by Joe Taylor K1JT et al. — digital mode software; ContestLogX implements the WSJT-X UDP protocol for QSO pre-fill integration
 - **[Qt](https://www.qt.io)** — cross-platform application framework, used under the GNU LGPL v3
 
 ---
 
-**[contestlogx.com](https://contestlogx.com)** | **ContestLogX v0.7.18** | *Copyright (c) 2025-2026 Steve Woodruff, N9OH*
+**[contestlogx.com](https://contestlogx.com)** | **ContestLogX v0.7.19** | *Copyright (c) 2025-2026 Steve Woodruff, N9OH*
