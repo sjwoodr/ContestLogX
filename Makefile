@@ -18,7 +18,7 @@
 JOBS ?= $(shell nproc)
 
 # Number of parallel test log runners (default: 4)
-WORKERS ?= 5
+WORKERS ?= 6
 
 # Local desktop integration paths
 DESKTOP_DIR = $(HOME)/.local/share/applications
