@@ -338,6 +338,16 @@ MainWindow::MainWindow(QWidget *parent)
         }
     }
 
+    // Start WSJT-X UDP listener (always on unless test mode)
+    if (!m_testMode) {
+        m_wsjtxListener = new WsjtxListener(this);
+        connect(m_wsjtxListener, &WsjtxListener::qsoReceived, this, &MainWindow::onWsjtxQsoReceived);
+        int wsjtxPort = settings.getWsjtxPort();
+        if (m_wsjtxListener->startListening(wsjtxPort)) {
+            DebugLogger::instance().log("MainWindow", QString("WSJT-X listener started on port %1").arg(wsjtxPort));
+        }
+    }
+
     // Fetch propagation data from NOAA on startup and every 15 minutes
     if (!m_testMode) {
         m_noaaNetworkManager = new QNetworkAccessManager(this);
@@ -4518,6 +4528,64 @@ void MainWindow::onEditSsbMemories()
     }
 }
 
+void MainWindow::onWsjtxQsoReceived(const WsjtxQsoData& data)
+{
+    DebugLogger::instance().log("MainWindow",
+        QString("WSJT-X QSO received: %1 on %2 Hz %3, exch='%4'")
+            .arg(data.callsign).arg(data.frequencyHz).arg(data.mode, data.exchangeReceived));
+
+    QLineEdit* callEdit = activeCallEdit();
+    auto& exchFields = activeExchangeFields();
+
+    // Set callsign
+    callEdit->setText(data.callsign.toUpper());
+
+    // Set frequency and mode from WSJT-X
+    if (data.frequencyHz > 0) {
+        double freqKhz = data.frequencyHz / 1000.0;
+        m_lastFrequency = freqKhz;
+
+        // Map WSJT-X mode names to contest modes
+        QString mode = data.mode.toUpper();
+        if (mode == "FT8" || mode == "FT4" || mode == "JT65" || mode == "JT9" ||
+            mode == "WSPR" || mode == "MSK144" || mode == "Q65" || mode == "FST4") {
+            mode = "RTTY";  // Map digital modes to RTTY/Digital for contest purposes
+        }
+        QString oldMode = m_lastMode;
+        m_lastMode = mode;
+
+        // Update the frequency/mode button directly
+        m_freqModeButton->setText(QString("%1 %2").arg(freqKhz, 0, 'f', 1).arg(mode));
+
+        // Update RST defaults if mode changed (e.g., from SSB 59 to digital 599)
+        if (oldMode != mode) {
+            updateRstDefaults(oldMode, mode, activeExchangeFields());
+        }
+    }
+
+    // Pre-fill exchange fields
+    if (exchFields.contains("RSTr") && !data.reportReceived.isEmpty()) {
+        exchFields["RSTr"]->setText(data.reportReceived);
+    }
+    if (exchFields.contains("EXCHr") && !data.exchangeReceived.isEmpty()) {
+        exchFields["EXCHr"]->setText(data.exchangeReceived.toUpper());
+    }
+    if (exchFields.contains("NAMEr") && !data.operatorName.isEmpty()) {
+        exchFields["NAMEr"]->setText(data.operatorName.toUpper());
+    }
+    if (exchFields.contains("GRIDr") && !data.gridSquare.isEmpty()) {
+        exchFields["GRIDr"]->setText(data.gridSquare.toUpper());
+    }
+
+    // Focus the call field so the operator can review and hit Enter to log
+    callEdit->setFocus();
+    callEdit->selectAll();
+
+    m_statusLabel->setText(QString("WSJT-X: %1 %2 %3")
+        .arg(data.callsign, data.mode,
+             data.exchangeReceived.isEmpty() ? data.gridSquare : data.exchangeReceived));
+}
+
 void MainWindow::onSsbKeyingSetup()
 {
     SsbKeyingSetupDialog dialog(this);
@@ -5276,7 +5344,7 @@ void MainWindow::onAbout()
     msgBox.setTextFormat(Qt::RichText);
     msgBox.setTextInteractionFlags(Qt::TextBrowserInteraction);
     msgBox.setText(
-        "<b>ContestLogX - Version 0.7.18 (Beta)</b><br><br>"
+        "<b>ContestLogX - Version 0.7.19 (Beta)</b><br><br>"
         "Cross-platform amateur radio contest logging software<br><br>"
         "Copyright &copy; 2025-2026, by Steve Woodruff, N9OH<br><br>"
         "<a href=\"https://contestlogx.com\">https://contestlogx.com</a><br><br>"

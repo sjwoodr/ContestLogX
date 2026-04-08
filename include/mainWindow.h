@@ -38,6 +38,7 @@
 #include "ssbMemory.h"
 #include "memoryRole.h"
 #include "rateWidget.h"
+#include "wsjtxListener.h"
 
 struct EntryPanelWidgets {
     QPushButton *freqModeButton = nullptr;
@@ -96,6 +97,7 @@ private slots:
     void onToggleSo2r(bool enabled);
     void onEditSsbMemories();
     void onSsbKeyingSetup();
+    void onWsjtxQsoReceived(const WsjtxQsoData& data);
     
     void onCallChanged(const QString& text);
     void onModeChanged(int index);
@@ -380,6 +382,9 @@ private:
     bool m_so2rEnabled = false;
     QAction *m_so2rAction = nullptr;
     
+    // WSJT-X integration
+    WsjtxListener *m_wsjtxListener = nullptr;
+
     // Online score publishing
     class OnlineScoreClient *m_onlineScoreClient;
     QTimer *m_scorePostTimer;

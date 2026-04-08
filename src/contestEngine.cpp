@@ -1822,7 +1822,12 @@ bool ContestEngine::validateRSTReport(const QString& value) const
     // Phone: 2 digits (e.g., 59)
     // CW: 3 digits (e.g., 599)
     QRegularExpression re("^[1-5][1-9][1-9]?$");
-    return re.match(value).hasMatch();
+    if (re.match(value).hasMatch())
+        return true;
+
+    // Digital (FT8/FT4) signal reports: optional sign + 1-2 digits (e.g., -15, +05, -02)
+    QRegularExpression digitalRe("^[+-]?\\d{1,2}$");
+    return digitalRe.match(value).hasMatch();
 }
 
 bool ContestEngine::isFieldRequired(const QString& fieldName) const

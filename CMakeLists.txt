@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(ContestLogX VERSION 0.7.18 LANGUAGES CXX)
+project(ContestLogX VERSION 0.7.19 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -76,6 +76,7 @@ set(SOURCES
     src/qrzcqApi.cpp
     src/qrzApi.cpp
     src/net/onlineScoreClient.cpp
+    src/net/wsjtxListener.cpp
 )
 
 set(HEADERS
@@ -133,6 +134,7 @@ set(HEADERS
      include/qrzcqApi.h
      include/qrzApi.h
      include/onlineScoreClient.h
+     include/wsjtxListener.h
 )
 
 # UI files

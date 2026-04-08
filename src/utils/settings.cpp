@@ -364,6 +364,34 @@ void Settings::setMockedAutoConnect(bool autoConnect)
     save();
 }
 
+// WSJT-X integration
+
+bool Settings::getWsjtxEnabled() const
+{
+    return m_settings["wsjtx"].toObject()["enabled"].toBool(false);
+}
+
+void Settings::setWsjtxEnabled(bool enabled)
+{
+    QJsonObject wsjtx = m_settings["wsjtx"].toObject();
+    wsjtx["enabled"] = enabled;
+    m_settings["wsjtx"] = wsjtx;
+    save();
+}
+
+int Settings::getWsjtxPort() const
+{
+    return m_settings["wsjtx"].toObject()["port"].toInt(2237);
+}
+
+void Settings::setWsjtxPort(int port)
+{
+    QJsonObject wsjtx = m_settings["wsjtx"].toObject();
+    wsjtx["port"] = port;
+    m_settings["wsjtx"] = wsjtx;
+    save();
+}
+
 // SO2R settings
 
 bool Settings::getSo2rEnabled() const

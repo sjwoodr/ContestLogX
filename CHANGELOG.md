@@ -2,6 +2,12 @@
 
 All notable changes to ContestLogX are documented in this file.
 
+## [0.7.19]
+
+### Other Changes and Bugfixes
+- Added WSJT-X UDP listener — receives QSO Logged messages and pre-fills call, exchange, RST, and frequency/mode fields for operator review before logging
+- RST validation now accepts digital signal reports (e.g., -15, +05) in addition to traditional RST format
+
 ## [0.7.18]
 
 ### Contest Updates

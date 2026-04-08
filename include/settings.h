@@ -157,6 +157,12 @@ public:
     bool getRadioRMockedAutoConnect() const;
     void setRadioRMockedAutoConnect(bool autoConnect);
 
+    // WSJT-X integration
+    bool getWsjtxEnabled() const;
+    void setWsjtxEnabled(bool enabled);
+    int getWsjtxPort() const;
+    void setWsjtxPort(int port);
+
     // CW settings
     int getCwWpm() const;
     void setCwWpm(int wpm);
