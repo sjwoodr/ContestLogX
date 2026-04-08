@@ -863,7 +863,8 @@ int ContestEngine::calculatePoints(const QsoRecord& qso, const QString& myCallsi
             // Normalize mode names
             if (mode == "SSB" || mode == "USB" || mode == "LSB" || mode == "FM") {
                 mode = "SSB";
-            } else if (mode == "RTTY" || mode == "PSK" || mode == "FT8" || mode == "FT4") {
+            } else if (mode == "RTTY" || mode == "PSK" || mode == "FT8" || mode == "FT4" ||
+                       mode == "DIGI" || mode == "DIGITAL" || mode == "USB-D" || mode == "LSB-D") {
                 mode = "DIGITAL";
             }
             
@@ -1726,7 +1727,16 @@ bool ContestEngine::isValidMode(const QString& mode) const
     if (allowed.contains("SSB") && (upperMode == "LSB" || upperMode == "USB")) {
         return true;
     }
-    
+
+    // If any digital mode is allowed, accept USB-D, LSB-D, DIGI, DIGITAL
+    if (upperMode == "USB-D" || upperMode == "LSB-D" || upperMode == "DIGI" || upperMode == "DIGITAL") {
+        for (const QString& a : allowed) {
+            if (a == "RTTY" || a == "FT8" || a == "FT4" || a == "DIGI" || a == "DIGITAL" || a == "PSK") {
+                return true;
+            }
+        }
+    }
+
     return false;
 }
 

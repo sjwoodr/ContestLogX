@@ -3751,6 +3751,22 @@ void MainWindow::onLogQso()
             modeValid = (mode == "LSB" || mode == "USB");
         }
 
+        // If any digital mode is allowed, accept USB-D and LSB-D (rig data modes)
+        // Prefer DIGITAL over RTTY since rigs have a separate RTTY mode
+        if (!modeValid && (mode == "USB-D" || mode == "LSB-D")) {
+            QStringList digiPreference = {"DIGI", "DIGITAL", "FT8", "FT4", "RTTY", "PSK", "JT65"};
+            for (const QString& preferred : digiPreference) {
+                if (allowedModes.contains(preferred)) {
+                    modeValid = true;
+                    mode = preferred;
+                    qso.setMode(mode);
+                    DebugLogger::instance().log("MainWindow",
+                        QString("Mapped rig data mode to contest mode: %1").arg(mode));
+                    break;
+                }
+            }
+        }
+
         if (!modeValid) {
             QString errorMsg = QString("Invalid mode '%1'. This contest only allows: %2")
                 .arg(mode)
@@ -4555,11 +4571,11 @@ void MainWindow::onWsjtxQsoReceived(const WsjtxQsoData& data)
         double freqKhz = data.frequencyHz / 1000.0;
         m_lastFrequency = freqKhz;
 
-        // Map WSJT-X mode names to contest modes
+        // Map WSJT-X mode names to contest digital mode
         QString mode = data.mode.toUpper();
         if (mode == "FT8" || mode == "FT4" || mode == "JT65" || mode == "JT9" ||
             mode == "WSPR" || mode == "MSK144" || mode == "Q65" || mode == "FST4") {
-            mode = "RTTY";  // Map digital modes to RTTY/Digital for contest purposes
+            mode = "DIGI";
         }
         QString oldMode = m_lastMode;
         m_lastMode = mode;
@@ -4574,6 +4590,9 @@ void MainWindow::onWsjtxQsoReceived(const WsjtxQsoData& data)
     }
 
     // Pre-fill exchange fields
+    if (exchFields.contains("RSTs") && !data.reportSent.isEmpty()) {
+        exchFields["RSTs"]->setText(data.reportSent);
+    }
     if (exchFields.contains("RSTr") && !data.reportReceived.isEmpty()) {
         exchFields["RSTr"]->setText(data.reportReceived);
     }
