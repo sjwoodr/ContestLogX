@@ -64,6 +64,7 @@ Most contest loggers are Windows-only, closed-source, or locked to a fixed set o
 | Louisiana QSO Party | `laqp.json` |
 | Minnesota QSO Party | `mnqp.json` |
 | Mississippi QSO Party | `msqp.json` |
+| Missouri QSO Party | `moqp.json` |
 | New Mexico QSO Party | `nmqp.json` |
 | OK-OM DX Contest | `okomdx.json` |
 | North American QSO Party (CW/SSB/RTTY) | `naqp.json` |

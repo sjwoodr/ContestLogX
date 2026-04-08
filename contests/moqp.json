@@ -1,0 +1,334 @@
+{
+  "contest": {
+    "name": "Missouri QSO Party",
+    "abbreviation": "MOQP",
+    "version": "1.0.0",
+    "sponsor": "Boeing Employees Amateur Radio Society-St. Louis (BEARS)",
+    "description": "Annual Missouri QSO party. MO stations work anyone for counties, states, provinces, and DX. Non-MO stations work MO only for MO counties.",
+    "startDate": "Second weekend of April (Sat 1400-0400 UTC, Sun 1400-2000 UTC)",
+    "duration": 20,
+    "offTimeGapMinutes": 0,
+    "modes": ["CW", "SSB", "RTTY"],
+    "bands": ["160m", "80m", "40m", "20m", "15m", "10m", "6m", "2m", "1.25m", "70cm"],
+    "url": "https://www.w0ma.org/index.php/missouri-qso-party",
+    "categories": {
+      "stations": ["SINGLE_OP", "MULTI_OP", "MOBILE", "PORTABLE", "EXPEDITION"],
+      "power": ["HIGH", "LOW", "QRP"]
+    }
+  },
+  "frequencies": {
+    "160m": {
+      "start": 1800, "end": 2000,
+      "cw": {"start": 1800, "end": 1850},
+      "phone": {"start": 1850, "end": 2000}
+    },
+    "80m": {
+      "start": 3500, "end": 4000,
+      "cw": {"start": 3500, "end": 3600},
+      "phone": {"start": 3600, "end": 4000}
+    },
+    "40m": {
+      "start": 7000, "end": 7300,
+      "cw": {"start": 7000, "end": 7125},
+      "phone": {"start": 7125, "end": 7300}
+    },
+    "20m": {
+      "start": 14000, "end": 14350,
+      "cw": {"start": 14000, "end": 14150},
+      "phone": {"start": 14150, "end": 14350}
+    },
+    "15m": {
+      "start": 21000, "end": 21450,
+      "cw": {"start": 21000, "end": 21200},
+      "phone": {"start": 21200, "end": 21450}
+    },
+    "10m": {
+      "start": 28000, "end": 29700,
+      "cw": {"start": 28000, "end": 28300},
+      "phone": {"start": 28300, "end": 29700}
+    },
+    "6m": {
+      "start": 50000, "end": 54000,
+      "cw": {"start": 50000, "end": 50100},
+      "phone": {"start": 50100, "end": 54000}
+    },
+    "2m": {
+      "start": 144000, "end": 148000,
+      "cw": {"start": 144000, "end": 144100},
+      "phone": {"start": 144100, "end": 148000}
+    },
+    "1.25m": {
+      "start": 222000, "end": 225000,
+      "phone": {"start": 222000, "end": 225000}
+    },
+    "70cm": {
+      "start": 420000, "end": 450000,
+      "phone": {"start": 420000, "end": 450000}
+    }
+  },
+  "stationClasses": {
+    "enabled": false
+  },
+  "userPrompts": [
+    {
+      "id": "stationType",
+      "question": "Are you a Missouri or non-MO station?",
+      "type": "select",
+      "options": [
+        {"value": "MO", "label": "Missouri (In-State) — send RST + MO county"},
+        {"value": "NON_MO", "label": "Non-Missouri (US/VE/DX) — send RST + state/province/DX"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "MO stations work anyone. Non-MO stations work MO only."
+    },
+    {
+      "id": "myExchange",
+      "question": "Enter your exchange: MO county (3 letters) or state/province (2 letters) or DX",
+      "type": "text",
+      "required": true,
+      "forceUppercase": true,
+      "storeInMeta": true,
+      "description": "County abbreviation for MO stations, state/province for US/VE, or DX",
+      "exchangeFieldMapping": {
+        "myExchange": "EXCHs"
+      }
+    },
+    {
+      "id": "operatingClass",
+      "question": "Select your operating class",
+      "type": "select",
+      "options": [
+        {"value": "MO_FIXED_MO", "label": "MO: Fixed Multi-Op"},
+        {"value": "MO_FIXED_SO_HP", "label": "MO: Fixed Single-Op High Power (>150W)"},
+        {"value": "MO_FIXED_SO_LP", "label": "MO: Fixed Single-Op Low Power (150W or less)"},
+        {"value": "MO_FIXED_SO_QRP", "label": "MO: Fixed Single-Op QRP (5W or less)"},
+        {"value": "MO_EXP_MO", "label": "MO: Expedition Multi-Op"},
+        {"value": "MO_EXP_SO_HP", "label": "MO: Expedition Single-Op High Power"},
+        {"value": "MO_EXP_SO_LP", "label": "MO: Expedition Single-Op Low Power"},
+        {"value": "MO_EXP_SO_QRP", "label": "MO: Expedition Single-Op QRP"},
+        {"value": "MO_MOB_UNLIM", "label": "MO: Mobile Unlimited"},
+        {"value": "MO_MOB_MO_LP", "label": "MO: Mobile Multi-Op Low Power"},
+        {"value": "MO_MOB_SO_LP_MIX", "label": "MO: Mobile Single-Op LP Mixed"},
+        {"value": "MO_MOB_SO_LP_CW", "label": "MO: Mobile Single-Op LP CW"},
+        {"value": "MO_MOB_SO_LP_PH", "label": "MO: Mobile Single-Op LP Phone"},
+        {"value": "MO_PORT_UNLIM", "label": "MO: Portable Unlimited"},
+        {"value": "MO_PORT_MO_LP", "label": "MO: Portable Multi-Op Low Power"},
+        {"value": "MO_PORT_SO_LP_MIX", "label": "MO: Portable Single-Op LP Mixed"},
+        {"value": "MO_PORT_SO_LP_CW", "label": "MO: Portable Single-Op LP CW"},
+        {"value": "MO_PORT_SO_LP_PH", "label": "MO: Portable Single-Op LP Phone"},
+        {"value": "NON_MO_SO_HP", "label": "Non-MO: US Single-Op High Power"},
+        {"value": "NON_MO_SO_LP", "label": "Non-MO: US Single-Op Low Power"},
+        {"value": "NON_MO_SO_QRP", "label": "Non-MO: US Single-Op QRP"},
+        {"value": "NON_MO_MO", "label": "Non-MO: US Multi-Op"},
+        {"value": "VE", "label": "Canada"},
+        {"value": "DX", "label": "DX"}
+      ],
+      "required": true,
+      "storeInMeta": true
+    }
+  ],
+  "exchangeFields": {
+    "sent": [
+      {
+        "name": "RST",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report sent"
+      },
+      {
+        "name": "EXCHs",
+        "type": "string",
+        "required": true,
+        "description": "MO county (3 letters) or state/province (2 letters) or DX"
+      }
+    ],
+    "received": [
+      {
+        "name": "RST",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report received"
+      },
+      {
+        "name": "EXCHr",
+        "type": "string",
+        "required": true,
+        "description": "MO county or state/province or DX"
+      }
+    ]
+  },
+  "qsoFields": [
+    {"name": "Date",      "column": "DATE",   "type": "date",   "format": "yyyy-MM-dd", "required": true},
+    {"name": "Time",      "column": "TIME",   "type": "time",   "format": "HH:mm:ss",   "required": true},
+    {"name": "Callsign",  "column": "CALL",   "type": "string", "required": true, "uppercase": true},
+    {"name": "Frequency", "column": "FREQ",   "type": "number", "unit": "kHz",    "required": true},
+    {"name": "Mode",      "column": "MODE",   "type": "enum",   "values": ["CW", "SSB", "RTTY"], "required": true},
+    {"name": "RST Sent",  "column": "RSTs",   "type": "string", "required": true, "default": "599"},
+    {"name": "RST Rcvd",  "column": "RSTr",   "type": "string", "required": true},
+    {"name": "Exch Sent", "column": "EXCHs",  "type": "string", "required": true, "description": "County/State/Province/DX"},
+    {"name": "Exch Rcvd", "column": "EXCHr",  "type": "string", "required": true, "description": "County/State/Province/DX"},
+    {"name": "Points",    "column": "POINTS", "type": "number", "calculated": true},
+    {"name": "Mult",      "column": "M",      "type": "string", "calculated": true}
+  ],
+  "scoring": {
+    "points": {
+      "sameDxccEntity": {
+        "CW": 2,
+        "SSB": 1,
+        "DIGITAL": 2
+      },
+      "differentDxccEntity": {
+        "CW": 2,
+        "SSB": 1,
+        "DIGITAL": 2
+      },
+      "sameContinent": {
+        "CW": 2,
+        "SSB": 1,
+        "DIGITAL": 2
+      },
+      "differentContinent": {
+        "CW": 2,
+        "SSB": 1,
+        "DIGITAL": 2
+      }
+    },
+    "precedence": [
+      "sameDxccEntity",
+      "differentDxccEntity",
+      "sameContinent",
+      "differentContinent"
+    ],
+    "multipliers": {
+      "type": "multsOnce",
+      "description": "MO counties (115), US states (49), Canadian provinces (13), and DX (1) — each counted once. Non-MO stations count MO counties only.",
+      "categories": ["namedMults"],
+      "stationClassMultipliers": {
+        "MO": ["namedMults"],
+        "NON_MO": ["namedMults"]
+      }
+    },
+    "finalScore": "(SUM(points) * SUM(multipliers)) + bonus"
+  },
+  "dupeChecking": {
+    "type": "perBandAndMode",
+    "description": "Station may be worked once per mode per band. Digital counts as one mode."
+  },
+  "bonusStations": [
+    {
+      "name": "W0MA Special Event",
+      "pointsEach": 100,
+      "type": "bonusOnce",
+      "stations": ["W0MA"],
+      "note": "BEARS-St. Louis special event station. 100-point bonus for first QSO."
+    },
+    {
+      "name": "K0GQ Special Event",
+      "pointsEach": 100,
+      "type": "bonusOnce",
+      "stations": ["K0GQ"],
+      "note": "Raytown ARC special event station. 100-point bonus for first QSO."
+    }
+  ],
+  "logging": {
+    "requiredFields": ["date", "time", "frequency", "mode", "callsign", "rstSent", "rstReceived", "exchSent", "exchReceived"],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "MO-QSO-PARTY",
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {rst_sent} {exch_sent} {call} {rst_rcvd} {exch_rcvd}",
+      "requiredHeaders": ["CONTEST", "CALLSIGN", "CATEGORY", "CLAIMED-SCORE", "NAME", "ADDRESS", "OPERATORS", "SOAPBOX"]
+    }
+  },
+  "callHistory": {
+    "fieldsToSave": ["EXCHr"],
+    "description": "Save received exchange (county/state/province/DX) for future lookups"
+  },
+  "validation": {
+    "minimumQSOs": 1,
+    "maxOperatingTime": 20,
+    "offTimesRequired": false,
+    "namedMults": [
+      "ADR", "AND", "ATC", "AUD", "BAR", "BTN", "BAT", "BEN", "BOL", "BOO",
+      "BUC", "BTR", "CWL", "CAL", "CAM", "CPG", "CRL", "CAR", "CAS", "CED",
+      "CHN", "CHR", "CLK", "CLA", "CLN", "COL", "COP", "CRA", "DAD", "DAL",
+      "DVS", "DEK", "DEN", "DGL", "DUN", "FRA", "GAS", "GEN", "GRN", "GRU",
+      "HAR", "HEN", "HIC", "HTL", "HOW", "HWL", "IRN", "JAC", "JAS", "JEF",
+      "JON", "KNX", "LAC", "LAF", "LAW", "LEW", "LCN", "LIN", "LIV", "MAC",
+      "MAD", "MRE", "MAR", "MCD", "MER", "MIL", "MIS", "MNT", "MON", "MGM",
+      "MOR", "NMD", "NWT", "NOD", "ORE", "OSA", "OZA", "PEM", "PER", "PET",
+      "PHE", "PIK", "PLA", "POL", "PUL", "PUT", "RAL", "RAN", "RAY", "REY",
+      "RIP", "SAL", "SCH", "SCT", "SCO", "SHA", "SHL", "STC", "SCL", "STF",
+      "SLC", "STL", "STG", "STD", "STN", "SUL", "TAN", "TEX", "VRN", "WAR",
+      "WAS", "WAY", "WEB", "WOR", "WRT",
+      "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL",
+      "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME",
+      "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ",
+      "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC",
+      "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY",
+      "AB", "BC", "MB", "NB", "NL", "NS", "ON", "PE", "QC", "SK", "NT", "NU", "YT",
+      "DX"
+    ],
+    "namedMultAliases": {
+      "DC": "MD",
+      "MDC": "MD"
+    },
+    "receivedExchangeFilter": {
+      "promptId": "stationType",
+      "rules": {
+        "NON_MO": "inStateMults"
+      }
+    },
+    "inStateMults": [
+      "ADR", "AND", "ATC", "AUD", "BAR", "BTN", "BAT", "BEN", "BOL", "BOO",
+      "BUC", "BTR", "CWL", "CAL", "CAM", "CPG", "CRL", "CAR", "CAS", "CED",
+      "CHN", "CHR", "CLK", "CLA", "CLN", "COL", "COP", "CRA", "DAD", "DAL",
+      "DVS", "DEK", "DEN", "DGL", "DUN", "FRA", "GAS", "GEN", "GRN", "GRU",
+      "HAR", "HEN", "HIC", "HTL", "HOW", "HWL", "IRN", "JAC", "JAS", "JEF",
+      "JON", "KNX", "LAC", "LAF", "LAW", "LEW", "LCN", "LIN", "LIV", "MAC",
+      "MAD", "MRE", "MAR", "MCD", "MER", "MIL", "MIS", "MNT", "MON", "MGM",
+      "MOR", "NMD", "NWT", "NOD", "ORE", "OSA", "OZA", "PEM", "PER", "PET",
+      "PHE", "PIK", "PLA", "POL", "PUL", "PUT", "RAL", "RAN", "RAY", "REY",
+      "RIP", "SAL", "SCH", "SCT", "SCO", "SHA", "SHL", "STC", "SCL", "STF",
+      "SLC", "STL", "STG", "STD", "STN", "SUL", "TAN", "TEX", "VRN", "WAR",
+      "WAS", "WAY", "WEB", "WOR", "WRT"
+    ],
+    "namedMultsByStationClass": {
+      "NON_MO": [
+        "ADR", "AND", "ATC", "AUD", "BAR", "BTN", "BAT", "BEN", "BOL", "BOO",
+        "BUC", "BTR", "CWL", "CAL", "CAM", "CPG", "CRL", "CAR", "CAS", "CED",
+        "CHN", "CHR", "CLK", "CLA", "CLN", "COL", "COP", "CRA", "DAD", "DAL",
+        "DVS", "DEK", "DEN", "DGL", "DUN", "FRA", "GAS", "GEN", "GRN", "GRU",
+        "HAR", "HEN", "HIC", "HTL", "HOW", "HWL", "IRN", "JAC", "JAS", "JEF",
+        "JON", "KNX", "LAC", "LAF", "LAW", "LEW", "LCN", "LIN", "LIV", "MAC",
+        "MAD", "MRE", "MAR", "MCD", "MER", "MIL", "MIS", "MNT", "MON", "MGM",
+        "MOR", "NMD", "NWT", "NOD", "ORE", "OSA", "OZA", "PEM", "PER", "PET",
+        "PHE", "PIK", "PLA", "POL", "PUL", "PUT", "RAL", "RAN", "RAY", "REY",
+        "RIP", "SAL", "SCH", "SCT", "SCO", "SHA", "SHL", "STC", "SCL", "STF",
+        "SLC", "STL", "STG", "STD", "STN", "SUL", "TAN", "TEX", "VRN", "WAR",
+        "WAS", "WAY", "WEB", "WOR", "WRT"
+      ]
+    },
+    "exchangeValidation": {
+      "type": "countyOrStateOrDX",
+      "description": "MO county (3 letters), state/province (2 letters), or DX"
+    }
+  },
+  "ui": {
+    "showMultiplierPanel": true,
+    "logColumns": ["DATE", "TIME", "CALL", "FREQ", "MODE", "RSTs", "RSTr", "EXCHs", "EXCHr", "POINTS", "M", "COMMENT"],
+    "entryFields": ["CALL", "RSTr", "EXCHr"],
+    "fieldNavigation": {
+      "keys": "tab"
+    },
+    "bandMap": {
+      "enabled": true,
+      "bands": ["160m", "80m", "40m", "20m", "15m", "10m", "6m", "2m"]
+    },
+    "multiplierDisplay": {
+      "showCounties": true,
+      "showStates": true,
+      "showProvinces": true
+    }
+  }
+}

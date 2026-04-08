@@ -179,6 +179,16 @@
       "name": "NMQP NM Station (102 QSOs, multsOnce, counties+states+prov+DXCC, QRP power mult)",
       "log_file": "test_nmqp_nm.clx",
       "expected_score": 65685
+    },
+    {
+      "name": "MOQP Non-MO Station (100 QSOs, multsOnce, MO counties only, W0MA+K0GQ bonus)",
+      "log_file": "test_moqp_nonmo.clx",
+      "expected_score": 14654
+    },
+    {
+      "name": "MOQP MO Station (93 QSOs, multsOnce, counties+states+prov+DX, W0MA bonus)",
+      "log_file": "test_moqp_mo.clx",
+      "expected_score": 10150
     }
   ]
 }
