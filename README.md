@@ -60,6 +60,7 @@ Most contest loggers are Windows-only, closed-source, or locked to a fixed set o
 | EU DX Contest | `eudx.json` |
 | Florida QSO Party | `fqp.json` |
 | General DXCC | `general_dxcc.json` |
+| Georgia QSO Party | `gaqp.json` |
 | Japan International DX Contest (JIDX) | `jidx.json` |
 | Louisiana QSO Party | `laqp.json` |
 | Minnesota QSO Party | `mnqp.json` |

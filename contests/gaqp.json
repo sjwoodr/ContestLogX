@@ -1,0 +1,313 @@
+{
+  "contest": {
+    "name": "Georgia QSO Party",
+    "abbreviation": "GAQP",
+    "version": "1.0.0",
+    "sponsor": "South East Contest Club (SECC) and South East DX Club (SEDXC)",
+    "description": "Annual Georgia QSO party held the 2nd full weekend of April. GA stations work anyone; non-GA stations work GA only. CW and SSB only, no digital.",
+    "startDate": "2nd full weekend of April (Sat 1800-0359Z, Sun 1400-2359Z)",
+    "duration": 20,
+    "offTimeGapMinutes": 0,
+    "modes": ["CW", "SSB"],
+    "bands": ["160m", "80m", "40m", "20m", "15m", "10m", "6m"],
+    "url": "https://gaqsoparty.com/",
+    "categories": {
+      "stations": ["SINGLE_OP", "MULTI_SINGLE", "MULTI_TWO", "ROVER", "PORTABLE"],
+      "power": ["HIGH", "LOW", "QRP"]
+    }
+  },
+  "frequencies": {
+    "160m": {
+      "start": 1800, "end": 2000,
+      "cw": {"start": 1800, "end": 1850},
+      "phone": {"start": 1850, "end": 2000}
+    },
+    "80m": {
+      "start": 3500, "end": 4000,
+      "cw": {"start": 3500, "end": 3600},
+      "phone": {"start": 3600, "end": 4000}
+    },
+    "40m": {
+      "start": 7000, "end": 7300,
+      "cw": {"start": 7000, "end": 7125},
+      "phone": {"start": 7125, "end": 7300}
+    },
+    "20m": {
+      "start": 14000, "end": 14350,
+      "cw": {"start": 14000, "end": 14150},
+      "phone": {"start": 14150, "end": 14350}
+    },
+    "15m": {
+      "start": 21000, "end": 21450,
+      "cw": {"start": 21000, "end": 21200},
+      "phone": {"start": 21200, "end": 21450}
+    },
+    "10m": {
+      "start": 28000, "end": 29700,
+      "cw": {"start": 28000, "end": 28300},
+      "phone": {"start": 28300, "end": 29700}
+    },
+    "6m": {
+      "start": 50000, "end": 54000,
+      "cw": {"start": 50000, "end": 50100},
+      "phone": {"start": 50100, "end": 54000}
+    }
+  },
+  "stationClasses": {
+    "enabled": false
+  },
+  "userPrompts": [
+    {
+      "id": "stationType",
+      "question": "Are you a Georgia or non-GA station?",
+      "type": "select",
+      "options": [
+        {"value": "GA", "label": "Georgia (In-State) — send RST + GA county"},
+        {"value": "NON_GA", "label": "Non-Georgia (US/VE/DX) — send RST + state/province/DX"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "GA stations work anyone. Non-GA stations work GA only."
+    },
+    {
+      "id": "myExchange",
+      "question": "Enter your exchange: GA county (4 letters) or state/province (2 letters) or DX",
+      "type": "text",
+      "required": true,
+      "forceUppercase": true,
+      "storeInMeta": true,
+      "description": "County abbreviation for GA stations, state/province for US/VE, or DX",
+      "exchangeFieldMapping": {
+        "myExchange": "EXCHs"
+      }
+    },
+    {
+      "id": "operatingClass",
+      "question": "Select your operating class",
+      "type": "select",
+      "options": [
+        {"value": "GA_SO", "label": "GA: Single Operator"},
+        {"value": "GA_MS", "label": "GA: Multi-Op Single Transmitter"},
+        {"value": "GA_M2", "label": "GA: Multi-Op Two Transmitters"},
+        {"value": "GA_ROVER_SO", "label": "GA: Rover Single Operator"},
+        {"value": "GA_ROVER_RM", "label": "GA: Rover Multi-Op Single"},
+        {"value": "GA_ROVER_R2", "label": "GA: Rover Multi-Op Multi-2"},
+        {"value": "GA_PORT", "label": "GA: Portable"},
+        {"value": "NON_GA_SO", "label": "Non-GA: Single Operator"},
+        {"value": "NON_GA_MO", "label": "Non-GA: Multi-Op"}
+      ],
+      "required": true,
+      "storeInMeta": true
+    },
+    {
+      "id": "powerCategory",
+      "question": "Select your power category",
+      "type": "select",
+      "options": [
+        {"value": "HP", "label": "High Power (> 150W)"},
+        {"value": "LP", "label": "Low Power (150W or less)"},
+        {"value": "QRP", "label": "QRP (5W CW / 10W SSB)"}
+      ],
+      "required": true,
+      "storeInMeta": true
+    },
+    {
+      "id": "modeCategory",
+      "question": "Select your mode category",
+      "type": "select",
+      "options": [
+        {"value": "MIXED", "label": "Mixed (CW and SSB)"},
+        {"value": "SSB", "label": "SSB Only"},
+        {"value": "CW", "label": "CW Only"}
+      ],
+      "required": true,
+      "storeInMeta": true
+    }
+  ],
+  "exchangeFields": {
+    "sent": [
+      {
+        "name": "RST",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report sent"
+      },
+      {
+        "name": "EXCHs",
+        "type": "string",
+        "required": true,
+        "description": "GA county (4 letters) or state/province (2 letters) or DX"
+      }
+    ],
+    "received": [
+      {
+        "name": "RST",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report received"
+      },
+      {
+        "name": "EXCHr",
+        "type": "string",
+        "required": true,
+        "description": "GA county or state/province or DX"
+      }
+    ]
+  },
+  "qsoFields": [
+    {"name": "Date",      "column": "DATE",   "type": "date",   "format": "yyyy-MM-dd", "required": true},
+    {"name": "Time",      "column": "TIME",   "type": "time",   "format": "HH:mm:ss",   "required": true},
+    {"name": "Callsign",  "column": "CALL",   "type": "string", "required": true, "uppercase": true},
+    {"name": "Frequency", "column": "FREQ",   "type": "number", "unit": "kHz",    "required": true},
+    {"name": "Mode",      "column": "MODE",   "type": "enum",   "values": ["CW", "SSB"], "required": true},
+    {"name": "RST Sent",  "column": "RSTs",   "type": "string", "required": true, "default": "599"},
+    {"name": "RST Rcvd",  "column": "RSTr",   "type": "string", "required": true},
+    {"name": "Exch Sent", "column": "EXCHs",  "type": "string", "required": true, "description": "County/State/Province/DX"},
+    {"name": "Exch Rcvd", "column": "EXCHr",  "type": "string", "required": true, "description": "County/State/Province/DX"},
+    {"name": "Points",    "column": "POINTS", "type": "number", "calculated": true},
+    {"name": "Mult",      "column": "M",      "type": "string", "calculated": true}
+  ],
+  "scoring": {
+    "points": {
+      "sameDxccEntity": {
+        "CW": 2,
+        "SSB": 1
+      },
+      "differentDxccEntity": {
+        "CW": 2,
+        "SSB": 1
+      },
+      "sameContinent": {
+        "CW": 2,
+        "SSB": 1
+      },
+      "differentContinent": {
+        "CW": 2,
+        "SSB": 1
+      }
+    },
+    "precedence": [
+      "sameDxccEntity",
+      "differentDxccEntity",
+      "sameContinent",
+      "differentContinent"
+    ],
+    "multipliers": {
+      "type": "multsPerMode",
+      "description": "GA counties (159) for non-GA; US states+DC (51) + Canadian provinces (13) for GA — each counted once per mode (CW/SSB). DX is points only, no DX multiplier.",
+      "categories": ["namedMults"]
+    },
+    "finalScore": "SUM(points) * SUM(multipliers)"
+  },
+  "dupeChecking": {
+    "type": "perBandAndMode",
+    "description": "Station may be worked once per mode per band"
+  },
+  "logging": {
+    "requiredFields": ["date", "time", "frequency", "mode", "callsign", "rstSent", "rstReceived", "exchSent", "exchReceived"],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "GA-QSO-PARTY",
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {rst_sent} {exch_sent} {call} {rst_rcvd} {exch_rcvd}",
+      "requiredHeaders": ["CONTEST", "CALLSIGN", "LOCATION", "CATEGORY-OPERATOR", "CATEGORY-MODE", "CATEGORY-POWER", "CATEGORY-STATION", "CATEGORY-TRANSMITTER", "CLAIMED-SCORE", "CLUB", "NAME", "ADDRESS", "EMAIL", "OPERATORS"]
+    }
+  },
+  "callHistory": {
+    "fieldsToSave": ["EXCHr"],
+    "description": "Save received exchange (county/state/province/DX) for future lookups"
+  },
+  "validation": {
+    "minimumQSOs": 1,
+    "maxOperatingTime": 20,
+    "offTimesRequired": false,
+    "namedMults": [
+      "APPL", "ATKN", "BACN", "BAKR", "BALD", "BANK", "BARR", "BART", "BENH", "BERR",
+      "BIBB", "BLEC", "BRAN", "BROK", "BRYN", "BULL", "BURK", "BUTT", "CALH", "CMDN",
+      "CAND", "CARR", "CATO", "CHAR", "CHTM", "CHAT", "CHGA", "CHER", "CLKE", "CLAY",
+      "CLTN", "CLCH", "COBB", "COFF", "COLQ", "COLU", "COOK", "COWE", "CRAW", "CRIS",
+      "DADE", "DAWS", "DECA", "DKLB", "DODG", "DOOL", "DHTY", "DOUG", "EARL", "ECHO",
+      "EFFI", "ELBE", "EMAN", "EVAN", "FANN", "FAYE", "FLOY", "FORS", "FRAN", "FULT",
+      "GILM", "GLAS", "GLYN", "GORD", "GRAD", "GREE", "GWIN", "HABE", "HALL", "HANC",
+      "HARA", "HARR", "HART", "HEAR", "HNRY", "HOUS", "IRWI", "JACK", "JASP", "JFDA",
+      "JEFF", "JENK", "JOHN", "JONE", "LAMA", "LANI", "LAUR", "LEE", "LIBE", "LINC",
+      "LONG", "LOWN", "LUMP", "MCDU", "MCIN", "MACO", "MADI", "MARI", "MERI", "MILL",
+      "MITC", "MNRO", "MONT", "MORG", "MURR", "MUSC", "NEWT", "OCON", "OGLE", "PAUL",
+      "PEAC", "PICK", "PIER", "PIKE", "POLK", "PULA", "PUTN", "QUIT", "RABU", "RAND",
+      "RICH", "ROCK", "SCHL", "SCRE", "SEMI", "SPAL", "STEP", "STWT", "SUMT", "TLBT",
+      "TALI", "TATT", "TAYL", "TELF", "TERR", "THOM", "TIFT", "TOOM", "TOWN", "TREU",
+      "TROU", "TURN", "TWIG", "UNIO", "UPSO", "WLKR", "WALT", "WARE", "WARR", "WASH",
+      "WAYN", "WEBS", "WHEE", "WHIT", "WFLD", "WCOX", "WILK", "WKSN", "WORT",
+      "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL",
+      "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME",
+      "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ",
+      "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC",
+      "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY", "DC",
+      "AB", "BC", "MB", "NB", "NL", "NS", "ON", "PE", "QC", "SK", "NT", "NU", "YT"
+    ],
+    "receivedExchangeFilter": {
+      "promptId": "stationType",
+      "rules": {
+        "NON_GA": "inStateMults"
+      }
+    },
+    "inStateMults": [
+      "APPL", "ATKN", "BACN", "BAKR", "BALD", "BANK", "BARR", "BART", "BENH", "BERR",
+      "BIBB", "BLEC", "BRAN", "BROK", "BRYN", "BULL", "BURK", "BUTT", "CALH", "CMDN",
+      "CAND", "CARR", "CATO", "CHAR", "CHTM", "CHAT", "CHGA", "CHER", "CLKE", "CLAY",
+      "CLTN", "CLCH", "COBB", "COFF", "COLQ", "COLU", "COOK", "COWE", "CRAW", "CRIS",
+      "DADE", "DAWS", "DECA", "DKLB", "DODG", "DOOL", "DHTY", "DOUG", "EARL", "ECHO",
+      "EFFI", "ELBE", "EMAN", "EVAN", "FANN", "FAYE", "FLOY", "FORS", "FRAN", "FULT",
+      "GILM", "GLAS", "GLYN", "GORD", "GRAD", "GREE", "GWIN", "HABE", "HALL", "HANC",
+      "HARA", "HARR", "HART", "HEAR", "HNRY", "HOUS", "IRWI", "JACK", "JASP", "JFDA",
+      "JEFF", "JENK", "JOHN", "JONE", "LAMA", "LANI", "LAUR", "LEE", "LIBE", "LINC",
+      "LONG", "LOWN", "LUMP", "MCDU", "MCIN", "MACO", "MADI", "MARI", "MERI", "MILL",
+      "MITC", "MNRO", "MONT", "MORG", "MURR", "MUSC", "NEWT", "OCON", "OGLE", "PAUL",
+      "PEAC", "PICK", "PIER", "PIKE", "POLK", "PULA", "PUTN", "QUIT", "RABU", "RAND",
+      "RICH", "ROCK", "SCHL", "SCRE", "SEMI", "SPAL", "STEP", "STWT", "SUMT", "TLBT",
+      "TALI", "TATT", "TAYL", "TELF", "TERR", "THOM", "TIFT", "TOOM", "TOWN", "TREU",
+      "TROU", "TURN", "TWIG", "UNIO", "UPSO", "WLKR", "WALT", "WARE", "WARR", "WASH",
+      "WAYN", "WEBS", "WHEE", "WHIT", "WFLD", "WCOX", "WILK", "WKSN", "WORT"
+    ],
+    "namedMultsByStationClass": {
+      "NON_GA": [
+        "APPL", "ATKN", "BACN", "BAKR", "BALD", "BANK", "BARR", "BART", "BENH", "BERR",
+        "BIBB", "BLEC", "BRAN", "BROK", "BRYN", "BULL", "BURK", "BUTT", "CALH", "CMDN",
+        "CAND", "CARR", "CATO", "CHAR", "CHTM", "CHAT", "CHGA", "CHER", "CLKE", "CLAY",
+        "CLTN", "CLCH", "COBB", "COFF", "COLQ", "COLU", "COOK", "COWE", "CRAW", "CRIS",
+        "DADE", "DAWS", "DECA", "DKLB", "DODG", "DOOL", "DHTY", "DOUG", "EARL", "ECHO",
+        "EFFI", "ELBE", "EMAN", "EVAN", "FANN", "FAYE", "FLOY", "FORS", "FRAN", "FULT",
+        "GILM", "GLAS", "GLYN", "GORD", "GRAD", "GREE", "GWIN", "HABE", "HALL", "HANC",
+        "HARA", "HARR", "HART", "HEAR", "HNRY", "HOUS", "IRWI", "JACK", "JASP", "JFDA",
+        "JEFF", "JENK", "JOHN", "JONE", "LAMA", "LANI", "LAUR", "LEE", "LIBE", "LINC",
+        "LONG", "LOWN", "LUMP", "MCDU", "MCIN", "MACO", "MADI", "MARI", "MERI", "MILL",
+        "MITC", "MNRO", "MONT", "MORG", "MURR", "MUSC", "NEWT", "OCON", "OGLE", "PAUL",
+        "PEAC", "PICK", "PIER", "PIKE", "POLK", "PULA", "PUTN", "QUIT", "RABU", "RAND",
+        "RICH", "ROCK", "SCHL", "SCRE", "SEMI", "SPAL", "STEP", "STWT", "SUMT", "TLBT",
+        "TALI", "TATT", "TAYL", "TELF", "TERR", "THOM", "TIFT", "TOOM", "TOWN", "TREU",
+        "TROU", "TURN", "TWIG", "UNIO", "UPSO", "WLKR", "WALT", "WARE", "WARR", "WASH",
+        "WAYN", "WEBS", "WHEE", "WHIT", "WFLD", "WCOX", "WILK", "WKSN", "WORT"
+      ]
+    },
+    "exchangeValidation": {
+      "type": "countyOrStateOrDX",
+      "description": "GA county (4 letters), state/province (2 letters), or DX"
+    }
+  },
+  "ui": {
+    "showMultiplierPanel": true,
+    "logColumns": ["DATE", "TIME", "CALL", "FREQ", "MODE", "RSTs", "RSTr", "EXCHs", "EXCHr", "POINTS", "M", "COMMENT"],
+    "entryFields": ["CALL", "RSTr", "EXCHr"],
+    "fieldNavigation": {
+      "keys": "tab"
+    },
+    "bandMap": {
+      "enabled": true,
+      "bands": ["160m", "80m", "40m", "20m", "15m", "10m", "6m"]
+    },
+    "multiplierDisplay": {
+      "showCounties": true,
+      "showStates": true,
+      "showProvinces": true
+    }
+  }
+}

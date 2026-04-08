@@ -9,6 +9,7 @@ All notable changes to ContestLogX are documented in this file.
 - Added OK-OM DX Contest — CW and SSB, OK/OM and DX station classes, 165 Czech/Slovak county multipliers, DXCC+WAE entities per band
 - Added New Mexico QSO Party (NMQP) — NM and non-NM station classes, 33 NM counties, states/provinces/DXCC multipliers, power multiplier (QRP/LP/HP), DC/MDC alias to MD
 - Added Missouri QSO Party (MOQP) — MO and non-MO station classes, 115 MO counties, states/provinces/DX multipliers, W0MA and K0GQ bonus stations
+- Added Georgia QSO Party (GAQP) — GA and non-GA station classes, 159 GA counties, states/provinces multipliers per mode, CW and SSB only
 
 ### Contest Engine Changes
 - Added direct band-based scoring (byBand without month nesting)

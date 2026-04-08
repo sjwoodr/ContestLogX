@@ -189,6 +189,16 @@
       "name": "MOQP MO Station (93 QSOs, multsOnce, counties+states+prov+DX, W0MA bonus)",
       "log_file": "test_moqp_mo.clx",
       "expected_score": 10150
+    },
+    {
+      "name": "GAQP Non-GA Station (100 QSOs, multsPerMode, GA counties only)",
+      "log_file": "test_gaqp_nonga.clx",
+      "expected_score": 14800
+    },
+    {
+      "name": "GAQP GA Station (90 QSOs, multsPerMode, states+provinces, no DX mult)",
+      "log_file": "test_gaqp_ga.clx",
+      "expected_score": 10000
     }
   ]
 }
