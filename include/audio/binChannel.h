@@ -63,7 +63,17 @@ public:
 private:
     void closeElement(int durationMs, qint64 timestampMs, QList<CharEvent>& out);
     void closeCharacter(qint64 timestampMs, QList<CharEvent>& out);
-    void updateWpmEstimate(int dotLenMs);
+    void updateWpmEstimate();
+
+    // Current dot-length estimate (ms) based on recent-element distribution.
+    // Falls back to a bootstrap value derived from wpmMin when not enough
+    // samples have been collected.
+    int currentDotEstimateMs() const;
+
+    // Adaptive word-gap threshold (ms). Uses largest-jump analysis on
+    // m_recentBoundaryGaps; falls back to dotBaseline*4 during bootstrap
+    // or when the jump is not significant.
+    int wordGapThresholdMs(int dotBaselineMs) const;
 
     int m_binIndex;
     double m_centerFreqHz;
@@ -86,8 +96,18 @@ private:
     // Morse element accumulation.
     QString m_morseBuffer;           // ".-" etc.
 
-    // Rolling-median dot-length window (kDotLengthWindow samples max).
-    std::deque<int> m_dotLengths;
+    // Rolling window of RECENT ELEMENT DURATIONS (dot or dash, ms). The
+    // 25th percentile of this window is the dot-length estimate — this is
+    // robust even when the classifier is initially wrong, because dots are
+    // always shorter than dashes (roughly 1:3), so the lower quartile
+    // reliably points at the dot cluster once a few elements are seen.
+    std::deque<int> m_recentElementMs;
+
+    // Rolling window of RECENT BOUNDARY GAPS (ms) — only gaps ≥ 2 dot-units
+    // (character or word boundaries). Used for adaptive word-gap
+    // classification via "largest-jump" analysis.
+    std::deque<int> m_recentBoundaryGaps;
+
     int m_currentWpm = 0;            // 0 = no lock
     LockState m_lockState = LockState::NoLock;
 

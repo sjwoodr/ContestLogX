@@ -35,7 +35,8 @@ void BinChannel::reset()
     m_elapsedAudioMs = 0;
     m_pendingBlocks = 0;
     m_morseBuffer.clear();
-    m_dotLengths.clear();
+    m_recentElementMs.clear();
+    m_recentBoundaryGaps.clear();
     m_currentWpm = 0;
     m_lockState = LockState::NoLock;
     m_textBuffer.clear();
@@ -52,19 +53,62 @@ void BinChannel::clearTextBuffer()
     m_textBuffer.clear();
 }
 
-void BinChannel::updateWpmEstimate(int dotLenMs)
+int BinChannel::currentDotEstimateMs() const
 {
-    if (dotLenMs <= 0) return;
-    m_dotLengths.push_back(dotLenMs);
-    while (m_dotLengths.size() > static_cast<size_t>(kDotLengthWindow)) {
-        m_dotLengths.pop_front();
+    // Bootstrap: not enough samples yet — return a baseline derived from
+    // the SLOWEST allowed WPM (wpmMin). This gives the largest possible
+    // dot length, so the classifier's dot-vs-dash threshold (2×dot) is
+    // permissive and even slow signals' dots get counted as dots
+    // initially. The estimator refines rapidly as elements accumulate.
+    if (m_recentElementMs.size() < 4) {
+        const int wpm = qMax(3, m_wpmMin);
+        return 1200 / wpm;
     }
-    // Median of the rolling window.
-    std::vector<int> sorted(m_dotLengths.begin(), m_dotLengths.end());
+    // 25th percentile of recent element durations = dot-length estimate.
+    // Dots are ~1 unit, dashes ~3 units; in a typical mix, the lower
+    // quartile lands squarely inside the dot cluster regardless of the
+    // dot:dash ratio in the operator's sent content.
+    std::vector<int> sorted(m_recentElementMs.begin(), m_recentElementMs.end());
     std::sort(sorted.begin(), sorted.end());
-    const int median = sorted[sorted.size() / 2];
-    const int wpm = (median > 0) ? static_cast<int>(1200.0 / median + 0.5) : 0;
-    if (wpm >= m_wpmMin && wpm <= m_wpmMax) {
+    const size_t q = sorted.size() / 4;  // 25th percentile
+    return sorted[q];
+}
+
+int BinChannel::wordGapThresholdMs(int dotBaselineMs) const
+{
+    const int fallback = dotBaselineMs * 4;
+    // Bootstrap: need enough boundary-gap samples for the largest-jump
+    // analysis to be meaningful.
+    if (m_recentBoundaryGaps.size() < 6) return fallback;
+
+    std::vector<int> sorted(m_recentBoundaryGaps.begin(), m_recentBoundaryGaps.end());
+    std::sort(sorted.begin(), sorted.end());
+
+    // Find the largest consecutive jump in the sorted gap list.
+    int bestJumpSize = 0;
+    int bestJumpMidpoint = 0;
+    for (size_t i = 1; i < sorted.size(); ++i) {
+        const int jump = sorted[i] - sorted[i - 1];
+        if (jump > bestJumpSize) {
+            bestJumpSize = jump;
+            bestJumpMidpoint = (sorted[i] + sorted[i - 1]) / 2;
+        }
+    }
+    // Significance check: the jump must be larger than 1.5 dot-units to
+    // count as a real char-vs-word split. If gaps are clustered uniformly
+    // (compressed contest CW with no real word spacing), there's no jump,
+    // and falling back to the fixed threshold avoids spurious word breaks.
+    if (bestJumpSize >= (dotBaselineMs * 3 / 2)) {
+        return bestJumpMidpoint;
+    }
+    return fallback;
+}
+
+void BinChannel::updateWpmEstimate()
+{
+    const int dotMs = currentDotEstimateMs();
+    const int wpm = (dotMs > 0) ? static_cast<int>(1200.0 / dotMs + 0.5) : 0;
+    if (wpm >= m_wpmMin && wpm <= m_wpmMax && m_recentElementMs.size() >= 4) {
         m_currentWpm = wpm;
         m_lockState = LockState::Locked;
     } else {
@@ -77,33 +121,28 @@ void BinChannel::closeElement(int durationMs, qint64 timestampMs,
                               QList<CharEvent>& out)
 {
     (void)out;
+    Q_UNUSED(timestampMs);
     if (durationMs <= 0) return;
 
-    // Classify as dot (.) or dash (-).
-    // Dot threshold = 2× current dot estimate if locked; else default based on
-    // mid-range of the operator's WPM bounds.
-    int dotBaseline;
-    if (m_lockState == LockState::Locked && m_currentWpm > 0) {
-        dotBaseline = 1200 / m_currentWpm;
-    } else {
-        const int midWpm = (m_wpmMin + m_wpmMax) / 2;
-        dotBaseline = (midWpm > 0) ? (1200 / midWpm) : 50;
-    }
+    // Record element duration in the rolling window BEFORE updating the
+    // estimate — the percentile-based estimator uses the latest sample.
+    m_recentElementMs.push_back(durationMs);
+    while (m_recentElementMs.size() > 20) m_recentElementMs.pop_front();
 
+    // Update estimate after recording. This also refreshes lockState.
+    updateWpmEstimate();
+
+    // Classify the current element using the REFRESHED estimate. Anything
+    // below 2× the current dot-length estimate is a dot; anything above is
+    // a dash. Since the estimator tracks the lower quartile of all recent
+    // elements, it's anchored to the true dot length even when dashes
+    // dominate the recent content.
+    const int dotBaseline = currentDotEstimateMs();
     if (durationMs < dotBaseline * 2) {
-        // dot — feeds the WPM estimator directly
         m_morseBuffer.append('.');
-        updateWpmEstimate(durationMs);
     } else {
-        // dash — do NOT feed the WPM estimator with dashes/3. The classifier
-        // uses the current estimate to decide dot-vs-dash, so dashes are
-        // self-selecting as "long" — pushing them back into the estimator
-        // creates a bias that prevents lock on a stable dot length. Dots
-        // alone converge faster and more accurately. Dashes only contribute
-        // to character decoding.
         m_morseBuffer.append('-');
     }
-    Q_UNUSED(timestampMs);
 }
 
 void BinChannel::closeCharacter(qint64 timestampMs, QList<CharEvent>& out)
@@ -183,40 +222,35 @@ QList<CharEvent> BinChannel::processBlock(const int16_t* samples, int count,
                 closeElement(runMs, timestampMs, out);
             }
         } else {
-            // Tone just turned on → check gap length (character/word boundary).
+            // Tone just turned on → classify the preceding gap (intra-element
+            // vs. character boundary vs. word boundary).
             if (!muted) {
-                int dotBaseline;
-                if (m_lockState == LockState::Locked && m_currentWpm > 0) {
-                    dotBaseline = 1200 / m_currentWpm;
-                } else {
-                    const int midWpm = (m_wpmMin + m_wpmMax) / 2;
-                    dotBaseline = (midWpm > 0) ? (1200 / midWpm) : 50;
-                }
-                // Word vs. character gap classification.
-                //   gap ≥ 4 dot-units → word boundary (close char + space)
-                //   gap ≥ 2 dot-units → character boundary (close char only)
-                //   gap < 2 dot-units → intra-element (keep accumulating)
-                // 4 is a practical compromise: textbook Morse says 7 dot-units
-                // for word gaps, but contest operators commonly compress to
-                // 4-5 units at speed. At 4, occasional intra-word gaps that
-                // stretch to ~4 units will produce false word breaks (e.g.,
-                // "P OTA" instead of "POTA"), which is less damaging than
-                // fusing whole transmissions into one word.
-                // TODO (follow-up): make this adaptive by tracking recent gap
-                // distribution per bin, since operator sending style varies.
-                if (runMs >= dotBaseline * 4) {
-                    closeCharacter(timestampMs, out);
-                    m_textBuffer.append(' ');
-                    if (m_textBuffer.size() > kTextBufferCapChars) {
-                        m_textBuffer.remove(0, m_textBuffer.size() - kTextBufferCapChars);
+                const int dotBaseline = currentDotEstimateMs();
+                const int charThreshold = dotBaseline * 2;
+                const int wordThreshold = wordGapThresholdMs(dotBaseline);
+
+                if (runMs >= charThreshold) {
+                    // Record this boundary gap for adaptive-threshold history
+                    // (only real boundary gaps, never intra-element).
+                    m_recentBoundaryGaps.push_back(runMs);
+                    while (m_recentBoundaryGaps.size() > 16) {
+                        m_recentBoundaryGaps.pop_front();
                     }
-                    out.append({m_binIndex, QChar(' '), timestampMs});
-                } else if (runMs >= dotBaseline * 2) {
-                    // character gap (≥ 3 dot-units, but <5) → close character
-                    // only — no visible space (standard Morse rendering).
-                    closeCharacter(timestampMs, out);
+
+                    if (runMs >= wordThreshold) {
+                        // Word boundary: close character + emit a visible space.
+                        closeCharacter(timestampMs, out);
+                        m_textBuffer.append(' ');
+                        if (m_textBuffer.size() > kTextBufferCapChars) {
+                            m_textBuffer.remove(0, m_textBuffer.size() - kTextBufferCapChars);
+                        }
+                        out.append({m_binIndex, QChar(' '), timestampMs});
+                    } else {
+                        // Character boundary only — no visible space.
+                        closeCharacter(timestampMs, out);
+                    }
                 }
-                // else: still within element — keep accumulating current char
+                // else: intra-element gap; keep accumulating current char.
             }
         }
         m_toneActive = toneDetected;
