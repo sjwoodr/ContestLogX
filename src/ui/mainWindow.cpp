@@ -40,6 +40,8 @@
 #include "debugLogger.h"
 #include "dxccDatabase.h"
 #include "onlineScoreClient.h"
+#include "cwDecoderWidget.h"
+#include <cmath>
 #include <QSpinBox>
 #include <QJsonDocument>
 #include <QJsonArray>
@@ -1100,6 +1102,10 @@ void MainWindow::setupDocks(QSplitter* mainSplitter)
     });
 
     createBandMapDock();
+    // Spawn CW decoder widgets if an audio input device has been configured
+    // per radio (SPEC-005). Safe to call even when no device is configured —
+    // the method is a no-op in that case.
+    spawnOrRefreshCwDecoders();
 
     // Install redock-on-minimize for all right-side docks — consistent with the
     // entry dock behaviour (clicking the OS minimize button re-docks instead
@@ -4179,6 +4185,8 @@ void MainWindow::onRigControl()
     connect(&dialog, &RigControlDialog::backendChanged, this, &MainWindow::onRigBackendChanged);
     connect(&dialog, &RigControlDialog::backendChangedR, this, &MainWindow::onRigBackendChangedR);
     connect(&dialog, &RigControlDialog::so2rChanged, this, &MainWindow::onToggleSo2r);
+    connect(&dialog, &RigControlDialog::audioConfigChanged,
+            this, &MainWindow::onAudioConfigChanged);
 
     dialog.exec();
 
@@ -9103,5 +9111,130 @@ void MainWindow::onRigBackendChangedR(const QString& backend)
     createRadioRRigClient();
 
     DebugLogger::instance().log("MainWindow", QString("Radio R backend changed to %1").arg(backend));
+}
+
+// ---------- CW Decoder lifecycle (SPEC-005) ----------
+
+void MainWindow::spawnOrRefreshCwDecoders()
+{
+    Settings& s = Settings::instance();
+
+    auto ensureDecoder = [this, &s](bool right) {
+        const QString device = right ? s.getRadioRAudioInputDevice()
+                                     : s.getRadioLAudioInputDevice();
+        CwDecoderWidget*& slot = right ? m_cwDecoderRight : m_cwDecoderLeft;
+
+        if (device.isEmpty()) {
+            // Operator has "(none)" — ensure no widget exists for this radio.
+            if (slot) {
+                slot->endDecoding();
+                removeDockWidget(slot);
+                slot->deleteLater();
+                slot = nullptr;
+            }
+            return;
+        }
+
+        const bool wasNew = (slot == nullptr);
+        if (wasNew) {
+            slot = new CwDecoderWidget(
+                right ? clx::audio::RadioSide::Right : clx::audio::RadioSide::Left, this);
+            addDockWidget(Qt::BottomDockWidgetArea, slot);
+            slot->hide();
+
+            connect(slot, &CwDecoderWidget::callClicked,
+                    this, &MainWindow::onDecoderCallClicked);
+            connect(slot, &CwDecoderWidget::rstClicked,
+                    this, &MainWindow::onDecoderRstClicked);
+
+            // Wire PTT state from the owning rig client to the decoder.
+            RigInterface* rig = right ? m_rigClientR : m_rigClient;
+            if (rig) {
+                connect(rig, &RigInterface::pttStateChanged, this,
+                        [this, right, &s](bool active) {
+                    const bool muteEnabled = right
+                        ? s.getRadioRMuteDecoderOnPtt()
+                        : s.getRadioLMuteDecoderOnPtt();
+                    CwDecoderWidget* w = right ? m_cwDecoderRight : m_cwDecoderLeft;
+                    if (w && muteEnabled) w->setPttMute(active);
+                });
+            }
+        }
+        // (Re)start decoding against the current device.
+        slot->beginDecoding(device);
+        slot->show();
+    };
+
+    ensureDecoder(false);
+    ensureDecoder(true);
+}
+
+void MainWindow::onAudioConfigChanged(bool isRightRadio)
+{
+    Q_UNUSED(isRightRadio);
+    spawnOrRefreshCwDecoders();
+}
+
+void MainWindow::onDecoderCallClicked(const QString& callsign, int binIndex)
+{
+    Q_UNUSED(binIndex);
+    // Route to the owning radio's CALL field. The widget that emitted the
+    // signal is the sender(); use it to determine owning radio deterministically.
+    CwDecoderWidget* w = qobject_cast<CwDecoderWidget*>(sender());
+    if (!w) return;
+
+    QLineEdit* target = nullptr;
+    if (w->isRightRadio()) {
+        target = m_entryWidgetsR.callEdit;
+    } else {
+        target = m_entryWidgets.callEdit;
+    }
+    if (!target) return;
+
+    // Preserve focus — do NOT call setFocus() (FR-022 / Principle III).
+    // Use setText + textEdited to trigger the same side-effects (SCP, dupe check,
+    // call-history) that keyboard input would fire.
+    target->setText(callsign);
+    emit target->textEdited(callsign);
+}
+
+void MainWindow::onDecoderRstClicked(const QString& rst, int binIndex)
+{
+    Q_UNUSED(binIndex);
+    CwDecoderWidget* w = qobject_cast<CwDecoderWidget*>(sender());
+    if (!w) return;
+
+    QLineEdit* target = nullptr;
+    if (w->isRightRadio()) {
+        auto it = m_entryWidgetsR.exchangeFields.find("RSTr");
+        if (it != m_entryWidgetsR.exchangeFields.end()) target = it.value();
+    } else {
+        auto it = m_entryWidgets.exchangeFields.find("RSTr");
+        if (it != m_entryWidgets.exchangeFields.end()) target = it.value();
+    }
+    if (!target) return;
+
+    target->setText(rst);
+    emit target->textEdited(rst);
+}
+
+void MainWindow::notifyInternalCwSend(bool isRightRadio, int textChars, int sendWpm)
+{
+    CwDecoderWidget* w = isRightRadio ? m_cwDecoderRight : m_cwDecoderLeft;
+    if (!w) return;
+
+    const bool muteEnabled = isRightRadio
+        ? Settings::instance().getRadioRMuteDecoderOnPtt()
+        : Settings::instance().getRadioLMuteDecoderOnPtt();
+    if (!muteEnabled) return;
+
+    // Duration = text_chars × 60 / (WPM × 5) × 1000 + grace (per research R9).
+    if (sendWpm <= 0) sendWpm = 25;
+    const int baseMs = static_cast<int>(std::ceil(
+        static_cast<double>(textChars) * 60.0 / (sendWpm * 5.0) * 1000.0));
+    const int grace = isRightRadio
+        ? Settings::instance().getRadioRDecoderPttGraceMs()
+        : Settings::instance().getRadioLDecoderPttGraceMs();
+    w->muteForInternalSend(baseMs + grace);
 }
 

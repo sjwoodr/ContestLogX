@@ -147,6 +147,8 @@ qsos:       array of QSO records
 ## Active Technologies
 - C++17 + Qt6 (Core, Widgets) — no new dependencies (001-band-map)
 - In-memory `QHash<QString, SpotData>` per `BandMapWidget` instance; (001-band-map)
+- C++17 + Qt6 (Core, Widgets, Network, Xml) + **NEW: `Qt6::Multimedia`** — a standard Qt6 module, not a third-party library (004-cw-decoder)
+- In-memory ring buffer for audio blocks (lock-free SPSC or QMutex-guarded); per-bin `QString` buffers capped at ~10,000 chars (rolling); `QSettings` for decoder runtime state (passband/bin count/spotlight/squelch/WPM range); rig config for audio device name, "Mute on PTT" flag, PTT grace-window ms (004-cw-decoder)
 
 ## Recent Changes
 - 001-band-map: Added C++17 + Qt6 (Core, Widgets) — no new dependencies

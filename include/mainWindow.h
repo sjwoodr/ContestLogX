@@ -179,6 +179,14 @@ private slots:
     void onSpotReceived(const SpotData &spot);
     void onToggleBandMap(bool checked);
 
+    // CW Decoder lifecycle + click-fill slots (SPEC-005)
+    void spawnOrRefreshCwDecoders();
+    void onAudioConfigChanged(bool isRightRadio);
+    void onDecoderCallClicked(const QString& callsign, int binIndex);
+    void onDecoderRstClicked(const QString& rst, int binIndex);
+    // Called by internal CW-send paths to mute the owning radio's decoder.
+    void notifyInternalCwSend(bool isRightRadio, int textChars, int sendWpm);
+
 protected:
     bool eventFilter(QObject *obj, QEvent *event) override;
     void closeEvent(QCloseEvent *event) override;
@@ -312,6 +320,12 @@ private:
     class BandMapWidget *m_bandMapWidget = nullptr;
     QAction *m_bandMapWidgetAction = nullptr;
     QString m_lastBand; // tracks last-known band for change detection
+
+    // CW Decoder widgets (SPEC-005) — one per radio when audio device configured
+    class CwDecoderWidget *m_cwDecoderLeft = nullptr;
+    class CwDecoderWidget *m_cwDecoderRight = nullptr;
+    QAction *m_cwDecoderLeftAction = nullptr;
+    QAction *m_cwDecoderRightAction = nullptr;
 
     // Menu actions for toggleable panels
     QAction *m_floatEntryAction;

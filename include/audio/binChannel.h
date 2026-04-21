@@ -1,0 +1,99 @@
+/*
+ * ContestLogX - Amateur Radio Contest Logging Software
+ * Copyright (c) 2025-2026 Steve Woodruff, N9OH
+ *
+ * Released under the MIT License. See LICENSE file for details.
+ *
+ * BinChannel — a single-frequency Goertzel tone detector + dot/dash classifier
+ * + rolling-median WPM estimator + Morse decoder (SPEC-005). One instance per
+ * decoder bin (row in the UI).
+ */
+
+#ifndef AUDIO_BINCHANNEL_H
+#define AUDIO_BINCHANNEL_H
+
+#include <QString>
+#include <QChar>
+#include <QList>
+#include <deque>
+#include <cstdint>
+#include "audio/audioTypes.h"
+
+namespace clx::audio {
+
+struct CharEvent {
+    int binIndex;
+    QChar ch;
+    qint64 timestampMs;
+};
+
+class BinChannel {
+public:
+    // Construct with the bin's center frequency and the operator's WPM bounds.
+    BinChannel(int binIndex, double centerFreqHz, int sampleRateHz, int wpmMin, int wpmMax);
+
+    // Reset the DSP state (keeps the index and coefficient). Used on reconfigure.
+    void reset();
+
+    // Process one 10 ms block of 80 samples. Returns decoded character events
+    // produced during this block (typically zero or one).
+    // squelchThreshold is in [0.0, 1.0] normalized against int16 full-scale.
+    // muted gates character emission but still runs the Goertzel recursion so
+    // state does not go stale.
+    QList<CharEvent> processBlock(const int16_t* samples, int count,
+                                  qint64 timestampMs, float squelchThreshold,
+                                  bool muted);
+
+    // Live per-bin state.
+    int binIndex() const { return m_binIndex; }
+    double centerFreqHz() const { return m_centerFreqHz; }
+    int currentWpm() const { return m_currentWpm; }
+    LockState lockState() const { return m_lockState; }
+    const QString& textBuffer() const { return m_textBuffer; }
+
+    // Update the bin's WPM bounds (called when the operator changes the
+    // bounding range). Does not reset the rolling window.
+    void setWpmBounds(int wpmMin, int wpmMax);
+
+    // Clear ONLY the scrolling text buffer. Preserves Goertzel state,
+    // WPM estimator, and the in-progress Morse element buffer — decoding
+    // continues without a re-convergence penalty (FR-012).
+    void clearTextBuffer();
+
+private:
+    void closeElement(int durationMs, qint64 timestampMs, QList<CharEvent>& out);
+    void closeCharacter(qint64 timestampMs, QList<CharEvent>& out);
+    void updateWpmEstimate(int dotLenMs);
+
+    int m_binIndex;
+    double m_centerFreqHz;
+    int m_sampleRateHz;
+
+    // Goertzel state — reset at each block boundary.
+    double m_coeff = 0.0;
+    double m_sPrev = 0.0;
+    double m_sPrev2 = 0.0;
+
+    // Tone-edge tracking.
+    bool m_toneActive = false;
+    qint64 m_elementStartMs = 0;    // start of current tone-on or tone-off run
+    qint64 m_elapsedAudioMs = 0;    // monotonic counter of processed audio time
+
+    // Morse element accumulation.
+    QString m_morseBuffer;           // ".-" etc.
+
+    // Rolling-median dot-length window (kDotLengthWindow samples max).
+    std::deque<int> m_dotLengths;
+    int m_currentWpm = 0;            // 0 = no lock
+    LockState m_lockState = LockState::NoLock;
+
+    int m_wpmMin;
+    int m_wpmMax;
+
+    // Scrolling decoded text for this bin.
+    QString m_textBuffer;
+};
+
+} // namespace clx::audio
+
+#endif // AUDIO_BINCHANNEL_H

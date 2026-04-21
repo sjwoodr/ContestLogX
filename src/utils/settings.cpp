@@ -527,6 +527,165 @@ void Settings::setRadioRMockedAutoConnect(bool autoConnect)
     save();
 }
 
+// ---------- CW Decoder — per-radio audio input + PTT mute (SPEC-005) ----------
+
+QString Settings::getRadioLAudioInputDevice() const
+{
+    return m_settings["rig"].toObject()["audioInputDevice"].toString();
+}
+
+void Settings::setRadioLAudioInputDevice(const QString& deviceDescription)
+{
+    QJsonObject rig = m_settings["rig"].toObject();
+    rig["audioInputDevice"] = deviceDescription;
+    m_settings["rig"] = rig;
+    save();
+}
+
+bool Settings::getRadioLMuteDecoderOnPtt() const
+{
+    return m_settings["rig"].toObject()["muteDecoderOnPtt"].toBool(true);
+}
+
+void Settings::setRadioLMuteDecoderOnPtt(bool enabled)
+{
+    QJsonObject rig = m_settings["rig"].toObject();
+    rig["muteDecoderOnPtt"] = enabled;
+    m_settings["rig"] = rig;
+    save();
+}
+
+int Settings::getRadioLDecoderPttGraceMs() const
+{
+    return m_settings["rig"].toObject()["decoderPttGraceMs"].toInt(250);
+}
+
+void Settings::setRadioLDecoderPttGraceMs(int ms)
+{
+    QJsonObject rig = m_settings["rig"].toObject();
+    rig["decoderPttGraceMs"] = ms;
+    m_settings["rig"] = rig;
+    save();
+}
+
+QString Settings::getRadioRAudioInputDevice() const
+{
+    return m_settings["so2r"].toObject()["radioR"].toObject()["audioInputDevice"].toString();
+}
+
+void Settings::setRadioRAudioInputDevice(const QString& deviceDescription)
+{
+    QJsonObject so2r = m_settings["so2r"].toObject();
+    QJsonObject radioR = so2r["radioR"].toObject();
+    radioR["audioInputDevice"] = deviceDescription;
+    so2r["radioR"] = radioR;
+    m_settings["so2r"] = so2r;
+    save();
+}
+
+bool Settings::getRadioRMuteDecoderOnPtt() const
+{
+    return m_settings["so2r"].toObject()["radioR"].toObject()["muteDecoderOnPtt"].toBool(true);
+}
+
+void Settings::setRadioRMuteDecoderOnPtt(bool enabled)
+{
+    QJsonObject so2r = m_settings["so2r"].toObject();
+    QJsonObject radioR = so2r["radioR"].toObject();
+    radioR["muteDecoderOnPtt"] = enabled;
+    so2r["radioR"] = radioR;
+    m_settings["so2r"] = so2r;
+    save();
+}
+
+int Settings::getRadioRDecoderPttGraceMs() const
+{
+    return m_settings["so2r"].toObject()["radioR"].toObject()["decoderPttGraceMs"].toInt(250);
+}
+
+void Settings::setRadioRDecoderPttGraceMs(int ms)
+{
+    QJsonObject so2r = m_settings["so2r"].toObject();
+    QJsonObject radioR = so2r["radioR"].toObject();
+    radioR["decoderPttGraceMs"] = ms;
+    so2r["radioR"] = radioR;
+    m_settings["so2r"] = so2r;
+    save();
+}
+
+QJsonObject Settings::getCwDecoderSettings(bool right) const
+{
+    const QJsonObject audio = m_settings["cwDecoder"].toObject();
+    return audio[right ? "right" : "left"].toObject();
+}
+
+void Settings::setCwDecoderSettings(bool right, const QJsonObject& obj)
+{
+    QJsonObject audio = m_settings["cwDecoder"].toObject();
+    audio[right ? "right" : "left"] = obj;
+    m_settings["cwDecoder"] = audio;
+    save();
+}
+
+int Settings::getCwDecoderPassbandLowHz(bool right) const
+{
+    return getCwDecoderSettings(right).value("passbandLowHz").toInt(400);
+}
+void Settings::setCwDecoderPassbandLowHz(bool right, int hz)
+{
+    QJsonObject o = getCwDecoderSettings(right); o["passbandLowHz"] = hz; setCwDecoderSettings(right, o);
+}
+int Settings::getCwDecoderPassbandHighHz(bool right) const
+{
+    return getCwDecoderSettings(right).value("passbandHighHz").toInt(1000);
+}
+void Settings::setCwDecoderPassbandHighHz(bool right, int hz)
+{
+    QJsonObject o = getCwDecoderSettings(right); o["passbandHighHz"] = hz; setCwDecoderSettings(right, o);
+}
+int Settings::getCwDecoderBinCount(bool right) const
+{
+    return getCwDecoderSettings(right).value("binCount").toInt(6);
+}
+void Settings::setCwDecoderBinCount(bool right, int n)
+{
+    QJsonObject o = getCwDecoderSettings(right); o["binCount"] = n; setCwDecoderSettings(right, o);
+}
+int Settings::getCwDecoderSpotlightRowIndex(bool right) const
+{
+    return getCwDecoderSettings(right).value("spotlightRowIndex").toInt(-1);
+}
+void Settings::setCwDecoderSpotlightRowIndex(bool right, int idx)
+{
+    QJsonObject o = getCwDecoderSettings(right); o["spotlightRowIndex"] = idx; setCwDecoderSettings(right, o);
+}
+double Settings::getCwDecoderSquelch(bool right) const
+{
+    return getCwDecoderSettings(right).value("squelchThreshold").toDouble(0.05);
+}
+void Settings::setCwDecoderSquelch(bool right, double threshold)
+{
+    QJsonObject o = getCwDecoderSettings(right); o["squelchThreshold"] = threshold; setCwDecoderSettings(right, o);
+}
+int Settings::getCwDecoderWpmMin(bool right) const
+{
+    return getCwDecoderSettings(right).value("wpmMin").toInt(5);
+}
+void Settings::setCwDecoderWpmMin(bool right, int wpm)
+{
+    QJsonObject o = getCwDecoderSettings(right); o["wpmMin"] = wpm; setCwDecoderSettings(right, o);
+}
+int Settings::getCwDecoderWpmMax(bool right) const
+{
+    return getCwDecoderSettings(right).value("wpmMax").toInt(60);
+}
+void Settings::setCwDecoderWpmMax(bool right, int wpm)
+{
+    QJsonObject o = getCwDecoderSettings(right); o["wpmMax"] = wpm; setCwDecoderSettings(right, o);
+}
+
+// ---------- end CW Decoder settings ----------
+
 int Settings::getCwWpm() const
 {
     return m_settings["cw"].toObject()["wpm"].toInt(28);

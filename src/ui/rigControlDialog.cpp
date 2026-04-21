@@ -18,6 +18,8 @@
 #include <QStyle>
 #include <QLabel>
 #include <QMessageBox>
+#include <QMediaDevices>
+#include <QAudioDevice>
 
 RigControlDialog::RigControlDialog(RigInterface* clientL, RigInterface* clientR,
                                    bool so2rEnabled, QWidget *parent)
@@ -239,6 +241,28 @@ QWidget* RigControlDialog::createRadioPage(RadioWidgets& w)
 
     layout->addWidget(statusGroup);
 
+    // CW Decoder audio input (SPEC-005)
+    QGroupBox* audioGroup = new QGroupBox("CW Decoder — Audio Input", page);
+    QFormLayout* audioForm = new QFormLayout(audioGroup);
+    w.audioInputCombo = new QComboBox(audioGroup);
+    w.audioInputCombo->addItem("(none)", QString());
+    for (const QAudioDevice& d : QMediaDevices::audioInputs()) {
+        w.audioInputCombo->addItem(d.description(), d.description());
+    }
+    audioForm->addRow("Audio Input Device:", w.audioInputCombo);
+
+    w.muteDecoderOnPttCheck = new QCheckBox("Mute decoder on PTT", audioGroup);
+    w.muteDecoderOnPttCheck->setChecked(true);
+    audioForm->addRow("", w.muteDecoderOnPttCheck);
+
+    w.decoderPttGraceSpin = new QSpinBox(audioGroup);
+    w.decoderPttGraceSpin->setRange(0, 2000);
+    w.decoderPttGraceSpin->setSuffix(" ms");
+    w.decoderPttGraceSpin->setValue(250);
+    audioForm->addRow("PTT grace window:", w.decoderPttGraceSpin);
+
+    layout->addWidget(audioGroup);
+
     // Attribution label
     w.attributionLabel = new QLabel(page);
     w.attributionLabel->setTextFormat(Qt::RichText);
@@ -358,6 +382,25 @@ void RigControlDialog::loadSettings(RadioWidgets& w)
         w.mockedAutoConnectCheck->setChecked(settings.getMockedAutoConnect());
     }
 
+    // Audio input device + mute-on-PTT (SPEC-005)
+    if (w.audioInputCombo) {
+        const QString persistedDevice = w.isRadioR
+            ? settings.getRadioRAudioInputDevice()
+            : settings.getRadioLAudioInputDevice();
+        int idx = w.audioInputCombo->findData(persistedDevice);
+        w.audioInputCombo->setCurrentIndex(idx >= 0 ? idx : 0);
+    }
+    if (w.muteDecoderOnPttCheck) {
+        w.muteDecoderOnPttCheck->setChecked(
+            w.isRadioR ? settings.getRadioRMuteDecoderOnPtt()
+                       : settings.getRadioLMuteDecoderOnPtt());
+    }
+    if (w.decoderPttGraceSpin) {
+        w.decoderPttGraceSpin->setValue(
+            w.isRadioR ? settings.getRadioRDecoderPttGraceMs()
+                       : settings.getRadioLDecoderPttGraceMs());
+    }
+
     // Trigger UI update for current backend
     onBackendChanged(w, w.backendCombo->currentIndex());
 }
@@ -390,6 +433,37 @@ void RigControlDialog::saveSettings(RadioWidgets& w)
         settings.setHamlibAutoConnect(w.hamlibAutoConnectCheck->isChecked());
 
         settings.setMockedAutoConnect(w.mockedAutoConnectCheck->isChecked());
+    }
+
+    // Audio input device + mute-on-PTT (SPEC-005). Detect change so that
+    // MainWindow can (re)spawn the CwDecoderWidget appropriately.
+    QString newAudioDevice;
+    bool newMuteOnPtt = true;
+    int newGrace = 250;
+    if (w.audioInputCombo) newAudioDevice = w.audioInputCombo->currentData().toString();
+    if (w.muteDecoderOnPttCheck) newMuteOnPtt = w.muteDecoderOnPttCheck->isChecked();
+    if (w.decoderPttGraceSpin) newGrace = w.decoderPttGraceSpin->value();
+
+    QString oldAudioDevice;
+    bool oldMuteOnPtt = true;
+    int oldGrace = 250;
+    if (w.isRadioR) {
+        oldAudioDevice = settings.getRadioRAudioInputDevice();
+        oldMuteOnPtt   = settings.getRadioRMuteDecoderOnPtt();
+        oldGrace       = settings.getRadioRDecoderPttGraceMs();
+        settings.setRadioRAudioInputDevice(newAudioDevice);
+        settings.setRadioRMuteDecoderOnPtt(newMuteOnPtt);
+        settings.setRadioRDecoderPttGraceMs(newGrace);
+    } else {
+        oldAudioDevice = settings.getRadioLAudioInputDevice();
+        oldMuteOnPtt   = settings.getRadioLMuteDecoderOnPtt();
+        oldGrace       = settings.getRadioLDecoderPttGraceMs();
+        settings.setRadioLAudioInputDevice(newAudioDevice);
+        settings.setRadioLMuteDecoderOnPtt(newMuteOnPtt);
+        settings.setRadioLDecoderPttGraceMs(newGrace);
+    }
+    if (oldAudioDevice != newAudioDevice || oldMuteOnPtt != newMuteOnPtt || oldGrace != newGrace) {
+        emit audioConfigChanged(w.isRadioR);
     }
 }
 

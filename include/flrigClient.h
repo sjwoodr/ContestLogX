@@ -70,6 +70,7 @@ private:
     QString m_host;
     int m_port;
     QString m_responseBuffer;
+    bool m_lastKnownPtt = false;
 };
 
 #endif // FLRIGCLIENT_H

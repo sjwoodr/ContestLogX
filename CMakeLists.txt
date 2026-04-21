@@ -14,6 +14,7 @@ find_package(Qt6 REQUIRED COMPONENTS
     Widgets
     Network
     Xml
+    Multimedia
 )
 
 # Include directories
@@ -77,6 +78,11 @@ set(SOURCES
     src/qrzApi.cpp
     src/net/onlineScoreClient.cpp
     src/net/wsjtxListener.cpp
+    src/audio/binChannel.cpp
+    src/audio/cwDecoder.cpp
+    src/audio/audioCapture.cpp
+    src/audio/cwDecoderWorker.cpp
+    src/ui/cwDecoderWidget.cpp
 )
 
 set(HEADERS
@@ -135,6 +141,14 @@ set(HEADERS
      include/qrzApi.h
      include/onlineScoreClient.h
      include/wsjtxListener.h
+     include/audio/audioTypes.h
+     include/audio/morseTable.h
+     include/audio/spscRingBuffer.h
+     include/audio/binChannel.h
+     include/audio/cwDecoder.h
+     include/audio/audioCapture.h
+     include/audio/cwDecoderWorker.h
+     include/cwDecoderWidget.h
 )
 
 # UI files
@@ -167,6 +181,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     Qt6::Widgets
     Qt6::Network
     Qt6::Xml
+    Qt6::Multimedia
 )
 
 # Installation

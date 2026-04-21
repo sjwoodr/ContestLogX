@@ -21,6 +21,11 @@ MockedRigClient::MockedRigClient(QObject *parent)
 {
 }
 
+void MockedRigClient::emitInitialPttState()
+{
+    emit pttStateChanged(m_ptt);
+}
+
 bool MockedRigClient::connectToRig(const QString& host, int port)
 {
     Q_UNUSED(host);
@@ -105,9 +110,12 @@ bool MockedRigClient::getPTT()
 
 bool MockedRigClient::setPTT(bool enable)
 {
+    bool changed = (m_ptt != enable);
     m_ptt = enable;
     if (DebugLogger::instance().isFlrigDebugEnabled())
         DebugLogger::instance().log("MockedRig", QString("Set PTT: %1").arg(enable ? "ON" : "OFF"));
+    if (changed)
+        emit pttStateChanged(m_ptt);
     return true;
 }
 

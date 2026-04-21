@@ -157,6 +157,39 @@ public:
     bool getRadioRMockedAutoConnect() const;
     void setRadioRMockedAutoConnect(bool autoConnect);
 
+    // CW Decoder — per-radio audio input + PTT mute settings (SPEC-005)
+    QString getRadioLAudioInputDevice() const;
+    void setRadioLAudioInputDevice(const QString& deviceDescription);
+    bool getRadioLMuteDecoderOnPtt() const;
+    void setRadioLMuteDecoderOnPtt(bool enabled);
+    int getRadioLDecoderPttGraceMs() const;
+    void setRadioLDecoderPttGraceMs(int ms);
+
+    QString getRadioRAudioInputDevice() const;
+    void setRadioRAudioInputDevice(const QString& deviceDescription);
+    bool getRadioRMuteDecoderOnPtt() const;
+    void setRadioRMuteDecoderOnPtt(bool enabled);
+    int getRadioRDecoderPttGraceMs() const;
+    void setRadioRDecoderPttGraceMs(int ms);
+
+    // CW Decoder runtime settings (per-radio: right=true selects Radio R)
+    QJsonObject getCwDecoderSettings(bool right) const;
+    void setCwDecoderSettings(bool right, const QJsonObject& obj);
+    int getCwDecoderPassbandLowHz(bool right) const;
+    void setCwDecoderPassbandLowHz(bool right, int hz);
+    int getCwDecoderPassbandHighHz(bool right) const;
+    void setCwDecoderPassbandHighHz(bool right, int hz);
+    int getCwDecoderBinCount(bool right) const;
+    void setCwDecoderBinCount(bool right, int n);
+    int getCwDecoderSpotlightRowIndex(bool right) const;
+    void setCwDecoderSpotlightRowIndex(bool right, int idx);
+    double getCwDecoderSquelch(bool right) const;
+    void setCwDecoderSquelch(bool right, double threshold);
+    int getCwDecoderWpmMin(bool right) const;
+    void setCwDecoderWpmMin(bool right, int wpm);
+    int getCwDecoderWpmMax(bool right) const;
+    void setCwDecoderWpmMax(bool right, int wpm);
+
     // WSJT-X integration
     bool getWsjtxEnabled() const;
     void setWsjtxEnabled(bool enabled);

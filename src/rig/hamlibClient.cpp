@@ -387,6 +387,11 @@ bool HamlibClient::setPTT(bool enable)
 {
     QMetaObject::invokeMethod(m_worker, "doSetPTT", Qt::QueuedConnection,
                               Q_ARG(bool, enable));
+    // Fire pttStateChanged locally so CW decoder gating works for our own
+    // setPTT calls. Remote PTT (operator keying via mic) is not detected —
+    // the decoder's FR-019b fallback + the internal-send path (FR-019c) cover
+    // ContestLogX-initiated sends regardless of backend PTT visibility.
+    emit pttStateChanged(enable);
     return true;
 }
 

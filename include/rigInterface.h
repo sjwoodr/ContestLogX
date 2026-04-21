@@ -89,6 +89,9 @@ signals:
     void error(const QString& errorString);
     void frequencyChanged(double freqHz);
     void modeChanged(const QString& mode);
+    // Emitted on every observed PTT state transition. Consumers (e.g., CW decoder)
+    // gate on this signal; may lag physical radio by up to one backend poll interval.
+    void pttStateChanged(bool active);
 };
 
 #endif // RIGINTERFACE_H

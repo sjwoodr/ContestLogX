@@ -25,43 +25,46 @@ moving to the next.
 
 ## Roadmap Overview
 
-The feature cycle is decomposed into **5 specifications** across **4 dependency tiers**:
+The feature cycle is decomposed into **7 specifications** across **4 dependency tiers**. Two specs (SPEC-006, SPEC-007) were added after the original plan was drafted to capture work that emerged during the 0.7.x series.
 
 | Tier | Specs | Purpose | Parallelization |
 |------|-------|---------|-----------------|
-| **1** | SPEC-001 | Visual Band Map — standalone DX spot visualization | Sequential (solo dev) |
-| **2** | SPEC-002 | SO2R Support — second radio rig control and focus switching | Sequential after SPEC-001 |
+| **1** | SPEC-001 | Visual Band Map — standalone DX spot visualization | ✅ Shipped |
+| **2** | SPEC-002 | SO2R Support — second radio rig control and focus switching | ✅ Shipped |
 | **2** | SPEC-005 | CW Decoder — audio-based Morse decode with QSO entry integration | Independent; can run any time |
+| **2** | SPEC-006 | Online Score Publishing — real-time posting to contestonlinescore.com | Independent; tasks ready |
+| **2** | SPEC-007 | Unify Station Config — migrate legacy stationClasses to userPrompts | Independent; spec draft only |
 | **3** | SPEC-003 | Network Foundation — internet-capable log sync across stations | Sequential after SPEC-002 |
 | **4** | SPEC-004 | Multi-Op Coordination — serial pool, band lockouts, station roles | Requires SPEC-003 |
 
-**Execution Order:** SPEC-001 → SPEC-002 → SPEC-003 → SPEC-004 (SPEC-005 independent — insert anywhere)
+**Current Execution Focus:** SPEC-005 (CW Decoder) and SPEC-006 (Online Scoring) are the next targets. SPEC-003 → SPEC-004 remain the path to networked multi-op.
 
 **Dependency Constraints:**
-- SPEC-001 has no dependencies — start immediately
-- SPEC-002 has no hard dependency on SPEC-001 but is ordered after it for complexity
-  progression; SPEC-001's band map will be enhanced in SPEC-002 to show both radios
+- ✅ SPEC-001 had no dependencies — shipped as Visual Band Map (see `specs/001-band-map/`)
+- ✅ SPEC-002 shipped in v0.7.2 as full SO2R support (Radio L/R, backtick toggle, per-radio Run/S&P, mocked backend) — implemented pre-SDD, no `specs/` folder
 - SPEC-003 has no dependency on SPEC-001 or SPEC-002, but is ordered after them so
   the radio control architecture is stable before networking is layered on
 - SPEC-004 requires SPEC-003 (needs the network layer and QSO sync infrastructure)
 - SPEC-005 has no dependencies on any other spec — truly independent audio subsystem
+- SPEC-006 has no dependencies — HTTP POST integration against an external service
+- SPEC-007 has no hard dependencies but touches contest JSON loading and setup UI — any station-class contest work should land after it if feasible
 
 ---
 
 ## Dependency Graph
 
 ```text
-SPEC-001 (Visual Band Map)
+SPEC-001 (Visual Band Map)  ✅ SHIPPED
     │
     │  [band map enriched with 2nd radio in SPEC-002]
     ▼
-SPEC-002 (SO2R Support)          SPEC-005 (CW Decoder) ─── [independent, any time]
+SPEC-002 (SO2R Support)  ✅ SHIPPED v0.7.2
     │
     │  [stable radio control before networking]
     ▼
-SPEC-003 (Network Foundation)
-    │
-    └──► SPEC-004 (Multi-Op Coordination)
+SPEC-003 (Network Foundation)        ┌─ SPEC-005 (CW Decoder)          ─ independent
+    │                                ├─ SPEC-006 (Online Scoring)      ─ independent
+    └──► SPEC-004 (Multi-Op)         └─ SPEC-007 (Unify Station Config)─ independent
               │
          ─── FEATURE CYCLE COMPLETE ───
 ```
@@ -70,23 +73,27 @@ SPEC-003 (Network Foundation)
 
 ## Progress Tracking
 
-| Spec | Name | Status | Workflow File | Next Phase |
-|------|------|--------|---------------|------------|
-| SPEC-001 | Visual Band Map | ⏳ Pending | [SPEC-001-workflow.md](SPEC-001-workflow.md) | Specify |
-| SPEC-002 | SO2R Support | ⏳ Pending | [SPEC-002-workflow.md](SPEC-002-workflow.md) | Blocked by SPEC-001 |
-| SPEC-003 | Network Foundation | ⏳ Pending | [SPEC-003-workflow.md](SPEC-003-workflow.md) | Blocked by SPEC-002 |
-| SPEC-004 | Multi-Op Coordination | ⏳ Pending | [SPEC-004-workflow.md](SPEC-004-workflow.md) | Blocked by SPEC-003 |
+| Spec | Name | Status | Spec Folder / Workflow | Next Phase |
+|------|------|--------|------------------------|------------|
+| SPEC-001 | Visual Band Map | ✅ Complete | [`specs/001-band-map/`](../../../specs/001-band-map/) · [SPEC-001-workflow.md](SPEC-001-workflow.md) | Shipped |
+| SPEC-002 | SO2R Support | ✅ Complete | Shipped in v0.7.2 (pre-SDD, no `specs/` folder) | Shipped |
 | SPEC-005 | CW Decoder | ⏳ Pending | [SPEC-005-workflow.md](SPEC-005-workflow.md) | Specify (independent) |
+| SPEC-006 | Online Score Publishing | 🔄 Tasks Ready | [`specs/003-online-scoring/`](../../../specs/003-online-scoring/) | Implement |
+| SPEC-007 | Unify Station Config | 🔄 Spec Draft | [`specs/002-unify-station-config/`](../../../specs/002-unify-station-config/) | Plan |
+| SPEC-003 | Network Foundation | ⏳ Pending | [SPEC-003-workflow.md](SPEC-003-workflow.md) | Specify |
+| SPEC-004 | Multi-Op Coordination | ⏳ Pending | [SPEC-004-workflow.md](SPEC-004-workflow.md) | Blocked by SPEC-003 |
 
 **Status Legend:** ⏳ Pending | 🔄 In Progress | ✅ Complete | ⚠️ Blocked
+
+> **Numbering note:** Master-plan `SPEC-NNN` IDs are the stable roadmap identifiers. The `specs/NNN-name/` directories use SpecKit's default sequential naming and were numbered as work was started — so `specs/001-band-map/` → SPEC-001, `specs/002-unify-station-config/` → SPEC-007, `specs/003-online-scoring/` → SPEC-006. The two numbering schemes are not expected to align going forward.
 
 ---
 
 ## Specification Sections
 
-### SPEC-001: Visual Band Map
+### SPEC-001: Visual Band Map ✅ COMPLETE
 
-**Priority:** P1 | **Depends On:** None | **Enables:** SPEC-002 (band map shows both radios)
+**Priority:** P1 | **Depends On:** None | **Enables:** SPEC-002 (band map shows both radios) | **Status:** Shipped — `specs/001-band-map/`
 
 **Goal:** Add a dockable Band Map widget that displays DX cluster spots on a
 frequency-axis view for the operator's current band, with click-to-QSY.
@@ -126,9 +133,11 @@ This avoids a second telnet session and keeps spot state in one place.
 
 ---
 
-### SPEC-002: SO2R Support
+### SPEC-002: SO2R Support ✅ COMPLETE
 
-**Priority:** P1 | **Depends On:** None (ordered after SPEC-001) | **Enables:** SPEC-003
+**Priority:** P1 | **Depends On:** None | **Enables:** SPEC-003 | **Status:** Shipped in v0.7.2 (implemented pre-SDD, no `specs/` folder)
+
+**Shipped behavior:** Dual independent QSO entry dock widgets (Radio L / Radio R), independent rig backends/host/port per radio, backtick (`) keyboard toggle with visual indicator on active panel, independent Run/S&P/Off per radio, tabbed Rig Connection Settings dialog, mocked rig backend for practice, DX cluster spot and CW/SSB keying routed to active radio.
 
 **Goal:** Allow a single operator to control two independent radios via two separate
 flrig instances, with keyboard-driven focus switching and all QSO entry, CW/SSB
@@ -358,6 +367,49 @@ configurable as a hint; the decoder adapts within that range automatically.
   scrolling text, device selector, clickable token detection
 - `src/ui/mainWindow.cpp` — add dock, wire click signals to QSO entry fields
 - `CMakeLists.txt` — add `Qt6::Multimedia` to target_link_libraries
+
+---
+
+### SPEC-006: Online Score Publishing
+
+**Priority:** P2 | **Depends On:** None | **Enables:** Nothing blocked | **Spec Folder:** `specs/003-online-scoring/`
+
+**Status:** 🔄 Spec + Plan + Tasks complete (draft, 2026-03-23). Ready for `/speckit.implement`.
+
+**Goal:** Real-time contest score posting to contestonlinescore.com so operators and clubs can track live results on the public scoreboard.
+
+**Scope (from spec):**
+- Preferences pane for contestonlinescore.com credentials (callsign + password) and posting interval, persisted across sessions
+- Automatic periodic POST of the current score (QSOs, points, multipliers, breakdown by band/mode) at the configured interval while a contest log is open
+- Manual "Post Now" action and status indicator showing last successful post / error state
+- Optional per-contest enable/disable; gracefully degrades when offline
+
+**Out of Scope:**
+- Private team scoreboards or other score-reporting services
+- Historical log upload / Cabrillo submission (distinct feature)
+
+**Key Files:** `src/network/onlineScoreClient.cpp` (planned), preferences dialog extension, mainWindow score hook. See `specs/003-online-scoring/plan.md` and `tasks.md` for the detailed plan.
+
+---
+
+### SPEC-007: Unify Station Config (stationClasses → userPrompts)
+
+**Priority:** P2 | **Depends On:** None | **Enables:** Cleaner station-class-dependent contests (ARRL DX, SPDX, etc.) | **Spec Folder:** `specs/002-unify-station-config/`
+
+**Status:** 🔄 Spec draft + requirements checklist (2026-03-22). Needs `/speckit.plan` and `/speckit.tasks`.
+
+**Goal:** Replace the legacy `stationClasses` system with enhanced `userPrompts`, unifying all station-dependent contest configuration (exchange fields, scoring, multipliers, partner restrictions) under a single mechanism.
+
+**Scope (from spec):**
+- Station type selected via standard `userPrompts` during contest setup (no separate station class dialog)
+- `userPromptValues` drive exchange-field display, scoring rules, multiplier categories, and invalid-partner enforcement
+- Migration path for existing contest JSON files that use `stationClasses`
+- Backward compatibility for already-saved CLX logs created under the old system
+
+**Out of Scope:**
+- Contest-specific rule redesigns — this is a refactor of the config mechanism, not a rule change
+
+**Key Files:** `src/contestengine.cpp`, contest JSON loader, contest setup dialog, and any contest JSON files currently using `stationClasses` (ARRL DX, SPDX, and similar).
 
 ---
 

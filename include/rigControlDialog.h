@@ -40,6 +40,10 @@ signals:
     void backendChanged(const QString& backend);
     void backendChangedR(const QString& backend);
     void so2rChanged(bool enabled);
+    // Emitted on Apply/OK when the audio input device or mute settings change
+    // for a specific radio. MainWindow responds by spawning or destroying the
+    // corresponding CwDecoderWidget (SPEC-005 FR-001..FR-006).
+    void audioConfigChanged(bool isRightRadio);
 
 private slots:
     void onAccepted();
@@ -69,6 +73,10 @@ private:
         QLabel* statusLabel = nullptr;
         QLabel* rigNameLabel = nullptr;
         QLabel* attributionLabel = nullptr;
+        // CW Decoder — per-radio audio input (SPEC-005)
+        QComboBox* audioInputCombo = nullptr;    // populated from QMediaDevices + "(none)"
+        QCheckBox* muteDecoderOnPttCheck = nullptr;
+        QSpinBox* decoderPttGraceSpin = nullptr;
     };
 
     QWidget* createRadioPage(RadioWidgets& w);

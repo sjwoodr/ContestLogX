@@ -53,6 +53,10 @@ public:
 
     QString getRigName() override;
 
+    // Emit the current PTT state as a pttStateChanged signal. Used once after
+    // construction so consumers who subscribe late still receive an initial value.
+    void emitInitialPttState();
+
     bool supportsCW() const override { return true; }
     bool supportsPTT() const override { return true; }
     bool supportsPower() const override { return true; }

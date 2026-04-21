@@ -498,7 +498,16 @@ bool FlrigClient::getPTT()
     sendRequest(request);
 
     QVariant result = waitForResponse(2000);
-    return result.isValid() && result.toInt() == 1;
+    bool ptt = result.isValid() && result.toInt() == 1;
+
+    // Emit on transition so the CW decoder and other consumers can react via
+    // signal/slot rather than polling. Callers invoking getPTT() periodically
+    // (e.g., the MainWindow poll loop) effectively drive the notification.
+    if (ptt != m_lastKnownPtt) {
+        m_lastKnownPtt = ptt;
+        emit pttStateChanged(ptt);
+    }
+    return ptt;
 }
 
 bool FlrigClient::setPTT(bool enable)
@@ -506,14 +515,19 @@ bool FlrigClient::setPTT(bool enable)
     if (!isConnected()) {
         return false;
     }
-    
+
     QVariantList params;
     params << (enable ? 1 : 0);
-    
+
     QString request = buildXmlRpcCall("rig.set_ptt", params);
     sendRequest(request);
-    
+
     DebugLogger::instance().log("Flrig", QString("PTT set to %1").arg(enable ? "ON" : "OFF"));
+
+    if (m_lastKnownPtt != enable) {
+        m_lastKnownPtt = enable;
+        emit pttStateChanged(enable);
+    }
     return true;
 }
 
