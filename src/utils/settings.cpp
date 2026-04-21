@@ -1189,6 +1189,19 @@ void Settings::setWsjtxDebugEnabled(bool enabled)
     save();
 }
 
+bool Settings::getCwDecoderDebugEnabled() const
+{
+    return m_settings["debug"].toObject()["cwDecoderDebugEnabled"].toBool(false);
+}
+
+void Settings::setCwDecoderDebugEnabled(bool enabled)
+{
+    QJsonObject debug = m_settings["debug"].toObject();
+    debug["cwDecoderDebugEnabled"] = enabled;
+    m_settings["debug"] = debug;
+    save();
+}
+
 bool Settings::getDxClusterDebugEnabled() const
 {
     return m_settings["debug"].toObject()["dxClusterDebugEnabled"].toBool(false);

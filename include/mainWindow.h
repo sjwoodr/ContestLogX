@@ -345,6 +345,7 @@ private:
     QAction *m_multiplierWidgetDebugAction;
     QAction *m_callsignLookupDebugAction;
     QAction *m_wsjtxDebugAction;
+    QAction *m_cwDecoderDebugAction = nullptr;
 
     // QSO Entry widgets
     QGroupBox *m_qsoEntryGroup;

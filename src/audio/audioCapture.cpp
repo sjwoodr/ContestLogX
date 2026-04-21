@@ -35,13 +35,15 @@ bool AudioCapture::start()
 
     if (!m_device.isFormatSupported(m_format)) {
         QAudioFormat preferred = m_device.preferredFormat();
-        DebugLogger::instance().log("CwDecoder",
-            QString("Preferred audio format requested (%1 Hz mono S16) not supported by "
-                    "'%2'; using device preferred format (%3 Hz, %4 ch)")
-                .arg(m_format.sampleRate())
-                .arg(m_device.description())
-                .arg(preferred.sampleRate())
-                .arg(preferred.channelCount()));
+        if (DebugLogger::instance().isCwDecoderDebugEnabled()) {
+            DebugLogger::instance().log("CwDecoder",
+                QString("Preferred audio format requested (%1 Hz mono S16) not supported by "
+                        "'%2'; using device preferred format (%3 Hz, %4 ch)")
+                    .arg(m_format.sampleRate())
+                    .arg(m_device.description())
+                    .arg(preferred.sampleRate())
+                    .arg(preferred.channelCount()));
+        }
         m_format = preferred;
         if (!m_device.isFormatSupported(m_format)) {
             emit deviceError(QStringLiteral("No supported audio format for device"));
@@ -59,8 +61,10 @@ bool AudioCapture::start()
     connect(m_io, &QIODevice::readyRead, this, &AudioCapture::onReadyRead);
     m_running = true;
     emit captureStarted();
-    DebugLogger::instance().log("CwDecoder",
-        QString("Audio capture started on '%1'").arg(m_device.description()));
+    if (DebugLogger::instance().isCwDecoderDebugEnabled()) {
+        DebugLogger::instance().log("CwDecoder",
+            QString("Audio capture started on '%1'").arg(m_device.description()));
+    }
     return true;
 }
 
@@ -74,8 +78,10 @@ void AudioCapture::stop()
     }
     m_io = nullptr;
     emit captureStopped();
-    DebugLogger::instance().log("CwDecoder",
-        QString("Audio capture stopped on '%1'").arg(m_device.description()));
+    if (DebugLogger::instance().isCwDecoderDebugEnabled()) {
+        DebugLogger::instance().log("CwDecoder",
+            QString("Audio capture stopped on '%1'").arg(m_device.description()));
+    }
 }
 
 void AudioCapture::onReadyRead()

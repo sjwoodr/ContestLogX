@@ -30,7 +30,9 @@ constexpr int kDefaultPassbandLowHz  = 400;
 constexpr int kDefaultPassbandHighHz = 1000;
 constexpr int kDefaultWpmMin = 5;
 constexpr int kDefaultWpmMax = 60;
-constexpr float kDefaultSquelch = 0.05f;
+// Default squelch sits just above a typical noise floor with the 5×-sensitive
+// normalization in BinChannel; Schmitt hysteresis halves this for the off-threshold.
+constexpr float kDefaultSquelch = 0.10f;
 constexpr int kDefaultPttGraceMs = 250;
 constexpr int kMaxBinCount = 16;
 constexpr int kMinBinSpacingHz = 50;       // lower bound to keep bins resolvable at 10 ms blocks

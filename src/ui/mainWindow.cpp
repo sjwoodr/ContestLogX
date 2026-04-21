@@ -1130,6 +1130,15 @@ void MainWindow::setupDocks(QSplitter* mainSplitter)
     connect(m_cwConsole, &CWWindow::memoryTriggered,
             this, &MainWindow::onCwMemoryTriggered);
 
+    // Route internal CW-send events → decoder mute (SPEC-005 FR-019c).
+    // Catches both F-key memories and manual CW-console sends at their single
+    // choke point in CWWindow::sendCWText.
+    connect(m_cwConsole, &CWWindow::aboutToSendCw, this,
+            [this](RigInterface* rig, const QString& text, int wpm) {
+        const bool isRight = (rig == m_rigClientR);
+        notifyInternalCwSend(isRight, text.length(), wpm);
+    });
+
     // Enable nested docking and animated docks
     setDockNestingEnabled(true);
     setDockOptions(QMainWindow::AnimatedDocks | QMainWindow::AllowNestedDocks | QMainWindow::AllowTabbedDocks);
@@ -1400,6 +1409,36 @@ void MainWindow::setupMenus()
     m_bandMapWidgetAction->setChecked(false);  // Hidden by default
     connect(m_bandMapWidgetAction, &QAction::triggered, this, &MainWindow::onToggleBandMap);
 
+    // CW Decoder entries — one per radio. Always visible (so operators can
+    // discover the feature); if no audio device is configured, clicking opens
+    // the Rig Connection Settings dialog so they can set one.
+    auto makeDecoderAction = [this, windowMenu](const QString& label, bool right) {
+        QAction* a = windowMenu->addAction(label);
+        a->setCheckable(true);
+        a->setChecked(false);
+        connect(a, &QAction::triggered, this, [this, right](bool checked) {
+            CwDecoderWidget* w = right ? m_cwDecoderRight : m_cwDecoderLeft;
+            if (w) {
+                w->setVisible(checked);
+                return;
+            }
+            // No widget exists — operator hasn't configured an audio input yet.
+            // Uncheck immediately and prompt them to the settings dialog.
+            QAction* self = right ? m_cwDecoderRightAction : m_cwDecoderLeftAction;
+            if (self) self->setChecked(false);
+            QMessageBox::information(this, tr("CW Decoder"),
+                tr("To enable the CW Decoder for %1, set an Audio Input Device "
+                   "in Rig Connection Settings.\n\nOpening that dialog now.")
+                    .arg(right ? tr("Radio R") : tr("Radio L")));
+            onRigControl();
+        });
+        return a;
+    };
+    m_cwDecoderLeftAction  = makeDecoderAction(tr("CW &Decoder (Radio L)"), false);
+    m_cwDecoderRightAction = makeDecoderAction(tr("CW Decoder (Radio &R)"), true);
+    // Hide Radio R entry when SO2R is off; refresh handled on SO2R toggle.
+    m_cwDecoderRightAction->setVisible(m_so2rEnabled);
+
     windowMenu->addSeparator();
     QAction* dockAllAction = windowMenu->addAction("&Dock All Panels");
     connect(dockAllAction, &QAction::triggered, this, [this]() {
@@ -1479,6 +1518,16 @@ void MainWindow::setupMenus()
     connect(m_wsjtxDebugAction, &QAction::triggered, this, [this](bool checked) {
         DebugLogger::instance().setWsjtxDebugEnabled(checked);
         Settings::instance().setWsjtxDebugEnabled(checked);
+    });
+
+    m_cwDecoderDebugAction = debugMenu->addAction("Enable CW &Decoder Debug Logging");
+    m_cwDecoderDebugAction->setCheckable(true);
+    bool cwDecoderDebugEnabled = Settings::instance().getCwDecoderDebugEnabled();
+    m_cwDecoderDebugAction->setChecked(cwDecoderDebugEnabled);
+    DebugLogger::instance().setCwDecoderDebugEnabled(cwDecoderDebugEnabled);
+    connect(m_cwDecoderDebugAction, &QAction::triggered, this, [this](bool checked) {
+        DebugLogger::instance().setCwDecoderDebugEnabled(checked);
+        Settings::instance().setCwDecoderDebugEnabled(checked);
     });
 
     // Help menu
@@ -9052,6 +9101,13 @@ void MainWindow::onToggleSo2r(bool enabled)
     // Keep menu action in sync (may be triggered from rig dialog)
     if (m_so2rAction && m_so2rAction->isChecked() != enabled)
         m_so2rAction->setChecked(enabled);
+
+    // Radio R decoder menu entry is only meaningful in SO2R mode.
+    if (m_cwDecoderRightAction)
+        m_cwDecoderRightAction->setVisible(enabled);
+    // Refresh decoder spawning so a newly-enabled SO2R picks up Radio R audio
+    // (and so a newly-disabled SO2R drops the Radio R decoder).
+    spawnOrRefreshCwDecoders();
 }
 
 void MainWindow::onRigConnectedR()
@@ -9123,15 +9179,19 @@ void MainWindow::spawnOrRefreshCwDecoders()
         const QString device = right ? s.getRadioRAudioInputDevice()
                                      : s.getRadioLAudioInputDevice();
         CwDecoderWidget*& slot = right ? m_cwDecoderRight : m_cwDecoderLeft;
+        QAction* action = right ? m_cwDecoderRightAction : m_cwDecoderLeftAction;
 
         if (device.isEmpty()) {
             // Operator has "(none)" — ensure no widget exists for this radio.
+            // The menu entry remains visible and active; clicking it prompts
+            // the operator to configure an audio device (see setupMenus).
             if (slot) {
                 slot->endDecoding();
                 removeDockWidget(slot);
                 slot->deleteLater();
                 slot = nullptr;
             }
+            if (action) action->setChecked(false);
             return;
         }
 
@@ -9146,6 +9206,14 @@ void MainWindow::spawnOrRefreshCwDecoders()
                     this, &MainWindow::onDecoderCallClicked);
             connect(slot, &CwDecoderWidget::rstClicked,
                     this, &MainWindow::onDecoderRstClicked);
+
+            // Keep the Window menu entry's checked state in sync with actual
+            // dock visibility (e.g., operator closes the dock via the X).
+            connect(slot, &QDockWidget::visibilityChanged, this,
+                    [this, right](bool visible) {
+                QAction* a = right ? m_cwDecoderRightAction : m_cwDecoderLeftAction;
+                if (a) a->setChecked(visible);
+            });
 
             // Wire PTT state from the owning rig client to the decoder.
             RigInterface* rig = right ? m_rigClientR : m_rigClient;
@@ -9163,6 +9231,7 @@ void MainWindow::spawnOrRefreshCwDecoders()
         // (Re)start decoding against the current device.
         slot->beginDecoding(device);
         slot->show();
+        if (action) action->setChecked(true);
     };
 
     ensureDecoder(false);

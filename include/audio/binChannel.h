@@ -78,6 +78,10 @@ private:
     bool m_toneActive = false;
     qint64 m_elementStartMs = 0;    // start of current tone-on or tone-off run
     qint64 m_elapsedAudioMs = 0;    // monotonic counter of processed audio time
+    // Debounce: require N consecutive blocks of the same tone-detect result
+    // before committing a transition. At 10 ms/block, a 2-block debounce
+    // filters out <20 ms jitter without affecting dots (≥~48 ms at 25 WPM).
+    int m_pendingBlocks = 0;        // how many blocks disagreeing with m_toneActive
 
     // Morse element accumulation.
     QString m_morseBuffer;           // ".-" etc.

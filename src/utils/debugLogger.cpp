@@ -51,6 +51,7 @@ void DebugLogger::loadSettings()
     m_scpDebugEnabled = settings.value("Debug/ScpDebug", false).toBool();
     m_multiplierWidgetDebugEnabled = settings.value("Debug/MultiplierWidgetDebug", false).toBool();
     m_callsignLookupDebugEnabled = settings.value("Debug/CallsignLookupDebug", false).toBool();
+    m_cwDecoderDebugEnabled = settings.value("Debug/CwDecoderDebug", false).toBool();
 }
 
 void DebugLogger::setFlushEnabled(bool enabled)
@@ -177,6 +178,17 @@ void DebugLogger::setWsjtxDebugEnabled(bool enabled)
 bool DebugLogger::isWsjtxDebugEnabled() const
 {
     return m_wsjtxDebugEnabled;
+}
+
+void DebugLogger::setCwDecoderDebugEnabled(bool enabled)
+{
+    m_cwDecoderDebugEnabled = enabled;
+    log("INFO", enabled ? "CW Decoder debug logging enabled" : "CW Decoder debug logging disabled");
+}
+
+bool DebugLogger::isCwDecoderDebugEnabled() const
+{
+    return m_cwDecoderDebugEnabled;
 }
 
 void DebugLogger::setStdoutEnabled(bool enabled)

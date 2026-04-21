@@ -284,6 +284,9 @@ public:
     bool getWsjtxDebugEnabled() const;
     void setWsjtxDebugEnabled(bool enabled);
 
+    bool getCwDecoderDebugEnabled() const;
+    void setCwDecoderDebugEnabled(bool enabled);
+
     // Splitter states (as byte arrays)
     QByteArray getMainSplitterState() const;
     void setMainSplitterState(const QByteArray& state);

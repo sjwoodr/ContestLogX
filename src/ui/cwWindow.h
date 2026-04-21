@@ -44,6 +44,11 @@ public slots:
 signals:
     void wpmChanged(int wpm);
     void memoryTriggered(int fKey, const QString& text);
+    // Emitted right before sendCW() is invoked on the rig backend. MainWindow
+    // uses this to mute the owning radio's CW decoder for the send duration
+    // (SPEC-005 FR-019c). The rigClient param identifies which radio is
+    // sending; MainWindow compares against m_rigClient / m_rigClientR.
+    void aboutToSendCw(RigInterface* rigClient, const QString& text, int wpm);
 
 protected:
     bool eventFilter(QObject *obj, QEvent *event) override;

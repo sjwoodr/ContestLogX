@@ -144,6 +144,11 @@ void CWWindow::sendCWText(const QString& text)
     int currentWpm = wpmSpinBox->value();
     rigClient->setCWSpeed(currentWpm);
 
+    // Notify CW decoder (via MainWindow) before the send so it can mute its
+    // bins for the owning radio — prevents self-decode of ContestLogX's own
+    // keying bleeding back through the audio input (SPEC-005 FR-019c).
+    emit aboutToSendCw(rigClient, text, currentWpm);
+
     bool success = rigClient->sendCW(text);
 
     if (success) {

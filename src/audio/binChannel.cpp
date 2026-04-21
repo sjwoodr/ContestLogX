@@ -33,6 +33,7 @@ void BinChannel::reset()
     m_toneActive = false;
     m_elementStartMs = 0;
     m_elapsedAudioMs = 0;
+    m_pendingBlocks = 0;
     m_morseBuffer.clear();
     m_dotLengths.clear();
     m_currentWpm = 0;
@@ -90,13 +91,17 @@ void BinChannel::closeElement(int durationMs, qint64 timestampMs,
     }
 
     if (durationMs < dotBaseline * 2) {
-        // dot
+        // dot — feeds the WPM estimator directly
         m_morseBuffer.append('.');
         updateWpmEstimate(durationMs);
     } else {
-        // dash — dash = 3 × dot, so derive a dot estimate from duration/3
+        // dash — do NOT feed the WPM estimator with dashes/3. The classifier
+        // uses the current estimate to decide dot-vs-dash, so dashes are
+        // self-selecting as "long" — pushing them back into the estimator
+        // creates a bias that prevents lock on a stable dot length. Dots
+        // alone converge faster and more accurately. Dashes only contribute
+        // to character decoding.
         m_morseBuffer.append('-');
-        updateWpmEstimate(durationMs / 3);
     }
     Q_UNUSED(timestampMs);
 }
@@ -136,20 +141,41 @@ QList<CharEvent> BinChannel::processBlock(const int16_t* samples, int count,
         m_sPrev2 = m_sPrev;
         m_sPrev = s;
     }
-    // Magnitude squared (normalized by block size² and full-scale²).
+    // Magnitude squared (Goertzel second-order output).
     const double mag2 = (m_sPrev * m_sPrev + m_sPrev2 * m_sPrev2
                         - m_coeff * m_sPrev * m_sPrev2);
-    // Normalize against a rough scale: (count * full-scale)² ≈ (80 * 32767)² ~= 6.87e12
-    constexpr double kScale = static_cast<double>(kBlockSamples) * 32768.0;
-    const double normMag = std::sqrt(std::max(0.0, mag2)) / kScale;
+    // Normalize so typical receiver audio at ~10% full-scale produces
+    // normMag in the 0.25–0.5 range and a loud signal saturates near 1.0.
+    // This gives the operator's 0–100% squelch slider a useful dynamic
+    // range: noise-floor around 0.05–0.15, comfortable operating around
+    // 0.2–0.4, strong signals always pass. Clamped to [0,1].
+    constexpr double kScale = static_cast<double>(kBlockSamples) * 6553.6;  // 5× more sensitive
+    double normMag = std::sqrt(std::max(0.0, mag2)) / kScale;
+    if (normMag > 1.0) normMag = 1.0;
 
-    const bool toneDetected = normMag > squelchThreshold;
     const int blockMs = (count * 1000) / m_sampleRateHz;
     m_elapsedAudioMs += blockMs;
 
-    // While muted, still advance elapsed time and transition-detect so state
-    // stays sane; but skip character emission.
-    if (toneDetected != m_toneActive) {
+    // Schmitt-trigger hysteresis: a tone is detected with a high threshold
+    // (the operator's squelch setting) but only released when the magnitude
+    // drops to 70% of that. This prevents brief mid-element dips from
+    // fragmenting a dash while not inflating legitimate element durations
+    // too much (too-sticky hysteresis stretches dashes enough that the WPM
+    // estimator biases low).
+    const float offThreshold = squelchThreshold * 0.7f;
+    bool toneDetected;
+    if (m_toneActive) {
+        toneDetected = normMag > offThreshold;       // sticky — hold on until big drop
+    } else {
+        toneDetected = normMag > squelchThreshold;   // need full threshold to turn on
+    }
+
+    // Commit transition immediately (hysteresis handles the jitter cleanup
+    // that a multi-block debounce was trying to solve).
+    bool committedTransition = (toneDetected != m_toneActive);
+    m_pendingBlocks = 0;  // retained for potential future multi-block smoothing
+
+    if (committedTransition) {
         const int runMs = static_cast<int>(m_elapsedAudioMs - m_elementStartMs);
         if (m_toneActive) {
             // Tone just went off → close an element.
@@ -166,15 +192,28 @@ QList<CharEvent> BinChannel::processBlock(const int16_t* samples, int count,
                     const int midWpm = (m_wpmMin + m_wpmMax) / 2;
                     dotBaseline = (midWpm > 0) ? (1200 / midWpm) : 50;
                 }
-                if (runMs >= dotBaseline * 5) {
-                    // word gap (≥ 5 dot-units) → close character plus add space
+                // Word vs. character gap classification.
+                //   gap ≥ 4 dot-units → word boundary (close char + space)
+                //   gap ≥ 2 dot-units → character boundary (close char only)
+                //   gap < 2 dot-units → intra-element (keep accumulating)
+                // 4 is a practical compromise: textbook Morse says 7 dot-units
+                // for word gaps, but contest operators commonly compress to
+                // 4-5 units at speed. At 4, occasional intra-word gaps that
+                // stretch to ~4 units will produce false word breaks (e.g.,
+                // "P OTA" instead of "POTA"), which is less damaging than
+                // fusing whole transmissions into one word.
+                // TODO (follow-up): make this adaptive by tracking recent gap
+                // distribution per bin, since operator sending style varies.
+                if (runMs >= dotBaseline * 4) {
                     closeCharacter(timestampMs, out);
                     m_textBuffer.append(' ');
                     if (m_textBuffer.size() > kTextBufferCapChars) {
                         m_textBuffer.remove(0, m_textBuffer.size() - kTextBufferCapChars);
                     }
+                    out.append({m_binIndex, QChar(' '), timestampMs});
                 } else if (runMs >= dotBaseline * 2) {
                     // character gap (≥ 3 dot-units, but <5) → close character
+                    // only — no visible space (standard Morse rendering).
                     closeCharacter(timestampMs, out);
                 }
                 // else: still within element — keep accumulating current char

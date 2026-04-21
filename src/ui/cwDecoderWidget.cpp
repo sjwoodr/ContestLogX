@@ -179,10 +179,12 @@ void CwDecoderWidget::beginDecoding(const QString& audioDeviceDescription)
         }
     }
     if (chosen.isNull()) {
-        DebugLogger::instance().log("CwDecoder",
-            QString("Audio device '%1' not found; decoder disabled for %2")
-                .arg(audioDeviceDescription,
-                     isRightRadio() ? "Radio R" : "Radio L"));
+        if (DebugLogger::instance().isCwDecoderDebugEnabled()) {
+            DebugLogger::instance().log("CwDecoder",
+                QString("Audio device '%1' not found; decoder disabled for %2")
+                    .arg(audioDeviceDescription,
+                         isRightRadio() ? "Radio R" : "Radio L"));
+        }
         return;
     }
 
@@ -201,6 +203,8 @@ void CwDecoderWidget::beginDecoding(const QString& audioDeviceDescription)
     connect(m_worker, &CwDecoderWorker::muteStateChanged,
             this, &CwDecoderWidget::onMuteStateChanged, Qt::QueuedConnection);
     connect(m_worker, &CwDecoderWorker::pttFallbackLogged, this, [this]() {
+        // FR-019b fallback notice — always log this one since it indicates a
+        // real functional limitation the operator needs to know about.
         DebugLogger::instance().log("CwDecoder",
             QString("Rig backend for %1 does not report PTT state; decoder relies "
                     "on internal-send signalling only (FR-019b).")
