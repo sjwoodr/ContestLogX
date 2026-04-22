@@ -9778,9 +9778,9 @@ void MainWindow::updateSnapshotQsos()
         s.dateUtc = ts.isValid() ? ts.toUTC().toString("yyyy-MM-dd") : QString();
         s.timeUtc = ts.isValid() ? ts.toUTC().toString("HHmmss") : QString();
         s.call    = q.getCall();
-        // QsoRecord stores the frequency as a string in MHz; the snapshot's
+        // QsoRecord stores the frequency as a string in kHz; the snapshot's
         // freqHz wants Hz. Empty / invalid → 0.
-        s.freqHz  = static_cast<qint64>(q.getFrequency().toDouble() * 1e6);
+        s.freqHz  = static_cast<qint64>(q.getFrequency().toDouble() * 1000.0);
         s.mode    = q.getMode();
         s.rstSent = q.getRstSent();
         s.rstRcvd = q.getRstReceived();
