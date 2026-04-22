@@ -40,6 +40,11 @@
 #include "rateWidget.h"
 #include "wsjtxListener.h"
 
+namespace clx::net {
+class ClxSnapshot;
+class HttpServer;
+}
+
 struct EntryPanelWidgets {
     QPushButton *freqModeButton = nullptr;
     QLineEdit *callEdit = nullptr;
@@ -409,6 +414,16 @@ private:
     QLabel *m_onlineScoringLabel;
     QLabel *m_onlineScoringSeparator;
     bool m_scorePostInFlight = false;
+
+    // Remote Control — embedded HTTP server + thread-safe snapshot of
+    // session state (TODO item 3). Snapshot is populated on score /
+    // QSO / rig-state changes; HTTP handlers read from it.
+    clx::net::ClxSnapshot* m_clxSnapshot = nullptr;
+    clx::net::HttpServer*  m_httpServer  = nullptr;
+    void initRemoteControl();
+    void registerRemoteRoutes();
+    void updateSnapshotStatus();
+    QString ensureRemoteControlToken();
 
     // Callsign lookup APIs
     QrzcqApi *m_qrzcqApi;

@@ -1,3 +1,62 @@
 1. LOC vs EXCH field in WFD module
 2. [2026-01-24 16:35:31.730] DxCluster: Expired spot for KE2EYY (16 minutes old) -- is not filterable / toggle off on
-3. Local-network HTTP control endpoint for mobile devices — scope TBD (candidates: read-only score/rate/last-QSOs/freq, write minimal log-QSO and rig QSY, auth via token, bind LAN-only). Qt6 QHttpServer module or QTcpServer.
+3. Local-network HTTP control endpoint for mobile devices (finalized scope):
+   V1 — Read-only JSON endpoints + built-in mobile dashboard HTML page served at /:
+     GET /api/status, /api/score, /api/rate, /api/qsos?limit=N&offset=N,
+         /api/rig, /api/mults, /api/propagation
+     Single-file static HTML+JS dashboard auto-refreshing every 5s, token via
+     ?token= query param for bookmarkable URL.
+   V2 — Minimal writes, rig-control only (no QSO logging, no CW memory trigger):
+     POST /api/rig/qsy { radio, freq_hz, mode }
+     POST /api/rig/band { radio, band }
+     POST /api/rig/run_mode { radio, mode: Run|S&P|Off }
+   V3+ (explicitly deferred): POST /api/qso, POST /api/cw/memory — both race
+     with keyboard focus, not worth the risk.
+   Infrastructure:
+     - Qt6::HttpServer module (add to CMakeLists + install-qt-action modules)
+     - Dedicated QThread for the server so slow clients can't hiccup the UI
+     - Auth: single token, Authorization: Bearer <t> or ?token= query param
+     - Bind: LAN-only default, Preferences offers 127.0.0.1-only or specific iface
+     - Preferences UI: enable toggle, port, bind mode, token + Copy-URL-for-Phone
+       button, Rotate Token button
+     - mDNS/Bonjour discovery: advertise _contestlogx._tcp.local with version
+       + auth=required TXT records so phones can reach http://contestlogx.local:8080
+       instead of typing the IP. Use a vendored header-only mDNS lib
+       (mjansson/mdns) to avoid a user-install Bonjour burden on Windows.
+
+4. Multi-Multi networked operation — peer-to-peer CLX coordination across multiple
+   stations on the same LAN. Each station runs its own CLX; instances discover each
+   other (mDNS, shared with item 3) and coordinate via UDP multicast for real-time
+   push (QSOs, band state) and HTTP/RPC for request-response (serial number draws,
+   full log sync on join).
+   V1 scope (minimum viable M/M):
+     - Peer discovery via mDNS (reuse item 3's infra): _contestlogx-mm._udp.local
+     - QSO broadcast on log: every peer mirrors others' QSOs into a read-only
+       "peer log" used for dupe check but NOT scored locally
+     - Band-lock advisory: visual indicator showing which band each peer is on;
+       warn (not block) on band collision. Blocking is a policy call.
+     - Shared serial numbers: single-master election (lowest node ID / configurable
+       override); peers request next serial via HTTP POST /api/mm/serial. Master
+       death triggers re-election; in-flight draws reconcile on rejoin.
+     - Station identity: op callsign + position name (e.g. "K1ABC/Run-1") baked
+       into every peer message
+     - Dupe check considers local + peer logs; scorer continues to score local only
+   V2 scope:
+     - Full log sync on join (station reconnects after disconnect; asks peers for
+       QSOs since last-known timestamp)
+     - Durable peer-log persistence so dupes survive restart
+     - Real-time score aggregation (captain's dashboard showing per-station
+       contribution and running total)
+     - HMAC signing of multicast packets with shared network secret to block
+       rogue CLX instances or neighbouring stations on the same subnet
+   V3+:
+     - Full band-lock enforcement (refuse to tune, not just warn)
+     - Cross-station spot sharing from DX cluster
+     - Encrypted peer channel for non-trusted networks
+   Design anchors:
+     - Message format: JSON over UDP multicast (group 239.x.x.x, port configurable);
+       each packet has node_id, sequence, timestamp, payload
+     - Same QThread that runs the HTTP server hosts the multicast listener/sender
+     - Shares thread-safe QSO snapshot struct with items 3 (HTTP) and onlineScoreClient
+     - Failure mode priority: never lose a local QSO; dropped peer messages are
+       recovered via the sync-on-rejoin path

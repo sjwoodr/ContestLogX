@@ -78,6 +78,8 @@ set(SOURCES
     src/qrzApi.cpp
     src/net/onlineScoreClient.cpp
     src/net/wsjtxListener.cpp
+    src/net/clxSnapshot.cpp
+    src/net/httpServer.cpp
     src/audio/binChannel.cpp
     src/audio/cwDecoder.cpp
     src/audio/audioCapture.cpp
@@ -144,6 +146,8 @@ set(HEADERS
      include/qrzApi.h
      include/onlineScoreClient.h
      include/wsjtxListener.h
+     include/net/clxSnapshot.h
+     include/net/httpServer.h
      include/audio/audioTypes.h
      include/audio/morseTable.h
      include/audio/spscRingBuffer.h

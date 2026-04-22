@@ -41,6 +41,10 @@
 #include "dxccDatabase.h"
 #include "onlineScoreClient.h"
 #include "cwDecoderWidget.h"
+#include "net/clxSnapshot.h"
+#include "net/httpServer.h"
+#include <QUuid>
+#include <QJsonArray>
 #include <cmath>
 #include <QSpinBox>
 #include <QJsonDocument>
@@ -348,6 +352,13 @@ MainWindow::MainWindow(QWidget *parent)
         if (m_wsjtxListener->startListening(wsjtxPort)) {
             DebugLogger::instance().log("MainWindow", QString("WSJT-X listener started on port %1").arg(wsjtxPort));
         }
+    }
+
+    // Initialize Remote Control — HTTP server + snapshot. No-op at startup
+    // unless the user has enabled it in Preferences. Safe to construct
+    // regardless; start() only binds the socket when enabled (TODO item 3).
+    if (!m_testMode) {
+        initRemoteControl();
     }
 
     // Fetch propagation data from NOAA on startup and every 15 minutes
@@ -9390,5 +9401,85 @@ void MainWindow::notifyInternalCwSend(bool isRightRadio, int textChars, int send
         ? Settings::instance().getRadioRDecoderPttGraceMs()
         : Settings::instance().getRadioLDecoderPttGraceMs();
     w->muteForInternalSend(baseMs + grace);
+}
+
+// =======================================================================
+// Remote Control — HTTP server for LAN dashboards + minimal rig control.
+// See TODO item 3 for the full scope.
+// =======================================================================
+
+QString MainWindow::ensureRemoteControlToken()
+{
+    Settings& s = Settings::instance();
+    QString token = s.getRemoteControlToken();
+    if (token.isEmpty()) {
+        // 128-bit hex token from QUuid, no dashes or braces — short enough
+        // to paste manually if needed, long enough that brute-forcing on
+        // a LAN is not a realistic threat model.
+        token = QUuid::createUuid().toString(QUuid::Id128);
+        s.setRemoteControlToken(token);
+    }
+    return token;
+}
+
+void MainWindow::initRemoteControl()
+{
+    m_clxSnapshot = new clx::net::ClxSnapshot();
+    m_httpServer  = new clx::net::HttpServer(m_clxSnapshot, this);
+
+    connect(m_httpServer, &clx::net::HttpServer::errorOccurred, this,
+            [](const QString& msg) {
+                DebugLogger::instance().log("HttpServer", msg);
+            });
+
+    registerRemoteRoutes();
+    updateSnapshotStatus();
+
+    if (Settings::instance().getRemoteControlEnabled()) {
+        ensureRemoteControlToken();
+        m_httpServer->start();
+    }
+}
+
+void MainWindow::updateSnapshotStatus()
+{
+    if (!m_clxSnapshot) return;
+    m_clxSnapshot->setRunning(true);
+    m_clxSnapshot->setContestName(m_contestEngine
+                                  ? m_contestEngine->getContestName()
+                                  : QString());
+    m_clxSnapshot->setContestFile(m_contestFile);
+    m_clxSnapshot->setSo2rEnabled(m_so2rEnabled);
+    if (!m_clxSnapshot->copy().startedAt.isValid()) {
+        m_clxSnapshot->setStartedAt(QDateTime::currentDateTimeUtc());
+    }
+}
+
+void MainWindow::registerRemoteRoutes()
+{
+    if (!m_httpServer || !m_clxSnapshot) return;
+
+    // GET /api/status — lightweight "is CLX up and what's it doing?" probe.
+    // Served from the snapshot so handlers never block the main thread's
+    // current work; MainWindow is responsible for keeping the snapshot
+    // fresh via updateSnapshotStatus() and related setters on state change.
+    m_httpServer->registerRoute("GET", "/api/status",
+        [this](const clx::net::HttpRequest&) -> clx::net::HttpResponse {
+            const auto st = m_clxSnapshot->copy();
+            QJsonObject j;
+            j["running"]        = st.running;
+            j["contestName"]    = st.contestName;
+            j["contestFile"]    = st.contestFile;
+            j["so2rEnabled"]    = st.so2rEnabled;
+            j["startedAtUtc"]   = st.startedAt.isValid()
+                                   ? st.startedAt.toString(Qt::ISODate)
+                                   : QString();
+            j["nowUtc"]         = QDateTime::currentDateTimeUtc().toString(Qt::ISODate);
+            j["version"]        = qApp->applicationVersion();
+
+            clx::net::HttpResponse r;
+            r.body = QJsonDocument(j).toJson(QJsonDocument::Compact);
+            return r;
+        });
 }
 

@@ -2032,6 +2032,60 @@ QString Settings::getUserDataPath()
     return dir.absolutePath();
 }
 
+// ---------- Remote Control — embedded HTTP server (TODO item 3) ----------
+
+bool Settings::getRemoteControlEnabled() const
+{
+    return m_settings["remoteControl"].toObject()["enabled"].toBool(false);
+}
+
+void Settings::setRemoteControlEnabled(bool enabled)
+{
+    QJsonObject rc = m_settings["remoteControl"].toObject();
+    rc["enabled"] = enabled;
+    m_settings["remoteControl"] = rc;
+    save();
+}
+
+int Settings::getRemoteControlPort() const
+{
+    return m_settings["remoteControl"].toObject()["port"].toInt(8080);
+}
+
+void Settings::setRemoteControlPort(int port)
+{
+    QJsonObject rc = m_settings["remoteControl"].toObject();
+    rc["port"] = port;
+    m_settings["remoteControl"] = rc;
+    save();
+}
+
+QString Settings::getRemoteControlBindMode() const
+{
+    return m_settings["remoteControl"].toObject()["bindMode"].toString(QStringLiteral("lan"));
+}
+
+void Settings::setRemoteControlBindMode(const QString& mode)
+{
+    QJsonObject rc = m_settings["remoteControl"].toObject();
+    rc["bindMode"] = mode;
+    m_settings["remoteControl"] = rc;
+    save();
+}
+
+QString Settings::getRemoteControlToken() const
+{
+    return m_settings["remoteControl"].toObject()["token"].toString();
+}
+
+void Settings::setRemoteControlToken(const QString& token)
+{
+    QJsonObject rc = m_settings["remoteControl"].toObject();
+    rc["token"] = token;
+    m_settings["remoteControl"] = rc;
+    save();
+}
+
 void Settings::scaleDefaultLayout()
 {
     // Get primary screen geometry

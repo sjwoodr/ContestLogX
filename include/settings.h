@@ -380,6 +380,24 @@ public:
     QFont getPanelFont(const QString& panelKey) const;
     void setPanelFont(const QString& panelKey, const QFont& font);
 
+    // Remote Control — embedded HTTP server for LAN dashboards and minimal
+    // rig control from mobile devices (TODO item 3). Off by default; when
+    // enabled, binds according to getRemoteControlBindMode() and serves
+    // read-only JSON endpoints plus a static dashboard page at /.
+    bool getRemoteControlEnabled() const;
+    void setRemoteControlEnabled(bool enabled);
+    int  getRemoteControlPort() const;       // default 8080
+    void setRemoteControlPort(int port);
+    // Bind mode: "lan" = first non-loopback IPv4 interface, "localhost" =
+    // 127.0.0.1 only, "any" = 0.0.0.0 (useful when LAN autodetect picks
+    // the wrong interface, e.g. VPN tunnels present).
+    QString getRemoteControlBindMode() const;
+    void    setRemoteControlBindMode(const QString& mode);
+    // Shared bearer token (also accepted as ?token= query param). Auto-
+    // generated on first enable; user can rotate via Preferences.
+    QString getRemoteControlToken() const;
+    void    setRemoteControlToken(const QString& token);
+
     void save();
 
     // Static utility function to get data directory path
