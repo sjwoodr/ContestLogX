@@ -369,8 +369,19 @@ static const QRegularExpression& kCallRe()
 }
 static const QRegularExpression& kRstRe()
 {
+    // RST is three characters: readability [1-5], signal strength [1-9],
+    // tone [1-9]. CW operators commonly send N as cut-number shorthand
+    // for 9 in the strength and tone positions ("5NN" = 599, "55N" = 559,
+    // "5N9" = 599), so we accept [1-9N] in positions 2 and 3. First
+    // position stays [1-5] since readability never uses a cut number.
+    //
+    // Bounded by actual whitespace (or start/end of string) to avoid
+    // matching substrings inside longer numbers (e.g., serial "5599"
+    // or a callsign's digit run). Lookbehind/ahead don't consume the
+    // boundary characters, so the match itself is exactly the three
+    // RST characters.
     static const QRegularExpression re(
-        QStringLiteral(R"(\b(?:5NN|4NN|3NN|[1-5][1-9][1-9]|[1-5][1-9])\b)"));
+        QStringLiteral(R"((?<=^|\s)[1-5][1-9N][1-9N](?=\s|$))"));
     return re;
 }
 
@@ -465,7 +476,13 @@ bool CwDecoderWidget::eventFilter(QObject* obj, QEvent* event)
         return true;   // consume — operator acted on a token
     }
     if (isRst) {
-        emit rstClicked(word, row);
+        // Normalize CW cut-numbers to digits before filling: N → 9, T → 0.
+        // So clicking "5NN" writes "599" into the RSTr field (the canonical
+        // numeric form the contest engine and logs expect), not literal N's.
+        QString normalized = word;
+        normalized.replace(QChar('N'), QChar('9'));
+        normalized.replace(QChar('T'), QChar('0'));
+        emit rstClicked(normalized, row);
         return true;
     }
     return false;       // non-token click falls through (normal selection)
