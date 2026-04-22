@@ -210,7 +210,7 @@ void PreferencesDialog::setupUi()
     connect(m_lookupQrzRadio,   &QRadioButton::toggled, this, &PreferencesDialog::onLookupServiceChanged);
     onLookupServiceChanged();  // set initial visibility
 
-    tabWidget->addTab(lookupTab, "Callsign Lookup");
+    tabWidget->addTab(lookupTab, "Lookup");
 
     // DX Cluster tab
     QWidget *dxClusterTab = new QWidget(this);
@@ -363,7 +363,7 @@ void PreferencesDialog::setupUi()
     connect(m_osEnabledCheck, &QCheckBox::toggled, updateOsFields);
     updateOsFields(m_osEnabledCheck->isChecked());
 
-    tabWidget->addTab(osTab, "Online Scoring");
+    tabWidget->addTab(osTab, "Scoring");
 
     // ── Remote Control tab ──────────────────────────────────────────────────
     QWidget *rcTab = new QWidget;
@@ -461,7 +461,7 @@ void PreferencesDialog::setupUi()
     updateRcFields(m_rcEnabledCheck->isChecked());
     updateRemoteControlUrlLabel();
 
-    tabWidget->addTab(rcTab, "Remote Control");
+    tabWidget->addTab(rcTab, "Remote");
 
     mainLayout->addWidget(tabWidget);
 
