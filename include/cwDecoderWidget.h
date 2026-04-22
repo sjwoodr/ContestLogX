@@ -84,12 +84,17 @@ private slots:
     void onWpmRangeChanged();
     void onSpotlightRowChanged(int rowIndex);
 
+protected:
+    bool eventFilter(QObject* obj, QEvent* event) override;
+
 private:
     void buildUi();
     void rebuildRows(const QList<double>& centerFrequencies);
     void applySpotlightVisuals();
     void rescanTokensForRow(int binIndex);
     void appendCharToRow(int binIndex, QChar ch);
+    // Determines which row a viewport belongs to; returns -1 if not one of ours.
+    int rowIndexForViewport(QObject* viewport) const;
 
     clx::audio::RadioSide m_owningRadio;
 

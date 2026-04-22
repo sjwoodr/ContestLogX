@@ -15,12 +15,16 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QMediaDevices>
+#include <QMouseEvent>
 #include <QPalette>
 #include <QPlainTextEdit>
 #include <QPushButton>
 #include <QRegularExpression>
 #include <QSlider>
 #include <QSpinBox>
+#include <QTextBlock>
+#include <QTextCharFormat>
+#include <QTextCursor>
 #include <QThread>
 #include <QTimer>
 #include <QVBoxLayout>
@@ -288,10 +292,16 @@ void CwDecoderWidget::rebuildRows(const QList<double>& centerFrequencies)
         row.text->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
         row.text->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
         row.text->setFixedHeight(24);
-        row.text->setTextInteractionFlags(Qt::TextBrowserInteraction);
+        row.text->setTextInteractionFlags(
+            Qt::TextSelectableByMouse | Qt::TextSelectableByKeyboard);
         QFont txtFont = row.text->font();
         txtFont.setFamily(QStringLiteral("monospace"));
         row.text->setFont(txtFont);
+        // Cursor becomes a pointing-hand over clickable tokens; default I-beam
+        // elsewhere. Enable tracking so cursor shape can change on hover.
+        row.text->viewport()->setMouseTracking(true);
+        // Install filter to catch operator clicks on decoded tokens (T040).
+        row.text->viewport()->installEventFilter(this);
 
         h->addWidget(row.freqLabel);
         h->addWidget(row.wpmLabel);
@@ -334,41 +344,117 @@ void CwDecoderWidget::onCharDecoded(int binIndex, QChar ch, qint64 timestampMs)
     rescanTokensForRow(binIndex);
 }
 
+// Shared regex patterns for token detection and click validation.
+// Callsign: standard international pattern incl. slash-notation portable.
+// RST: three-digit, CW short form (5NN/4NN/3NN), or two-digit.
+static const QRegularExpression& kCallRe()
+{
+    static const QRegularExpression re(
+        QStringLiteral(R"(\b[A-Z0-9]*[A-Z][0-9][A-Z0-9]*[A-Z](?:/[A-Z0-9]+)?\b)"));
+    return re;
+}
+static const QRegularExpression& kRstRe()
+{
+    static const QRegularExpression re(
+        QStringLiteral(R"(\b(?:5NN|4NN|3NN|[1-5][1-9][1-9]|[1-5][1-9])\b)"));
+    return re;
+}
+
 void CwDecoderWidget::rescanTokensForRow(int binIndex)
 {
     if (binIndex < 0 || binIndex >= m_rows.size()) return;
     QPlainTextEdit* te = m_rows[binIndex].text;
     if (!te) return;
 
-    // Scan tail 20 chars for callsign / RST shapes. When a match is found,
-    // emit the corresponding signal. NOTE: this is a simple behavior —
-    // token hit-testing on click is a stretch goal; for now, callsigns and
-    // RSTs are automatically emitted as they complete, and MainWindow can
-    // optionally surface them as hints. Click-to-fill implementation uses
-    // QPlainTextEdit's contextMenuEvent or a custom click handler (TODO).
-    static const QRegularExpression callRe(
-        QStringLiteral(R"(\b[A-Z0-9]*[A-Z][0-9][A-Z0-9]*[A-Z](?:/[A-Z0-9]+)?\b)"));
-    static const QRegularExpression rstRe(
-        QStringLiteral(R"(\b(?:5NN|4NN|3NN|[1-5][1-9][1-9]|[1-5][1-9])\b)"));
+    // Apply visual formatting to clickable tokens so the operator knows
+    // what's interactive. This runs on every decoded character — cheap for
+    // the 1-line-per-row widget. The actual click-to-fill is driven by
+    // eventFilter() on mouse release, not by regex match here.
+    QTextDocument* doc = te->document();
+    if (!doc) return;
 
-    const QString tail = te->toPlainText().right(24);
-    QRegularExpressionMatchIterator itCall = callRe.globalMatch(tail);
-    while (itCall.hasNext()) {
-        QRegularExpressionMatch m = itCall.next();
-        if (!m.hasMatch()) continue;
-        // Emit every time a match is detected — downstream handles dedup.
-        emit callClicked(m.captured(0), binIndex);
+    // Reset all formatting on the block, then re-apply token styling.
+    QTextCursor cursor(doc);
+    cursor.select(QTextCursor::Document);
+    QTextCharFormat defaultFmt;
+    cursor.setCharFormat(defaultFmt);
+
+    const QString fullText = te->toPlainText();
+
+    auto applyFormat = [&](const QRegularExpression& re, const QColor& color) {
+        QTextCharFormat fmt;
+        fmt.setFontUnderline(true);
+        fmt.setForeground(color);
+        auto it = re.globalMatch(fullText);
+        while (it.hasNext()) {
+            const QRegularExpressionMatch m = it.next();
+            if (!m.hasMatch()) continue;
+            QTextCursor c(doc);
+            c.setPosition(m.capturedStart());
+            c.setPosition(m.capturedEnd(), QTextCursor::KeepAnchor);
+            c.mergeCharFormat(fmt);
+        }
+    };
+    applyFormat(kCallRe(), QColor(0x4d, 0xa6, 0xff));  // blue — callsigns
+    applyFormat(kRstRe(),  QColor(0xff, 0xc1, 0x07));  // amber — RST
+
+    // Keep the cursor at the end so the view auto-scrolls to show new chars.
+    te->moveCursor(QTextCursor::End);
+}
+
+int CwDecoderWidget::rowIndexForViewport(QObject* viewport) const
+{
+    for (int i = 0; i < m_rows.size(); ++i) {
+        if (m_rows[i].text && m_rows[i].text->viewport() == viewport) {
+            return i;
+        }
     }
-    QRegularExpressionMatchIterator itRst = rstRe.globalMatch(tail);
-    while (itRst.hasNext()) {
-        QRegularExpressionMatch m = itRst.next();
-        if (!m.hasMatch()) continue;
-        // NOTE: spec requires clickable tokens, not auto-emit on sight. For MVP
-        // we emit on detection; future iteration should wrap tokens as clickable
-        // anchors and emit only on actual operator click. Left as TODO.
-        // Temporarily disabled auto-emit of RST — would otherwise spam the field.
-        Q_UNUSED(m);
+    return -1;
+}
+
+bool CwDecoderWidget::eventFilter(QObject* obj, QEvent* event)
+{
+    if (event->type() != QEvent::MouseButtonRelease &&
+        event->type() != QEvent::MouseMove) {
+        return QDockWidget::eventFilter(obj, event);
     }
+
+    const int row = rowIndexForViewport(obj);
+    if (row < 0) return QDockWidget::eventFilter(obj, event);
+
+    QMouseEvent* me = static_cast<QMouseEvent*>(event);
+    QPlainTextEdit* te = m_rows[row].text;
+    if (!te) return QDockWidget::eventFilter(obj, event);
+
+    // Find the word under the pointer.
+    QTextCursor cursor = te->cursorForPosition(me->pos());
+    cursor.select(QTextCursor::WordUnderCursor);
+    const QString word = cursor.selectedText();
+
+    const bool isCall = !word.isEmpty() && kCallRe().match(word).hasMatch();
+    const bool isRst  = !word.isEmpty() && kRstRe().match(word).hasMatch();
+
+    // On hover, swap cursor to pointing-hand when over a token — gives
+    // a visual affordance the same way a hyperlink would.
+    if (event->type() == QEvent::MouseMove) {
+        te->viewport()->setCursor((isCall || isRst)
+            ? Qt::PointingHandCursor
+            : Qt::IBeamCursor);
+        return false;  // let the event propagate for selection
+    }
+
+    // MouseButtonRelease: only left-button clicks trigger fill.
+    if (me->button() != Qt::LeftButton) return false;
+
+    if (isCall) {
+        emit callClicked(word, row);
+        return true;   // consume — operator acted on a token
+    }
+    if (isRst) {
+        emit rstClicked(word, row);
+        return true;
+    }
+    return false;       // non-token click falls through (normal selection)
 }
 
 void CwDecoderWidget::onWpmUpdated(int binIndex, int wpm)
