@@ -6978,6 +6978,11 @@ bool MainWindow::loadContestDefinition(const QString& filePath, bool restoreStat
     if (m_dxClusterPanel)
         m_dxClusterPanel->setBands(m_contestEngine->getAllowedBands());
 
+    // Notify the CW Decoder widgets so the "Practice — Contest Exchange"
+    // source entry in the audio-device dropdown becomes selectable.
+    if (m_cwDecoderLeft)  m_cwDecoderLeft->refreshPracticeContestAvailability();
+    if (m_cwDecoderRight) m_cwDecoderRight->refreshPracticeContestAvailability();
+
     updateWindowTitle();
     DebugLogger::instance().log("MainWindow", QString("loadContestDefinition completed successfully, m_contestDefinition.isEmpty(): %1").arg(m_contestDefinition.isEmpty() ? "true" : "false"));
     DebugLogger::instance().log("MainWindow", QString("Contest name: %1").arg(m_contestEngine->getContestName()));
@@ -9208,6 +9213,10 @@ void MainWindow::spawnOrRefreshCwDecoders()
         if (wasNew) {
             slot = new CwDecoderWidget(
                 right ? clx::audio::RadioSide::Right : clx::audio::RadioSide::Left, this);
+            // Hand the widget a non-owning ContestEngine pointer so the
+            // "Practice — Contest Exchange" source can pull the active
+            // contest's exchange format and named-mult values.
+            slot->setContestEngine(m_contestEngine);
             // Top dock area — sits above the QSO log. The TopRightCorner
             // was assigned to the right dock area in setupUi so this does
             // not extend over DX Cluster / Band Map / etc.

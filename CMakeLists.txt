@@ -82,6 +82,9 @@ set(SOURCES
     src/audio/cwDecoder.cpp
     src/audio/audioCapture.cpp
     src/audio/cwDecoderWorker.cpp
+    src/audio/morseEncoder.cpp
+    src/audio/practiceContentGenerator.cpp
+    src/audio/practiceAudioSource.cpp
     src/ui/cwDecoderWidget.cpp
 )
 
@@ -148,6 +151,9 @@ set(HEADERS
      include/audio/cwDecoder.h
      include/audio/audioCapture.h
      include/audio/cwDecoderWorker.h
+     include/audio/morseEncoder.h
+     include/audio/practiceContentGenerator.h
+     include/audio/practiceAudioSource.h
      include/cwDecoderWidget.h
 )
 

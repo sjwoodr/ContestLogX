@@ -30,8 +30,11 @@ public:
     explicit AudioCapture(const QAudioDevice& device, QObject* parent = nullptr);
     ~AudioCapture() override;
 
-    bool start();
-    void stop();
+    // Virtual so the PracticeAudioSource subclass can substitute
+    // synthesized tones for a real QAudioSource without the decoder
+    // worker having to branch on type.
+    virtual bool start();
+    virtual void stop();
     bool isRunning() const { return m_running; }
 
     // Consumer side — called by the decoder worker.
@@ -61,13 +64,18 @@ signals:
 private slots:
     void onReadyRead();
 
+protected:
+    // Exposed to PracticeAudioSource so it can push synthesized samples
+    // into the same ring buffer the decoder worker drains from, and set
+    // the effective sample rate reported to the worker.
+    SpscRingBuffer m_ring;
+    QAudioFormat m_format;
+    bool m_running = false;
+
 private:
     QAudioDevice m_device;
-    QAudioFormat m_format;
     std::unique_ptr<QAudioSource> m_source;
     QIODevice* m_io = nullptr;
-    SpscRingBuffer m_ring;
-    bool m_running = false;
 };
 
 } // namespace clx::audio

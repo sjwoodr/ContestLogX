@@ -29,6 +29,8 @@ class QThread;
 class QToolButton;
 class QVBoxLayout;
 
+class ContestEngine;
+
 namespace clx::audio {
 class CwDecoderWorker;
 class AudioCapture;
@@ -55,6 +57,17 @@ public:
     // for this radio. Starts capture + worker.
     void beginDecoding(const QString& audioDeviceDescription);
     void endDecoding();
+
+    // Non-owning pointer used by the Practice audio source in contest mode
+    // to pull exchange format and named-mult values from the active contest.
+    // Setting to nullptr (or a contest not being loaded) automatically
+    // disables the "Practice - Contest Exchange" entry in the dropdown.
+    void setContestEngine(ContestEngine* engine);
+
+public slots:
+    // Call after a contest is loaded or unloaded so the "Practice — Contest
+    // Exchange" audio-source entry is enabled/disabled to match.
+    void refreshPracticeContestAvailability();
 
     // Forwarded to the worker (via queued connection).
     void muteForInternalSend(int durationMs);
@@ -116,6 +129,8 @@ private:
 
     bool m_muted = false;
     bool m_applyingSettings = false;
+
+    ContestEngine* m_contestEngine = nullptr;
 };
 
 #endif // CWDECODERWIDGET_H

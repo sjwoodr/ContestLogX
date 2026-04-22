@@ -8,6 +8,8 @@
 #include "cwDecoderWidget.h"
 #include "audio/cwDecoderWorker.h"
 #include "audio/audioCapture.h"
+#include "audio/practiceAudioSource.h"
+#include "contestEngine.h"
 #include "settings.h"
 #include "debugLogger.h"
 
@@ -24,6 +26,7 @@
 #include <QRegularExpression>
 #include <QSlider>
 #include <QSpinBox>
+#include <QStandardItemModel>
 #include <QTextBlock>
 #include <QTextCharFormat>
 #include <QTextCursor>
@@ -93,6 +96,16 @@ void CwDecoderWidget::buildUi()
     m_audioDeviceCombo->setMinimumContentsLength(8);
     m_audioDeviceCombo->setMaximumWidth(160);
     m_audioDeviceCombo->addItem(tr("(none)"), QString());
+    // Virtual "Practice" entries live above the real devices. These are
+    // sentinel device names handled in beginDecoding() — selecting either
+    // spawns a PracticeAudioSource that synthesizes CW training audio
+    // (plays on the default output + feeds the decoder pipeline). The
+    // "practice-test" entry is enabled/disabled dynamically based on
+    // whether a contest is currently loaded (see refreshPracticeContestAvailability).
+    m_audioDeviceCombo->addItem(tr("Practice — CW Rag Chew"),
+                                QStringLiteral("practice-cw"));
+    m_audioDeviceCombo->addItem(tr("Practice — Contest Exchange"),
+                                QStringLiteral("practice-test"));
     for (const QAudioDevice& d : QMediaDevices::audioInputs()) {
         m_audioDeviceCombo->addItem(d.description(), d.description());
     }
@@ -234,25 +247,50 @@ void CwDecoderWidget::beginDecoding(const QString& audioDeviceDescription)
         m_applyingSettings = false;
     }
 
-    // Resolve the device from QMediaDevices by description.
-    QAudioDevice chosen;
-    for (const QAudioDevice& d : QMediaDevices::audioInputs()) {
-        if (d.description() == audioDeviceDescription) {
-            chosen = d;
-            break;
-        }
-    }
-    if (chosen.isNull()) {
-        if (DebugLogger::instance().isCwDecoderDebugEnabled()) {
-            DebugLogger::instance().log("CwDecoder",
-                QString("Audio device '%1' not found; decoder disabled for %2")
-                    .arg(audioDeviceDescription,
-                         isRightRadio() ? "Radio R" : "Radio L"));
-        }
-        return;
-    }
+    // Practice mode: the device name is a sentinel, not a real audio
+    // device. Spawn a PracticeAudioSource that synthesizes CW from either
+    // a rag-chew template pool or the active contest's exchange format.
+    // The WPM comes from Settings::getCwWpm() — same setting the CW
+    // console uses — so practice speed follows whatever the operator
+    // has the keyer set to.
+    const bool isPracticeCw   = (audioDeviceDescription == QLatin1String("practice-cw"));
+    const bool isPracticeTest = (audioDeviceDescription == QLatin1String("practice-test"));
 
-    AudioCapture* capture = new AudioCapture(chosen);
+    AudioCapture* capture = nullptr;
+    if (isPracticeCw || isPracticeTest) {
+        if (isPracticeTest && (!m_contestEngine
+                               || m_contestEngine->getContestName().isEmpty())) {
+            if (DebugLogger::instance().isCwDecoderDebugEnabled()) {
+                DebugLogger::instance().log("CwDecoder",
+                    "Practice contest mode requires a loaded contest; ignoring.");
+            }
+            return;
+        }
+        auto* practice = new PracticeAudioSource(
+            isPracticeTest ? PracticeMode::Contest : PracticeMode::Ragchew);
+        practice->setContestEngine(m_contestEngine);
+        practice->setWpmProvider([]() { return Settings::instance().getCwWpm(); });
+        capture = practice;
+    } else {
+        // Resolve the real device from QMediaDevices by description.
+        QAudioDevice chosen;
+        for (const QAudioDevice& d : QMediaDevices::audioInputs()) {
+            if (d.description() == audioDeviceDescription) {
+                chosen = d;
+                break;
+            }
+        }
+        if (chosen.isNull()) {
+            if (DebugLogger::instance().isCwDecoderDebugEnabled()) {
+                DebugLogger::instance().log("CwDecoder",
+                    QString("Audio device '%1' not found; decoder disabled for %2")
+                        .arg(audioDeviceDescription,
+                             isRightRadio() ? "Radio R" : "Radio L"));
+            }
+            return;
+        }
+        capture = new AudioCapture(chosen);
+    }
 
     m_workerThread = new QThread(this);
     m_worker = new CwDecoderWorker();
@@ -320,6 +358,36 @@ void CwDecoderWidget::setPttMute(bool active)
     if (!m_worker) return;
     QMetaObject::invokeMethod(m_worker, "setPttMute", Qt::QueuedConnection,
                               Q_ARG(bool, active));
+}
+
+void CwDecoderWidget::setContestEngine(ContestEngine* engine)
+{
+    m_contestEngine = engine;
+    refreshPracticeContestAvailability();
+    // ContestEngine doesn't expose a "contest loaded/unloaded" signal, so
+    // MainWindow is responsible for calling refreshPracticeContestAvailability()
+    // again whenever it swaps the active contest.
+}
+
+void CwDecoderWidget::refreshPracticeContestAvailability()
+{
+    if (!m_audioDeviceCombo) return;
+    const int idx = m_audioDeviceCombo->findData(QStringLiteral("practice-test"));
+    if (idx < 0) return;
+    const bool haveContest = m_contestEngine
+                             && !m_contestEngine->getContestName().isEmpty();
+    // Disable the item via the model (QComboBox items can be disabled by
+    // clearing the ItemIsEnabled flag on their model index).
+    if (auto* model = qobject_cast<QStandardItemModel*>(m_audioDeviceCombo->model())) {
+        if (auto* item = model->item(idx)) {
+            item->setFlags(haveContest
+                           ? item->flags() | Qt::ItemIsEnabled | Qt::ItemIsSelectable
+                           : item->flags() & ~(Qt::ItemIsEnabled | Qt::ItemIsSelectable));
+            item->setToolTip(haveContest
+                             ? QString()
+                             : tr("Load a contest first"));
+        }
+    }
 }
 
 void CwDecoderWidget::rebuildRows(const QList<double>& centerFrequencies)

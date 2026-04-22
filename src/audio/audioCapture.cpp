@@ -12,14 +12,16 @@ namespace clx::audio {
 
 AudioCapture::AudioCapture(const QAudioDevice& device, QObject* parent)
     : QObject(parent)
-    , m_device(device)
     // Ring buffer sized for 1 second at the DEVICE's preferred sample rate;
     // since we no longer downsample, this is whatever the mic / virtual
     // device actually runs at (typically 44100 or 48000). Worst-case
-    // memory: 96 kB for 1 s at 48 kHz int16. Negligible.
+    // memory: 96 kB for 1 s at 48 kHz int16. Negligible. Falls back to a
+    // default rate for null devices (used by PracticeAudioSource, which
+    // initializes with a null QAudioDevice and sets its own rate later).
     , m_ring(device.preferredFormat().sampleRate() > 0
              ? device.preferredFormat().sampleRate() * kRingBufferSeconds
              : kSampleRateHz * kRingBufferSeconds)
+    , m_device(device)
 {
     // Use the device's preferred format as our starting point. This gives
     // us native rate + native sample format, eliminating the need for
