@@ -6,6 +6,8 @@ All notable changes to ContestLogX are documented in this file.
 
 ### Other Changes and Bugfixes
 - Fixed macOS app bundle failing Gatekeeper verification — re-sign bundle ad-hoc after macdeployqt rewrites rpaths so Sealed Resources are properly generated
+- Fixed CW Decoder receiving no audio on macOS — add NSMicrophoneUsageDescription to Info.plist so macOS TCC prompts for microphone access instead of silently returning a zero-filled stream
+- Built macOS app bundle as universal binary (x86_64 + arm64) so it runs natively on both Intel and Apple Silicon Macs; minimum macOS version is now 11.0 Big Sur
 
 ## [0.7.22]
 

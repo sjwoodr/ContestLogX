@@ -9,11 +9,26 @@ JOBS=${JOBS:-$(sysctl -n hw.ncpu)}
 
 mkdir -p build dist
 
-# Configure and build
+# Configure and build as a universal binary (x86_64 + arm64) so the bundle
+# runs natively on both Intel and Apple Silicon Macs. Qt 6.2+ ships
+# universal frameworks by default so no separate Qt install is needed —
+# clang cross-compiles the x86_64 slice even on an Apple Silicon runner.
+# Deployment target is Big Sur (macOS 11.0), the oldest macOS with Apple
+# Silicon support and the effective floor for Qt 6.5.
 cd build
-cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=OFF ..
+cmake -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64" \
+      -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 \
+      -DBUILD_TESTS=OFF ..
 cmake --build . -j"${JOBS}"
 cd ..
+
+# Sanity-check that the binary actually contains both architectures. lipo
+# prints "Architectures in the fat file: ... are: x86_64 arm64" on success;
+# CI logs make this easy to spot.
+echo ""
+echo "Architectures in built binary:"
+lipo -info "build/${APP_NAME}"
 
 # Create app bundle structure
 mkdir -p "dist/${APP_NAME}.app/Contents/MacOS"
@@ -63,6 +78,15 @@ cat > "dist/${APP_NAME}.app/Contents/Info.plist" << EOF
     <string>1</string>
     <key>NSPrincipalClass</key>
     <string>NSApplication</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>11.0</string>
+    <!-- NSMicrophoneUsageDescription is REQUIRED for the CW Decoder to
+         receive any audio from a capture device. macOS TCC silently hands
+         back a zero-filled stream if this key is missing — symptom is
+         "CW Decoder produces no output at all, not even garbage." The
+         string below is shown to the user in the mic-access prompt. -->
+    <key>NSMicrophoneUsageDescription</key>
+    <string>ContestLogX decodes Morse code from your radio's receive audio. Select an input device in Rig Connection Settings to enable the CW Decoder.</string>
 </dict>
 </plist>
 EOF
