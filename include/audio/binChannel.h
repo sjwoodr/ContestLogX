@@ -100,6 +100,12 @@ private:
     // before committing a transition. At 10 ms/block, a 2-block debounce
     // filters out <20 ms jitter without affecting dots (≥~48 ms at 25 WPM).
     int m_pendingBlocks = 0;        // how many blocks disagreeing with m_toneActive
+    // Peak smoothed magnitude observed during the current tone-active run.
+    // Used by the adaptive off-threshold so the Schmitt releases at a
+    // consistent fraction of the peak rather than a fraction of squelch —
+    // which removes the block-quantization bias that made the WPM readout
+    // consistently ~20% below the actual signal speed.
+    double m_currentToneOnPeak = 0.0;
 
     // Morse element accumulation.
     QString m_morseBuffer;           // ".-" etc.

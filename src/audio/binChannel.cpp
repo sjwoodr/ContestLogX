@@ -34,6 +34,7 @@ void BinChannel::reset()
     m_elementStartMs = 0;
     m_elapsedAudioMs = 0;
     m_pendingBlocks = 0;
+    m_currentToneOnPeak = 0.0;
     m_morseBuffer.clear();
     m_recentElementMs.clear();
     m_recentBoundaryGaps.clear();
@@ -280,23 +281,36 @@ QList<CharEvent> BinChannel::processBlock(const int16_t* samples, int count,
     const int blockMs = (count * 1000) / m_sampleRateHz;
     m_elapsedAudioMs += blockMs;
 
-    // Schmitt-trigger hysteresis with adaptive off-threshold.
+    // Track the peak magnitude observed during the current tone-active
+    // run. This is what the relative off-threshold is measured against,
+    // so a strong signal's Schmitt releases when magnitude falls to a
+    // configured fraction of its actual peak rather than all the way to
+    // a fraction of squelch. Resets to 0 on every tone-off transition
+    // (below), so each element tracks its own peak independently.
+    if (m_toneActive && normMag > m_currentToneOnPeak) {
+        m_currentToneOnPeak = normMag;
+    }
+
+    // Schmitt-trigger hysteresis with TWO adaptive components:
+    //   (a) noise-floor-lifted floor — keeps off above the bin's
+    //       rolling 10th-percentile magnitude so gaps can be detected
+    //       on bins close to strong signal bleed.
+    //   (b) peak-relative ceiling — off rises to 30% of the current
+    //       tone's peak on strong signals. Without this, strong signals
+    //       stretch every element by ~7 ms (the time it takes the
+    //       transition block's partial-tone magnitude to drop below a
+    //       squelch-based threshold), biasing the WPM estimator ~20%
+    //       low and misclassifying dashes as dots.
     //
-    // On-threshold is always the operator's squelch setting. Off-threshold
-    // is nominally 70% of that, but is lifted above the rolling noise-floor
-    // estimate (with a 30% margin) so the Schmitt can still release during
-    // character gaps even when the bin's idle level is elevated by strong
-    // nearby signal bleed. Clamped to no more than 90% of the on-threshold
-    // so hysteresis still guarantees on > off.
-    //
-    // Without this adaptation, bins close to a strong signal would wedge
-    // ON indefinitely (observed: middle bins showing sparse "==5=" output
-    // while edge bins at the sinc main-lobe edge decode perfectly).
+    // Both are capped at 90% of the on-threshold so hysteresis still
+    // guarantees on > off.
     const double noiseFloor = estimateNoiseFloor();
     const float baseOff = squelchThreshold * 0.7f;
     const float floorLifted = static_cast<float>(noiseFloor * 1.3);
+    const float peakRelative = static_cast<float>(m_currentToneOnPeak * 0.3);
     const float offThreshold = qMin(squelchThreshold * 0.9f,
-                                    qMax(baseOff, floorLifted));
+                                    qMax(baseOff,
+                                         qMax(floorLifted, peakRelative)));
     bool toneDetected;
     if (m_toneActive) {
         toneDetected = normMag > offThreshold;       // sticky — hold on until drop
@@ -330,7 +344,8 @@ QList<CharEvent> BinChannel::processBlock(const int16_t* samples, int count,
             closeCharacter(timestampMs, out);
             m_toneActive = false;
             m_elementStartMs = m_elapsedAudioMs;
-            m_recentMagnitudes.clear();   // force fresh Schmitt decision
+            m_recentMagnitudes.clear();    // force fresh Schmitt decision
+            m_currentToneOnPeak = 0.0;     // reset peak tracker
             // Don't fall into the transition branch below — we've already
             // handled the state change manually.
             committedTransition = false;
@@ -341,10 +356,13 @@ QList<CharEvent> BinChannel::processBlock(const int16_t* samples, int count,
     if (committedTransition) {
         const int runMs = static_cast<int>(m_elapsedAudioMs - m_elementStartMs);
         if (m_toneActive) {
-            // Tone just went off → close an element.
+            // Tone just went off → close an element. Also reset the
+            // per-element peak tracker so the next element's off-threshold
+            // is calibrated to its own peak, not this element's.
             if (!muted) {
                 closeElement(runMs, timestampMs, out);
             }
+            m_currentToneOnPeak = 0.0;
         } else {
             // Tone just turned on → classify the preceding gap (intra-element
             // vs. character boundary vs. word boundary).
