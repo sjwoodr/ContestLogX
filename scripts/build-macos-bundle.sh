@@ -85,6 +85,31 @@ if ! command -v macdeployqt >/dev/null 2>&1; then
 fi
 macdeployqt "dist/${APP_NAME}.app" -always-overwrite
 
+# Re-sign the bundle with an ad-hoc signature that seals all bundled
+# resources. The linker's original ad-hoc signature on the main binary is
+# invalidated the moment macdeployqt rewrites rpaths inside the frameworks
+# and plugins — Gatekeeper then rejects the bundle with "code has no
+# resources but signature indicates they must be present." The --deep flag
+# walks into Contents/Frameworks and Contents/PlugIns so each nested
+# bundle gets its own valid signature. The --force flag replaces the
+# invalidated signatures instead of failing on conflict.
+#
+# "--sign -" means ad-hoc (no signing identity, no notarization). Users
+# downloading from GitHub will still trip Gatekeeper's quarantine check
+# (com.apple.quarantine xattr set on download) — they'll need to right-
+# click → Open the first time, or run
+#   xattr -dr com.apple.quarantine /Applications/ContestLogX.app
+# to remove the attribute. Full notarization requires an Apple Developer
+# account and is out of scope for this script.
+echo ""
+echo "Re-signing bundle (ad-hoc) to seal macdeployqt's rewrites..."
+codesign --force --deep --sign - "dist/${APP_NAME}.app"
+
+# Verify the signature is structurally valid. This doesn't check trust
+# (ad-hoc signatures aren't trusted by default) but it catches issues like
+# missing Sealed Resources which is what originally broke the 0.7.22 bundle.
+codesign --verify --verbose "dist/${APP_NAME}.app"
+
 echo ""
 echo "✓ macOS app bundle created: dist/${APP_NAME}.app"
 echo "  Version: ${VERSION}"

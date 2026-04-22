@@ -2,6 +2,11 @@
 
 All notable changes to ContestLogX are documented in this file.
 
+## [0.7.23]
+
+### Other Changes and Bugfixes
+- Fixed macOS app bundle failing Gatekeeper verification — re-sign bundle ad-hoc after macdeployqt rewrites rpaths so Sealed Resources are properly generated
+
 ## [0.7.22]
 
 ### Other Changes and Bugfixes
