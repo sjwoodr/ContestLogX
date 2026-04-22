@@ -119,6 +119,16 @@ private:
     QPushButton *m_osTestButton;
     QLabel *m_osTestStatusLabel;
     class OnlineScoreClient *m_osTestClient;
+
+    // Remote Control tab
+    QCheckBox  *m_rcEnabledCheck  = nullptr;
+    QSpinBox   *m_rcPortSpin      = nullptr;
+    QComboBox  *m_rcBindModeCombo = nullptr;
+    QLineEdit  *m_rcTokenEdit     = nullptr;
+    QLabel     *m_rcUrlLabel      = nullptr;
+    QPushButton *m_rcCopyUrlButton = nullptr;
+    QPushButton *m_rcRotateTokenButton = nullptr;
+    void updateRemoteControlUrlLabel();
 };
 
 #endif // PREFERENCESDIALOG_H

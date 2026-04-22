@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/">
         <file alias="contestlogx.png">contestlogx.png</file>
+        <file alias="dashboard.html">dashboard.html</file>
     </qresource>
 </RCC>

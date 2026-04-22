@@ -43,6 +43,7 @@
 #include "cwDecoderWidget.h"
 #include "net/clxSnapshot.h"
 #include "net/httpServer.h"
+#include <QFile>
 #include <QUuid>
 #include <QJsonArray>
 #include <cmath>
@@ -3202,6 +3203,18 @@ void MainWindow::onPreferences()
         }
         if (dialog.lookupChanged()) {
             initCallsignLookup();
+        }
+
+        // Remote Control: restart the HTTP server to pick up any changes
+        // to enabled / port / bind mode / token. stop() is safe to call
+        // when the server isn't running, and start() respects the enabled
+        // flag via the Settings singleton.
+        if (m_httpServer) {
+            m_httpServer->stop();
+            if (Settings::instance().getRemoteControlEnabled()) {
+                ensureRemoteControlToken();
+                m_httpServer->start();
+            }
         }
         if (m_dxClusterPanel) {
             m_dxClusterPanel->loadSettings();
@@ -9524,6 +9537,26 @@ void MainWindow::registerRemoteRoutes()
         o["runSpMode"]  = r.runSpMode;
         return o;
     };
+
+    // GET / — static mobile dashboard HTML, served from Qt resources.
+    // Auth still applies: operator must hit the URL with ?token=<t>
+    // (what the "Copy URL for Phone" button provides). The dashboard
+    // then reads the token from window.location.search and appends it
+    // to every subsequent /api/* fetch.
+    auto dashboardHandler = [](const HttpRequest&) -> HttpResponse {
+        QFile f(QStringLiteral(":/dashboard.html"));
+        HttpResponse r;
+        if (!f.open(QIODevice::ReadOnly)) {
+            r.status = 500;
+            r.body = QByteArray("{\"error\":\"dashboard not found\"}");
+            return r;
+        }
+        r.body = f.readAll();
+        r.contentType = QStringLiteral("text/html; charset=utf-8");
+        return r;
+    };
+    m_httpServer->registerRoute("GET", "/",               dashboardHandler);
+    m_httpServer->registerRoute("GET", "/dashboard.html", dashboardHandler);
 
     // GET /api/status — "is CLX up and what's it doing?"
     m_httpServer->registerRoute("GET", "/api/status",

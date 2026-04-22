@@ -26,6 +26,11 @@
 #include <QApplication>
 #include <QInputDialog>
 #include <QListWidget>
+#include <QClipboard>
+#include <QGuiApplication>
+#include <QHostAddress>
+#include <QNetworkInterface>
+#include <QUuid>
 
 PreferencesDialog::PreferencesDialog(QWidget *parent)
     : QDialog(parent)
@@ -360,6 +365,104 @@ void PreferencesDialog::setupUi()
 
     tabWidget->addTab(osTab, "Online Scoring");
 
+    // ── Remote Control tab ──────────────────────────────────────────────────
+    QWidget *rcTab = new QWidget;
+    QFormLayout *rcLayout = new QFormLayout(rcTab);
+
+    m_rcEnabledCheck = new QCheckBox("Enable Remote Control HTTP server");
+    m_rcEnabledCheck->setChecked(Settings::instance().getRemoteControlEnabled());
+    m_rcEnabledCheck->setToolTip(
+        "Exposes a small HTTP server on your LAN so your phone or tablet can "
+        "show a read-only dashboard of your current session (score, rate, "
+        "recent QSOs, rig state, propagation).");
+    rcLayout->addRow(m_rcEnabledCheck);
+
+    m_rcPortSpin = new QSpinBox;
+    m_rcPortSpin->setRange(1, 65535);
+    m_rcPortSpin->setValue(Settings::instance().getRemoteControlPort());
+    rcLayout->addRow("Port:", m_rcPortSpin);
+
+    m_rcBindModeCombo = new QComboBox;
+    m_rcBindModeCombo->addItem("LAN (auto-detect)", "lan");
+    m_rcBindModeCombo->addItem("Localhost only (127.0.0.1)", "localhost");
+    m_rcBindModeCombo->addItem("Any interface (0.0.0.0)", "any");
+    {
+        int idx = m_rcBindModeCombo->findData(
+            Settings::instance().getRemoteControlBindMode());
+        m_rcBindModeCombo->setCurrentIndex(idx >= 0 ? idx : 0);
+    }
+    rcLayout->addRow("Bind to:", m_rcBindModeCombo);
+
+    // Token row — read-only display + Rotate button. Auto-generated on
+    // first enable; rotating invalidates anything that had the old token
+    // saved in a bookmark.
+    m_rcTokenEdit = new QLineEdit;
+    m_rcTokenEdit->setReadOnly(true);
+    m_rcTokenEdit->setText(Settings::instance().getRemoteControlToken());
+    m_rcRotateTokenButton = new QPushButton("Rotate");
+    m_rcRotateTokenButton->setToolTip(
+        "Generate a new token. Any bookmarked URLs using the old token will "
+        "stop working.");
+    QHBoxLayout *rcTokenRow = new QHBoxLayout;
+    rcTokenRow->addWidget(m_rcTokenEdit, 1);
+    rcTokenRow->addWidget(m_rcRotateTokenButton);
+    rcLayout->addRow("Auth token:", rcTokenRow);
+
+    // URL-for-phone helper — shows a bookmarkable URL and copies it to
+    // the clipboard on click.
+    m_rcUrlLabel = new QLabel;
+    m_rcUrlLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
+    m_rcUrlLabel->setWordWrap(true);
+    m_rcCopyUrlButton = new QPushButton("Copy URL for Phone");
+    QHBoxLayout *rcUrlRow = new QHBoxLayout;
+    rcUrlRow->addWidget(m_rcUrlLabel, 1);
+    rcUrlRow->addWidget(m_rcCopyUrlButton);
+    rcLayout->addRow("Phone URL:", rcUrlRow);
+
+    QLabel *rcNote = new QLabel(
+        "Changes take effect after clicking OK; the server stops and restarts "
+        "with the new settings. Keep the token private — anyone on your LAN "
+        "with the URL and token can view your session state.");
+    rcNote->setWordWrap(true);
+    rcNote->setStyleSheet("color: gray;");
+    rcLayout->addRow(rcNote);
+
+    auto updateRcFields = [this](bool enabled) {
+        m_rcPortSpin->setEnabled(enabled);
+        m_rcBindModeCombo->setEnabled(enabled);
+        m_rcRotateTokenButton->setEnabled(enabled);
+        m_rcCopyUrlButton->setEnabled(enabled);
+    };
+    connect(m_rcEnabledCheck, &QCheckBox::toggled, this,
+            [this, updateRcFields](bool on) {
+        updateRcFields(on);
+        // Generate a token on first enable so the URL is immediately usable.
+        if (on && m_rcTokenEdit->text().isEmpty()) {
+            m_rcTokenEdit->setText(
+                QUuid::createUuid().toString(QUuid::Id128));
+        }
+        updateRemoteControlUrlLabel();
+    });
+    connect(m_rcPortSpin, qOverload<int>(&QSpinBox::valueChanged), this,
+            [this](int){ updateRemoteControlUrlLabel(); });
+    connect(m_rcBindModeCombo, qOverload<int>(&QComboBox::currentIndexChanged),
+            this, [this](int){ updateRemoteControlUrlLabel(); });
+    connect(m_rcRotateTokenButton, &QPushButton::clicked, this, [this]() {
+        m_rcTokenEdit->setText(QUuid::createUuid().toString(QUuid::Id128));
+        updateRemoteControlUrlLabel();
+    });
+    connect(m_rcCopyUrlButton, &QPushButton::clicked, this, [this]() {
+        const QString url = m_rcUrlLabel->text();
+        if (!url.isEmpty() && !url.startsWith(QLatin1String("—"))) {
+            QGuiApplication::clipboard()->setText(url);
+        }
+    });
+
+    updateRcFields(m_rcEnabledCheck->isChecked());
+    updateRemoteControlUrlLabel();
+
+    tabWidget->addTab(rcTab, "Remote Control");
+
     mainLayout->addWidget(tabWidget);
 
     QDialogButtonBox *buttonBox = new QDialogButtonBox(
@@ -477,9 +580,68 @@ void PreferencesDialog::onAccept()
                                          m_osPasswordEdit->text());
     settings.setOnlineScoringInterval(m_osIntervalCombo->currentData().toInt());
     settings.setOnlineScoringPerQso(m_osPerQsoCheck->isChecked());
+
+    // Remote Control — save config and emit a signal that MainWindow
+    // can hook to restart the HTTP server with new settings. The server's
+    // listener port / bind mode might have changed; easiest is to stop
+    // and start it.
+    settings.setRemoteControlPort(m_rcPortSpin->value());
+    settings.setRemoteControlBindMode(
+        m_rcBindModeCombo->currentData().toString());
+    settings.setRemoteControlToken(m_rcTokenEdit->text());
+    settings.setRemoteControlEnabled(m_rcEnabledCheck->isChecked());
+
     settings.save();
 
     accept();
+}
+
+void PreferencesDialog::updateRemoteControlUrlLabel()
+{
+    if (!m_rcUrlLabel || !m_rcPortSpin || !m_rcBindModeCombo || !m_rcTokenEdit)
+        return;
+
+    const QString bindMode = m_rcBindModeCombo->currentData().toString();
+    const int port = m_rcPortSpin->value();
+    const QString token = m_rcTokenEdit->text();
+
+    // Pick a sensible address to surface in the URL. "lan" auto-detects
+    // the first non-loopback IPv4 — what a phone on the same Wi-Fi
+    // will reach. "localhost" is for testing on the same machine. "any"
+    // shows both so the operator can tell their phone where to point.
+    QString hostPart;
+    if (bindMode == QLatin1String("localhost")) {
+        hostPart = QStringLiteral("127.0.0.1");
+    } else {
+        for (const QNetworkInterface& iface : QNetworkInterface::allInterfaces()) {
+            if (!(iface.flags() & QNetworkInterface::IsUp)) continue;
+            if (iface.flags() & QNetworkInterface::IsLoopBack) continue;
+            for (const QNetworkAddressEntry& entry : iface.addressEntries()) {
+                const QHostAddress addr = entry.ip();
+                if (addr.protocol() == QAbstractSocket::IPv4Protocol
+                    && !addr.isLoopback()) {
+                    hostPart = addr.toString();
+                    break;
+                }
+            }
+            if (!hostPart.isEmpty()) break;
+        }
+        if (hostPart.isEmpty()) hostPart = QStringLiteral("<your-LAN-IP>");
+    }
+
+    if (!m_rcEnabledCheck->isChecked()) {
+        m_rcUrlLabel->setText(
+            QStringLiteral("— (enable the server above to see the URL)"));
+        return;
+    }
+    if (token.isEmpty()) {
+        m_rcUrlLabel->setText(
+            QStringLiteral("— (no token; check the checkbox to generate one)"));
+        return;
+    }
+    const QString url = QStringLiteral("http://%1:%2/?token=%3")
+                            .arg(hostPart).arg(port).arg(token);
+    m_rcUrlLabel->setText(url);
 }
 
 void PreferencesDialog::onTestQrzcqConnection()

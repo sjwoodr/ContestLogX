@@ -1,0 +1,252 @@
+<!doctype html>
+<!-- ContestLogX Remote Control dashboard. Single-file static page served
+     by the embedded HTTP server at "/". Auto-refreshes every 5s by
+     polling the /api/* JSON endpoints. Token is picked up from the URL
+     query string (?token=...) so a phone bookmark works on first load. -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ContestLogX</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --card: #161b22;
+      --border: #30363d;
+      --fg: #c9d1d9;
+      --accent: #58a6ff;
+      --muted: #8b949e;
+      --good: #3fb950;
+      --warn: #d29922;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg);
+                  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+                               system-ui, sans-serif; }
+    body { padding: 12px; padding-bottom: 48px; }
+    h1 { margin: 0 0 4px 0; font-size: 1.4rem; }
+    h2 { margin: 0 0 8px 0; font-size: 1rem; color: var(--muted);
+          font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+    .top { display: flex; justify-content: space-between; align-items: baseline;
+           margin-bottom: 16px; }
+    .top .meta { color: var(--muted); font-size: 0.85rem; }
+    .card { background: var(--card); border: 1px solid var(--border);
+            border-radius: 8px; padding: 14px; margin-bottom: 12px; }
+    .kv { display: grid; grid-template-columns: auto 1fr; gap: 4px 16px;
+          font-size: 0.95rem; }
+    .kv .k { color: var(--muted); }
+    .kv .v { text-align: right; font-variant-numeric: tabular-nums; }
+    .score-big { font-size: 2.2rem; font-weight: 700; text-align: center;
+                 color: var(--accent); margin: 6px 0; }
+    .score-sub { text-align: center; color: var(--muted); font-size: 0.9rem; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.88rem;
+            font-variant-numeric: tabular-nums; }
+    th, td { padding: 4px 6px; text-align: left;
+             border-bottom: 1px solid var(--border); }
+    th { color: var(--muted); font-weight: 500; }
+    .rig-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 520px) { .rig-grid { grid-template-columns: 1fr; } }
+    .rig .freq { font-size: 1.3rem; font-weight: 700;
+                  font-variant-numeric: tabular-nums; }
+    .rig .mode-band { color: var(--muted); font-size: 0.9rem; }
+    .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+           background: var(--muted); vertical-align: middle; margin-right: 6px; }
+    .dot.on { background: var(--good); }
+    .dot.off { background: #6e4e4e; }
+    .err { color: var(--warn); font-size: 0.9rem; }
+    footer { position: fixed; bottom: 0; left: 0; right: 0;
+             background: var(--bg); color: var(--muted); font-size: 0.75rem;
+             padding: 6px 12px; border-top: 1px solid var(--border);
+             text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="top">
+    <div>
+      <h1>ContestLogX</h1>
+      <div class="meta" id="contest">no contest loaded</div>
+    </div>
+    <div class="meta" id="connection">
+      <span class="dot off"></span><span id="connection-text">connecting…</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Score</h2>
+    <div class="score-big" id="final-score">—</div>
+    <div class="score-sub" id="score-sub">— QSOs · — pts · — mults</div>
+  </div>
+
+  <div class="card">
+    <h2>Rate</h2>
+    <div class="kv">
+      <div class="k">Current (last 10m ×6)</div><div class="v" id="rate-current">—</div>
+      <div class="k">Last hour</div><div class="v" id="rate-hour">—</div>
+      <div class="k">Session average</div><div class="v" id="rate-session">—</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Rig</h2>
+    <div class="rig-grid">
+      <div class="rig" id="rig-L">
+        <div class="meta"><span class="dot off"></span>Radio L</div>
+        <div class="freq">—</div>
+        <div class="mode-band">—</div>
+      </div>
+      <div class="rig" id="rig-R" style="display:none">
+        <div class="meta"><span class="dot off"></span>Radio R</div>
+        <div class="freq">—</div>
+        <div class="mode-band">—</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Propagation</h2>
+    <div class="kv">
+      <div class="k">SFI</div><div class="v" id="prop-sfi">—</div>
+      <div class="k">A-index</div><div class="v" id="prop-a">—</div>
+      <div class="k">K-index</div><div class="v" id="prop-k">—</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Recent QSOs</h2>
+    <table>
+      <thead>
+        <tr><th>UTC</th><th>Call</th><th>Band</th><th>Mode</th><th>Exch</th></tr>
+      </thead>
+      <tbody id="qso-tbody">
+        <tr><td colspan="5" style="color: var(--muted)">—</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <footer>Auto-refreshes every 5 seconds · <span id="last-updated">—</span></footer>
+
+  <script>
+    // Token is pulled from the URL query string so a phone bookmark is
+    // all the user needs. If missing, the user needs to re-open the
+    // Copy-URL-for-Phone link from Preferences.
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token') || '';
+
+    async function api(path) {
+      const url = path + (path.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(token);
+      const r = await fetch(url, { cache: 'no-store' });
+      if (!r.ok) throw new Error(r.status + ' ' + r.statusText);
+      return await r.json();
+    }
+
+    function fmtFreq(hz) {
+      if (!hz || hz <= 0) return '—';
+      return (hz / 1e6).toFixed(4) + ' MHz';
+    }
+    function fmtBandFromHz(hz) {
+      if (!hz || hz <= 0) return '';
+      const mhz = hz / 1e6;
+      const bands = [
+          [1.8, 2.0, '160m'],  [3.5, 4.0, '80m'],   [5.0, 5.5, '60m'],
+          [7.0, 7.3, '40m'],   [10.1, 10.15, '30m'],[14.0, 14.35, '20m'],
+          [18.068, 18.168, '17m'], [21.0, 21.45, '15m'],
+          [24.89, 24.99, '12m'], [28.0, 29.7, '10m'], [50.0, 54.0, '6m'],
+          [144.0, 148.0, '2m'], [222.0, 225.0, '1.25m'], [420.0, 450.0, '70cm'],
+      ];
+      for (const [lo, hi, name] of bands) if (mhz >= lo && mhz <= hi) return name;
+      return '';
+    }
+    function fmtTime(hhmmss) {
+      if (!hhmmss || hhmmss.length !== 6) return hhmmss || '—';
+      return hhmmss.substring(0, 2) + ':' + hhmmss.substring(2, 4);
+    }
+    function setRig(panelId, data) {
+      const p = document.getElementById(panelId);
+      if (!p) return;
+      if (!data) { p.style.display = 'none'; return; }
+      p.style.display = '';
+      const dot = p.querySelector('.dot');
+      dot.className = 'dot ' + (data.connected ? 'on' : 'off');
+      p.querySelector('.freq').textContent = fmtFreq(data.freqHz);
+      const parts = [];
+      if (data.mode)  parts.push(data.mode);
+      if (data.band)  parts.push(data.band);
+      if (data.runSpMode && data.runSpMode !== 'Off') parts.push(data.runSpMode);
+      p.querySelector('.mode-band').textContent = parts.join(' · ') || '—';
+    }
+    function setErrorMode(msg) {
+      document.getElementById('connection-text').textContent = msg;
+      document.querySelector('#connection .dot').className = 'dot off';
+    }
+    function setOk() {
+      document.getElementById('connection-text').textContent = 'connected';
+      document.querySelector('#connection .dot').className = 'dot on';
+    }
+
+    async function refresh() {
+      try {
+        const [status, score, rate, rig, prop, qsos] = await Promise.all([
+          api('/api/status'),
+          api('/api/score'),
+          api('/api/rate'),
+          api('/api/rig'),
+          api('/api/propagation'),
+          api('/api/qsos?limit=10'),
+        ]);
+        setOk();
+
+        document.getElementById('contest').textContent =
+          status.contestName
+            ? status.contestName + (status.so2rEnabled ? ' · SO2R' : '')
+            : 'no contest loaded';
+
+        const finalScoreEl = document.getElementById('final-score');
+        finalScoreEl.textContent = Number(score.finalScore || 0).toLocaleString();
+        document.getElementById('score-sub').textContent =
+          [
+            (score.totalQsos || 0) + ' QSOs',
+            Number(score.totalPoints || 0).toLocaleString() + ' pts',
+            (score.namedMults + score.dxccMults + score.ituMults +
+             score.gridMults + score.prefixMults) + ' mults',
+          ].join(' · ');
+
+        document.getElementById('rate-current').textContent = rate.currentHourlyRate + '/h';
+        document.getElementById('rate-hour').textContent    = rate.lastHourRate + '/h';
+        document.getElementById('rate-session').textContent = rate.sessionAverageRate + '/h';
+
+        setRig('rig-L', rig.radioL);
+        setRig('rig-R', rig.radioR || null);
+
+        document.getElementById('prop-sfi').textContent = prop.sfi || '—';
+        document.getElementById('prop-a').textContent   = (prop.aIndex != null) ? prop.aIndex : '—';
+        document.getElementById('prop-k').textContent   = (prop.kIndex != null) ? prop.kIndex : '—';
+
+        const tbody = document.getElementById('qso-tbody');
+        if (!qsos.qsos || qsos.qsos.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" style="color: var(--muted)">no QSOs yet</td></tr>';
+        } else {
+          tbody.innerHTML = qsos.qsos.map(q => {
+            const band = fmtBandFromHz(q.freqHz);
+            return '<tr>' +
+              '<td>' + fmtTime(q.timeUtc) + '</td>' +
+              '<td>' + (q.call || '') + '</td>' +
+              '<td>' + band + '</td>' +
+              '<td>' + (q.mode || '') + '</td>' +
+              '<td>' + [q.rstRcvd, q.exchRcvd].filter(x => x).join(' ') + '</td>' +
+            '</tr>';
+          }).join('');
+        }
+
+        const now = new Date();
+        document.getElementById('last-updated').textContent =
+          now.toLocaleTimeString();
+      } catch (e) {
+        setErrorMode('error: ' + e.message);
+      }
+    }
+
+    refresh();
+    setInterval(refresh, 5000);
+  </script>
+</body>
+</html>
