@@ -44,6 +44,14 @@ public:
 
     const QAudioDevice& device() const { return m_device; }
 
+    // The actual sample rate we're capturing at. Set by start() after
+    // format negotiation; 0 until start() returns true. Consumers (the
+    // decoder worker) use this to size blocks and compute Goertzel
+    // coefficients for the bins at the native rate — we do NOT
+    // downsample internally any more (avoiding the alias-fold of
+    // above-Nyquist content back into our detection band).
+    int actualSampleRate() const { return m_format.sampleRate(); }
+
 signals:
     void audioBlockReady();                     // fired whenever new audio arrives
     void deviceError(const QString& message);

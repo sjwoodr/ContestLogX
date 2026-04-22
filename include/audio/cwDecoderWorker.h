@@ -64,6 +64,8 @@ private:
     MuteState m_muteState;
     QVector<int> m_lastReportedWpm;   // per-bin; used to rate-limit wpmUpdated emissions
     QMutex m_mutex;                   // guards mute-state mutations
+    int m_sampleRateHz = 0;           // actual capture rate, set after start()
+    int m_blockSamples = 0;           // samples per DSP block at m_sampleRateHz
 };
 
 } // namespace clx::audio

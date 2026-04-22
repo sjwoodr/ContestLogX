@@ -19,12 +19,28 @@ namespace clx::audio {
 // Which radio owns a decoder session. In non-SO2R mode only Left is used.
 enum class RadioSide { Left, Right };
 
-// Fixed DSP constants used across the audio subsystem. Changing these
-// requires coordinated updates in binChannel/audioCapture/ring buffer sizing.
-constexpr int kSampleRateHz    = 8000;
-constexpr int kBlockSamples    = 80;       // 10 ms at 8 kHz
-constexpr int kRingBufferSamples = 8000;   // 1 second of audio at 8 kHz
+// DSP constants used across the audio subsystem.
+//
+// The sample rate is now DYNAMIC — it comes from the device's preferred
+// format (e.g., 44100 or 48000 Hz) rather than a fixed 8 kHz with
+// nearest-neighbor decimation. The decimation path was catastrophically
+// aliasing above-4-kHz content (speaker hiss, harmonic distortion,
+// ambient noise) back into the CW detection band, raising the effective
+// noise floor and wedging the Schmitt trigger. Working at native rate
+// eliminates that entire class of problem.
+//
+// kSampleRateHz is kept as the FALLBACK rate used only when a device
+// reports an unusable format. In practice, Qt6::Multimedia will always
+// give us a sane sample rate — typically 44100 or 48000 Hz.
+constexpr int kSampleRateHz    = 48000;    // default / preferred (device may override)
+constexpr int kBlockDurationMs = 10;       // DSP block size in ms
+constexpr int kRingBufferSeconds = 1;      // audio ring buffer size in seconds
 constexpr int kDotLengthWindow = 16;       // rolling median window for WPM
+
+// Compute block samples for a given sample rate.
+inline int blockSamplesForRate(int sampleRateHz) {
+    return (sampleRateHz * kBlockDurationMs) / 1000;
+}
 constexpr int kDefaultBinCount = 6;
 constexpr int kDefaultPassbandLowHz  = 400;
 constexpr int kDefaultPassbandHighHz = 1000;
@@ -58,12 +74,10 @@ struct MuteState {
     }
 };
 
-// The unit on the audio ring buffer. Fixed-size to avoid allocations in the
-// capture callback hot path.
-struct AudioBlock {
-    int16_t samples[kBlockSamples] = {};
-    qint64  captureTimestampMs = 0;
-};
+// (The old fixed-size AudioBlock struct was removed; the ring buffer
+// now stores raw int16 samples directly at whatever rate the device
+// provides, and consumers read back dynamically-sized blocks based on
+// the actual sample rate.)
 
 // Classification of a clickable token span within a BinChannel's text buffer.
 enum class TokenKind { Callsign, Rst };

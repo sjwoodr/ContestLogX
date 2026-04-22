@@ -13,12 +13,16 @@ CwDecoder::CwDecoder(int sampleRateHz)
     : m_sampleRateHz(sampleRateHz)
 {
     configure(kDefaultPassbandLowHz, kDefaultPassbandHighHz, kDefaultBinCount,
-              kDefaultWpmMin, kDefaultWpmMax, kDefaultSquelch);
+              kDefaultWpmMin, kDefaultWpmMax, kDefaultSquelch, sampleRateHz);
 }
 
 bool CwDecoder::configure(int passbandLowHz, int passbandHighHz, int binCount,
-                          int wpmMin, int wpmMax, float squelchThreshold)
+                          int wpmMin, int wpmMax, float squelchThreshold,
+                          int sampleRateHz)
 {
+    // Update the sample rate (used by BinChannel for Goertzel coefficients).
+    if (sampleRateHz > 0) m_sampleRateHz = sampleRateHz;
+
     // Validation (data-model §Validation rules).
     if (passbandLowHz < 200 || passbandLowHz > 2400) return false;
     if (passbandHighHz <= passbandLowHz || passbandHighHz > 2500) return false;

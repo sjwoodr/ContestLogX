@@ -44,13 +44,35 @@ void CwDecoderWorker::startCapture(AudioCapture* capture,
     }
     m_capture->setParent(this);
 
+    connect(m_capture, &AudioCapture::audioBlockReady,
+            this, &CwDecoderWorker::onAudioBlockReady, Qt::QueuedConnection);
+    connect(m_capture, &AudioCapture::deviceError,
+            this, &CwDecoderWorker::errorOccurred);
+
+    // Start capture FIRST so the device negotiates its actual sample rate
+    // (we no longer resample to a fixed internal rate). Only after that
+    // can we configure the decoder with Goertzel coefficients matching
+    // the audio we'll receive.
+    if (!m_capture->start()) {
+        emit errorOccurred(QStringLiteral("AudioCapture::start() failed"));
+        return;
+    }
+    m_sampleRateHz = m_capture->actualSampleRate();
+    if (m_sampleRateHz <= 0) m_sampleRateHz = kSampleRateHz;
+    m_blockSamples = blockSamplesForRate(m_sampleRateHz);
+    if (m_blockSamples <= 0) m_blockSamples = 80;  // safety fallback
+
+    DebugLogger::instance().log("CwDecoder",
+        QString("Audio capture at %1 Hz, block size %2 samples (%3 ms)")
+            .arg(m_sampleRateHz).arg(m_blockSamples).arg(kBlockDurationMs));
+
     if (!m_decoder.configure(passbandLowHz, passbandHighHz, binCount,
-                             wpmMin, wpmMax, squelchThreshold)) {
+                             wpmMin, wpmMax, squelchThreshold, m_sampleRateHz)) {
         const QString msg = QString(
             "Invalid decoder configuration: passband=%1-%2 Hz, bins=%3, "
-            "wpm=%4-%5, squelch=%6 (spacing=%7 Hz, min=%8 Hz)")
+            "wpm=%4-%5, squelch=%6, rate=%7 Hz (spacing=%8 Hz, min=%9 Hz)")
             .arg(passbandLowHz).arg(passbandHighHz).arg(binCount)
-            .arg(wpmMin).arg(wpmMax).arg(squelchThreshold)
+            .arg(wpmMin).arg(wpmMax).arg(squelchThreshold).arg(m_sampleRateHz)
             .arg(binCount > 0 ? (passbandHighHz - passbandLowHz) / binCount : 0)
             .arg(kMinBinSpacingHz);
         DebugLogger::instance().log("CwDecoder", msg);
@@ -59,16 +81,6 @@ void CwDecoderWorker::startCapture(AudioCapture* capture,
     }
 
     m_lastReportedWpm.fill(-1, binCount);
-
-    connect(m_capture, &AudioCapture::audioBlockReady,
-            this, &CwDecoderWorker::onAudioBlockReady, Qt::QueuedConnection);
-    connect(m_capture, &AudioCapture::deviceError,
-            this, &CwDecoderWorker::errorOccurred);
-
-    if (!m_capture->start()) {
-        emit errorOccurred(QStringLiteral("AudioCapture::start() failed"));
-        return;
-    }
     emit captureStarted();
     emit binLayoutChanged(m_decoder.binCenterFrequencies());
 }
@@ -85,9 +97,13 @@ void CwDecoderWorker::stopCapture()
 
 void CwDecoderWorker::reconfigure(int passbandLowHz, int passbandHighHz, int binCount)
 {
+    // Reuse the already-negotiated sample rate. If the capture isn't
+    // running (reconfigure called before startCapture), use the decoder's
+    // default and count on startCapture to reconfigure with the real rate.
+    const int rate = (m_sampleRateHz > 0) ? m_sampleRateHz : kSampleRateHz;
     if (!m_decoder.configure(passbandLowHz, passbandHighHz, binCount,
-                             m_decoder.binCenterFrequencies().isEmpty() ? kDefaultWpmMin : kDefaultWpmMin,
-                             kDefaultWpmMax, kDefaultSquelch)) {
+                             kDefaultWpmMin, kDefaultWpmMax, kDefaultSquelch,
+                             rate)) {
         emit errorOccurred(QStringLiteral("Invalid bin configuration"));
         return;
     }
@@ -137,12 +153,17 @@ void CwDecoderWorker::onAudioBlockReady()
 void CwDecoderWorker::drainAndProcess()
 {
     if (!m_capture) return;
+    if (m_blockSamples <= 0) return;   // not yet configured
 
-    // Process audio in fixed 80-sample blocks (10 ms at 8 kHz).
-    int16_t block[kBlockSamples];
-    while (m_capture->availableSamples() >= static_cast<size_t>(kBlockSamples)) {
-        size_t got = m_capture->popSamples(block, kBlockSamples);
-        if (got < static_cast<size_t>(kBlockSamples)) break;
+    // Process audio in dynamically-sized blocks — 10 ms at whatever the
+    // device's native sample rate turned out to be. No downsampling or
+    // resampling: we feed the Goertzel detectors samples at the exact
+    // rate the device captured.
+    std::vector<int16_t> block(m_blockSamples);
+    const size_t blockSz = static_cast<size_t>(m_blockSamples);
+    while (m_capture->availableSamples() >= blockSz) {
+        size_t got = m_capture->popSamples(block.data(), blockSz);
+        if (got < blockSz) break;
 
         // Update internal-send mute timeout.
         {
@@ -160,7 +181,7 @@ void CwDecoderWorker::drainAndProcess()
         }
 
         const qint64 ts = monotonicNowMs();
-        QList<CharEvent> events = m_decoder.processBlock(block, kBlockSamples, ts);
+        QList<CharEvent> events = m_decoder.processBlock(block.data(), m_blockSamples, ts);
         for (const auto& ev : events) {
             emit charDecoded(ev.binIndex, ev.ch, ev.timestampMs);
         }

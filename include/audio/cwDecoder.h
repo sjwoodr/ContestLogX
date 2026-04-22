@@ -27,8 +27,12 @@ public:
 
     // Configure bins. Safe to call at any time; rebuilds bins and clears state.
     // Returns true on success; false if parameters violate validation rules.
+    // `sampleRateHz` must be the actual capture rate (e.g. 44100, 48000) so
+    // Goertzel coefficients align with the audio we'll be fed. If
+    // `sampleRateHz <= 0`, the decoder's current stored rate is kept.
     bool configure(int passbandLowHz, int passbandHighHz, int binCount,
-                   int wpmMin, int wpmMax, float squelchThreshold);
+                   int wpmMin, int wpmMax, float squelchThreshold,
+                   int sampleRateHz = 0);
 
     // Accessors
     int binCount() const { return static_cast<int>(m_bins.size()); }

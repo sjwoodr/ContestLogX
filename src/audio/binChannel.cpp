@@ -222,7 +222,11 @@ QList<CharEvent> BinChannel::processBlock(const int16_t* samples, int count,
     // This gives the operator's 0–100% squelch slider a useful dynamic
     // range: noise-floor around 0.05–0.15, comfortable operating around
     // 0.2–0.4, strong signals always pass. Clamped to [0,1].
-    constexpr double kScale = static_cast<double>(kBlockSamples) * 6553.6;  // 5× more sensitive
+    //
+    // Scale factor tracks block size (we now run at the device's native
+    // sample rate, so `count` may be 80, 441, 480 etc. depending on rate).
+    // 6553.6 = 32768 / 5 gives the "5× more sensitive" calibration.
+    const double kScale = static_cast<double>(count) * 6553.6;
     double rawMag = std::sqrt(std::max(0.0, mag2)) / kScale;
     if (rawMag > 1.0) rawMag = 1.0;
 
@@ -264,6 +268,35 @@ QList<CharEvent> BinChannel::processBlock(const int16_t* samples, int count,
     // that a multi-block debounce was trying to solve).
     bool committedTransition = (toneDetected != m_toneActive);
     m_pendingBlocks = 0;  // retained for potential future multi-block smoothing
+
+    // ---- Stuck-tone safety release -----------------------------------
+    // If the Schmitt trigger has been "on" for longer than any plausible
+    // CW element (6× current dot estimate = 2× a full-length dash), the
+    // detector is wedged — most likely the noise floor crept above the
+    // hysteresis off-threshold and the tone never formally "turns off".
+    // Without release, no character gap is ever measured, the morse
+    // buffer accumulates silently, and the decoder appears to stop even
+    // though audio keeps flowing.
+    //
+    // Force-close the element, reset the smoothing buffer so the next
+    // tone-detect decision starts fresh, and treat this as an ordinary
+    // tone-off transition so downstream classification/gap logic still
+    // runs on the next real tone-on.
+    if (!committedTransition && m_toneActive && !muted) {
+        const int onRunMs = static_cast<int>(m_elapsedAudioMs - m_elementStartMs);
+        const int stuckThresholdMs = currentDotEstimateMs() * 6;
+        if (stuckThresholdMs > 0 && onRunMs > stuckThresholdMs) {
+            closeElement(onRunMs, timestampMs, out);
+            closeCharacter(timestampMs, out);
+            m_toneActive = false;
+            m_elementStartMs = m_elapsedAudioMs;
+            m_recentMagnitudes.clear();   // force fresh Schmitt decision
+            // Don't fall into the transition branch below — we've already
+            // handled the state change manually.
+            committedTransition = false;
+            toneDetected = false;
+        }
+    }
 
     if (committedTransition) {
         const int runMs = static_cast<int>(m_elapsedAudioMs - m_elementStartMs);
