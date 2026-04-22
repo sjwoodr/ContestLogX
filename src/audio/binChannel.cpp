@@ -142,19 +142,35 @@ void BinChannel::closeElement(int durationMs, qint64 timestampMs,
     Q_UNUSED(timestampMs);
     if (durationMs <= 0) return;
 
-    // Record element duration in the rolling window BEFORE updating the
-    // estimate — the percentile-based estimator uses the latest sample.
-    m_recentElementMs.push_back(durationMs);
-    while (m_recentElementMs.size() > 20) m_recentElementMs.pop_front();
+    // Decide whether to feed this element into the rolling window that
+    // drives the percentile-based dot-length estimator.
+    //
+    // During bootstrap (NoLock) we accept every element, since the
+    // estimator needs to converge and can't be trusted yet to decide
+    // what's an outlier.
+    //
+    // Once locked, filter outliers that would destabilize the estimate:
+    // a brief beat-fragmentation burst can split a real dash into two
+    // short pieces; without filtering, those short pieces drop the 25th
+    // percentile, which shrinks the classifier threshold, which causes
+    // more real elements to fragment — a self-reinforcing runaway that
+    // carries a stable 24 WPM lock up to a bogus 40 WPM within seconds.
+    // The [D/3, D×6] window still admits genuine speed changes up to
+    // about 3× faster or 6× slower before requiring a re-lock, so the
+    // estimator remains adaptive without being fragile.
+    const bool acceptSample = (m_lockState != LockState::Locked) ||
+        (durationMs >= currentDotEstimateMs() / 3 &&
+         durationMs <= currentDotEstimateMs() * 6);
+    if (acceptSample) {
+        m_recentElementMs.push_back(durationMs);
+        while (m_recentElementMs.size() > 20) m_recentElementMs.pop_front();
+        updateWpmEstimate();
+    }
 
-    // Update estimate after recording. This also refreshes lockState.
-    updateWpmEstimate();
-
-    // Classify the current element using the REFRESHED estimate. Anything
-    // below 2× the current dot-length estimate is a dot; anything above is
-    // a dash. Since the estimator tracks the lower quartile of all recent
-    // elements, it's anchored to the true dot length even when dashes
-    // dominate the recent content.
+    // Classify the current element using the (possibly unchanged)
+    // estimate. Even rejected-from-window elements still get classified
+    // so character decoding proceeds — only the estimator is protected
+    // from outlier contamination.
     const int dotBaseline = currentDotEstimateMs();
     if (durationMs < dotBaseline * 2) {
         m_morseBuffer.append('.');

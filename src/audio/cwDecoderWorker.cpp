@@ -46,7 +46,15 @@ void CwDecoderWorker::startCapture(AudioCapture* capture,
 
     if (!m_decoder.configure(passbandLowHz, passbandHighHz, binCount,
                              wpmMin, wpmMax, squelchThreshold)) {
-        emit errorOccurred(QStringLiteral("Invalid decoder configuration"));
+        const QString msg = QString(
+            "Invalid decoder configuration: passband=%1-%2 Hz, bins=%3, "
+            "wpm=%4-%5, squelch=%6 (spacing=%7 Hz, min=%8 Hz)")
+            .arg(passbandLowHz).arg(passbandHighHz).arg(binCount)
+            .arg(wpmMin).arg(wpmMax).arg(squelchThreshold)
+            .arg(binCount > 0 ? (passbandHighHz - passbandLowHz) / binCount : 0)
+            .arg(kMinBinSpacingHz);
+        DebugLogger::instance().log("CwDecoder", msg);
+        emit errorOccurred(msg);
         return;
     }
 

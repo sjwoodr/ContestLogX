@@ -35,7 +35,14 @@ constexpr int kDefaultWpmMax = 60;
 constexpr float kDefaultSquelch = 0.10f;
 constexpr int kDefaultPttGraceMs = 250;
 constexpr int kMaxBinCount = 16;
-constexpr int kMinBinSpacingHz = 50;       // lower bound to keep bins resolvable at 10 ms blocks
+// Minimum bin spacing. At 8 kHz / 80-sample Goertzel, bin resolution is
+// 100 Hz, so spacings below that produce overlapping bins — but overlap is
+// not pathological (just redundant detection), so this floor is set just
+// low enough to reject configurations that produce effectively duplicate
+// bins without blocking legitimate narrow-passband use (e.g., 6 bins over
+// a 250 Hz range gives 42 Hz spacing, which is useful for tuning in on a
+// specific signal).
+constexpr int kMinBinSpacingHz = 20;
 constexpr int kTextBufferCapChars = 10000; // per-bin scrollback cap
 
 // Per-bin lock state reported by the decoder.

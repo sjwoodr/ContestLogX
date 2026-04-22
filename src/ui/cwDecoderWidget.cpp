@@ -259,9 +259,16 @@ void CwDecoderWidget::setPttMute(bool active)
 
 void CwDecoderWidget::rebuildRows(const QList<double>& centerFrequencies)
 {
-    // Clear previous rows.
+    // Clear previous rows. Use synchronous delete (not deleteLater) so new
+    // rows added below are the ONLY children of m_rowsLayout — otherwise
+    // the deferred deletion leaves stale containers in the layout at the
+    // moment new rows are inserted, and the user sees (N-1) rows or an
+    // incorrectly sized container.
     for (auto& row : m_rows) {
-        if (row.container) row.container->deleteLater();
+        if (row.container) {
+            m_rowsLayout->removeWidget(row.container);
+            delete row.container;
+        }
     }
     m_rows.clear();
 
@@ -312,6 +319,13 @@ void CwDecoderWidget::rebuildRows(const QList<double>& centerFrequencies)
     }
 
     applySpotlightVisuals();
+
+    // Trigger size reconsideration so the dock shrinks when bin count is
+    // reduced. Qt doesn't auto-shrink floating docks when children change;
+    // invalidating the layout + adjustSize forces a fresh size-hint.
+    m_rowsContainer->adjustSize();
+    if (widget()) widget()->adjustSize();
+    adjustSize();
 }
 
 void CwDecoderWidget::applySpotlightVisuals()
