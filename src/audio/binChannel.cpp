@@ -38,6 +38,7 @@ void BinChannel::reset()
     m_recentElementMs.clear();
     m_recentBoundaryGaps.clear();
     m_recentMagnitudes.clear();
+    m_noiseFloorWindow.clear();
     m_currentWpm = 0;
     m_lockState = LockState::NoLock;
     m_textBuffer.clear();
@@ -52,6 +53,22 @@ void BinChannel::setWpmBounds(int wpmMin, int wpmMax)
 void BinChannel::clearTextBuffer()
 {
     m_textBuffer.clear();
+}
+
+double BinChannel::estimateNoiseFloor() const
+{
+    // Require enough samples to be meaningful — 20 blocks = 200 ms of
+    // magnitude history. During warmup, return 0 (no lift from baseline
+    // Schmitt behavior).
+    if (m_noiseFloorWindow.size() < 20) return 0.0;
+
+    // 10th-percentile of recent smoothed magnitudes. During decoding,
+    // the quietest 10% of recent blocks are inter-character gaps —
+    // exactly the level the off-threshold must clear to release the
+    // Schmitt. During silence, it's near zero.
+    std::vector<double> sorted(m_noiseFloorWindow.begin(), m_noiseFloorWindow.end());
+    std::sort(sorted.begin(), sorted.end());
+    return sorted[sorted.size() / 10];
 }
 
 int BinChannel::currentDotEstimateMs() const
@@ -230,36 +247,59 @@ QList<CharEvent> BinChannel::processBlock(const int16_t* samples, int count,
     double rawMag = std::sqrt(std::max(0.0, mag2)) / kScale;
     if (rawMag > 1.0) rawMag = 1.0;
 
-    // 4-block (≈40 ms) moving-average smoothing. Off-center signals (e.g.,
-    // a 700 Hz tone landing between the 650 Hz and 750 Hz bins) produce
-    // Goertzel magnitude oscillation at the bin-offset frequency. For a
-    // 50 Hz offset the beat period is 20 ms; a moving average of exactly
-    // 2 periods (40 ms) fully cancels. Longer windows (60 ms) cancel
-    // better on a broader range of offsets but pull peak smoothed
-    // magnitude below typical squelch on marginal-amplitude signals —
-    // 40 ms is the empirical sweet spot. Legitimate CW elements at
-    // ≤ 45 WPM (dot ≥ 27 ms) still peak above squelch after smoothing;
-    // element durations are uniformly stretched by ~1 block on each end
-    // but the dot:dash ratio is preserved so classification still works.
+    // Magnitude smoothing: currently disabled (window = 1, raw Goertzel
+    // magnitude passes straight through to the Schmitt).
+    //
+    // Earlier versions used a 4-block (40 ms) moving average to damp the
+    // Goertzel magnitude oscillation that appears when a signal lands
+    // between bin centers. That smoothing worked for off-center signals
+    // but introduced a ~35 ms decay latency on every element — which
+    // stretched legitimate dots and dashes enough to make the WPM
+    // estimator lock 30-50% too slow on bins with strong signal. The
+    // classifier's dot/dash threshold scaled up to 2× the wrong dot
+    // length, causing real dashes to be classified as dots — the source
+    // of the "==5=" stuck pattern on middle bins.
+    //
+    // With native-rate processing via pavucontrol monitor routing (no
+    // aliasing), well-aligned passbands, and the Schmitt's hysteresis +
+    // adaptive noise-floor lift handling noise rejection, smoothing is
+    // no longer required for correctness. The mechanism is kept in place
+    // (window capped at 1) so we can re-enable it cheaply if off-center
+    // beating resurfaces.
     m_recentMagnitudes.push_back(rawMag);
-    while (m_recentMagnitudes.size() > 4) m_recentMagnitudes.pop_front();
-    double normMag = 0.0;
-    for (double m : m_recentMagnitudes) normMag += m;
-    normMag /= static_cast<double>(m_recentMagnitudes.size());
+    while (m_recentMagnitudes.size() > 1) m_recentMagnitudes.pop_front();
+    const double normMag = m_recentMagnitudes.back();
+
+    // Feed the noise-floor window AFTER smoothing. 50 blocks = 500 ms of
+    // history — long enough to cover several character gaps so the 10th
+    // percentile reliably lands on the inter-character floor, short
+    // enough to adapt to changing conditions within a second or two.
+    m_noiseFloorWindow.push_back(normMag);
+    while (m_noiseFloorWindow.size() > 50) m_noiseFloorWindow.pop_front();
 
     const int blockMs = (count * 1000) / m_sampleRateHz;
     m_elapsedAudioMs += blockMs;
 
-    // Schmitt-trigger hysteresis: a tone is detected with a high threshold
-    // (the operator's squelch setting) but only released when the magnitude
-    // drops to 70% of that. This prevents brief mid-element dips from
-    // fragmenting a dash while not inflating legitimate element durations
-    // too much (too-sticky hysteresis stretches dashes enough that the WPM
-    // estimator biases low).
-    const float offThreshold = squelchThreshold * 0.7f;
+    // Schmitt-trigger hysteresis with adaptive off-threshold.
+    //
+    // On-threshold is always the operator's squelch setting. Off-threshold
+    // is nominally 70% of that, but is lifted above the rolling noise-floor
+    // estimate (with a 30% margin) so the Schmitt can still release during
+    // character gaps even when the bin's idle level is elevated by strong
+    // nearby signal bleed. Clamped to no more than 90% of the on-threshold
+    // so hysteresis still guarantees on > off.
+    //
+    // Without this adaptation, bins close to a strong signal would wedge
+    // ON indefinitely (observed: middle bins showing sparse "==5=" output
+    // while edge bins at the sinc main-lobe edge decode perfectly).
+    const double noiseFloor = estimateNoiseFloor();
+    const float baseOff = squelchThreshold * 0.7f;
+    const float floorLifted = static_cast<float>(noiseFloor * 1.3);
+    const float offThreshold = qMin(squelchThreshold * 0.9f,
+                                    qMax(baseOff, floorLifted));
     bool toneDetected;
     if (m_toneActive) {
-        toneDetected = normMag > offThreshold;       // sticky — hold on until big drop
+        toneDetected = normMag > offThreshold;       // sticky — hold on until drop
     } else {
         toneDetected = normMag > squelchThreshold;   // need full threshold to turn on
     }

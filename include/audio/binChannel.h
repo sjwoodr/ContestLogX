@@ -75,6 +75,14 @@ private:
     // or when the jump is not significant.
     int wordGapThresholdMs(int dotBaselineMs) const;
 
+    // Estimate this bin's current noise floor as the 10th percentile of
+    // recent smoothed magnitudes. Returns 0 while the window is warming
+    // up (fewer than 20 samples). Self-adaptive: during silence it sits
+    // near zero; during active decoding it captures inter-character gap
+    // levels, which is the level the Schmitt off-threshold must clear
+    // to release cleanly.
+    double estimateNoiseFloor() const;
+
     int m_binIndex;
     double m_centerFreqHz;
     int m_sampleRateHz;
@@ -115,6 +123,16 @@ private:
     // bins). Legitimate CW elements at typical speeds are well above
     // 30 ms, so the smoothing does not blur them.
     std::deque<double> m_recentMagnitudes;
+
+    // Longer rolling window of smoothed magnitudes, used for adaptive
+    // noise-floor tracking per bin. During active decoding this captures
+    // the quiet moments between characters; during pure silence it
+    // tracks the actual noise baseline. The 10th percentile of this
+    // window is the "noise-floor estimate" used to lift the Schmitt
+    // off-threshold when the floor on a bin rises (e.g., on bins close
+    // to a strong signal where signal bleed elevates the residual level
+    // even during character gaps).
+    std::deque<double> m_noiseFloorWindow;
 
     int m_currentWpm = 0;            // 0 = no lock
     LockState m_lockState = LockState::NoLock;
