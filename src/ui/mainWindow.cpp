@@ -3269,6 +3269,12 @@ void MainWindow::applyFontSettings()
     QFont ssbMemFont = settings.getPanelFont("ssbMemories");
     if (m_ssbMemoriesWidget && !ssbMemFont.family().isEmpty())
         m_ssbMemoriesWidget->widget()->setFont(ssbMemFont);
+
+    QFont decoderFont = settings.getPanelFont("cwDecoder");
+    if (!decoderFont.family().isEmpty()) {
+        if (m_cwDecoderLeft)  m_cwDecoderLeft->setBaseFont(decoderFont);
+        if (m_cwDecoderRight) m_cwDecoderRight->setBaseFont(decoderFont);
+    }
 }
 
 void MainWindow::onManageCallHistory()

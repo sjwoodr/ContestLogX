@@ -218,6 +218,15 @@ void CwDecoderWidget::loadSettings()
     m_wpmMinSpin->setValue(s.getCwDecoderWpmMin(r));
     m_wpmMaxSpin->setValue(s.getCwDecoderWpmMax(r));
 
+    // Apply the saved Preferences → Fonts "CW Decoder" font at
+    // construction so the widget picks it up on first spawn. Without
+    // this, the font only applies after the operator opens Preferences
+    // and clicks OK.
+    const QFont decoderFont = s.getPanelFont(QStringLiteral("cwDecoder"));
+    if (!decoderFont.family().isEmpty()) {
+        setBaseFont(decoderFont);
+    }
+
     m_applyingSettings = false;
 }
 
@@ -360,6 +369,22 @@ void CwDecoderWidget::setPttMute(bool active)
                               Q_ARG(bool, active));
 }
 
+void CwDecoderWidget::setBaseFont(const QFont& font)
+{
+    if (font.family().isEmpty()) return;
+    // Apply to the whole widget so toolbar controls (combos, spins,
+    // labels) and the per-bin rows (freq label, WPM label, and the
+    // scrolling decoded text) all pick it up consistently. Individual
+    // children can still override via stylesheet if needed.
+    this->setFont(font);
+    for (CwDecoderRow& row : m_rows) {
+        if (row.container) row.container->setFont(font);
+        if (row.freqLabel) row.freqLabel->setFont(font);
+        if (row.wpmLabel)  row.wpmLabel->setFont(font);
+        if (row.text)      row.text->setFont(font);
+    }
+}
+
 void CwDecoderWidget::setContestEngine(ContestEngine* engine)
 {
     m_contestEngine = engine;
@@ -452,6 +477,14 @@ void CwDecoderWidget::rebuildRows(const QList<double>& centerFrequencies)
     }
 
     // Trigger size reconsideration so the dock shrinks when bin count is
+    // Re-apply the configured CW-decoder font after rebuild so the
+    // newly-created per-bin text edits inherit the right font (Qt doesn't
+    // propagate a previously-set font to children spawned after the call).
+    const QFont decoderFont = Settings::instance().getPanelFont(QStringLiteral("cwDecoder"));
+    if (!decoderFont.family().isEmpty()) {
+        setBaseFont(decoderFont);
+    }
+
     // reduced. Qt doesn't auto-shrink floating docks when children change;
     // invalidating the layout + adjustSize forces a fresh size-hint.
     m_rowsContainer->adjustSize();

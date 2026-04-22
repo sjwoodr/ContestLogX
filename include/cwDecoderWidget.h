@@ -69,6 +69,11 @@ public slots:
     // Exchange" audio-source entry is enabled/disabled to match.
     void refreshPracticeContestAvailability();
 
+    // Apply a font to the decoder's decoded-text rows and the labels that
+    // surround them (freq / WPM / toolbar). Wired to the Preferences →
+    // Fonts "CW Decoder" entry; MainWindow calls this on change.
+    void setBaseFont(const QFont& font);
+
     // Forwarded to the worker (via queued connection).
     void muteForInternalSend(int durationMs);
     void setPttMute(bool active);

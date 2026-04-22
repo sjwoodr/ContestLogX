@@ -252,6 +252,7 @@ void PreferencesDialog::setupUi()
         { "scoreWidget", "Score Widget" },
         { "cwMemories",  "CW Memories" },
         { "ssbMemories", "SSB Memories" },
+        { "cwDecoder",   "CW Decoder" },
     };
 
     for (const PanelDef& p : panels) {
