@@ -8,6 +8,7 @@ All notable changes to ContestLogX are documented in this file.
 - Added CW Decoder Practice mode — two virtual audio sources in the decoder's Audio dropdown ("Practice — CW Rag Chew" and "Practice — Contest Exchange") that synthesize CW on the default output device and feed the same tones into the decoder pipeline, so operators can head-copy random QSOs / exchanges and check their copy against what the decoder captured; WPM follows the CW console setting, so speed matches the keyer
 - Practice — Contest Exchange uses the active contest's named multipliers and sends with fixed 5NN RST (entry is disabled until a contest is loaded)
 - Practice audio sources reset to "(none)" on startup so CLX doesn't start generating CW on the speakers the moment it launches — operator must explicitly re-select practice each session
+- Updated website with CW Decoder Practice mode — feature bullet on the index page and a dedicated subsection in the docs page
 - Added macOS first-launch instructions to the download page — explains how to unlock the ad-hoc-signed bundle via System Settings → Privacy & Security or via a single Terminal command, and notes the microphone permission prompt for the CW Decoder
 
 ## [0.7.23]

@@ -697,6 +697,29 @@ F8  N9OH`}</pre>
             rate; no internal resampling.</li>
           </ul>
 
+          <h3 class="text-lg font-semibold mb-2">Practice Mode &mdash; Head-Copy Trainer</h3>
+          <p class="opacity-80 mb-4">
+            The Audio dropdown has two virtual sources at the top of the list &mdash;
+            <strong>Practice &mdash; CW Rag Chew</strong> and <strong>Practice &mdash; Contest Exchange</strong> &mdash;
+            that synthesize random CW on your default output device and feed the same tones into the decoder
+            pipeline. The workflow is: listen with your eyes off the decoder and copy in your head, then glance at
+            the decoder output to check yourself. No typing, no grading screen, no scoreboard &mdash; just audio in,
+            decoded text out, and you in the middle deciding whether you got it right.
+          </p>
+          <ul class="list-disc list-inside space-y-2 opacity-80 mb-4">
+            <li><strong>Rag Chew</strong> &mdash; random CQ calls, DX rag-chew fragments, and short exchanges drawn
+            from a template pool. Names, rigs, antennas, QTHs, and power levels are randomized each fragment.</li>
+            <li><strong>Contest Exchange</strong> &mdash; pulls exchange format and named multipliers (states,
+            sections, zones, etc.) from the currently-loaded contest. RST is always <code>5NN</code>. The entry is
+            disabled until a contest is loaded.</li>
+            <li><strong>Speed</strong> &mdash; follows the CW console's WPM setting. Bump the console slider to
+            change practice speed; the next transmission picks up the new rate.</li>
+            <li><strong>Audio routing</strong> &mdash; playback uses your system default output device
+            (speakers / headphones). No virtual audio cable needed.</li>
+            <li><strong>On startup</strong> CLX resets a saved practice source back to <em>(none)</em> so it never
+            starts generating CW at launch &mdash; you have to re-select it each session.</li>
+          </ul>
+
           <h3 class="text-lg font-semibold mb-2">Docking &amp; Layout</h3>
           <p class="opacity-80 mb-4">
             The CW Decoder dock defaults to the top dock area &mdash; above the QSO log, bounded horizontally by
