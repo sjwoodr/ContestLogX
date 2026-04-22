@@ -77,14 +77,22 @@ int BinChannel::currentDotEstimateMs() const
 int BinChannel::wordGapThresholdMs(int dotBaselineMs) const
 {
     const int fallback = dotBaselineMs * 4;
-    // Bootstrap: need enough boundary-gap samples for the largest-jump
-    // analysis to be meaningful.
-    if (m_recentBoundaryGaps.size() < 6) return fallback;
+    // Never let the word-gap threshold drop below 3 dot-units; below that
+    // it would overlap the 2-dot-unit character-gap threshold and produce
+    // a word split on every inter-character boundary.
+    const int floorMs = dotBaselineMs * 3;
+
+    // Bootstrap: need enough boundary-gap samples for any statistical
+    // analysis to be meaningful. Use the fixed fallback until then.
+    if (m_recentBoundaryGaps.size() < 6) return qMax(fallback, floorMs);
 
     std::vector<int> sorted(m_recentBoundaryGaps.begin(), m_recentBoundaryGaps.end());
     std::sort(sorted.begin(), sorted.end());
 
-    // Find the largest consecutive jump in the sorted gap list.
+    // -------- Trigger 1: largest-jump analysis (bimodal distributions) --
+    // Find the largest consecutive jump in the sorted gap list. If it's
+    // significant (≥ 1.5 dot-units), the midpoint of that jump is an
+    // operator-style-adaptive threshold. Otherwise fall back.
     int bestJumpSize = 0;
     int bestJumpMidpoint = 0;
     for (size_t i = 1; i < sorted.size(); ++i) {
@@ -94,14 +102,23 @@ int BinChannel::wordGapThresholdMs(int dotBaselineMs) const
             bestJumpMidpoint = (sorted[i] + sorted[i - 1]) / 2;
         }
     }
-    // Significance check: the jump must be larger than 1.5 dot-units to
-    // count as a real char-vs-word split. If gaps are clustered uniformly
-    // (compressed contest CW with no real word spacing), there's no jump,
-    // and falling back to the fixed threshold avoids spurious word breaks.
-    if (bestJumpSize >= (dotBaselineMs * 3 / 2)) {
-        return bestJumpMidpoint;
-    }
-    return fallback;
+    const int primary = (bestJumpSize >= (dotBaselineMs * 3 / 2))
+                            ? bestJumpMidpoint
+                            : fallback;
+
+    // -------- Trigger 2: median-multiplier outlier detection -----------
+    // Any gap ≥ 2× the median of recent gaps is likely a word boundary,
+    // even when the overall distribution is too unimodal for largest-jump
+    // analysis to find a clean split. This catches occasional word
+    // outliers in otherwise-compressed sending.
+    const int median = sorted[sorted.size() / 2];
+    const int secondary = median * 2;
+
+    // Effective threshold is the LOWER of the two — OR semantics: a gap
+    // that exceeds EITHER trigger counts as a word boundary. The floor
+    // keeps us above the character-gap threshold at all times.
+    const int effective = qMin(primary, secondary);
+    return qMax(effective, floorMs);
 }
 
 void BinChannel::updateWpmEstimate()
