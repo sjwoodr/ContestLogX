@@ -408,11 +408,11 @@ void PreferencesDialog::setupUi()
     rcTokenRow->addWidget(m_rcRotateTokenButton);
     rcLayout->addRow("Auth token:", rcTokenRow);
 
-    // URL-for-phone helper — shows a bookmarkable URL and copies it to
-    // the clipboard on click.
-    m_rcUrlLabel = new QLabel;
-    m_rcUrlLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
-    m_rcUrlLabel->setWordWrap(true);
+    // URL-for-phone helper — single-line read-only edit so long URLs
+    // (especially with "Any interface" + long token) don't wrap and
+    // get clipped. QLineEdit scrolls horizontally and stays selectable.
+    m_rcUrlLabel = new QLineEdit;
+    m_rcUrlLabel->setReadOnly(true);
     m_rcCopyUrlButton = new QPushButton("Copy URL for Phone");
     QHBoxLayout *rcUrlRow = new QHBoxLayout;
     rcUrlRow->addWidget(m_rcUrlLabel, 1);

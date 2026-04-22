@@ -125,7 +125,7 @@ private:
     QSpinBox   *m_rcPortSpin      = nullptr;
     QComboBox  *m_rcBindModeCombo = nullptr;
     QLineEdit  *m_rcTokenEdit     = nullptr;
-    QLabel     *m_rcUrlLabel      = nullptr;
+    QLineEdit  *m_rcUrlLabel      = nullptr;   // read-only; kept name for minimal churn
     QPushButton *m_rcCopyUrlButton = nullptr;
     QPushButton *m_rcRotateTokenButton = nullptr;
     void updateRemoteControlUrlLabel();
