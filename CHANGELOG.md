@@ -5,7 +5,7 @@ All notable changes to ContestLogX are documented in this file.
 ## [0.7.25]
 
 ### Other Changes and Bugfixes
-- Practice — Contest Exchange now adds two QRM stations (one above and one below the primary tone at asymmetric offsets, ~10 dB quieter, slightly different WPM) so the decoder and the operator experience realistic contest-band conditions with adjacent-channel interference; Rag Chew remains a single clean signal for pure head-copy practice
+- Practice — Contest Exchange now adds two QRM stations (one above and one below the primary tone at asymmetric offsets, ~12–14 dB quieter, slightly different WPM) so the decoder and the operator experience realistic contest-band conditions with adjacent-channel interference; Rag Chew remains a single clean signal for pure head-copy practice
 - Added CW Decoder entry to Preferences → Fonts so the font family and size of the decoded-text rows (and the surrounding toolbar / labels) can be customized; applies at widget spawn and on bin-count changes
 
 ## [0.7.24]

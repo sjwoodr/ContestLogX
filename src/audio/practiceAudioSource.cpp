@@ -32,8 +32,8 @@ constexpr double kTwoPi              = 6.283185307179586;
 // prime-ish fractions apart so adjacent-bin bleed differs on each side.
 constexpr double kQrm1ToneOffsetHz = +130.0;  // above primary
 constexpr double kQrm2ToneOffsetHz = -110.0;  // below primary
-constexpr double kQrm1Amplitude    = 0.09;    // ~-9 dB below primary
-constexpr double kQrm2Amplitude    = 0.07;    // slightly weaker still
+constexpr double kQrm1Amplitude    = 0.06;    // ~-12 dB below primary
+constexpr double kQrm2Amplitude    = 0.05;    // slightly weaker still
 constexpr int    kQrm1WpmOffset    = -3;      // slower than primary
 constexpr int    kQrm2WpmOffset    = +2;      // faster than primary
 
