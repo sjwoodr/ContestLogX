@@ -20,6 +20,7 @@ find_package(Qt6 REQUIRED COMPONENTS
 # Include directories
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party
 )
 
 # Source files
@@ -80,6 +81,8 @@ set(SOURCES
     src/net/wsjtxListener.cpp
     src/net/clxSnapshot.cpp
     src/net/httpServer.cpp
+    src/ui/qrCodeWidget.cpp
+    third_party/qrcodegen/qrcodegen.cpp
     src/audio/binChannel.cpp
     src/audio/cwDecoder.cpp
     src/audio/audioCapture.cpp
@@ -148,6 +151,8 @@ set(HEADERS
      include/wsjtxListener.h
      include/net/clxSnapshot.h
      include/net/httpServer.h
+     include/qrCodeWidget.h
+     third_party/qrcodegen/qrcodegen.hpp
      include/audio/audioTypes.h
      include/audio/morseTable.h
      include/audio/spscRingBuffer.h

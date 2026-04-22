@@ -128,6 +128,7 @@ private:
     QLineEdit  *m_rcUrlLabel      = nullptr;   // read-only; kept name for minimal churn
     QPushButton *m_rcCopyUrlButton = nullptr;
     QPushButton *m_rcRotateTokenButton = nullptr;
+    class QrCodeWidget *m_rcQrCode = nullptr;
     void updateRemoteControlUrlLabel();
 };
 

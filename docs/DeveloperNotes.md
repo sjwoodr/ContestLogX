@@ -97,9 +97,10 @@ Debug information is written to:
 - NOAA propagation fetch callback pushes into the snapshot on completion
 - A 2-second `QTimer` refreshes rig freq/mode (via `RigInterface::getFrequency()` / `getMode()`) and rate numbers; these don't have obvious push hooks
 
+**Discovery — QR code in Preferences** (shipped in 0.7.25): `QrCodeWidget` + `third_party/qrcodegen/` (nayuki, MIT, single translation unit ~28KB + header) render the full `http://<lan-ip>:<port>/?token=<t>` URL as a QR. Operator scans with phone camera; URL opens with token pre-filled. Chosen over mDNS because a full responder is ~400 LOC of DNS wire-format handling and Bonjour-for-Windows is a real user-install burden. QR works offline, cross-platform, zero-config.
+
 **Deferred to V2 (scope captured in TODO item 3)**:
 - `POST /api/rig/qsy`, `/api/rig/band`, `/api/rig/run_mode` — minimal rig-control writes
-- mDNS advertisement so phones can reach `http://contestlogx.local:8080` instead of the raw IP. Deferred because a proper responder is ~400 LOC of DNS wire-format + query handling and Bonjour-for-Windows is a real install burden; QR-code-in-Preferences is a possible lighter-weight alternative.
 
 **Known limitations**:
 - `RigInterface::getFrequency()` on `FlrigClient` is synchronous with a 2-second timeout — if flrig drops, the 2s timer poll could briefly stall the main thread. Not observed in practice; would fix by moving rig polling to a background thread (already the case for `HamlibClient`).

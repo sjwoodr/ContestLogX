@@ -19,10 +19,9 @@
      - Bind: LAN-only default, Preferences offers 127.0.0.1-only or specific iface
      - Preferences UI: enable toggle, port, bind mode, token + Copy-URL-for-Phone
        button, Rotate Token button
-     - mDNS/Bonjour discovery: advertise _contestlogx._tcp.local with version
-       + auth=required TXT records so phones can reach http://contestlogx.local:8080
-       instead of typing the IP. Use a vendored header-only mDNS lib
-       (mjansson/mdns) to avoid a user-install Bonjour burden on Windows.
+     - Discovery handled via QR code in Preferences (shipped 0.7.25 using
+       nayuki's qrcodegen under third_party/). Operator scans with phone
+       camera; no mDNS responder needed, no Bonjour-on-Windows burden.
 
 4. Multi-Multi networked operation — peer-to-peer CLX coordination across multiple
    stations on the same LAN. Each station runs its own CLX; instances discover each

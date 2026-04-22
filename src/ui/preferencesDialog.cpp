@@ -12,6 +12,7 @@
 #include "qrzApi.h"
 #include "onlineScoreClient.h"
 #include "dxccDatabase.h"
+#include "qrCodeWidget.h"
 #include <QStandardPaths>
 #include <QFile>
 #include <QVBoxLayout>
@@ -419,6 +420,11 @@ void PreferencesDialog::setupUi()
     rcUrlRow->addWidget(m_rcCopyUrlButton);
     rcLayout->addRow("Phone URL:", rcUrlRow);
 
+    // QR code — scan with a phone camera to open the URL with the token
+    // pre-filled. Saves typing the IP, port, and token by hand.
+    m_rcQrCode = new QrCodeWidget;
+    rcLayout->addRow("Scan with phone:", m_rcQrCode);
+
     QLabel *rcNote = new QLabel(
         "Changes take effect after clicking OK; the server stops and restarts "
         "with the new settings. Keep the token private — anyone on your LAN "
@@ -632,16 +638,19 @@ void PreferencesDialog::updateRemoteControlUrlLabel()
     if (!m_rcEnabledCheck->isChecked()) {
         m_rcUrlLabel->setText(
             QStringLiteral("— (enable the server above to see the URL)"));
+        if (m_rcQrCode) m_rcQrCode->setData(QString());
         return;
     }
     if (token.isEmpty()) {
         m_rcUrlLabel->setText(
             QStringLiteral("— (no token; check the checkbox to generate one)"));
+        if (m_rcQrCode) m_rcQrCode->setData(QString());
         return;
     }
     const QString url = QStringLiteral("http://%1:%2/?token=%3")
                             .arg(hostPart).arg(port).arg(token);
     m_rcUrlLabel->setText(url);
+    if (m_rcQrCode) m_rcQrCode->setData(url);
 }
 
 void PreferencesDialog::onTestQrzcqConnection()
