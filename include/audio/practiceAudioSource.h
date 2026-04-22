@@ -21,6 +21,7 @@
 #include <QAudioSink>
 #include <QIODevice>
 #include <QTimer>
+#include <QVector>
 #include <deque>
 #include <functional>
 #include <memory>
@@ -59,26 +60,39 @@ private:
         int   samples;
     };
 
-    void enqueueFragment(const QString& text);
-    void enqueueChar(QChar c, int unitSamples);
+    // One voice = one simulated CW station. The primary voice uses the
+    // operator's configured mode (Ragchew or Contest); QRM voices are
+    // always Ragchew chatter at reduced amplitude and offset tone
+    // frequency so they show up in the decoder's edge bins without
+    // dominating the primary bin's decode.
+    struct Voice {
+        PracticeMode mode      = PracticeMode::Ragchew;
+        double       toneHz    = 700.0;
+        double       amplitude = 0.25;
+        int          wpmOffset = 0;    // added to primary WPM, clamped at use
+
+        std::deque<Element> queue;
+        bool   currentToneOn    = false;
+        int    currentRemaining = 0;
+        int    currentTotal     = 0;
+        double phase            = 0.0;
+    };
+
+    void enqueueFragmentFor(Voice& v, const QString& text);
+    void enqueueCharFor(Voice& v, QChar c, int unitSamples);
     int  dotUnitSamples(int wpm) const;   // 1200 / WPM ms → samples at m_sampleRate
     void fillBlock(int16_t* out, int count);
+    double sampleFromVoice(Voice& v, double phaseInc);
 
     PracticeMode m_mode;
     PracticeContentGenerator m_generator;
     std::function<int()> m_wpmProvider;
 
-    std::deque<Element> m_queue;
+    // Voice[0] is the primary (center frequency, full amplitude); additional
+    // entries are QRM stations at asymmetric offsets and reduced amplitude.
+    QVector<Voice> m_voices;
 
-    // Active element state during sample generation
-    bool m_currentToneOn = false;
-    int  m_currentRemaining = 0;
-    int  m_currentTotal = 0;        // full length of the current element (for envelope)
-
-    // Tone synthesis state
-    double m_phase = 0.0;
     const int m_sampleRate = 48000;   // fixed — matches typical output devices
-    const double m_toneHz  = 700.0;   // matches the decoder's default center
     int m_envSamples = 0;             // rise/fall ramp length, ~5 ms
 
     // Playback path (what the operator hears on their speakers/headphones)

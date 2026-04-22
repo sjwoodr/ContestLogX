@@ -1,2 +1,3 @@
 1. LOC vs EXCH field in WFD module
 2. [2026-01-24 16:35:31.730] DxCluster: Expired spot for KE2EYY (16 minutes old) -- is not filterable / toggle off on
+3. Local-network HTTP control endpoint for mobile devices — scope TBD (candidates: read-only score/rate/last-QSOs/freq, write minimal log-QSO and rig QSY, auth via token, bind LAN-only). Qt6 QHttpServer module or QTcpServer.
