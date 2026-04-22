@@ -6,6 +6,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y \
     cmake g++ make \
     qt6-base-dev libqt6serialport6-dev qt6-base-dev-tools \
+    qt6-multimedia-dev libqt6multimedia6 \
     qt6-gtk-platformtheme \
     libgl1-mesa-dev \
     libfuse2 file wget \
