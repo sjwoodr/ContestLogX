@@ -8,6 +8,7 @@ All notable changes to ContestLogX are documented in this file.
 - Practice — Contest Exchange now adds two QRM stations (one above and one below the primary tone at asymmetric offsets, ~12–14 dB quieter, slightly different WPM) so the decoder and the operator experience realistic contest-band conditions with adjacent-channel interference; Rag Chew remains a single clean signal for pure head-copy practice
 - Added CW Decoder entry to Preferences → Fonts so the font family and size of the decoded-text rows (and the surrounding toolbar / labels) can be customized; applies at widget spawn and on bin-count changes
 - Added Remote Dashboard — embedded HTTP server serves a read-only dashboard on your LAN (score, rate, recent QSOs, rig state, propagation). Works on phone, tablet, or another PC browser (responsive layout). Preferences → Dashboard to enable; copy the bookmarkable URL or scan the QR code with your phone camera. Token-based auth; disabled by default
+- Added rig-control POST endpoints to the Remote Dashboard — /api/rig/qsy (set freq/mode), /api/rig/band (jump to 20m/40m/etc), /api/rig/run_mode (Run/S&P/Off). No UI buttons yet — usable from curl, iOS Shortcuts, or a future custom mobile client
 - Added Apply button to Preferences — saves changes and triggers post-save actions (font reapply, Remote Dashboard restart, etc.) without closing the dialog, so you can iterate and see the effect immediately (e.g. enable the Dashboard, click Apply, scan the QR code)
 
 ## [0.7.24]

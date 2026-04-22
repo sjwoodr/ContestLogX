@@ -99,8 +99,12 @@ Debug information is written to:
 
 **Discovery — QR code in Preferences** (shipped in 0.7.25): `QrCodeWidget` + `third_party/qrcodegen/` (nayuki, MIT, single translation unit ~28KB + header) render the full `http://<lan-ip>:<port>/?token=<t>` URL as a QR. Operator scans with phone camera; URL opens with token pre-filled. Chosen over mDNS because a full responder is ~400 LOC of DNS wire-format handling and Bonjour-for-Windows is a real user-install burden. QR works offline, cross-platform, zero-config.
 
-**Deferred to V2 (scope captured in TODO item 3)**:
-- `POST /api/rig/qsy`, `/api/rig/band`, `/api/rig/run_mode` — minimal rig-control writes
+**V2 rig-control writes (shipped 0.7.25)**:
+- `POST /api/rig/qsy {radio, freq_hz, mode}` — set frequency and/or mode on the named radio
+- `POST /api/rig/band {radio, band}` — jump to the low edge of a named band (`160m`..`2m`)
+- `POST /api/rig/run_mode {radio, mode: Run|S&P|Off}` — toggle operating mode
+- Handlers run on the Qt main thread (consistent with UI-driven rig calls); flrig's synchronous XML-RPC can briefly stall the UI on a misbehaving rig but no worse than clicking the same control in-app
+- Run-mode skips the modal "missing memory roles" validation that UI buttons do — a phone request shouldn't pop a dialog on the shack PC. F-key sends just silently no-op if roles aren't assigned, same as other headless invocations
 
 **Known limitations**:
 - `RigInterface::getFrequency()` on `FlrigClient` is synchronous with a 2-second timeout — if flrig drops, the 2s timer poll could briefly stall the main thread. Not observed in practice; would fix by moving rig polling to a background thread (already the case for `HamlibClient`).

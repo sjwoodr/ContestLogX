@@ -6,7 +6,7 @@
          /api/rig, /api/mults, /api/propagation
      Single-file static HTML+JS dashboard auto-refreshing every 5s, token via
      ?token= query param for bookmarkable URL.
-   V2 — Minimal writes, rig-control only (no QSO logging, no CW memory trigger):
+   V2 — Minimal rig-control writes — SHIPPED 0.7.25 (no QSO logging, no CW memory trigger):
      POST /api/rig/qsy { radio, freq_hz, mode }
      POST /api/rig/band { radio, band }
      POST /api/rig/run_mode { radio, mode: Run|S&P|Off }

@@ -46,6 +46,7 @@
 #include <QFile>
 #include <QUuid>
 #include <QJsonArray>
+#include <optional>
 #include <cmath>
 #include <QSpinBox>
 #include <QJsonDocument>
@@ -9691,6 +9692,169 @@ void MainWindow::registerRemoteRoutes()
             j["fetchedAt"]  = st.propagation.fetchedAt.isValid()
                               ? st.propagation.fetchedAt.toUTC().toString(Qt::ISODate)
                               : QString();
+            return jsonResp(j);
+        });
+
+    // ---------- V2 write endpoints (rig control) ----------
+    //
+    // Handlers run on the Qt main thread (HTTP server is event-loop-based).
+    // Direct calls to the rig backend are safe here — consistent with every
+    // other UI-driven rig call in MainWindow. Worst case a synchronous
+    // flrig XML-RPC timeout (2s) briefly stalls UI; same exposure exists
+    // for operator clicks today, so no regression.
+    //
+    // Snapshot doesn't need explicit push — the 2-second refresh timer in
+    // initRemoteControl() catches up the new rig state on the next tick.
+
+    // Shared body parser — returns 400 on malformed JSON, empty optional
+    // means "use defaults or no field set".
+    auto parseJsonBody = [jsonResp](const HttpRequest& req, QJsonObject& out) -> std::optional<HttpResponse> {
+        if (req.body.isEmpty()) { out = QJsonObject{}; return std::nullopt; }
+        QJsonParseError pe;
+        const QJsonDocument doc = QJsonDocument::fromJson(req.body, &pe);
+        if (pe.error != QJsonParseError::NoError || !doc.isObject()) {
+            HttpResponse r;
+            r.status = 400;
+            r.body = QByteArray("{\"error\":\"body must be a JSON object\"}");
+            return r;
+        }
+        out = doc.object();
+        return std::nullopt;
+    };
+
+    // Resolve radio side from body. Default L. Rejects R when SO2R is off.
+    auto resolveRig = [this](const QJsonObject& body, RigInterface*& rigOut,
+                             bool& isRightOut, HttpResponse& errOut) -> bool {
+        const QString radio = body.value(QStringLiteral("radio")).toString("L").toUpper();
+        isRightOut = (radio == QLatin1String("R"));
+        if (isRightOut && !m_so2rEnabled) {
+            errOut.status = 400;
+            errOut.body = QByteArray("{\"error\":\"SO2R not enabled; radio R unavailable\"}");
+            return false;
+        }
+        rigOut = isRightOut ? m_rigClientR : m_rigClient;
+        if (!rigOut) {
+            errOut.status = 503;
+            errOut.body = QByteArray("{\"error\":\"rig not available\"}");
+            return false;
+        }
+        return true;
+    };
+
+    // POST /api/rig/qsy — tune rig to {freq_hz, mode}. Either/both optional.
+    m_httpServer->registerRoute("POST", "/api/rig/qsy",
+        [this, jsonResp, parseJsonBody, resolveRig](const HttpRequest& req) {
+            QJsonObject body;
+            if (auto err = parseJsonBody(req, body)) return *err;
+            RigInterface* rig = nullptr; bool isR = false; HttpResponse err;
+            if (!resolveRig(body, rig, isR, err)) return err;
+
+            bool anyChange = false;
+            if (body.contains(QStringLiteral("freq_hz"))) {
+                const double freqHz = body.value(QStringLiteral("freq_hz")).toDouble(0.0);
+                if (freqHz <= 0) {
+                    HttpResponse r; r.status = 400;
+                    r.body = QByteArray("{\"error\":\"freq_hz must be > 0\"}");
+                    return r;
+                }
+                if (!rig->setFrequency(freqHz)) {
+                    HttpResponse r; r.status = 502;
+                    r.body = QByteArray("{\"error\":\"rig rejected setFrequency\"}");
+                    return r;
+                }
+                anyChange = true;
+            }
+            if (body.contains(QStringLiteral("mode"))) {
+                const QString mode = body.value(QStringLiteral("mode")).toString();
+                if (!mode.isEmpty() && !rig->setMode(mode)) {
+                    HttpResponse r; r.status = 502;
+                    r.body = QByteArray("{\"error\":\"rig rejected setMode\"}");
+                    return r;
+                }
+                anyChange = true;
+            }
+            QJsonObject j;
+            j["ok"] = true;
+            j["changed"] = anyChange;
+            return jsonResp(j);
+        });
+
+    // POST /api/rig/band — jump rig to the low edge of the named band.
+    // Body: {radio: "L|R", band: "20m|40m|..."}. Useful for quick band
+    // changes from a phone without having to know the exact frequency.
+    auto bandToFreqHz = [](const QString& band) -> double {
+        // Low-edge anchors — operator fine-tunes from there. Matches the
+        // band-edge constants in BandPlan::freq2Band().
+        static const QHash<QString, double> t = {
+            {"160m", 1800000}, {"80m", 3500000}, {"60m", 5330500},
+            {"40m",  7000000}, {"30m",10100000}, {"20m",14000000},
+            {"17m", 18068000}, {"15m",21000000}, {"12m",24890000},
+            {"10m", 28000000}, {"6m", 50000000}, {"2m",144000000},
+        };
+        return t.value(band.toLower(), 0.0);
+    };
+    m_httpServer->registerRoute("POST", "/api/rig/band",
+        [this, jsonResp, parseJsonBody, resolveRig, bandToFreqHz](const HttpRequest& req) {
+            QJsonObject body;
+            if (auto err = parseJsonBody(req, body)) return *err;
+            RigInterface* rig = nullptr; bool isR = false; HttpResponse err;
+            if (!resolveRig(body, rig, isR, err)) return err;
+
+            const QString band = body.value(QStringLiteral("band")).toString();
+            const double freqHz = bandToFreqHz(band);
+            if (freqHz <= 0) {
+                HttpResponse r; r.status = 400;
+                r.body = QByteArray("{\"error\":\"unknown or missing 'band' (e.g. '20m')\"}");
+                return r;
+            }
+            if (!rig->setFrequency(freqHz)) {
+                HttpResponse r; r.status = 502;
+                r.body = QByteArray("{\"error\":\"rig rejected setFrequency\"}");
+                return r;
+            }
+            QJsonObject j;
+            j["ok"]     = true;
+            j["band"]   = band;
+            j["freqHz"] = freqHz;
+            return jsonResp(j);
+        });
+
+    // POST /api/rig/run_mode — set Run/S&P/Off for the specified radio.
+    // Body: {radio: "L|R", mode: "Run|S&P|Off"}.
+    // Note: skips the modal "missing memory roles" validation that the UI
+    // button handlers run — a phone request shouldn't pop a dialog on the
+    // shack PC. Operator's responsibility to have memories set up; the
+    // mode change takes effect either way, and F-key sends just fail silently
+    // if roles aren't assigned (consistent with other headless invocations).
+    m_httpServer->registerRoute("POST", "/api/rig/run_mode",
+        [this, jsonResp, parseJsonBody](const HttpRequest& req) {
+            QJsonObject body;
+            if (auto err = parseJsonBody(req, body)) return *err;
+            const QString radio = body.value(QStringLiteral("radio")).toString("L").toUpper();
+            const bool isR = (radio == QLatin1String("R"));
+            if (isR && !m_so2rEnabled) {
+                HttpResponse r; r.status = 400;
+                r.body = QByteArray("{\"error\":\"SO2R not enabled; radio R unavailable\"}");
+                return r;
+            }
+            const QString modeStr = body.value(QStringLiteral("mode")).toString().trimmed();
+            RunMode target;
+            if (modeStr.compare("Run",  Qt::CaseInsensitive) == 0) target = RunMode::Run;
+            else if (modeStr == QLatin1String("S&P")
+                  || modeStr.compare("SP", Qt::CaseInsensitive) == 0) target = RunMode::SP;
+            else if (modeStr.compare("Off", Qt::CaseInsensitive) == 0) target = RunMode::Off;
+            else {
+                HttpResponse r; r.status = 400;
+                r.body = QByteArray("{\"error\":\"mode must be 'Run', 'S&P', or 'Off'\"}");
+                return r;
+            }
+            if (isR) m_runModeR = target; else m_runMode = target;
+            updateRunSPButtons();
+            QJsonObject j;
+            j["ok"]   = true;
+            j["radio"]= isR ? "R" : "L";
+            j["mode"] = (target == RunMode::Run) ? "Run"
+                      : (target == RunMode::SP)  ? "S&P" : "Off";
             return jsonResp(j);
         });
 }

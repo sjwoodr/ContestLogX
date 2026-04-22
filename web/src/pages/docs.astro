@@ -801,9 +801,12 @@ F8  N9OH`}</pre>
               feature disabled.</li>
             <li>Click <strong>Rotate</strong> next to the token in Preferences to invalidate old
               bookmarks &mdash; e.g. after a guest operator leaves, or if you suspect the URL leaked.</li>
-            <li>The dashboard is <strong>read-only</strong>. It cannot log a QSO, change the rig
-              frequency, or modify any contest state. Rig-control write endpoints are planned for a
-              future version with their own explicit opt-in.</li>
+            <li>The dashboard HTML is <strong>read-only</strong> — it will never log a QSO, trigger
+              CW memories, or modify any contest state. The underlying HTTP API does expose a small
+              set of <em>rig-control</em> writes (QSY, band change, Run/S&amp;P toggle) for use from
+              <code>curl</code>, iOS Shortcuts, or a custom mobile client; these require the same
+              bearer token as any other endpoint. There&apos;s no button for these in the standard
+              dashboard HTML yet — build your own client if you want them.</li>
           </ul>
 
           <h3 class="text-lg font-semibold mb-2">Troubleshooting</h3>
