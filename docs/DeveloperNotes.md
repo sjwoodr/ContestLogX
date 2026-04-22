@@ -67,6 +67,44 @@ Debug information is written to:
 - Off-center signals (signal between bin centers) detect on multiple bins with reduced magnitude; operator should tune the passband/bin count so a bin lands near the target tone frequency for best copy.
 - No DSP unit tests yet (`tests/test_goertzel.cpp` / `test_binChannel.cpp` / `test_cwDecoder.cpp` are planned per `specs/004-cw-decoder/tasks.md` but not yet written).
 
+### Remote Dashboard ✅
+
+**TODO roadmap item 3** — embedded HTTP server that serves a read-only dashboard of the current session on the LAN. V1 scope (read-only) shipped in 0.7.25; V2 (minimal rig-control writes) deferred.
+
+**Architecture**:
+- `include/net/clxSnapshot.{h,cpp}` — thread-safe point-in-time view (score, recent QSOs, rig L+R, rate, propagation, worked named mults) protected by `QReadWriteLock`. Single writer (`MainWindow`) on score/QSO/rig state changes; multiple readers (HTTP handlers) take a cheap full `Copy` under the read lock and serialize JSON without holding the lock.
+- `include/net/httpServer.{h,cpp}` — minimal HTTP/1.1 server on top of `QTcpServer`. Close-after-response (no keep-alive). Route dispatch via method+path exact match in a `QHash<RouteKey, HttpHandler>`. Per-socket read buffer for fragmented requests.
+- `resources/dashboard.html` — single-file static dashboard served at `/` (and `/dashboard.html`). Vanilla HTML/CSS/JS — no framework. Polls the 7 `/api/*` endpoints every 5 s in parallel via `Promise.all`. Responsive CSS grid: one column on phones, three on desktop, Score hero + Recent QSOs table span full width. Dark theme matching the app.
+- `src/ui/preferencesDialog.cpp` — "Dashboard" tab with enable toggle, port, bind mode (LAN / Localhost / Any), read-only token field with Rotate button, and a read-only "Phone URL" line with Copy-to-Clipboard. Changes apply on OK; MainWindow stops+starts the server.
+
+**Why not `Qt6::HttpServer`**: the module isn't in Qt 6.2 (the Ubuntu 22.04 / AppImage build base). Keeping the portability floor lets the AppImage run on older distros; rolling a small HTTP server on `QTcpServer` is ~300 LOC of straightforward wire-format handling.
+
+**Auth**: single bearer token, auto-generated (UUID-derived) on first enable. Accepted either as `Authorization: Bearer <token>` or `?token=<token>` query param — query form is what makes the URL bookmarkable on a phone home screen. No rate limiting in V1 (LAN-only scope makes it moot).
+
+**Endpoints (V1, all GET, all token-gated)**:
+- `GET /api/status` — running, contestName/File, so2rEnabled, startedAt, version
+- `GET /api/score` — score snapshot with band/mode breakdown
+- `GET /api/rate` — currentHourlyRate (last 10 min × 6), lastHourRate, sessionAverageRate
+- `GET /api/qsos?limit=N&offset=N` — newest-first paginated; default limit 20, max 200
+- `GET /api/rig` — per-radio freq/mode/band/connected/runSpMode
+- `GET /api/mults` — worked named multipliers
+- `GET /api/propagation` — NOAA SFI/A/K with fetch timestamp
+- `GET /` and `GET /dashboard.html` — static dashboard page from Qt resources
+
+**Snapshot update wiring in MainWindow**:
+- `onRecalculateScore` and the three on-load/onLogQso paths each call `updateSnapshotScore()` + `updateSnapshotQsos()` — so the dashboard reflects changes in the same frame the score widget does
+- `loadContestDefinition` calls `updateSnapshotStatus()` + `updateSnapshotScore()` + `updateSnapshotQsos()` + `updateSnapshotMults()`
+- NOAA propagation fetch callback pushes into the snapshot on completion
+- A 2-second `QTimer` refreshes rig freq/mode (via `RigInterface::getFrequency()` / `getMode()`) and rate numbers; these don't have obvious push hooks
+
+**Deferred to V2 (scope captured in TODO item 3)**:
+- `POST /api/rig/qsy`, `/api/rig/band`, `/api/rig/run_mode` — minimal rig-control writes
+- mDNS advertisement so phones can reach `http://contestlogx.local:8080` instead of the raw IP. Deferred because a proper responder is ~400 LOC of DNS wire-format + query handling and Bonjour-for-Windows is a real install burden; QR-code-in-Preferences is a possible lighter-weight alternative.
+
+**Known limitations**:
+- `RigInterface::getFrequency()` on `FlrigClient` is synchronous with a 2-second timeout — if flrig drops, the 2s timer poll could briefly stall the main thread. Not observed in practice; would fix by moving rig polling to a background thread (already the case for `HamlibClient`).
+- Dashboard polls; no WebSocket push. Fine for a glance view at 5 s latency; will revisit for Multi-Multi where inter-station push latency matters (TODO item 4).
+
 ## Recent Changes (2026 — 0.6.x)
 
 ### Virginia QSO Party (VAQP) ✅

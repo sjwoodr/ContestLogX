@@ -365,16 +365,16 @@ void PreferencesDialog::setupUi()
 
     tabWidget->addTab(osTab, "Scoring");
 
-    // ── Remote Control tab ──────────────────────────────────────────────────
+    // ── Remote Dashboard tab ────────────────────────────────────────────────
     QWidget *rcTab = new QWidget;
     QFormLayout *rcLayout = new QFormLayout(rcTab);
 
-    m_rcEnabledCheck = new QCheckBox("Enable Remote Control HTTP server");
+    m_rcEnabledCheck = new QCheckBox("Enable Remote Dashboard HTTP server");
     m_rcEnabledCheck->setChecked(Settings::instance().getRemoteControlEnabled());
     m_rcEnabledCheck->setToolTip(
-        "Exposes a small HTTP server on your LAN so your phone or tablet can "
-        "show a read-only dashboard of your current session (score, rate, "
-        "recent QSOs, rig state, propagation).");
+        "Exposes a small HTTP server on your LAN so your phone, tablet, or "
+        "another PC browser can show a live dashboard of your current session "
+        "(score, rate, recent QSOs, rig state, propagation).");
     rcLayout->addRow(m_rcEnabledCheck);
 
     m_rcPortSpin = new QSpinBox;
@@ -461,7 +461,7 @@ void PreferencesDialog::setupUi()
     updateRcFields(m_rcEnabledCheck->isChecked());
     updateRemoteControlUrlLabel();
 
-    tabWidget->addTab(rcTab, "Remote");
+    tabWidget->addTab(rcTab, "Dashboard");
 
     mainLayout->addWidget(tabWidget);
 

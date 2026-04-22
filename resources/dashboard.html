@@ -1,8 +1,8 @@
 <!doctype html>
-<!-- ContestLogX Remote Control dashboard. Single-file static page served
-     by the embedded HTTP server at "/". Auto-refreshes every 5s by
-     polling the /api/* JSON endpoints. Token is picked up from the URL
-     query string (?token=...) so a phone bookmark works on first load. -->
+<!-- ContestLogX Remote Dashboard. Single-file static page served by the
+     embedded HTTP server at "/". Auto-refreshes every 5s by polling the
+     /api/* JSON endpoints. Token is picked up from the URL query string
+     (?token=...) so a phone bookmark works on first load. -->
 <html lang="en">
 <head>
   <meta charset="utf-8">
@@ -31,6 +31,8 @@
     .dashboard { max-width: 1100px; margin: 0 auto; }
 
     h1 { margin: 0 0 4px 0; font-size: 1.4rem; }
+    h1 a { color: inherit; text-decoration: none; }
+    h1 a:hover { color: var(--accent); }
     h2 { margin: 0 0 8px 0; font-size: 1rem; color: var(--muted);
           font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
     .top { display: flex; justify-content: space-between; align-items: baseline;
@@ -88,7 +90,7 @@
   <div class="dashboard">
     <div class="top">
       <div>
-        <h1>ContestLogX</h1>
+        <h1><a href="https://contestlogx.com" target="_blank" rel="noopener">ContestLogX</a></h1>
         <div class="meta" id="contest">no contest loaded</div>
       </div>
       <div class="meta" id="connection">

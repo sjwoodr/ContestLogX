@@ -27,6 +27,7 @@ import Layout from '../layouts/Layout.astro';
           <li><a href="#dx-cluster" class="hover:underline" style="color: #58a6ff;">DX Cluster</a></li>
           <li><a href="#band-map" class="hover:underline" style="color: #58a6ff;">Band Map</a></li>
           <li><a href="#cw-decoder" class="hover:underline" style="color: #58a6ff;">CW Decoder</a></li>
+          <li><a href="#remote-dashboard" class="hover:underline" style="color: #58a6ff;">Remote Dashboard</a></li>
           <li><a href="#import-export" class="hover:underline" style="color: #58a6ff;">Importing &amp; Exporting Logs</a></li>
           <li><a href="#custom-contests" class="hover:underline" style="color: #58a6ff;">Creating Custom Contest Modules</a></li>
           <li><a href="#clx-format" class="hover:underline" style="color: #58a6ff;">CLX File Format</a></li>
@@ -739,6 +740,80 @@ F8  N9OH`}</pre>
             to-fill in that case puts the literal token into CALL; manual edit fixes it.</li>
             <li>The decoder supports one audio path per radio. Multi-signal separation within a single bin (two
             stations on the same tone frequency) is not attempted.</li>
+          </ul>
+        </section>
+
+        <!-- Remote Dashboard -->
+        <section id="remote-dashboard" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
+          <h2 class="text-2xl font-semibold mb-4">Remote Dashboard</h2>
+
+          <p class="opacity-80 mb-4">
+            The Remote Dashboard is a small HTTP server built into ContestLogX that serves a live,
+            read-only view of your current session (score, rate, recent QSOs, rig state, propagation)
+            on your local network. Point a phone, tablet, or another PC browser at the URL and you
+            get an auto-refreshing dashboard — useful for checking your score from the couch during
+            a coffee break, monitoring a guest operator&apos;s session from another room, or just
+            having an ambient display on a second screen while you run.
+          </p>
+          <p class="opacity-80 mb-4">
+            The server is <strong>off by default</strong> and binds to your LAN only — it&apos;s
+            not exposed to the internet. Every request requires a bearer token, and the
+            bookmarkable URL includes that token so your phone reconnects without prompting.
+          </p>
+
+          <h3 class="text-lg font-semibold mb-2">Enabling the Dashboard</h3>
+          <ol class="list-decimal list-inside space-y-1 opacity-80 mb-4">
+            <li>Open <strong>File → Preferences → Dashboard</strong>.</li>
+            <li>Check <em>&quot;Enable Remote Dashboard HTTP server&quot;</em>. A token is auto-generated.</li>
+            <li>Leave the port at 8080 (or change if you already have something on that port).</li>
+            <li>Choose a bind mode:
+              <ul class="list-disc list-inside ml-6 mt-1">
+                <li><strong>LAN (auto-detect)</strong> &mdash; default; binds to the first non-loopback IPv4 interface</li>
+                <li><strong>Localhost only</strong> &mdash; dashboard only reachable from the same PC</li>
+                <li><strong>Any interface</strong> &mdash; useful if auto-detect picks the wrong interface (VPN, etc.)</li>
+              </ul>
+            </li>
+            <li>Click <strong>Copy URL for Phone</strong> and paste the URL into your phone&apos;s browser.
+              Add it to the home screen and you have a one-tap bookmark.</li>
+            <li>Click OK. The server starts immediately &mdash; no app restart required.</li>
+          </ol>
+
+          <h3 class="text-lg font-semibold mb-2">What the Dashboard Shows</h3>
+          <ul class="list-disc list-inside space-y-1 opacity-80 mb-4">
+            <li><strong>Score</strong> &mdash; final score, total QSOs, points, multiplier count</li>
+            <li><strong>Rate</strong> &mdash; current hourly rate (last 10 min ×6), actual last hour, session average</li>
+            <li><strong>Rig</strong> &mdash; frequency, mode, band, Run/S&amp;P indicator per radio
+              (both radios shown in SO2R mode)</li>
+            <li><strong>Propagation</strong> &mdash; SFI / A-index / K-index from the most recent NOAA fetch</li>
+            <li><strong>Recent QSOs</strong> &mdash; last ten logged QSOs newest-first with UTC time, call, band, mode, and received exchange</li>
+          </ul>
+          <p class="opacity-80 mb-4">
+            The page auto-refreshes every 5 seconds. Layout is responsive &mdash; one column on a
+            phone, three columns on a desktop monitor.
+          </p>
+
+          <h3 class="text-lg font-semibold mb-2">Security Notes</h3>
+          <ul class="list-disc list-inside space-y-1 opacity-80 mb-4">
+            <li>The auth token is the only gate &mdash; anyone on your LAN with the URL can see the
+              dashboard. Keep your home Wi-Fi secured. If you&apos;re on an untrusted network
+              (hotel, hamfest), use the <strong>Localhost only</strong> bind mode or leave the
+              feature disabled.</li>
+            <li>Click <strong>Rotate</strong> next to the token in Preferences to invalidate old
+              bookmarks &mdash; e.g. after a guest operator leaves, or if you suspect the URL leaked.</li>
+            <li>The dashboard is <strong>read-only</strong>. It cannot log a QSO, change the rig
+              frequency, or modify any contest state. Rig-control write endpoints are planned for a
+              future version with their own explicit opt-in.</li>
+          </ul>
+
+          <h3 class="text-lg font-semibold mb-2">Troubleshooting</h3>
+          <ul class="list-disc list-inside space-y-1 opacity-80">
+            <li><strong>Phone can&apos;t reach the URL.</strong> Confirm the phone is on the same
+              Wi-Fi as the PC running ContestLogX. Some guest-network SSIDs isolate clients &mdash;
+              switch to the main network.</li>
+            <li><strong>Firewall prompt on Windows.</strong> Allow ContestLogX on private networks
+              when the OS prompts. On Linux, <code>ufw allow 8080</code> if you&apos;ve enabled ufw.</li>
+            <li><strong>Port already in use.</strong> Change the port in Preferences. Common
+              conflicts: 8080 is used by many dev servers; 8000 is a common fallback.</li>
           </ul>
         </section>
 

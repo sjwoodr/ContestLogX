@@ -1,6 +1,6 @@
 1. LOC vs EXCH field in WFD module
 2. [2026-01-24 16:35:31.730] DxCluster: Expired spot for KE2EYY (16 minutes old) -- is not filterable / toggle off on
-3. Local-network HTTP control endpoint for mobile devices (finalized scope):
+3. Remote Dashboard — local-network HTTP server for mobile/PC browser dashboards (finalized scope):
    V1 — Read-only JSON endpoints + built-in mobile dashboard HTML page served at /:
      GET /api/status, /api/score, /api/rate, /api/qsos?limit=N&offset=N,
          /api/rig, /api/mults, /api/propagation
