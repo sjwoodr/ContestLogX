@@ -1106,6 +1106,22 @@ void MainWindow::setupDocks(QSplitter* mainSplitter)
     });
 
     createBandMapDock();
+
+    // If the last session quit with a Practice audio source selected, reset
+    // it to "(none)" so CLX doesn't start generating CW on the speakers the
+    // moment it launches. The operator must explicitly re-select Practice
+    // each session. Only practice-* sentinels are stripped; real device
+    // names persist across restarts as before.
+    {
+        Settings& s = Settings::instance();
+        const QString dl = s.getRadioLAudioInputDevice();
+        const QString dr = s.getRadioRAudioInputDevice();
+        if (dl.startsWith(QStringLiteral("practice-")))
+            s.setRadioLAudioInputDevice(QString());
+        if (dr.startsWith(QStringLiteral("practice-")))
+            s.setRadioRAudioInputDevice(QString());
+    }
+
     // Spawn CW decoder widgets if an audio input device has been configured
     // per radio (SPEC-005). Safe to call even when no device is configured —
     // the method is a no-op in that case.
