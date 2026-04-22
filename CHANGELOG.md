@@ -4,6 +4,14 @@ All notable changes to ContestLogX are documented in this file.
 
 ## [0.7.21]
 
+### Other Changes and Bugfixes
+- Added CW Decoder — dockable multi-channel Morse decoder per radio (Window → CW Decoder) with N parallel frequency bins, auto-adaptive WPM tracking, and clickable callsign / RST tokens
+- Added per-radio Audio Input Device selector in Rig Connection Settings and the decoder widget's toolbar (supports USB audio, virtual cable, soundcard); "(none)" disables the decoder for that radio
+- Added per-radio "Mute decoder on PTT" toggle — gates the decoder during transmit so own keying doesn't self-decode; covers both manual keying and F-key / CW console sends
+- Decoded callsigns (blue) and RST (amber) are clickable — fill the owning radio's CALL or RSTr field and trigger SCP / call-history / dupe check / QRZ auto-lookup just like keyboard entry; cut-numbers (5NN, 55N, 5N9) normalize to digits on fill
+- Callsign recognition handles standard, portable-suffix (K1ABC/P), and prefix-slash (IT9/DK6XZ, DL/K1ABC) formats
+- Added CW Decoder Debug Logging toggle under the Debug menu
+
 ## [0.7.20]
 
 ### Contest Updates
