@@ -2,6 +2,11 @@
 
 All notable changes to ContestLogX are documented in this file.
 
+## [0.7.22]
+
+### Other Changes and Bugfixes
+- Fixed CW Decoder failing to build on Windows (MSVC does not define M_PI without _USE_MATH_DEFINES)
+
 ## [0.7.21]
 
 ### Other Changes and Bugfixes

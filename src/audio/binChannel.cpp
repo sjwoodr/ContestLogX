@@ -22,7 +22,8 @@ BinChannel::BinChannel(int binIndex, double centerFreqHz, int sampleRateHz,
     , m_wpmMin(wpmMin)
     , m_wpmMax(wpmMax)
 {
-    const double omega = 2.0 * M_PI * centerFreqHz / sampleRateHz;
+    constexpr double kTwoPi = 6.283185307179586;
+    const double omega = kTwoPi * centerFreqHz / sampleRateHz;
     m_coeff = 2.0 * std::cos(omega);
 }
 
