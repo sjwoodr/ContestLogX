@@ -37,6 +37,7 @@ void BinChannel::reset()
     m_morseBuffer.clear();
     m_recentElementMs.clear();
     m_recentBoundaryGaps.clear();
+    m_recentMagnitudes.clear();
     m_currentWpm = 0;
     m_lockState = LockState::NoLock;
     m_textBuffer.clear();
@@ -206,8 +207,25 @@ QList<CharEvent> BinChannel::processBlock(const int16_t* samples, int count,
     // range: noise-floor around 0.05–0.15, comfortable operating around
     // 0.2–0.4, strong signals always pass. Clamped to [0,1].
     constexpr double kScale = static_cast<double>(kBlockSamples) * 6553.6;  // 5× more sensitive
-    double normMag = std::sqrt(std::max(0.0, mag2)) / kScale;
-    if (normMag > 1.0) normMag = 1.0;
+    double rawMag = std::sqrt(std::max(0.0, mag2)) / kScale;
+    if (rawMag > 1.0) rawMag = 1.0;
+
+    // 4-block (≈40 ms) moving-average smoothing. Off-center signals (e.g.,
+    // a 700 Hz tone landing between the 650 Hz and 750 Hz bins) produce
+    // Goertzel magnitude oscillation at the bin-offset frequency. For a
+    // 50 Hz offset the beat period is 20 ms; a moving average of exactly
+    // 2 periods (40 ms) fully cancels. Longer windows (60 ms) cancel
+    // better on a broader range of offsets but pull peak smoothed
+    // magnitude below typical squelch on marginal-amplitude signals —
+    // 40 ms is the empirical sweet spot. Legitimate CW elements at
+    // ≤ 45 WPM (dot ≥ 27 ms) still peak above squelch after smoothing;
+    // element durations are uniformly stretched by ~1 block on each end
+    // but the dot:dash ratio is preserved so classification still works.
+    m_recentMagnitudes.push_back(rawMag);
+    while (m_recentMagnitudes.size() > 4) m_recentMagnitudes.pop_front();
+    double normMag = 0.0;
+    for (double m : m_recentMagnitudes) normMag += m;
+    normMag /= static_cast<double>(m_recentMagnitudes.size());
 
     const int blockMs = (count * 1000) / m_sampleRateHz;
     m_elapsedAudioMs += blockMs;

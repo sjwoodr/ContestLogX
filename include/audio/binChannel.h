@@ -108,6 +108,14 @@ private:
     // classification via "largest-jump" analysis.
     std::deque<int> m_recentBoundaryGaps;
 
+    // Small rolling window of raw Goertzel magnitudes. Averaging across a
+    // few blocks (~30 ms) smooths the ~20 ms beating pattern that a
+    // Goertzel detector exhibits when the actual signal frequency is
+    // offset from the bin center (common for signals that land between
+    // bins). Legitimate CW elements at typical speeds are well above
+    // 30 ms, so the smoothing does not blur them.
+    std::deque<double> m_recentMagnitudes;
+
     int m_currentWpm = 0;            // 0 = no lock
     LockState m_lockState = LockState::NoLock;
 
