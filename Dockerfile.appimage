@@ -10,15 +10,33 @@ RUN apt-get update && apt-get install -y \
     qt6-gtk-platformtheme \
     libgl1-mesa-dev \
     libfuse2 file wget \
+    # Qt6 Multimedia on Ubuntu 22.04 / Qt 6.2 uses a GStreamer-based
+    # backend. The full plugin stack is copied into the AppImage so the
+    # bundle is self-contained and doesn't depend on the host having a
+    # compatible glib version. Needs:
+    #   - libgstreamer1.0-0 / libgstreamer-plugins-base1.0-0: runtime libs
+    #   - gstreamer1.0-plugins-base: coreelements, audioconvert, appsink,
+    #     audioresample — the pipeline primitives Qt Multimedia composes
+    #   - gstreamer1.0-plugins-good: pulseaudio/alsa sources, etc.
+    #   - gstreamer1.0-alsa / gstreamer1.0-pulseaudio: audio I/O backends
+    libgstreamer1.0-0 libgstreamer-plugins-base1.0-0 \
+    gstreamer1.0-plugins-base gstreamer1.0-plugins-good \
+    gstreamer1.0-alsa gstreamer1.0-pulseaudio \
     && rm -rf /var/lib/apt/lists/*
 
-# Download linuxdeploy and Qt plugin
+# Download linuxdeploy, Qt plugin, and appimagetool.
+# We need appimagetool separately because after linuxdeploy bundles deps we
+# strip system libs (glib/gio/gobject) and then re-package — re-running
+# linuxdeploy would re-scan deps and bring those libs back.
 RUN wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage \
         -O /usr/local/bin/linuxdeploy && \
     chmod +x /usr/local/bin/linuxdeploy && \
     wget -q https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage \
         -O /usr/local/bin/linuxdeploy-plugin-qt && \
-    chmod +x /usr/local/bin/linuxdeploy-plugin-qt
+    chmod +x /usr/local/bin/linuxdeploy-plugin-qt && \
+    wget -q https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage \
+        -O /usr/local/bin/appimagetool && \
+    chmod +x /usr/local/bin/appimagetool
 
 COPY . /src
 WORKDIR /src

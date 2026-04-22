@@ -37,7 +37,9 @@ cp data/*.json "dist/${APP_NAME}.app/Contents/Resources/share/contestlogx/data/"
 # Create PkgInfo file
 echo "APPL????" > "dist/${APP_NAME}.app/Contents/PkgInfo"
 
-# Create Info.plist with version
+# Create Info.plist with version. NOTE: must be in place before macdeployqt
+# runs because macdeployqt reads CFBundleExecutable to locate the binary it
+# should introspect.
 cat > "dist/${APP_NAME}.app/Contents/Info.plist" << EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -65,7 +67,25 @@ cat > "dist/${APP_NAME}.app/Contents/Info.plist" << EOF
 </plist>
 EOF
 
+# Bundle Qt frameworks, plugins, and rewrite rpaths so the .app is
+# self-contained. Without this the binary's @rpath references point at the
+# build-time Qt install (e.g. the CI runner's Qt path) and the app won't
+# launch on any machine that doesn't happen to have Qt installed at the
+# same location. macdeployqt introspects the binary's link dependencies
+# and copies the required Qt frameworks (QtCore, QtGui, QtWidgets,
+# QtNetwork, QtXml, QtMultimedia, etc.) into Contents/Frameworks/ along
+# with their plugins in Contents/PlugIns/.
+echo ""
+echo "Running macdeployqt to bundle Qt frameworks..."
+if ! command -v macdeployqt >/dev/null 2>&1; then
+    echo "ERROR: macdeployqt not found on PATH."
+    echo "       On CI this is provided by jurplel/install-qt-action."
+    echo "       Locally, ensure \$(brew --prefix qt6)/bin is on PATH."
+    exit 1
+fi
+macdeployqt "dist/${APP_NAME}.app" -always-overwrite
+
 echo ""
 echo "✓ macOS app bundle created: dist/${APP_NAME}.app"
 echo "  Version: ${VERSION}"
-echo "  Bundled contest definitions and data files"
+echo "  Bundled contest definitions, data files, and Qt frameworks"
