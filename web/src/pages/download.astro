@@ -16,10 +16,10 @@ import Layout from '../layouts/Layout.astro';
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
         <div class="rounded-lg border p-8" style="background-color: #161b22; border-color: #30363d;">
           <h2 class="text-2xl font-semibold mb-4">Linux</h2>
-          <p class="mb-2 opacity-80">Version 0.7.23 (Beta)</p>
+          <p class="mb-2 opacity-80">Version 0.7.24 (Beta)</p>
           <p class="mb-6 opacity-60 text-sm">AppImage · tar.gz</p>
           <a
-            href="https://github.com/sjwoodr/ContestLogX/releases/download/v0.7.23/ContestLogX.0.7.23.AppImage.tar.gz"
+            href="https://github.com/sjwoodr/ContestLogX/releases/download/v0.7.24/ContestLogX.0.7.24.AppImage.tar.gz"
             class="inline-block px-6 py-3 rounded-md font-semibold transition-colors download-btn"
           >
             Download for Linux
@@ -37,10 +37,10 @@ import Layout from '../layouts/Layout.astro';
 
         <div class="rounded-lg border p-8" style="background-color: #161b22; border-color: #30363d;">
           <h2 class="text-2xl font-semibold mb-4">macOS</h2>
-          <p class="mb-2 opacity-80">Version 0.7.23 (Beta)</p>
+          <p class="mb-2 opacity-80">Version 0.7.24 (Beta)</p>
           <p class="mb-6 opacity-60 text-sm">App Bundle · tar.gz</p>
           <a
-            href="https://github.com/sjwoodr/ContestLogX/releases/download/v0.7.23/ContestLogX.0.7.23.macOS.tar.gz"
+            href="https://github.com/sjwoodr/ContestLogX/releases/download/v0.7.24/ContestLogX.0.7.24.macOS.tar.gz"
             class="inline-block px-6 py-3 rounded-md font-semibold transition-colors download-btn"
           >
             Download for macOS
@@ -49,10 +49,10 @@ import Layout from '../layouts/Layout.astro';
 
         <div class="rounded-lg border p-8" style="background-color: #161b22; border-color: #30363d;">
           <h2 class="text-2xl font-semibold mb-4">Windows</h2>
-          <p class="mb-2 opacity-80">Version 0.7.23 (Beta)</p>
+          <p class="mb-2 opacity-80">Version 0.7.24 (Beta)</p>
           <p class="mb-6 opacity-60 text-sm">Portable · self-extracting exe</p>
           <a
-            href="https://github.com/sjwoodr/ContestLogX/releases/download/v0.7.23/ContestLogX.0.7.23.Windows.exe"
+            href="https://github.com/sjwoodr/ContestLogX/releases/download/v0.7.24/ContestLogX.0.7.24.Windows.exe"
             class="inline-block px-6 py-3 rounded-md font-semibold transition-colors download-btn"
           >
             Download for Windows
@@ -60,11 +60,50 @@ import Layout from '../layouts/Layout.astro';
         </div>
       </div>
 
+      <!-- macOS first-launch instructions -->
+      <div class="rounded-lg border p-8 text-left mb-8" style="background-color: #161b22; border-color: #30363d;">
+        <h2 class="text-2xl font-semibold mb-4">First launch on macOS</h2>
+        <p class="opacity-80 mb-4">
+          ContestLogX for macOS is signed ad-hoc (not notarized by Apple), so on first launch
+          Gatekeeper will block it with the message
+          <em>"ContestLogX.app was blocked to protect your Mac."</em>
+          This is expected. Choose either option below to unlock the app:
+        </p>
+
+        <h3 class="text-lg font-semibold mt-4 mb-2">Option A &mdash; Via System Settings (recommended for most users)</h3>
+        <ol class="space-y-1 opacity-80 list-decimal pl-6 mb-4">
+          <li>Double-click <code>ContestLogX.app</code> once. macOS will show a warning dialog; click <strong>Done</strong>.</li>
+          <li>Open <strong>System Settings &rarr; Privacy &amp; Security</strong>.</li>
+          <li>Scroll down to the <strong>Security</strong> section. You will see
+              <em>"ContestLogX.app was blocked to protect your Mac."</em> with an
+              <strong>Open Anyway</strong> button &mdash; click it.</li>
+          <li>Authenticate with Touch ID or your password. The app will launch and is trusted from now on.</li>
+        </ol>
+
+        <h3 class="text-lg font-semibold mt-4 mb-2">Option B &mdash; Via Terminal (one command)</h3>
+        <p class="opacity-80 mb-2">
+          After dragging <code>ContestLogX.app</code> into <code>/Applications</code>, open
+          <strong>Terminal</strong> and run:
+        </p>
+        <pre class="rounded-md p-3 mb-2" style="background-color: #0d1117; border: 1px solid #30363d; overflow-x: auto;"><code>xattr -dr com.apple.quarantine /Applications/ContestLogX.app</code></pre>
+        <p class="opacity-80 mb-4">
+          This removes the download-quarantine flag macOS sets on files from the internet.
+          After that, double-click normally to launch.
+        </p>
+
+        <h3 class="text-lg font-semibold mt-4 mb-2">Microphone access (CW Decoder)</h3>
+        <p class="opacity-80">
+          When you first enable the CW Decoder and select an audio input device,
+          macOS will ask permission to use the microphone &mdash; click <strong>Allow</strong>.
+          Without this, the decoder will receive a silent stream and produce no output.
+        </p>
+      </div>
+
       <!-- System Requirements -->
       <div class="bg-[--color-gh-card] rounded-lg border border-[--color-gh-border] p-8 text-left">
         <h2 class="text-2xl font-semibold mb-4">System Requirements</h2>
         <ul class="space-y-2 opacity-80">
-          <li><strong>Operating System:</strong> Linux (Ubuntu 20.04+, Fedora 35+, or equivalent), macOS, or Windows 10+</li>
+          <li><strong>Operating System:</strong> Linux (glibc 2.35+ &mdash; Ubuntu 22.04+, Fedora 36+, or equivalent), macOS 11.0 Big Sur or later (Intel or Apple Silicon), or Windows 10+</li>
           <li><strong>Memory:</strong> 1 GB RAM minimum, 2 GB recommended</li>
           <li><strong>Storage:</strong> 100 MB available space</li>
           <li><strong>Display:</strong> 1024x768 minimum resolution</li>

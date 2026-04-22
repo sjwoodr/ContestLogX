@@ -2,6 +2,11 @@
 
 All notable changes to ContestLogX are documented in this file.
 
+## [0.7.24]
+
+### Other Changes and Bugfixes
+- Added macOS first-launch instructions to the download page — explains how to unlock the ad-hoc-signed bundle via System Settings → Privacy & Security or via a single Terminal command, and notes the microphone permission prompt for the CW Decoder
+
 ## [0.7.23]
 
 ### Other Changes and Bugfixes
