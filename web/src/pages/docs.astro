@@ -624,13 +624,25 @@ F8  N9OH`}</pre>
 
           <h3 class="text-lg font-semibold mb-2">Multi-Channel Decoding</h3>
           <p class="opacity-80 mb-4">
-            The decoder runs <strong>N parallel Goertzel tone detectors</strong> across a configurable passband
+            The decoder runs <strong>N parallel Goertzel tone detectors</strong> spread across a passband
             &mdash; every bin decodes independently, with its own WPM lock and Morse state. Each bin is a
             horizontal row in the panel, labeled with its center frequency. Two stations on different CW tones
             within the passband decode simultaneously in their respective rows without cross-contamination.
-            Defaults: passband 600&ndash;900 Hz, 6 bins (centers at 625 / 675 / 725 / 775 / 825 / 875 Hz).
-            Adjust the passband edges and bin count from the control row at the top of the panel &mdash; changes
-            take effect within a second.
+          </p>
+          <p class="opacity-80 mb-4">
+            Two controls in the widget's toolbar determine the coverage:
+          </p>
+          <ul class="list-disc list-inside space-y-2 opacity-80 mb-4">
+            <li><strong>Center</strong> &mdash; the passband's center frequency in Hz (default 700 Hz, the
+            common CW sidetone). Set this to the sidetone frequency your radio is configured for.</li>
+            <li><strong>Bins</strong> &mdash; how many parallel detectors to run (default 6). Spacing is a
+            fixed 50 Hz, so N bins span N&times;50 Hz of passband centered on the chosen frequency.</li>
+          </ul>
+          <p class="opacity-80 mb-4">
+            With the defaults (Center 700, Bins 6), the decoder covers 550&ndash;850 Hz with bins at
+            575 / 625 / 675 / 725 / 775 / 825 Hz. Raising Bins widens the coverage for a general survey of a
+            busy band; lowering it narrows the search around a single signal. Changes take effect within a
+            second.
           </p>
 
           <h3 class="text-lg font-semibold mb-2">WPM Tracking</h3>
@@ -676,8 +688,9 @@ F8  N9OH`}</pre>
             <li>For best copy, tune the radio so the received CW sidetone lands within your decoder passband
             and ideally near a bin center. Bins have 100 Hz resolution; a signal more than ~100 Hz off the
             nearest bin center will detect with reduced magnitude (still decodes, but less robustly).</li>
-            <li>If a specific signal frequency is known, narrow the passband around it and/or increase bin
-            count for more resolution (e.g., passband 600&ndash;900 Hz with 12 bins gives 25 Hz-spaced centers).</li>
+            <li>If you know your target signal frequency, set Center to match it and reduce Bins &mdash; a
+            narrow 2&ndash;4 bin window centered on the signal gives the cleanest decode without noise bleed
+            from off-frequency activity.</li>
             <li>On Linux, for a clean test signal, use <code>pw-loopback</code> or pavucontrol's
             <em>"Monitor of [output device]"</em> source to route any MP3/audio player output directly into
             ContestLogX &mdash; no speaker or mic involved. The decoder captures at the device's native sample
