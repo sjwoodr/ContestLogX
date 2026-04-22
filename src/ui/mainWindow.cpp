@@ -2679,6 +2679,8 @@ void MainWindow::onOpenLog()
                         auto score = m_contestEngine->getRunningScore();
                         m_scoreWidget->updateScore(score);
                     }
+                    updateSnapshotScore();
+                    updateSnapshotQsos();
                     // Update multiplier widget
                     if (m_multiplierWidget && m_multiplierDock && m_multiplierDock->isVisible()) {
                         QString multType = m_contestEngine->getMultiplierType();
@@ -2969,6 +2971,8 @@ void MainWindow::loadLogFile(const QString& filename)
                     auto score = m_contestEngine->getRunningScore();
                     m_scoreWidget->updateScore(score);
                 }
+                updateSnapshotScore();
+                updateSnapshotQsos();
                 // Update multiplier widget
                 if (m_multiplierWidget && m_multiplierDock) {
                     QString multType = m_contestEngine->getMultiplierType();
@@ -4179,6 +4183,8 @@ void MainWindow::onLogQso()
         
         // Update score widget
         m_scoreWidget->updateScore(score);
+        updateSnapshotScore();
+        updateSnapshotQsos();
 
         // Update multiplier widget
         if (m_multiplierWidget && m_multiplierDock && m_multiplierDock->isVisible()) {
@@ -4871,6 +4877,8 @@ void MainWindow::onRecalculateScore()
         ContestEngine::ContestScore score = m_contestEngine->getRunningScore();
         m_scoreWidget->updateScore(score);
     }
+    updateSnapshotScore();
+    updateSnapshotQsos();
 
     // Update multiplier widget
     if (m_multiplierWidget && m_multiplierDock) {
@@ -6103,6 +6111,16 @@ void MainWindow::onNoaaPropagationReply(QNetworkReply* reply)
         m_propagationLabel->setText(propText);
         DebugLogger::instance().log("MainWindow",
             QString("NOAA propagation: SFI=%1 A=%2 K=%3").arg(sfi).arg(aIndex).arg(kIndex));
+
+        // Mirror into the Remote Control snapshot so the dashboard can surface it.
+        if (m_clxSnapshot) {
+            clx::net::PropagationSnapshot ps;
+            ps.sfi        = sfi;
+            ps.aIndex     = aIndex;
+            ps.kIndex     = kIndex;
+            ps.fetchedAt  = QDateTime::currentDateTimeUtc();
+            m_clxSnapshot->setPropagation(ps);
+        }
     }
 }
 
@@ -7009,6 +7027,13 @@ bool MainWindow::loadContestDefinition(const QString& filePath, bool restoreStat
     // source entry in the audio-device dropdown becomes selectable.
     if (m_cwDecoderLeft)  m_cwDecoderLeft->refreshPracticeContestAvailability();
     if (m_cwDecoderRight) m_cwDecoderRight->refreshPracticeContestAvailability();
+
+    // Refresh the Remote Control snapshot so /api/status and /api/score
+    // reflect the newly-loaded contest.
+    updateSnapshotStatus();
+    updateSnapshotScore();
+    updateSnapshotQsos();
+    updateSnapshotMults();
 
     updateWindowTitle();
     DebugLogger::instance().log("MainWindow", QString("loadContestDefinition completed successfully, m_contestDefinition.isEmpty(): %1").arg(m_contestDefinition.isEmpty() ? "true" : "false"));
@@ -9435,6 +9460,20 @@ void MainWindow::initRemoteControl()
     registerRemoteRoutes();
     updateSnapshotStatus();
 
+    // Lightweight 2-second refresh timer for state the snapshot doesn't
+    // naturally get pushed — current rig freq/mode and rate numbers.
+    // Score/mults/QSOs are pushed directly from their update sites so
+    // the dashboard reflects them instantly.
+    auto* refresh = new QTimer(this);
+    refresh->setInterval(2000);
+    connect(refresh, &QTimer::timeout, this, [this]() {
+        if (!m_clxSnapshot) return;
+        updateSnapshotRig(false);
+        if (m_so2rEnabled) updateSnapshotRig(true);
+        updateSnapshotRate();
+    });
+    refresh->start();
+
     if (Settings::instance().getRemoteControlEnabled()) {
         ensureRemoteControlToken();
         m_httpServer->start();
@@ -9459,12 +9498,30 @@ void MainWindow::registerRemoteRoutes()
 {
     if (!m_httpServer || !m_clxSnapshot) return;
 
-    // GET /api/status — lightweight "is CLX up and what's it doing?" probe.
-    // Served from the snapshot so handlers never block the main thread's
-    // current work; MainWindow is responsible for keeping the snapshot
-    // fresh via updateSnapshotStatus() and related setters on state change.
+    using clx::net::HttpRequest;
+    using clx::net::HttpResponse;
+
+    auto jsonResp = [](const QJsonObject& j) -> HttpResponse {
+        HttpResponse r;
+        r.body = QJsonDocument(j).toJson(QJsonDocument::Compact);
+        return r;
+    };
+
+    auto rigToJson = [](const clx::net::RigSnapshot& r) {
+        QJsonObject o;
+        o["backend"]    = r.backend;
+        o["connected"]  = r.connected;
+        o["freqHz"]     = static_cast<double>(r.freqHz);
+        o["mode"]       = r.mode;
+        o["band"]       = r.band;
+        o["pttActive"]  = r.pttActive;
+        o["runSpMode"]  = r.runSpMode;
+        return o;
+    };
+
+    // GET /api/status — "is CLX up and what's it doing?"
     m_httpServer->registerRoute("GET", "/api/status",
-        [this](const clx::net::HttpRequest&) -> clx::net::HttpResponse {
+        [this, jsonResp](const HttpRequest&) {
             const auto st = m_clxSnapshot->copy();
             QJsonObject j;
             j["running"]        = st.running;
@@ -9476,10 +9533,231 @@ void MainWindow::registerRemoteRoutes()
                                    : QString();
             j["nowUtc"]         = QDateTime::currentDateTimeUtc().toString(Qt::ISODate);
             j["version"]        = qApp->applicationVersion();
-
-            clx::net::HttpResponse r;
-            r.body = QJsonDocument(j).toJson(QJsonDocument::Compact);
-            return r;
+            return jsonResp(j);
         });
+
+    // GET /api/score — score breakdown matching the score widget.
+    m_httpServer->registerRoute("GET", "/api/score",
+        [this, jsonResp](const HttpRequest&) {
+            const auto st = m_clxSnapshot->copy();
+            QJsonObject j;
+            j["totalQsos"]     = st.score.totalQsos;
+            j["totalPoints"]   = st.score.totalPoints;
+            j["namedMults"]    = st.score.namedMults;
+            j["dxccMults"]     = st.score.dxccMults;
+            j["ituMults"]      = st.score.ituMults;
+            j["gridMults"]     = st.score.gridMults;
+            j["prefixMults"]   = st.score.prefixMults;
+            j["finalScore"]    = static_cast<double>(st.score.finalScore);
+            QJsonObject byBandMode;
+            for (auto it = st.score.qsosByBandMode.begin(); it != st.score.qsosByBandMode.end(); ++it) {
+                QJsonObject modes;
+                for (auto mit = it.value().begin(); mit != it.value().end(); ++mit) {
+                    modes[mit.key()] = mit.value();
+                }
+                byBandMode[it.key()] = modes;
+            }
+            j["qsosByBandMode"] = byBandMode;
+            return jsonResp(j);
+        });
+
+    // GET /api/rate — rate numbers.
+    m_httpServer->registerRoute("GET", "/api/rate",
+        [this, jsonResp](const HttpRequest&) {
+            const auto st = m_clxSnapshot->copy();
+            QJsonObject j;
+            j["currentHourlyRate"]   = st.rate.currentHourlyRate;
+            j["lastHourRate"]        = st.rate.lastHourRate;
+            j["sessionAverageRate"]  = st.rate.sessionAverageRate;
+            return jsonResp(j);
+        });
+
+    // GET /api/qsos?limit=N&offset=N — recent QSOs newest-first.
+    m_httpServer->registerRoute("GET", "/api/qsos",
+        [this, jsonResp](const HttpRequest& req) {
+            const auto st = m_clxSnapshot->copy();
+            const int total = st.recentQsos.size();
+            int limit  = req.query.value(QStringLiteral("limit"),  QStringLiteral("20")).toInt();
+            int offset = req.query.value(QStringLiteral("offset"), QStringLiteral("0")).toInt();
+            if (limit  <= 0) limit  = 20;
+            if (limit  > 200) limit = 200;
+            if (offset <  0) offset = 0;
+
+            QJsonArray arr;
+            // recentQsos is stored newest-last; emit newest-first for the UI.
+            for (int i = 0; i < limit && offset + i < total; ++i) {
+                const auto& q = st.recentQsos.at(total - 1 - offset - i);
+                QJsonObject o;
+                o["dateUtc"]  = q.dateUtc;
+                o["timeUtc"]  = q.timeUtc;
+                o["call"]     = q.call;
+                o["freqHz"]   = static_cast<double>(q.freqHz);
+                o["mode"]     = q.mode;
+                o["rstSent"]  = q.rstSent;
+                o["rstRcvd"]  = q.rstRcvd;
+                o["exchSent"] = q.exchSent;
+                o["exchRcvd"] = q.exchRcvd;
+                o["points"]   = q.points;
+                arr.append(o);
+            }
+            QJsonObject j;
+            j["total"]  = total;
+            j["limit"]  = limit;
+            j["offset"] = offset;
+            j["qsos"]   = arr;
+            return jsonResp(j);
+        });
+
+    // GET /api/rig — freq/mode/band per radio.
+    m_httpServer->registerRoute("GET", "/api/rig",
+        [this, jsonResp, rigToJson](const HttpRequest&) {
+            const auto st = m_clxSnapshot->copy();
+            QJsonObject j;
+            j["radioL"] = rigToJson(st.rigL);
+            if (st.so2rEnabled) {
+                j["radioR"] = rigToJson(st.rigR);
+            }
+            return jsonResp(j);
+        });
+
+    // GET /api/mults — worked named multipliers (states/sections/zones/etc).
+    m_httpServer->registerRoute("GET", "/api/mults",
+        [this, jsonResp](const HttpRequest&) {
+            const auto st = m_clxSnapshot->copy();
+            QJsonArray arr;
+            for (const QString& m : st.workedNamedMults) arr.append(m);
+            QJsonObject j;
+            j["workedNamed"] = arr;
+            j["count"]       = static_cast<int>(arr.size());
+            return jsonResp(j);
+        });
+
+    // GET /api/propagation — cached NOAA SFI/A/K.
+    m_httpServer->registerRoute("GET", "/api/propagation",
+        [this, jsonResp](const HttpRequest&) {
+            const auto st = m_clxSnapshot->copy();
+            QJsonObject j;
+            j["sfi"]        = st.propagation.sfi;
+            j["aIndex"]     = st.propagation.aIndex;
+            j["kIndex"]     = st.propagation.kIndex;
+            j["fetchedAt"]  = st.propagation.fetchedAt.isValid()
+                              ? st.propagation.fetchedAt.toUTC().toString(Qt::ISODate)
+                              : QString();
+            return jsonResp(j);
+        });
+}
+
+// ----- Snapshot update helpers — called from existing update sites -----
+
+void MainWindow::updateSnapshotScore()
+{
+    if (!m_clxSnapshot || !m_contestEngine) return;
+    const ContestEngine::ContestScore src = m_contestEngine->getRunningScore();
+
+    clx::net::ScoreSnapshot s;
+    s.totalQsos    = m_qsoModel ? m_qsoModel->rowCount() : 0;
+    s.totalPoints  = src.contactScore;
+    s.namedMults   = src.namedMultCount;
+    s.dxccMults    = src.dxccMultCount;
+    s.ituMults     = src.ituRegionMultCount;
+    s.gridMults    = src.gridSquareMultCount;
+    s.prefixMults  = src.namedCallPrefixCount;
+    s.finalScore   = src.contestScore;
+
+    for (auto it = src.bandStats.begin(); it != src.bandStats.end(); ++it) {
+        QHash<QString, int> modeBreakdown;
+        if (it.value().cwQsos)      modeBreakdown["CW"] = it.value().cwQsos;
+        if (it.value().ssbQsos)     modeBreakdown["PH"] = it.value().ssbQsos;
+        if (it.value().digitalQsos) modeBreakdown["DIG"] = it.value().digitalQsos;
+        s.qsosByBandMode.insert(it.key(), modeBreakdown);
+    }
+    m_clxSnapshot->setScore(s);
+    updateSnapshotRate();
+    updateSnapshotMults();
+}
+
+void MainWindow::updateSnapshotRate()
+{
+    if (!m_clxSnapshot || !m_qsoModel) return;
+    // Compute rates directly from the QSO model's timestamps. Three
+    // windows: last 10 min (×6 for hourly extrapolation), last 60 min
+    // (actual), and session average (total QSOs / operating hours).
+    const qint64 nowMs = QDateTime::currentMSecsSinceEpoch();
+    const qint64 tenMinMs = 10LL  * 60 * 1000;
+    const qint64 oneHourMs = 60LL * 60 * 1000;
+    int last10 = 0, last60 = 0, total = 0;
+    qint64 firstQsoMs = 0;
+    for (int i = 0; i < m_qsoModel->rowCount(); ++i) {
+        const QsoRecord& q = m_qsoModel->getQso(i);
+        const QDateTime ts = q.getDateTime();
+        if (!ts.isValid()) continue;
+        const qint64 ms = ts.toUTC().toMSecsSinceEpoch();
+        if (firstQsoMs == 0 || ms < firstQsoMs) firstQsoMs = ms;
+        ++total;
+        if (nowMs - ms <= tenMinMs)  ++last10;
+        if (nowMs - ms <= oneHourMs) ++last60;
+    }
+    clx::net::RateSnapshot r;
+    r.currentHourlyRate  = last10 * 6;
+    r.lastHourRate       = last60;
+    if (total > 0 && firstQsoMs > 0) {
+        const double hours = (nowMs - firstQsoMs) / (1000.0 * 3600.0);
+        r.sessionAverageRate = hours > 0.05 ? static_cast<int>(total / hours) : 0;
+    }
+    m_clxSnapshot->setRate(r);
+}
+
+void MainWindow::updateSnapshotRig(bool rightRadio)
+{
+    if (!m_clxSnapshot) return;
+    RigInterface* rig = rightRadio ? m_rigClientR : m_rigClient;
+    if (!rig) return;
+    clx::net::RigSnapshot r;
+    r.backend    = Settings::instance().getRigBackend();
+    r.connected  = rig->isConnected();
+    const double freqHz = rig->getFrequency();
+    r.freqHz     = static_cast<qint64>(freqHz);
+    r.mode       = rig->getMode();
+    r.band       = BandPlan::freq2Band(freqHz / 1000.0);   // freq2Band takes kHz
+    r.pttActive  = false;   // tracked via pttStateChanged signal; wire up later if needed
+    const RunMode rm = rightRadio ? m_runModeR : m_runMode;
+    r.runSpMode = (rm == RunMode::Run) ? "Run"
+                : (rm == RunMode::SP)  ? "S&P"
+                                       : "Off";
+    m_clxSnapshot->setRig(rightRadio, r);
+}
+
+void MainWindow::updateSnapshotQsos()
+{
+    if (!m_clxSnapshot || !m_qsoModel) return;
+    QVector<clx::net::QsoSnapshot> all;
+    all.reserve(m_qsoModel->rowCount());
+    for (int i = 0; i < m_qsoModel->rowCount(); ++i) {
+        const QsoRecord& q = m_qsoModel->getQso(i);
+        const QDateTime ts = q.getDateTime();
+        clx::net::QsoSnapshot s;
+        s.dateUtc = ts.isValid() ? ts.toUTC().toString("yyyy-MM-dd") : QString();
+        s.timeUtc = ts.isValid() ? ts.toUTC().toString("HHmmss") : QString();
+        s.call    = q.getCall();
+        // QsoRecord stores the frequency as a string in MHz; the snapshot's
+        // freqHz wants Hz. Empty / invalid → 0.
+        s.freqHz  = static_cast<qint64>(q.getFrequency().toDouble() * 1e6);
+        s.mode    = q.getMode();
+        s.rstSent = q.getRstSent();
+        s.rstRcvd = q.getRstReceived();
+        s.exchSent = q.getExchangeSent();
+        s.exchRcvd = q.getExchangeReceived();
+        s.points  = q.getPoints();
+        all.append(s);
+    }
+    m_clxSnapshot->setAllQsos(all);
+}
+
+void MainWindow::updateSnapshotMults()
+{
+    if (!m_clxSnapshot || !m_contestEngine) return;
+    QStringList worked;
+    for (const QString& m : m_contestEngine->getWorkedNamedMults()) worked.append(m);
+    m_clxSnapshot->setWorkedNamedMults(worked);
 }
 

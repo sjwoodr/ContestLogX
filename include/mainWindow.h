@@ -423,6 +423,11 @@ private:
     void initRemoteControl();
     void registerRemoteRoutes();
     void updateSnapshotStatus();
+    void updateSnapshotScore();
+    void updateSnapshotRate();
+    void updateSnapshotRig(bool rightRadio);
+    void updateSnapshotQsos();        // full repopulate on file load
+    void updateSnapshotMults();
     QString ensureRemoteControlToken();
 
     // Callsign lookup APIs
