@@ -472,17 +472,35 @@ void PreferencesDialog::setupUi()
     mainLayout->addWidget(tabWidget);
 
     QDialogButtonBox *buttonBox = new QDialogButtonBox(
-        QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
+        QDialogButtonBox::Ok | QDialogButtonBox::Cancel | QDialogButtonBox::Apply, this);
     if (auto *btn = buttonBox->button(QDialogButtonBox::Ok))
         btn->setIcon(style()->standardIcon(QStyle::SP_DialogOkButton));
     if (auto *btn = buttonBox->button(QDialogButtonBox::Cancel))
         btn->setIcon(style()->standardIcon(QStyle::SP_DialogCancelButton));
+    if (auto *btn = buttonBox->button(QDialogButtonBox::Apply)) {
+        btn->setIcon(style()->standardIcon(QStyle::SP_DialogApplyButton));
+        connect(btn, &QPushButton::clicked, this, &PreferencesDialog::onApply);
+    }
     connect(buttonBox, &QDialogButtonBox::accepted, this, &PreferencesDialog::onAccept);
     connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
     mainLayout->addWidget(buttonBox);
 }
 
 void PreferencesDialog::onAccept()
+{
+    saveSettings();
+    accept();
+}
+
+void PreferencesDialog::onApply()
+{
+    // Save everything, notify MainWindow, but keep the dialog open so
+    // the operator can iterate (e.g. scan the QR code after enabling
+    // Remote Dashboard, or see a font change without reopening Prefs).
+    saveSettings();
+}
+
+void PreferencesDialog::saveSettings()
 {
     Settings &settings = Settings::instance();
 
@@ -599,7 +617,7 @@ void PreferencesDialog::onAccept()
 
     settings.save();
 
-    accept();
+    emit settingsApplied();
 }
 
 void PreferencesDialog::updateRemoteControlUrlLabel()

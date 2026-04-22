@@ -3185,7 +3185,14 @@ void MainWindow::onExit()
 void MainWindow::onPreferences()
 {
     PreferencesDialog dialog(this);
-    if (dialog.exec() == QDialog::Accepted) {
+
+    // Wire settingsApplied() — fires on BOTH Apply and OK — to all the
+    // post-save side-effects that used to run only after OK closed the
+    // dialog. This means clicking Apply instantly restarts the Remote
+    // Dashboard server, re-applies fonts, etc. without closing Prefs,
+    // so the operator can e.g. enable the dashboard and immediately
+    // scan the QR code that's right there in the dialog.
+    connect(&dialog, &PreferencesDialog::settingsApplied, this, [this, &dialog]() {
         // Update filter shortcut key in case it was changed
         if (m_filterShortcut) {
             QMap<QString, QString> storedShortcuts = Settings::instance().getShortcuts();
@@ -3205,7 +3212,7 @@ void MainWindow::onPreferences()
             initCallsignLookup();
         }
 
-        // Remote Control: restart the HTTP server to pick up any changes
+        // Remote Dashboard: restart the HTTP server to pick up any changes
         // to enabled / port / bind mode / token. stop() is safe to call
         // when the server isn't running, and start() respects the enabled
         // flag via the Settings singleton.
@@ -3247,7 +3254,9 @@ void MainWindow::onPreferences()
             if (m_sessionStationInfo->arrlSection().isEmpty())
                 m_sessionStationInfo->setArrlSection(s.getArrlSection());
         }
-    }
+    });
+
+    dialog.exec();
 }
 
 void MainWindow::applyFontSettings()

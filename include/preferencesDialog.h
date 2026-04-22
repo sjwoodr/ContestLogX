@@ -39,8 +39,18 @@ public:
     bool lookupChanged() const { return m_lookupChanged; }
     bool fontsChanged() const { return m_fontsChanged; }
 
+signals:
+    // Fires on every successful Settings write — both OK and Apply.
+    // MainWindow uses this to run post-save side effects (font reapply,
+    // theme reapply, Remote Dashboard server restart, etc.) without
+    // having to wait for the dialog to close. "Apply" keeps the dialog
+    // open so the operator can iterate and see the effect (e.g. scan
+    // the QR code after enabling the dashboard).
+    void settingsApplied();
+
 private slots:
     void onAccept();
+    void onApply();
     void onCallsignTextChanged(const QString& text);
     void onGridTextChanged(const QString& text);
     void onStateTextChanged(const QString& text);
@@ -58,6 +68,9 @@ private slots:
 
 private:
     void setupUi();
+    // Core save logic shared by OK and Apply. Writes every tab's fields
+    // into Settings and emits settingsApplied() on success.
+    void saveSettings();
 
     // Station tab
     QLineEdit *m_callsignEdit;
