@@ -11,7 +11,9 @@
 #include "settings.h"
 #include "debugLogger.h"
 
+#include <QAbstractItemView>
 #include <QAudioDevice>
+#include <QComboBox>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QMediaDevices>
@@ -44,6 +46,22 @@ CwDecoderWidget::CwDecoderWidget(RadioSide owningRadio, QWidget* parent)
                 QDockWidget::DockWidgetClosable);
     buildUi();
     loadSettings();
+
+    // When this dock is floated, lock its height to its natural size hint
+    // so the operator can grow it horizontally (to see more decoded text
+    // scrolling per row) but can't inflate it vertically (which would
+    // only add whitespace — the row count is already set by the bin
+    // config). When docked again, release the constraint so Qt's dock
+    // layout can manage vertical size normally.
+    connect(this, &QDockWidget::topLevelChanged, this, [this](bool floating) {
+        if (floating) {
+            const int h = sizeHint().height();
+            setFixedHeight(h > 0 ? h : height());
+        } else {
+            setMinimumHeight(0);
+            setMaximumHeight(QWIDGETSIZE_MAX);
+        }
+    });
 }
 
 CwDecoderWidget::~CwDecoderWidget()
@@ -58,20 +76,53 @@ void CwDecoderWidget::buildUi()
     outer->setContentsMargins(6, 6, 6, 6);
     outer->setSpacing(4);
 
-    // Controls row: passband, bin count, wpm range, squelch, spotlight, mute indicator, Clear.
+    // Controls row: audio device, passband, bin count, wpm range, squelch, mute indicator, Clear.
     QHBoxLayout* controls = new QHBoxLayout;
     controls->setSpacing(6);
 
-    controls->addWidget(new QLabel(tr("Passband")));
-    m_passbandLowSpin = new QSpinBox(this);
-    m_passbandLowSpin->setRange(200, 2400);
-    m_passbandLowSpin->setSuffix(QStringLiteral(" Hz"));
-    m_passbandHighSpin = new QSpinBox(this);
-    m_passbandHighSpin->setRange(300, 2500);
-    m_passbandHighSpin->setSuffix(QStringLiteral(" Hz"));
-    controls->addWidget(m_passbandLowSpin);
-    controls->addWidget(new QLabel(QStringLiteral("–")));
-    controls->addWidget(m_passbandHighSpin);
+    // Audio input device — same list as in Rig Connection Settings, so the
+    // operator can switch source without opening a dialog. Changes write
+    // back to the per-radio rig settings and restart the decoder's capture.
+    // The combo is deliberately narrow in the header so the decoder fits
+    // on low-resolution displays; the popup list below is sized wider so
+    // full device names are visible when the operator clicks to change.
+    controls->addWidget(new QLabel(tr("Audio")));
+    m_audioDeviceCombo = new QComboBox(this);
+    m_audioDeviceCombo->setSizeAdjustPolicy(
+        QComboBox::AdjustToMinimumContentsLengthWithIcon);
+    m_audioDeviceCombo->setMinimumContentsLength(8);
+    m_audioDeviceCombo->setMaximumWidth(160);
+    m_audioDeviceCombo->addItem(tr("(none)"), QString());
+    for (const QAudioDevice& d : QMediaDevices::audioInputs()) {
+        m_audioDeviceCombo->addItem(d.description(), d.description());
+    }
+    // Widen the popup so long device names don't truncate when the
+    // operator is picking.
+    if (m_audioDeviceCombo->view()) {
+        m_audioDeviceCombo->view()->setMinimumWidth(400);
+    }
+    // Tooltip mirrors the current selection so hovering reveals the full
+    // name even when the combo itself is showing a truncated label.
+    m_audioDeviceCombo->setToolTip(m_audioDeviceCombo->currentText());
+    connect(m_audioDeviceCombo, &QComboBox::currentTextChanged, this,
+            [this](const QString& text) {
+                if (m_audioDeviceCombo) m_audioDeviceCombo->setToolTip(text);
+            });
+    controls->addWidget(m_audioDeviceCombo);
+
+    // Center frequency + bin count together determine the passband, with a
+    // fixed 50 Hz bin spacing:
+    //    low  = center - (bins × 25)
+    //    high = center + (bins × 25)
+    // This exposes the two knobs operators actually reason about — "where
+    // is my signal?" and "how wide a net?" — and eliminates the redundant
+    // passband-low/high controls that were always derivable from them.
+    controls->addWidget(new QLabel(tr("Center")));
+    m_centerHzSpin = new QSpinBox(this);
+    m_centerHzSpin->setRange(400, 1500);
+    m_centerHzSpin->setSingleStep(50);
+    m_centerHzSpin->setSuffix(QStringLiteral(" Hz"));
+    controls->addWidget(m_centerHzSpin);
 
     controls->addWidget(new QLabel(tr("Bins")));
     m_binCountSpin = new QSpinBox(this);
@@ -92,12 +143,6 @@ void CwDecoderWidget::buildUi()
     m_squelchSlider->setRange(0, 100);
     m_squelchSlider->setMinimumWidth(80);
     controls->addWidget(m_squelchSlider);
-
-    controls->addWidget(new QLabel(tr("Spotlight row")));
-    m_spotlightSpin = new QSpinBox(this);
-    m_spotlightSpin->setRange(-1, kMaxBinCount - 1);
-    m_spotlightSpin->setSpecialValueText(tr("none"));
-    controls->addWidget(m_spotlightSpin);
 
     m_muteIndicator = new QLabel(tr(""), this);
     m_muteIndicator->setStyleSheet(QStringLiteral("color: #c0392b; font-weight: bold;"));
@@ -123,20 +168,18 @@ void CwDecoderWidget::buildUi()
     // Control-change signal wiring.
     connect(m_clearButton, &QPushButton::clicked,
             this, &CwDecoderWidget::onClearClicked);
-    connect(m_passbandLowSpin, qOverload<int>(&QSpinBox::valueChanged),
-            this, &CwDecoderWidget::onPassbandChanged);
-    connect(m_passbandHighSpin, qOverload<int>(&QSpinBox::valueChanged),
-            this, &CwDecoderWidget::onPassbandChanged);
+    connect(m_centerHzSpin, qOverload<int>(&QSpinBox::valueChanged),
+            this, &CwDecoderWidget::onCenterOrBinsChanged);
     connect(m_binCountSpin, qOverload<int>(&QSpinBox::valueChanged),
-            this, &CwDecoderWidget::onBinCountChanged);
+            this, &CwDecoderWidget::onCenterOrBinsChanged);
     connect(m_squelchSlider, &QSlider::valueChanged,
             this, &CwDecoderWidget::onSquelchChanged);
     connect(m_wpmMinSpin, qOverload<int>(&QSpinBox::valueChanged),
             this, &CwDecoderWidget::onWpmRangeChanged);
     connect(m_wpmMaxSpin, qOverload<int>(&QSpinBox::valueChanged),
             this, &CwDecoderWidget::onWpmRangeChanged);
-    connect(m_spotlightSpin, qOverload<int>(&QSpinBox::valueChanged),
-            this, &CwDecoderWidget::onSpotlightRowChanged);
+    connect(m_audioDeviceCombo, qOverload<int>(&QComboBox::currentIndexChanged),
+            this, &CwDecoderWidget::onAudioDeviceChanged);
 }
 
 void CwDecoderWidget::loadSettings()
@@ -145,12 +188,20 @@ void CwDecoderWidget::loadSettings()
     Settings& s = Settings::instance();
     const bool r = isRightRadio();
 
-    m_passbandLowSpin->setValue(s.getCwDecoderPassbandLowHz(r));
-    m_passbandHighSpin->setValue(s.getCwDecoderPassbandHighHz(r));
+    m_centerHzSpin->setValue(s.getCwDecoderCenterHz(r));
     m_binCountSpin->setValue(s.getCwDecoderBinCount(r));
-    m_spotlightRow = s.getCwDecoderSpotlightRowIndex(r);
-    m_spotlightSpin->setValue(m_spotlightRow);
     m_squelchSlider->setValue(static_cast<int>(s.getCwDecoderSquelch(r) * 100.0));
+
+    // Sync the audio combo to the persisted device (same setting the Rig
+    // Connection dialog edits). If the previously-saved device is no
+    // longer present, fall back to "(none)".
+    const QString device = isRightRadio()
+        ? s.getRadioRAudioInputDevice()
+        : s.getRadioLAudioInputDevice();
+    if (m_audioDeviceCombo) {
+        int idx = m_audioDeviceCombo->findData(device);
+        m_audioDeviceCombo->setCurrentIndex(idx >= 0 ? idx : 0);
+    }
     m_wpmMinSpin->setValue(s.getCwDecoderWpmMin(r));
     m_wpmMaxSpin->setValue(s.getCwDecoderWpmMax(r));
 
@@ -161,10 +212,8 @@ void CwDecoderWidget::saveSettings()
 {
     Settings& s = Settings::instance();
     const bool r = isRightRadio();
-    s.setCwDecoderPassbandLowHz(r, m_passbandLowSpin->value());
-    s.setCwDecoderPassbandHighHz(r, m_passbandHighSpin->value());
+    s.setCwDecoderCenterHz(r, m_centerHzSpin->value());
     s.setCwDecoderBinCount(r, m_binCountSpin->value());
-    s.setCwDecoderSpotlightRowIndex(r, m_spotlightSpin->value());
     s.setCwDecoderSquelch(r, m_squelchSlider->value() / 100.0);
     s.setCwDecoderWpmMin(r, m_wpmMinSpin->value());
     s.setCwDecoderWpmMax(r, m_wpmMaxSpin->value());
@@ -173,6 +222,17 @@ void CwDecoderWidget::saveSettings()
 void CwDecoderWidget::beginDecoding(const QString& audioDeviceDescription)
 {
     endDecoding();
+
+    // Keep the widget's audio combo in sync when beginDecoding is driven
+    // externally (e.g., operator changed the device in the Rig Connection
+    // dialog). Guard against re-firing onAudioDeviceChanged while we're
+    // just reflecting state.
+    if (m_audioDeviceCombo) {
+        m_applyingSettings = true;
+        int idx = m_audioDeviceCombo->findData(audioDeviceDescription);
+        m_audioDeviceCombo->setCurrentIndex(idx >= 0 ? idx : 0);
+        m_applyingSettings = false;
+    }
 
     // Resolve the device from QMediaDevices by description.
     QAudioDevice chosen;
@@ -218,12 +278,17 @@ void CwDecoderWidget::beginDecoding(const QString& audioDeviceDescription)
 
     m_workerThread->start();
 
+    // Derive passband from center + bins (50 Hz fixed spacing).
+    const int center = m_centerHzSpin->value();
+    const int bins = m_binCountSpin->value();
+    const int lowHz = center - bins * 25;
+    const int highHz = center + bins * 25;
     // Invoke startCapture on the worker thread.
     QMetaObject::invokeMethod(m_worker, "startCapture", Qt::QueuedConnection,
                               Q_ARG(clx::audio::AudioCapture*, capture),
-                              Q_ARG(int, m_passbandLowSpin->value()),
-                              Q_ARG(int, m_passbandHighSpin->value()),
-                              Q_ARG(int, m_binCountSpin->value()),
+                              Q_ARG(int, lowHz),
+                              Q_ARG(int, highHz),
+                              Q_ARG(int, bins),
                               Q_ARG(int, m_wpmMinSpin->value()),
                               Q_ARG(int, m_wpmMaxSpin->value()),
                               Q_ARG(float, static_cast<float>(m_squelchSlider->value() / 100.0)));
@@ -318,26 +383,18 @@ void CwDecoderWidget::rebuildRows(const QList<double>& centerFrequencies)
         m_rows.append(row);
     }
 
-    applySpotlightVisuals();
-
     // Trigger size reconsideration so the dock shrinks when bin count is
     // reduced. Qt doesn't auto-shrink floating docks when children change;
     // invalidating the layout + adjustSize forces a fresh size-hint.
     m_rowsContainer->adjustSize();
     if (widget()) widget()->adjustSize();
     adjustSize();
-}
 
-void CwDecoderWidget::applySpotlightVisuals()
-{
-    for (int i = 0; i < m_rows.size(); ++i) {
-        if (!m_rows[i].container) continue;
-        if (i == m_spotlightRow) {
-            m_rows[i].container->setStyleSheet(
-                QStringLiteral("background-color: rgba(255, 236, 139, 60);"));
-        } else {
-            m_rows[i].container->setStyleSheet(QString());
-        }
+    // If we're currently floating, the operator's bin-count change has
+    // altered the natural height — re-pin to the new size hint so the
+    // window resizes to match (and height stays locked horizontally-only).
+    if (isFloating()) {
+        setFixedHeight(sizeHint().height());
     }
 }
 
@@ -363,8 +420,26 @@ void CwDecoderWidget::onCharDecoded(int binIndex, QChar ch, qint64 timestampMs)
 // RST: three-digit, CW short form (5NN/4NN/3NN), or two-digit.
 static const QRegularExpression& kCallRe()
 {
+    // Callsign token. Three-part structure, all parts optional except the
+    // central "main call":
+    //
+    //   (prefix/)?   main_call   (/suffix)?
+    //
+    // - prefix (1-4 alphanumerics + slash): country or zone prefix for
+    //   operation in another entity, e.g. "IT9/DK6XZ" (DK6XZ in Italy),
+    //   "PA3/W1AW", "DL/K1ABC". Capped at 4 chars so we don't fold
+    //   arbitrary long word prefixes into a callsign match.
+    // - main_call ([A-Z0-9]*[A-Z][0-9][A-Z0-9]*[A-Z]): the classic
+    //   callsign skeleton — letter, digit, letter, with optional
+    //   surrounding alphanumerics. Must end in a letter.
+    // - suffix (/alphanumerics): portable/mobile/zone modifier, e.g.
+    //   "K1ABC/P", "YB1AR/2", "W1AW/MM".
+    //
+    // \b word boundaries keep the match isolated. Note: "/" is a
+    // non-word char to QRegularExpression, so \b at the start sits
+    // before any alphanumeric even if there's a stray slash upstream.
     static const QRegularExpression re(
-        QStringLiteral(R"(\b[A-Z0-9]*[A-Z][0-9][A-Z0-9]*[A-Z](?:/[A-Z0-9]+)?\b)"));
+        QStringLiteral(R"(\b(?:[A-Z0-9]{1,4}/)?[A-Z0-9]*[A-Z][0-9][A-Z0-9]*[A-Z](?:/[A-Z0-9]+)?\b)"));
     return re;
 }
 static const QRegularExpression& kRstRe()
@@ -451,10 +526,26 @@ bool CwDecoderWidget::eventFilter(QObject* obj, QEvent* event)
     QPlainTextEdit* te = m_rows[row].text;
     if (!te) return QDockWidget::eventFilter(obj, event);
 
-    // Find the word under the pointer.
+    // Find the token under the pointer. QTextCursor::WordUnderCursor stops
+    // at the slash character, which would split "IT9/DK6XZ" into just
+    // "IT9" or "DK6XZ" depending on click position — so we hand-roll the
+    // boundary scan to include alphanumerics AND slashes in the token.
+    // That way clicking anywhere in "IT9/DK6XZ" grabs the full call.
     QTextCursor cursor = te->cursorForPosition(me->pos());
-    cursor.select(QTextCursor::WordUnderCursor);
-    const QString word = cursor.selectedText();
+    const int clickPos = cursor.position();
+    const QString fullText = te->toPlainText();
+    auto isTokenChar = [](QChar c) {
+        return c.isLetterOrNumber() || c == QLatin1Char('/');
+    };
+    int start = clickPos;
+    while (start > 0 && isTokenChar(fullText[start - 1])) --start;
+    int end = clickPos;
+    while (end < fullText.size() && isTokenChar(fullText[end])) ++end;
+    QString word = fullText.mid(start, end - start);
+    // Trim stray leading/trailing slashes (shouldn't normally happen, but
+    // guards against odd decodes where a "/" sits alone next to a token).
+    while (word.startsWith(QLatin1Char('/'))) word.remove(0, 1);
+    while (word.endsWith(QLatin1Char('/'))) word.chop(1);
 
     const bool isCall = !word.isEmpty() && kCallRe().match(word).hasMatch();
     const bool isRst  = !word.isEmpty() && kRstRe().match(word).hasMatch();
@@ -471,6 +562,16 @@ bool CwDecoderWidget::eventFilter(QObject* obj, QEvent* event)
     // MouseButtonRelease: only left-button clicks trigger fill.
     if (me->button() != Qt::LeftButton) return false;
 
+    if (DebugLogger::instance().isCwDecoderDebugEnabled()) {
+        DebugLogger::instance().log("CwDecoder",
+            QString("Click on row %1 (%2): word='%3' isCall=%4 isRst=%5")
+                .arg(row)
+                .arg(isRightRadio() ? "Radio R" : "Radio L")
+                .arg(word)
+                .arg(isCall ? "true" : "false")
+                .arg(isRst ? "true" : "false"));
+    }
+
     if (isCall) {
         emit callClicked(word, row);
         return true;   // consume — operator acted on a token
@@ -482,6 +583,12 @@ bool CwDecoderWidget::eventFilter(QObject* obj, QEvent* event)
         QString normalized = word;
         normalized.replace(QChar('N'), QChar('9'));
         normalized.replace(QChar('T'), QChar('0'));
+        if (DebugLogger::instance().isCwDecoderDebugEnabled()) {
+            DebugLogger::instance().log("CwDecoder",
+                QString("Emitting rstClicked('%1', bin=%2) from %3")
+                    .arg(normalized).arg(row)
+                    .arg(isRightRadio() ? "Radio R" : "Radio L"));
+        }
         emit rstClicked(normalized, row);
         return true;
     }
@@ -521,30 +628,21 @@ void CwDecoderWidget::onClearClicked()
     }
 }
 
-void CwDecoderWidget::onPassbandChanged()
+void CwDecoderWidget::onCenterOrBinsChanged()
 {
     if (m_applyingSettings || !m_worker) return;
     saveSettings();
+    // Derive the Goertzel passband from center + bin count, using a fixed
+    // 50 Hz bin spacing. Half the bins sit below center, half above, so
+    // the low/high offset from center is bins × 25 Hz.
+    const int center = m_centerHzSpin->value();
+    const int bins = m_binCountSpin->value();
+    const int lowHz = center - bins * 25;
+    const int highHz = center + bins * 25;
     QMetaObject::invokeMethod(m_worker, "reconfigure", Qt::QueuedConnection,
-                              Q_ARG(int, m_passbandLowSpin->value()),
-                              Q_ARG(int, m_passbandHighSpin->value()),
-                              Q_ARG(int, m_binCountSpin->value()));
-}
-
-void CwDecoderWidget::onBinCountChanged()
-{
-    if (m_applyingSettings || !m_worker) return;
-    // Clamp spotlight if it falls outside new range.
-    const int newCount = m_binCountSpin->value();
-    if (m_spotlightRow >= newCount) {
-        m_spotlightRow = -1;
-        m_spotlightSpin->setValue(-1);
-    }
-    saveSettings();
-    QMetaObject::invokeMethod(m_worker, "reconfigure", Qt::QueuedConnection,
-                              Q_ARG(int, m_passbandLowSpin->value()),
-                              Q_ARG(int, m_passbandHighSpin->value()),
-                              Q_ARG(int, m_binCountSpin->value()));
+                              Q_ARG(int, lowHz),
+                              Q_ARG(int, highHz),
+                              Q_ARG(int, bins));
 }
 
 void CwDecoderWidget::onSquelchChanged(int sliderValue)
@@ -571,11 +669,30 @@ void CwDecoderWidget::onWpmRangeChanged()
                               Q_ARG(int, m_wpmMaxSpin->value()));
 }
 
-void CwDecoderWidget::onSpotlightRowChanged(int rowIndex)
+void CwDecoderWidget::onAudioDeviceChanged(int comboIndex)
 {
-    m_spotlightRow = rowIndex;
-    applySpotlightVisuals();
-    if (!m_applyingSettings) saveSettings();
+    if (m_applyingSettings) return;
+    if (!m_audioDeviceCombo) return;
+
+    const QString device = m_audioDeviceCombo->itemData(comboIndex).toString();
+
+    // Persist the change to the same per-radio rig setting that the
+    // Rig Connection dialog edits. Keeps both UIs showing the same
+    // value across app restarts.
+    Settings& s = Settings::instance();
+    if (isRightRadio()) {
+        s.setRadioRAudioInputDevice(device);
+    } else {
+        s.setRadioLAudioInputDevice(device);
+    }
+
+    // Restart capture against the new device (or tear it down if set to
+    // "(none)"). beginDecoding() handles stopping the previous capture.
+    if (device.isEmpty()) {
+        endDecoding();
+    } else {
+        beginDecoding(device);
+    }
 }
 
 int CwDecoderWidget::currentWpm(int binIndex) const

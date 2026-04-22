@@ -42,8 +42,8 @@ inline int blockSamplesForRate(int sampleRateHz) {
     return (sampleRateHz * kBlockDurationMs) / 1000;
 }
 constexpr int kDefaultBinCount = 6;
-constexpr int kDefaultPassbandLowHz  = 400;
-constexpr int kDefaultPassbandHighHz = 1000;
+constexpr int kDefaultPassbandLowHz  = 600;
+constexpr int kDefaultPassbandHighHz = 900;
 constexpr int kDefaultWpmMin = 5;
 constexpr int kDefaultWpmMax = 60;
 // Default squelch sits just above a typical noise floor with the 5×-sensitive

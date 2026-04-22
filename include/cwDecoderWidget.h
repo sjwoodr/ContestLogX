@@ -19,6 +19,7 @@
 
 #include "audio/audioTypes.h"
 
+class QComboBox;
 class QLabel;
 class QPlainTextEdit;
 class QPushButton;
@@ -78,11 +79,10 @@ private slots:
     void onBinLayoutChanged(const QList<double>& centerFrequencies);
     void onMuteStateChanged(bool muted);
     void onClearClicked();
-    void onPassbandChanged();
-    void onBinCountChanged();
+    void onCenterOrBinsChanged();
     void onSquelchChanged(int sliderValue);
     void onWpmRangeChanged();
-    void onSpotlightRowChanged(int rowIndex);
+    void onAudioDeviceChanged(int comboIndex);
 
 protected:
     bool eventFilter(QObject* obj, QEvent* event) override;
@@ -90,7 +90,6 @@ protected:
 private:
     void buildUi();
     void rebuildRows(const QList<double>& centerFrequencies);
-    void applySpotlightVisuals();
     void rescanTokensForRow(int binIndex);
     void appendCharToRow(int binIndex, QChar ch);
     // Determines which row a viewport belongs to; returns -1 if not one of ours.
@@ -107,17 +106,15 @@ private:
     QWidget* m_rowsContainer = nullptr;
     QVector<CwDecoderRow> m_rows;
     QPushButton* m_clearButton = nullptr;
-    QSpinBox* m_passbandLowSpin = nullptr;
-    QSpinBox* m_passbandHighSpin = nullptr;
+    QSpinBox* m_centerHzSpin = nullptr;
     QSpinBox* m_binCountSpin = nullptr;
     QSlider* m_squelchSlider = nullptr;
     QSpinBox* m_wpmMinSpin = nullptr;
     QSpinBox* m_wpmMaxSpin = nullptr;
-    QSpinBox* m_spotlightSpin = nullptr;
+    QComboBox* m_audioDeviceCombo = nullptr;
     QLabel* m_muteIndicator = nullptr;
 
     bool m_muted = false;
-    int m_spotlightRow = -1;
     bool m_applyingSettings = false;
 };
 

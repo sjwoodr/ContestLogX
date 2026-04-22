@@ -26,6 +26,7 @@ import Layout from '../layouts/Layout.astro';
           <li><a href="#wsjtx" class="hover:underline" style="color: #58a6ff;">WSJT-X Integration</a></li>
           <li><a href="#dx-cluster" class="hover:underline" style="color: #58a6ff;">DX Cluster</a></li>
           <li><a href="#band-map" class="hover:underline" style="color: #58a6ff;">Band Map</a></li>
+          <li><a href="#cw-decoder" class="hover:underline" style="color: #58a6ff;">CW Decoder</a></li>
           <li><a href="#import-export" class="hover:underline" style="color: #58a6ff;">Importing &amp; Exporting Logs</a></li>
           <li><a href="#custom-contests" class="hover:underline" style="color: #58a6ff;">Creating Custom Contest Modules</a></li>
           <li><a href="#clx-format" class="hover:underline" style="color: #58a6ff;">CLX File Format</a></li>
@@ -579,6 +580,130 @@ F8  N9OH`}</pre>
             full-band zoom. The "No cluster" indicator appears in the top-right corner if the DX cluster connection is lost;
             existing spots remain visible until expiry.
           </p>
+        </section>
+
+        <!-- CW Decoder -->
+        <section id="cw-decoder" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
+          <h2 class="text-2xl font-semibold mb-4">CW Decoder</h2>
+
+          <p class="opacity-80 mb-4">
+            The CW Decoder is a dockable panel that listens to your radio's receive audio and displays decoded
+            Morse text in real time. It's a <strong>copy assist</strong> &mdash; the operator is always the authority
+            on what gets logged. Click a decoded callsign or RST to fill the matching QSO entry field.
+            Open the panel from <strong>Window → CW Decoder (Radio L)</strong> or <strong>(Radio R)</strong>.
+          </p>
+
+          <h3 class="text-lg font-semibold mb-2">Audio Setup</h3>
+          <p class="opacity-80 mb-4">
+            Audio is configured per radio in <strong>Rig Connection Settings</strong>. Each radio tab has a
+            <strong>CW Decoder &mdash; Audio Input</strong> section with three controls:
+          </p>
+          <ul class="list-disc list-inside space-y-2 opacity-80 mb-4">
+            <li>
+              <strong>Audio Input Device</strong> &mdash; the system audio device your radio's receive audio is
+              routed through. Options include any input the OS exposes: a USB audio endpoint on the radio
+              (Elecraft K4, Icom IC-7300, Yaesu FT-710, etc.), a soundcard line-in, or a virtual audio cable
+              (VB-CABLE on Windows, BlackHole on macOS, <code>pw-loopback</code> / "Monitor of…" source on Linux).
+              Select <strong>(none)</strong> for a radio with no audio routed to the PC &mdash; the decoder simply
+              won't open for that radio. In SO2R, each radio has an independent audio device setting; any
+              combination of "neither / L only / R only / both" is legal.
+            </li>
+            <li>
+              <strong>Mute decoder on PTT</strong> (default ON) &mdash; gates the decoder while the owning radio
+              is transmitting so your own keying doesn't echo back through the decoder. Two paths: rig-backend
+              PTT state (from flrig or Hamlib) and ContestLogX's internal CW-send paths (F-key memories, CW
+              console). Both paths respect this checkbox; turn it off only if your audio routing already
+              filters transmit (some radios' USB audio output is receive-only by default).
+            </li>
+            <li>
+              <strong>PTT grace window</strong> (default 250 ms) &mdash; small delay added to the internal-send
+              mute duration to absorb your CW console's spool tail and the rig's recovery time. Raise if you
+              see self-decode at the end of a transmission.
+            </li>
+          </ul>
+
+          <h3 class="text-lg font-semibold mb-2">Multi-Channel Decoding</h3>
+          <p class="opacity-80 mb-4">
+            The decoder runs <strong>N parallel Goertzel tone detectors</strong> across a configurable passband
+            &mdash; every bin decodes independently, with its own WPM lock and Morse state. Each bin is a
+            horizontal row in the panel, labeled with its center frequency. Two stations on different CW tones
+            within the passband decode simultaneously in their respective rows without cross-contamination.
+            Defaults: passband 600&ndash;900 Hz, 6 bins (centers at 625 / 675 / 725 / 775 / 825 / 875 Hz).
+            Adjust the passband edges and bin count from the control row at the top of the panel &mdash; changes
+            take effect within a second.
+          </p>
+
+          <h3 class="text-lg font-semibold mb-2">WPM Tracking</h3>
+          <p class="opacity-80 mb-4">
+            Each bin automatically detects and continuously adapts to the sender's speed &mdash; no manual WPM
+            setting. The live WPM readout next to each row's frequency label updates as the decoder tracks
+            changes in sending speed within a few characters. A <strong>WPM bounding range</strong> control
+            (default 15&ndash;40 WPM) constrains the estimator so noise bursts can't drive it to implausible
+            values; widen the range for very slow or very fast content.
+          </p>
+
+          <h3 class="text-lg font-semibold mb-2">Click to Fill</h3>
+          <p class="opacity-80 mb-4">
+            Decoded callsigns appear underlined in blue; RST reports in amber. Click any highlighted token to
+            fill the matching QSO entry field for that radio:
+          </p>
+          <ul class="list-disc list-inside space-y-2 opacity-80 mb-4">
+            <li><strong>Callsign click</strong> &mdash; fills the <strong>CALL</strong> field. Triggers the same
+            downstream actions as keyboard entry: Super Check Partial lookup, call-history lookup, dupe check,
+            name/QTH auto-fill. <em>Keyboard focus stays wherever you were typing</em> &mdash; the click does
+            not steal focus.</li>
+            <li><strong>RST click</strong> &mdash; fills the <strong>RSTr</strong> field. The regex accepts cut
+            numbers (<code>5NN</code>, <code>55N</code>, <code>5N9</code>, etc. where <code>N</code> = 9) and
+            normalizes to digits on fill. Click <code>5NN</code>, <code>599</code> goes into the field.</li>
+          </ul>
+          <p class="opacity-80 mb-4">
+            In SO2R, click-fill always targets <em>the owning radio's</em> entry fields &mdash; i.e., a click in
+            Radio L's decoder fills Radio L's CALL regardless of which radio is currently active for keyboard
+            input. Auto-capture (without an operator click) is deliberately not implemented &mdash; the decoder
+            reports what it hears; the operator decides what gets logged.
+          </p>
+
+          <h3 class="text-lg font-semibold mb-2">Squelch &amp; Noise Rejection</h3>
+          <p class="opacity-80 mb-4">
+            A global squelch slider gates tone detection across all bins uniformly. The Schmitt trigger also
+            tracks a per-bin rolling noise-floor estimate and lifts the release threshold above it &mdash; so
+            bins close to a strong signal release cleanly between characters instead of wedging on. In practice
+            a squelch setting of 10&ndash;30% works well on most HF audio; raise it on noisy bands.
+          </p>
+
+          <h3 class="text-lg font-semibold mb-2">Tuning Tips</h3>
+          <ul class="list-disc list-inside space-y-2 opacity-80 mb-4">
+            <li>For best copy, tune the radio so the received CW sidetone lands within your decoder passband
+            and ideally near a bin center. Bins have 100 Hz resolution; a signal more than ~100 Hz off the
+            nearest bin center will detect with reduced magnitude (still decodes, but less robustly).</li>
+            <li>If a specific signal frequency is known, narrow the passband around it and/or increase bin
+            count for more resolution (e.g., passband 600&ndash;900 Hz with 12 bins gives 25 Hz-spaced centers).</li>
+            <li>On Linux, for a clean test signal, use <code>pw-loopback</code> or pavucontrol's
+            <em>"Monitor of [output device]"</em> source to route any MP3/audio player output directly into
+            ContestLogX &mdash; no speaker or mic involved. The decoder captures at the device's native sample
+            rate; no internal resampling.</li>
+          </ul>
+
+          <h3 class="text-lg font-semibold mb-2">Docking &amp; Layout</h3>
+          <p class="opacity-80 mb-4">
+            The CW Decoder dock defaults to the top dock area &mdash; above the QSO log, bounded horizontally by
+            the right-side docks (DX Cluster, Band Map, etc.). Like other docks, it's movable, floatable, and
+            closable. When floating, the window can grow horizontally (wider = more decoded text per row
+            before scrolling) but its vertical dimension is locked to the natural height of the configured bin
+            rows. Changing bin count while floating re-pins the height accordingly.
+          </p>
+
+          <h3 class="text-lg font-semibold mb-2">Known Limitations</h3>
+          <ul class="list-disc list-inside space-y-2 opacity-80 mb-4">
+            <li>The WPM readout is typically ~5&ndash;15% below the sender's actual speed due to 10 ms DSP block
+            quantization. Character decoding accuracy is unaffected because the dot:dash ratio is preserved;
+            this is a display-only imprecision.</li>
+            <li>Operators who send with compressed word gaps (common in fast contest CW like CWT) will produce
+            fused tokens like <code>TUK4RO</code> &mdash; the decoder is reporting what was actually keyed. Click-
+            to-fill in that case puts the literal token into CALL; manual edit fixes it.</li>
+            <li>The decoder supports one audio path per radio. Multi-signal separation within a single bin (two
+            stations on the same tone frequency) is not attempted.</li>
+          </ul>
         </section>
 
         <!-- Import/Export -->

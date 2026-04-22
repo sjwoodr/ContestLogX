@@ -629,7 +629,7 @@ void Settings::setCwDecoderSettings(bool right, const QJsonObject& obj)
 
 int Settings::getCwDecoderPassbandLowHz(bool right) const
 {
-    return getCwDecoderSettings(right).value("passbandLowHz").toInt(400);
+    return getCwDecoderSettings(right).value("passbandLowHz").toInt(600);
 }
 void Settings::setCwDecoderPassbandLowHz(bool right, int hz)
 {
@@ -637,7 +637,7 @@ void Settings::setCwDecoderPassbandLowHz(bool right, int hz)
 }
 int Settings::getCwDecoderPassbandHighHz(bool right) const
 {
-    return getCwDecoderSettings(right).value("passbandHighHz").toInt(1000);
+    return getCwDecoderSettings(right).value("passbandHighHz").toInt(900);
 }
 void Settings::setCwDecoderPassbandHighHz(bool right, int hz)
 {
@@ -651,13 +651,23 @@ void Settings::setCwDecoderBinCount(bool right, int n)
 {
     QJsonObject o = getCwDecoderSettings(right); o["binCount"] = n; setCwDecoderSettings(right, o);
 }
-int Settings::getCwDecoderSpotlightRowIndex(bool right) const
+int Settings::getCwDecoderCenterHz(bool right) const
 {
-    return getCwDecoderSettings(right).value("spotlightRowIndex").toInt(-1);
+    const QJsonObject obj = getCwDecoderSettings(right);
+    // Preferred: explicit centerHz. Migration: if only the old
+    // passbandLowHz/passbandHighHz are present, compute midpoint from them.
+    // Fallback: 700 Hz (common CW sidetone default).
+    if (obj.contains("centerHz")) return obj.value("centerHz").toInt(700);
+    if (obj.contains("passbandLowHz") && obj.contains("passbandHighHz")) {
+        const int lo = obj.value("passbandLowHz").toInt(600);
+        const int hi = obj.value("passbandHighHz").toInt(900);
+        return (lo + hi) / 2;
+    }
+    return 700;
 }
-void Settings::setCwDecoderSpotlightRowIndex(bool right, int idx)
+void Settings::setCwDecoderCenterHz(bool right, int hz)
 {
-    QJsonObject o = getCwDecoderSettings(right); o["spotlightRowIndex"] = idx; setCwDecoderSettings(right, o);
+    QJsonObject o = getCwDecoderSettings(right); o["centerHz"] = hz; setCwDecoderSettings(right, o);
 }
 double Settings::getCwDecoderSquelch(bool right) const
 {

@@ -856,6 +856,10 @@ void MainWindow::setupUi()
     // only spans the central widget width, not under the right-side docks.
     // Must be set after all right-side docks exist.
     setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
+    // Top-right corner is owned by the right dock too, so the CW Decoder
+    // (which docks in the Top area above the QSO log) doesn't extend over
+    // DX Cluster / Band Map / SCP / etc.
+    setCorner(Qt::TopRightCorner, Qt::RightDockWidgetArea);
 
     mainLayout->addWidget(mainSplitter);
 }
@@ -6496,6 +6500,7 @@ void MainWindow::restorePanelState()
 
         // Re-apply corner ownership after restore — restoreState may reflow dock areas.
         setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
+        setCorner(Qt::TopRightCorner, Qt::RightDockWidgetArea);
 
         // restoreState() sets the floating flag and geometry but does not call show() on
         // floating dock widgets (they are top-level windows when floating). Show them now.
@@ -6602,6 +6607,10 @@ void MainWindow::onResetWidgetPositions()
             QByteArray dockState = QByteArray::fromBase64(ui["dockWidgetState"].toString().toLatin1());
             settings.setDockWidgetState(dockState);
             restoreState(dockState, 0);
+            // Re-apply corner ownership so the top and bottom dock areas
+            // don't extend over the right-side docks (DX cluster, etc.).
+            setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
+            setCorner(Qt::TopRightCorner, Qt::RightDockWidgetArea);
         }
         if (ui.contains("mainSplitterState") && m_mainSplitter) {
             QByteArray splitterState = QByteArray::fromBase64(ui["mainSplitterState"].toString().toUtf8());
@@ -9199,7 +9208,10 @@ void MainWindow::spawnOrRefreshCwDecoders()
         if (wasNew) {
             slot = new CwDecoderWidget(
                 right ? clx::audio::RadioSide::Right : clx::audio::RadioSide::Left, this);
-            addDockWidget(Qt::BottomDockWidgetArea, slot);
+            // Top dock area — sits above the QSO log. The TopRightCorner
+            // was assigned to the right dock area in setupUi so this does
+            // not extend over DX Cluster / Band Map / etc.
+            addDockWidget(Qt::TopDockWidgetArea, slot);
             slot->hide();
 
             connect(slot, &CwDecoderWidget::callClicked,
@@ -9261,27 +9273,75 @@ void MainWindow::onDecoderCallClicked(const QString& callsign, int binIndex)
     if (!target) return;
 
     // Preserve focus — do NOT call setFocus() (FR-022 / Principle III).
-    // Use setText + textEdited to trigger the same side-effects (SCP, dupe check,
-    // call-history) that keyboard input would fire.
+    // setText fires the textChanged handler (onCallChanged), which runs
+    // SCP / call-history / dupe check / exchange pre-fill. textEdited is
+    // emitted explicitly for any handler that listens to it specifically.
     target->setText(callsign);
     emit target->textEdited(callsign);
+
+    // The keyboard Space/Tab advance handler triggers QRZ/QRZCQ auto-lookup
+    // when the operator leaves the CALL field. Click-fill doesn't take that
+    // path, so mirror the lookup call here to keep behavior parity between
+    // keyboard entry and click-fill.
+    const QString clean = callsign.trimmed().toUpper();
+    if (clean.length() >= 2) {
+        triggerAutoLookup(clean);
+    }
+
+    if (DebugLogger::instance().isCwDecoderDebugEnabled()) {
+        DebugLogger::instance().log("CwDecoder",
+            QString("CALL click-filled '%1' for %2 (triggered auto-lookup)")
+                .arg(clean)
+                .arg(w->isRightRadio() ? "Radio R" : "Radio L"));
+    }
 }
 
 void MainWindow::onDecoderRstClicked(const QString& rst, int binIndex)
 {
     Q_UNUSED(binIndex);
     CwDecoderWidget* w = qobject_cast<CwDecoderWidget*>(sender());
-    if (!w) return;
+    if (!w) {
+        DebugLogger::instance().log("CwDecoder",
+            QString("onDecoderRstClicked('%1') — sender() is not a "
+                    "CwDecoderWidget, ignoring").arg(rst));
+        return;
+    }
+
+    const bool right = w->isRightRadio();
+    // Radio L (default / non-SO2R) stores its exchange field pointers in
+    // the top-level m_exchangeFields map — only Radio R uses the struct
+    // member m_entryWidgetsR.exchangeFields. Route to the right source.
+    const auto& exchangeMap = right ? m_entryWidgetsR.exchangeFields
+                                    : m_exchangeFields;
 
     QLineEdit* target = nullptr;
-    if (w->isRightRadio()) {
-        auto it = m_entryWidgetsR.exchangeFields.find("RSTr");
-        if (it != m_entryWidgetsR.exchangeFields.end()) target = it.value();
-    } else {
-        auto it = m_entryWidgets.exchangeFields.find("RSTr");
-        if (it != m_entryWidgets.exchangeFields.end()) target = it.value();
+    auto it = exchangeMap.find("RSTr");
+    if (it != exchangeMap.end()) target = it.value();
+
+    if (!target) {
+        DebugLogger::instance().log("CwDecoder",
+            QString("onDecoderRstClicked('%1') from %2 — no 'RSTr' exchange "
+                    "field in current contest (map has %3 keys); click has "
+                    "nowhere to fill")
+                .arg(rst)
+                .arg(right ? "Radio R" : "Radio L")
+                .arg(exchangeMap.size()));
+        QStringList keys;
+        for (auto k = exchangeMap.cbegin(); k != exchangeMap.cend(); ++k) {
+            keys << k.key();
+        }
+        DebugLogger::instance().log("CwDecoder",
+            QString("  Available exchange fields: %1").arg(keys.join(", ")));
+        return;
     }
-    if (!target) return;
+
+    if (DebugLogger::instance().isCwDecoderDebugEnabled()) {
+        DebugLogger::instance().log("CwDecoder",
+            QString("Filling RSTr with '%1' for %2 (was='%3')")
+                .arg(rst)
+                .arg(right ? "Radio R" : "Radio L")
+                .arg(target->text()));
+    }
 
     target->setText(rst);
     emit target->textEdited(rst);

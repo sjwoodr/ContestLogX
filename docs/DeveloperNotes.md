@@ -24,6 +24,49 @@ Debug information is written to:
 - Enable specific components only when debugging that area to reduce log noise
 - Debug settings are loaded BEFORE any components initialize, ensuring clean startup logs
 
+## Recent Changes (2026 — 0.7.x)
+
+### CW Decoder ✅
+
+**Feature branch: `004-cw-decoder`** — dockable multi-channel CW decoder, one per radio that has an audio input device configured. See `specs/004-cw-decoder/` for the full SpecKit artifacts (spec, plan, research, data model, contracts, tasks, checklists).
+
+**Architecture**:
+- `src/audio/` (new directory) — DSP + capture subsystem. Pure C++ where possible; Qt types only at signal boundaries.
+- `include/audio/audioTypes.h` — shared enums, defaults, `blockSamplesForRate()` helper
+- `include/audio/morseTable.h` — compile-time Morse lookup (~55 entries, letters/digits/common prosigns)
+- `include/audio/spscRingBuffer.h` — lock-free SPSC ring buffer (std::atomic head/tail)
+- `include/audio/binChannel.{h,cpp}` — one Goertzel tone detector + dot/dash classifier + rolling-median WPM estimator + Morse decoder per bin
+- `include/audio/cwDecoder.{h,cpp}` — owns a vector of `BinChannel` and dispatches audio blocks to each
+- `include/audio/audioCapture.{h,cpp}` — `QAudioSource` wrapper; captures at device's native sample rate (no internal resampling — earlier nearest-neighbor decimation aliased above-Nyquist noise into the CW band); accepts int16 / int32 / float / uint8 input, takes channel 0 from stereo
+- `include/audio/cwDecoderWorker.{h,cpp}` — `QObject` on a `QThread`; drains the ring buffer, processes blocks via `CwDecoder`, emits `charDecoded` / `wpmUpdated` / `binLayoutChanged` / `muteStateChanged` over queued connections
+- `include/cwDecoderWidget.h` + `src/ui/cwDecoderWidget.cpp` — `QDockWidget` with stacked scrolling bin rows, operator-click token fill, adaptive visual highlighting for callsign and RST tokens
+
+**DSP pipeline**:
+1. `QAudioSource` → int16 mono at device's native sample rate (typically 44100 or 48000 Hz)
+2. SPSC ring buffer (capture-thread producer, worker-thread consumer)
+3. 10 ms blocks (e.g., 480 samples at 48 kHz) processed by the decoder worker
+4. Per bin: Goertzel single-frequency tone detection → Schmitt trigger with three-way adaptive off-threshold (`max(0.7 × squelch, 1.3 × estimated noise floor, 0.3 × current tone peak)`, capped at `0.9 × squelch`) → dot/dash classifier → rolling-window 25th-percentile dot-length estimator for live WPM → Morse table lookup on character boundary → per-bin text buffer
+5. Clickable token detection per row: callsign regex (standard + slash notation) and RST regex (strict `[1-5][1-9N][1-9N]` whitespace-bounded, with N/T cut-number normalization applied on click)
+6. Stuck-Schmitt safety release: if the detector has been ON for longer than 6× current dot estimate (= 2× a dash), force-close the element and reset the magnitude smoothing window so the next cycle starts cold
+
+**PTT mute** — two independent paths, both gated by a per-radio "Mute decoder on PTT" setting:
+- Rig-backend path: `RigInterface::pttStateChanged(bool)` signal (added to the base class) → `CwDecoderWorker::setPttMute(bool)`
+- Internal-send path: `MainWindow::notifyInternalCwSend(side, textChars, sendWpm)` fired from the `CWWindow::aboutToSendCw` signal at every `rigClient->sendCW()` invocation → decoder mutes for estimated send duration + grace window (default 250 ms)
+
+**Rig integration**:
+- Adds `Qt6::Multimedia` to CMake's `find_package`
+- Adds `pttStateChanged(bool)` signal to `RigInterface` base class; `FlrigClient` / `HamlibClient` / `MockedRigClient` each emit on state transitions
+- Audio input device + "Mute on PTT" + "PTT grace ms" are per-radio rig settings, stored alongside backend/host/port in `Settings` and configured in the Rig Connection Settings dialog
+
+**Docking**: widget goes in `Qt::TopDockWidgetArea`; `setCorner(Qt::TopRightCorner, Qt::RightDockWidgetArea)` is applied in `setupUi()` and re-applied after every `restoreState()` call so the top dock area is bounded by the right-side docks (doesn't extend over DX Cluster / Band Map / SCP). When floating, `setFixedHeight()` pins vertical size to the natural size-hint (unpins on re-dock), so the operator can grow the window horizontally only.
+
+**Debug logging**: Debug menu → "Enable CW &Decoder Debug Logging". All decoder log sites gated by `DebugLogger::instance().isCwDecoderDebugEnabled()`.
+
+**Known limitations**:
+- WPM readout is typically biased ~5-15% low due to 10 ms block-size quantization on the tone-off transition; decoding accuracy is unaffected because the dot:dash ratio is preserved. A 5 ms block size or sub-block transition interpolation would reduce the bias further.
+- Off-center signals (signal between bin centers) detect on multiple bins with reduced magnitude; operator should tune the passband/bin count so a bin lands near the target tone frequency for best copy.
+- No DSP unit tests yet (`tests/test_goertzel.cpp` / `test_binChannel.cpp` / `test_cwDecoder.cpp` are planned per `specs/004-cw-decoder/tasks.md` but not yet written).
+
 ## Recent Changes (2026 — 0.6.x)
 
 ### Virginia QSO Party (VAQP) ✅

@@ -179,10 +179,14 @@ public:
     void setCwDecoderPassbandLowHz(bool right, int hz);
     int getCwDecoderPassbandHighHz(bool right) const;
     void setCwDecoderPassbandHighHz(bool right, int hz);
+    // Center frequency — derived passband = center ± (bins × 25). Replaces
+    // the two-spinbox passbandLow/High controls in the widget UI. If an
+    // existing profile has passbandLow/High but no centerHz, the getter
+    // migrates to (low+high)/2.
+    int getCwDecoderCenterHz(bool right) const;
+    void setCwDecoderCenterHz(bool right, int hz);
     int getCwDecoderBinCount(bool right) const;
     void setCwDecoderBinCount(bool right, int n);
-    int getCwDecoderSpotlightRowIndex(bool right) const;
-    void setCwDecoderSpotlightRowIndex(bool right, int idx);
     double getCwDecoderSquelch(bool right) const;
     void setCwDecoderSquelch(bool right, double threshold);
     int getCwDecoderWpmMin(bool right) const;

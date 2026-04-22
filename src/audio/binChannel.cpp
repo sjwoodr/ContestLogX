@@ -398,7 +398,20 @@ QList<CharEvent> BinChannel::processBlock(const int16_t* samples, int count,
         m_toneActive = toneDetected;
         m_elementStartMs = m_elapsedAudioMs;
     } else if (!m_toneActive) {
-        // Continuously off — no-op until next transition.
+        // Continuously off. If the morse buffer has accumulated dits/dahs
+        // for an unclosed character AND we've been silent for at least a
+        // full character-gap duration, flush it now. Without this, the
+        // final character of any transmission (the one not followed by a
+        // gap-then-tone boundary) would stay buffered until the operator
+        // starts sending again, making the last letter of every over
+        // appear to "hang" invisibly.
+        if (!m_morseBuffer.isEmpty() && !muted) {
+            const int silenceMs = static_cast<int>(m_elapsedAudioMs - m_elementStartMs);
+            const int dotBaseline = currentDotEstimateMs();
+            if (silenceMs >= dotBaseline * 2) {
+                closeCharacter(timestampMs, out);
+            }
+        }
     }
 
     return out;
