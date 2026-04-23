@@ -75,6 +75,29 @@
     .rig .freq { font-size: 1.3rem; font-weight: 700;
                   font-variant-numeric: tabular-nums; }
     .rig .mode-band { color: var(--muted); font-size: 0.9rem; }
+
+    /* Rig Control card — small toggle-button groups for band/mode/run-sp
+       + a freq input. Buttons are touch-sized (min 40px tap target) and
+       wrap onto multiple rows on narrow phones. */
+    .rc-group { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+    .rc-label { font-size: 0.8rem; color: var(--muted);
+                text-transform: uppercase; letter-spacing: 0.05em;
+                margin: 6px 0 4px 0; }
+    .rc-btn   { background: #21262d; border: 1px solid var(--border);
+                color: var(--fg); padding: 8px 12px; border-radius: 6px;
+                cursor: pointer; font-size: 0.9rem; min-width: 46px;
+                font-family: inherit; transition: background-color 0.1s; }
+    .rc-btn:hover  { background: #30363d; }
+    .rc-btn:active { background: #3d454d; }
+    .rc-btn.rc-active { background: var(--accent); color: #0d1117;
+                        border-color: var(--accent); font-weight: 600; }
+    .rc-freq-row { display: flex; gap: 6px; margin-top: 4px; }
+    .rc-freq-row input { flex: 1; background: #0d1117; color: var(--fg);
+                         border: 1px solid var(--border); border-radius: 6px;
+                         padding: 8px 10px; font-size: 0.95rem;
+                         font-variant-numeric: tabular-nums;
+                         font-family: inherit; }
+    .rc-freq-row input:focus { outline: none; border-color: var(--accent); }
     .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%;
            background: var(--muted); vertical-align: middle; margin-right: 6px; }
     .dot.on { background: var(--good); }
@@ -130,6 +153,51 @@
         </div>
       </div>
 
+      <div class="card" id="rig-control-card">
+        <h2>Rig Control</h2>
+        <div id="rc-radio-toggle" class="rc-group" style="display:none">
+          <button class="rc-btn rc-active" data-radio="L">Radio L</button>
+          <button class="rc-btn"            data-radio="R">Radio R</button>
+        </div>
+
+        <div class="rc-label">Band</div>
+        <div id="rc-bands" class="rc-group">
+          <button class="rc-btn" data-band="160m">160</button>
+          <button class="rc-btn" data-band="80m">80</button>
+          <button class="rc-btn" data-band="40m">40</button>
+          <button class="rc-btn" data-band="30m">30</button>
+          <button class="rc-btn" data-band="20m">20</button>
+          <button class="rc-btn" data-band="17m">17</button>
+          <button class="rc-btn" data-band="15m">15</button>
+          <button class="rc-btn" data-band="12m">12</button>
+          <button class="rc-btn" data-band="10m">10</button>
+          <button class="rc-btn" data-band="6m">6</button>
+        </div>
+
+        <div class="rc-label">Mode</div>
+        <div id="rc-modes" class="rc-group">
+          <button class="rc-btn" data-mode="CW">CW</button>
+          <button class="rc-btn" data-mode="USB">USB</button>
+          <button class="rc-btn" data-mode="LSB">LSB</button>
+          <button class="rc-btn" data-mode="DIG">DIG</button>
+          <button class="rc-btn" data-mode="FM">FM</button>
+          <button class="rc-btn" data-mode="AM">AM</button>
+        </div>
+
+        <div class="rc-label">Operating</div>
+        <div id="rc-runsp" class="rc-group">
+          <button class="rc-btn" data-runsp="Off">Off</button>
+          <button class="rc-btn" data-runsp="Run">Run</button>
+          <button class="rc-btn" data-runsp="S&P">S&amp;P</button>
+        </div>
+
+        <div class="rc-label">Frequency (MHz)</div>
+        <div class="rc-freq-row">
+          <input id="rc-freq" type="text" inputmode="decimal" placeholder="14.025">
+          <button class="rc-btn" id="rc-freq-go">Go</button>
+        </div>
+      </div>
+
       <div class="card">
         <h2>Propagation</h2>
         <div class="kv">
@@ -168,6 +236,97 @@
       if (!r.ok) throw new Error(r.status + ' ' + r.statusText);
       return await r.json();
     }
+
+    async function post(path, body) {
+      const url = path + '?token=' + encodeURIComponent(token);
+      const r = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!r.ok) throw new Error(r.status + ' ' + r.statusText);
+      return await r.json();
+    }
+
+    // Tracks which radio the Rig Control card is driving. Switched via
+    // the L/R toggle (hidden unless /api/status reports so2rEnabled).
+    let selectedRadio = 'L';
+    // Cache of the most recent /api/rig response so the L/R toggle can
+    // re-highlight buttons without waiting for the next poll.
+    let lastRigData = {};
+
+    // Highlight the band / mode / run-sp button that matches the current
+    // rig state for the selected radio.
+    function updateRigControlActiveStates() {
+      const rig = (selectedRadio === 'R') ? lastRigData.radioR : lastRigData.radioL;
+      const apply = (groupId, key) => {
+        document.querySelectorAll('#' + groupId + ' .rc-btn').forEach(b => {
+          const matches = rig && (b.dataset[key] === rig[key === 'band' ? 'band' :
+                                                         key === 'mode' ? 'mode' :
+                                                         'runSpMode']);
+          b.classList.toggle('rc-active', !!matches);
+        });
+      };
+      apply('rc-bands', 'band');
+      apply('rc-modes', 'mode');
+      apply('rc-runsp', 'runsp');
+    }
+
+    // Wire up the Rig Control buttons. Each tap: optimistically flash the
+    // active class on the tapped button, fire the POST, then refresh()
+    // to pull the confirmed state (which re-sets the active class on the
+    // correct button — overriding our optimistic flash if the rig rejected).
+    function optimisticActivate(groupId, tapped) {
+      document.querySelectorAll('#' + groupId + ' .rc-btn').forEach(b => {
+        b.classList.toggle('rc-active', b === tapped);
+      });
+    }
+    document.querySelectorAll('#rc-bands .rc-btn').forEach(b => {
+      b.addEventListener('click', async () => {
+        optimisticActivate('rc-bands', b);
+        try { await post('/api/rig/band', { radio: selectedRadio, band: b.dataset.band }); }
+        catch (e) { /* next refresh reconciles */ }
+        refresh();
+      });
+    });
+    document.querySelectorAll('#rc-modes .rc-btn').forEach(b => {
+      b.addEventListener('click', async () => {
+        optimisticActivate('rc-modes', b);
+        try { await post('/api/rig/qsy', { radio: selectedRadio, mode: b.dataset.mode }); }
+        catch (e) {}
+        refresh();
+      });
+    });
+    document.querySelectorAll('#rc-runsp .rc-btn').forEach(b => {
+      b.addEventListener('click', async () => {
+        optimisticActivate('rc-runsp', b);
+        try { await post('/api/rig/run_mode', { radio: selectedRadio, mode: b.dataset.runsp }); }
+        catch (e) {}
+        refresh();
+      });
+    });
+    document.querySelectorAll('#rc-radio-toggle .rc-btn').forEach(b => {
+      b.addEventListener('click', () => {
+        selectedRadio = b.dataset.radio;
+        document.querySelectorAll('#rc-radio-toggle .rc-btn').forEach(bb => {
+          bb.classList.toggle('rc-active', bb.dataset.radio === selectedRadio);
+        });
+        updateRigControlActiveStates();
+      });
+    });
+    document.getElementById('rc-freq-go').addEventListener('click', async () => {
+      const inp = document.getElementById('rc-freq');
+      const val = parseFloat(inp.value);
+      if (!(val > 0)) { inp.focus(); return; }
+      const freqHz = Math.round(val * 1e6);
+      try { await post('/api/rig/qsy', { radio: selectedRadio, freq_hz: freqHz }); }
+      catch (e) {}
+      inp.value = '';
+      refresh();
+    });
+    document.getElementById('rc-freq').addEventListener('keydown', (ev) => {
+      if (ev.key === 'Enter') document.getElementById('rc-freq-go').click();
+    });
 
     function fmtFreq(hz) {
       if (!hz || hz <= 0) return '—';
@@ -246,6 +405,25 @@
 
         setRig('rig-L', rig.radioL);
         setRig('rig-R', rig.radioR || null);
+        lastRigData = rig;
+
+        // Show/hide the SO2R radio toggle based on whether the current
+        // session is SO2R. If radio R disappears (SO2R disabled after
+        // selectedRadio was 'R'), snap back to L so subsequent writes
+        // don't 400 with "SO2R not enabled".
+        const toggle = document.getElementById('rc-radio-toggle');
+        if (rig.radioR) {
+          toggle.style.display = '';
+        } else {
+          toggle.style.display = 'none';
+          if (selectedRadio !== 'L') {
+            selectedRadio = 'L';
+            document.querySelectorAll('#rc-radio-toggle .rc-btn').forEach(bb => {
+              bb.classList.toggle('rc-active', bb.dataset.radio === 'L');
+            });
+          }
+        }
+        updateRigControlActiveStates();
 
         document.getElementById('prop-sfi').textContent = prop.sfi || '—';
         document.getElementById('prop-a').textContent   = (prop.aIndex != null) ? prop.aIndex : '—';

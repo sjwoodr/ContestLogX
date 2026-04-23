@@ -787,6 +787,9 @@ F8  N9OH`}</pre>
               (both radios shown in SO2R mode)</li>
             <li><strong>Propagation</strong> &mdash; SFI / A-index / K-index from the most recent NOAA fetch</li>
             <li><strong>Recent QSOs</strong> &mdash; last ten logged QSOs newest-first with UTC time, call, band, mode, and received exchange</li>
+            <li><strong>Rig Control</strong> &mdash; band (160&ndash;6m), mode (CW/USB/LSB/DIG/FM/AM),
+              Run/S&amp;P/Off, and a frequency-in-MHz input with a Go button. In SO2R sessions an
+              L/R radio toggle picks which radio the controls drive.</li>
           </ul>
           <p class="opacity-80 mb-4">
             The page auto-refreshes every 5 seconds. Layout is responsive &mdash; one column on a
@@ -801,12 +804,10 @@ F8  N9OH`}</pre>
               feature disabled.</li>
             <li>Click <strong>Rotate</strong> next to the token in Preferences to invalidate old
               bookmarks &mdash; e.g. after a guest operator leaves, or if you suspect the URL leaked.</li>
-            <li>The dashboard HTML is <strong>read-only</strong> — it will never log a QSO, trigger
-              CW memories, or modify any contest state. The underlying HTTP API does expose a small
-              set of <em>rig-control</em> writes (QSY, band change, Run/S&amp;P toggle) for use from
-              <code>curl</code>, iOS Shortcuts, or a custom mobile client; these require the same
-              bearer token as any other endpoint. There&apos;s no button for these in the standard
-              dashboard HTML yet — build your own client if you want them.</li>
+            <li>The dashboard can <strong>change the rig</strong> — band, mode, frequency, and Run/S&amp;P
+              are tappable on the dashboard&apos;s Rig Control card. It will <em>not</em> log a QSO or
+              trigger CW memories from the dashboard page (both would race with the operator&apos;s
+              keyboard focus at the shack PC). All writes require the same bearer token as reads.</li>
           </ul>
 
           <h3 class="text-lg font-semibold mb-2">Troubleshooting</h3>
