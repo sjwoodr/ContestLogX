@@ -6,6 +6,7 @@ All notable changes to ContestLogX are documented in this file.
 
 ### Other Changes and Bugfixes
 - CW memory buttons (F1–F8) in the CW console now show the full memory text as a tooltip on hover, so you can see exactly what each one sends without opening the memories editor; empty slots show no tooltip
+- Fixed SSB memory phonetic playback for digits — "9" is now spoken as "nine" (matches FCC / ARRL Operating Manual phonetics) instead of "niner" (NATO / ICAO aviation usage); affects `{mycall}` and any other callsign-phonetic expansion
 
 ## [0.7.26]
 
