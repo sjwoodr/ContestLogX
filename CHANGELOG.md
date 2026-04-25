@@ -4,6 +4,10 @@ All notable changes to ContestLogX are documented in this file.
 
 ## [0.7.26]
 
+### Other Changes and Bugfixes
+- Added "View Debug Log" entry at the bottom of the Debug menu — opens a standalone (non-dockable) window that tails the active `clx_debug.log` file (~1.5s poll), with Clear, Copy (sends the visible buffer to the clipboard), and Close buttons and an Auto-scroll checkbox so you can scroll back to inspect older lines without the view jumping to the bottom; runs as an independent top-level window so you can leave it open and switch back to CLX
+- CW Decoder now logs every detected audio input device (description, ID, default flag, preferred sample rate / channels / format) plus the saved per-radio device selection on widget construction — emitted unconditionally (not gated by the CW Decoder Debug toggle) so "decoder shows nothing" reports can be triaged without the operator having to enable per-component debug first
+
 ## [0.7.25]
 
 ### Other Changes and Bugfixes

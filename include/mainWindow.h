@@ -159,6 +159,7 @@ private slots:
     void onToggleScpDebug(bool checked);
     void onToggleMultiplierWidgetDebug(bool checked);
     void onToggleCallsignLookupDebug(bool checked);
+    void onShowDebugLogViewer();
     void onDownloadCtyDat();
     void onDownloadScp();
     void checkDataFileStaleness();
@@ -351,6 +352,8 @@ private:
     QAction *m_callsignLookupDebugAction;
     QAction *m_wsjtxDebugAction;
     QAction *m_cwDecoderDebugAction = nullptr;
+    QAction *m_viewDebugLogAction = nullptr;
+    class DebugLogViewer *m_debugLogViewer = nullptr;
 
     // QSO Entry widgets
     QGroupBox *m_qsoEntryGroup;

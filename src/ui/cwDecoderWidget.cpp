@@ -47,6 +47,46 @@ CwDecoderWidget::CwDecoderWidget(RadioSide owningRadio, QWidget* parent)
                        : QStringLiteral("Radio L — CW Decoder"));
     setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable |
                 QDockWidget::DockWidgetClosable);
+
+    // One-shot audio device enumeration log on widget construction.
+    // Unconditional (not gated by isCwDecoderDebugEnabled()) because
+    // the volume is small and this is exactly the data needed to
+    // triage "decoder shows nothing" reports — what devices the OS
+    // exposed, which one is the system default, and which one CLX has
+    // saved for this radio. Runs once per widget spawn (plus once
+    // more for the other radio in SO2R).
+    {
+        DebugLogger& dl = DebugLogger::instance();
+        const QString side = isR ? QStringLiteral("Radio R") : QStringLiteral("Radio L");
+        const QAudioDevice defaultIn = QMediaDevices::defaultAudioInput();
+        const QList<QAudioDevice> inputs = QMediaDevices::audioInputs();
+        dl.log("CwDecoder",
+            QString("Enumerating audio inputs for %1: %2 device(s) detected; OS default = '%3'")
+                .arg(side,
+                     QString::number(inputs.size()),
+                     defaultIn.isNull() ? QStringLiteral("(none)") : defaultIn.description()));
+        int idx = 0;
+        for (const QAudioDevice& d : inputs) {
+            const QAudioFormat pref = d.preferredFormat();
+            dl.log("CwDecoder",
+                QString("  [%1] description='%2' id='%3' isDefault=%4 "
+                        "preferred=%5Hz/%6ch/sampleFormat=%7")
+                    .arg(QString::number(idx++),
+                         d.description(),
+                         QString::fromUtf8(d.id()),
+                         d.id() == defaultIn.id() ? QStringLiteral("true")
+                                                  : QStringLiteral("false"),
+                         QString::number(pref.sampleRate()),
+                         QString::number(pref.channelCount()),
+                         QString::number(static_cast<int>(pref.sampleFormat()))));
+        }
+        const QString saved = isR
+            ? Settings::instance().getRadioRAudioInputDevice()
+            : Settings::instance().getRadioLAudioInputDevice();
+        dl.log("CwDecoder", QString("%1 saved audio device setting: '%2'")
+            .arg(side, saved.isEmpty() ? QStringLiteral("(none)") : saved));
+    }
+
     buildUi();
     loadSettings();
 

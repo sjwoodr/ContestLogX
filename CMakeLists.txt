@@ -91,6 +91,7 @@ set(SOURCES
     src/audio/practiceContentGenerator.cpp
     src/audio/practiceAudioSource.cpp
     src/ui/cwDecoderWidget.cpp
+    src/ui/debugLogViewer.cpp
 )
 
 set(HEADERS
@@ -140,6 +141,7 @@ set(HEADERS
      include/callHistory.h
      include/superCheckPartial.h
      include/debugLogger.h
+     include/debugLogViewer.h
      include/ttsManager.h
      include/piperManager.h
      src/utils/bandPlan.h

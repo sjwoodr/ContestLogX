@@ -20,6 +20,7 @@ public:
 
     void log(const QString& component, const QString& message);
     void init(const QString& logPath = QString());
+    QString logFilePath() const { return m_logFile.fileName(); }
     void loadSettings();
     void setFlushEnabled(bool enabled);
     void setFlrigDebugEnabled(bool enabled);

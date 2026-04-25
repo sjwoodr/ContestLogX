@@ -38,6 +38,7 @@
 #include "ttsManager.h"
 #include "../utils/bandPlan.h"
 #include "debugLogger.h"
+#include "debugLogViewer.h"
 #include "dxccDatabase.h"
 #include "onlineScoreClient.h"
 #include "cwDecoderWidget.h"
@@ -1562,6 +1563,10 @@ void MainWindow::setupMenus()
         DebugLogger::instance().setCwDecoderDebugEnabled(checked);
         Settings::instance().setCwDecoderDebugEnabled(checked);
     });
+
+    debugMenu->addSeparator();
+    m_viewDebugLogAction = debugMenu->addAction(tr("&View Debug Log"));
+    connect(m_viewDebugLogAction, &QAction::triggered, this, &MainWindow::onShowDebugLogViewer);
 
     // Help menu
     QMenu *helpMenu = menuBar()->addMenu("&Help");
@@ -5172,6 +5177,22 @@ void MainWindow::onToggleCallsignLookupDebug(bool checked)
     DebugLogger::instance().setCallsignLookupDebugEnabled(checked);
     Settings::instance().setCallsignLookupDebugEnabled(checked);
     m_statusLabel->setText(checked ? "Callsign Lookup debug logging enabled" : "Callsign Lookup debug logging disabled");
+}
+
+void MainWindow::onShowDebugLogViewer()
+{
+    if (!m_debugLogViewer) {
+        m_debugLogViewer = new DebugLogViewer(this);
+        // Drop the pointer when the viewer is destroyed so we re-create
+        // on the next invocation rather than dereferencing a stale one.
+        m_debugLogViewer->setAttribute(Qt::WA_DeleteOnClose);
+        connect(m_debugLogViewer, &QObject::destroyed, this, [this]() {
+            m_debugLogViewer = nullptr;
+        });
+    }
+    m_debugLogViewer->show();
+    m_debugLogViewer->raise();
+    m_debugLogViewer->activateWindow();
 }
 
 void MainWindow::onOperatorCallDialog()
