@@ -206,6 +206,16 @@ void CwDecoderWidget::buildUi()
     m_clearButton = new QPushButton(tr("Clear"), this);
     controls->addWidget(m_clearButton);
 
+    // Start/Stop toggle. Label tracks the current decoding state and is
+    // updated centrally by updateStartStopButton() — which is called from
+    // beginDecoding() / endDecoding() so external callers (e.g. MainWindow
+    // re-driving the decoder, or a device change in the combo) keep the
+    // button in sync without having to touch it directly.
+    m_startStopButton = new QPushButton(this);
+    m_startStopButton->setToolTip(
+        tr("Stop the decoder (and any practice audio); click again to restart"));
+    controls->addWidget(m_startStopButton);
+
     outer->addLayout(controls);
 
     // Rows container — populated in rebuildRows() once the worker emits
@@ -221,6 +231,8 @@ void CwDecoderWidget::buildUi()
     // Control-change signal wiring.
     connect(m_clearButton, &QPushButton::clicked,
             this, &CwDecoderWidget::onClearClicked);
+    connect(m_startStopButton, &QPushButton::clicked,
+            this, &CwDecoderWidget::onStartStopClicked);
     connect(m_centerHzSpin, qOverload<int>(&QSpinBox::valueChanged),
             this, &CwDecoderWidget::onCenterOrBinsChanged);
     connect(m_binCountSpin, qOverload<int>(&QSpinBox::valueChanged),
@@ -233,6 +245,11 @@ void CwDecoderWidget::buildUi()
             this, &CwDecoderWidget::onWpmRangeChanged);
     connect(m_audioDeviceCombo, qOverload<int>(&QComboBox::currentIndexChanged),
             this, &CwDecoderWidget::onAudioDeviceChanged);
+
+    // Initial Start/Stop label reflects actual state (worker is null at
+    // construction, so this resolves to "Start" disabled until either
+    // loadSettings selects a device or MainWindow calls beginDecoding).
+    updateStartStopButton();
 }
 
 void CwDecoderWidget::loadSettings()
@@ -266,6 +283,10 @@ void CwDecoderWidget::loadSettings()
     if (!decoderFont.family().isEmpty()) {
         setBaseFont(decoderFont);
     }
+
+    // Re-evaluate the Start/Stop button now that the combo has its
+    // saved selection — enables the button if a real device is picked.
+    updateStartStopButton();
 
     m_applyingSettings = false;
 }
@@ -379,6 +400,7 @@ void CwDecoderWidget::beginDecoding(const QString& audioDeviceDescription)
                               Q_ARG(int, m_wpmMinSpin->value()),
                               Q_ARG(int, m_wpmMaxSpin->value()),
                               Q_ARG(float, static_cast<float>(m_squelchSlider->value() / 100.0)));
+    updateStartStopButton();
 }
 
 void CwDecoderWidget::endDecoding()
@@ -393,6 +415,7 @@ void CwDecoderWidget::endDecoding()
         m_workerThread = nullptr;
     }
     m_worker = nullptr;
+    updateStartStopButton();
 }
 
 void CwDecoderWidget::muteForInternalSend(int durationMs)
@@ -767,6 +790,37 @@ void CwDecoderWidget::onClearClicked()
     for (auto& row : m_rows) {
         if (row.text) row.text->clear();
     }
+}
+
+void CwDecoderWidget::onStartStopClicked()
+{
+    if (m_worker) {
+        // Currently running — stop the worker (and tear down any
+        // PracticeAudioSource the worker owns, which silences practice
+        // audio on the speakers as well).
+        endDecoding();
+        return;
+    }
+    // Currently stopped — re-start against whatever device the combo
+    // is showing. "(none)" is a no-op (button stays as "Start").
+    if (!m_audioDeviceCombo) return;
+    const QString device =
+        m_audioDeviceCombo->itemData(m_audioDeviceCombo->currentIndex()).toString();
+    if (device.isEmpty()) return;
+    beginDecoding(device);
+}
+
+void CwDecoderWidget::updateStartStopButton()
+{
+    if (!m_startStopButton) return;
+    const bool running = (m_worker != nullptr);
+    m_startStopButton->setText(running ? tr("Stop") : tr("Start"));
+    // With "(none)" selected there's nothing to start; disable the button
+    // in that case so the operator picks a device first.
+    const QString device = m_audioDeviceCombo
+        ? m_audioDeviceCombo->itemData(m_audioDeviceCombo->currentIndex()).toString()
+        : QString();
+    m_startStopButton->setEnabled(running || !device.isEmpty());
 }
 
 void CwDecoderWidget::onCenterOrBinsChanged()

@@ -97,6 +97,7 @@ private slots:
     void onBinLayoutChanged(const QList<double>& centerFrequencies);
     void onMuteStateChanged(bool muted);
     void onClearClicked();
+    void onStartStopClicked();
     void onCenterOrBinsChanged();
     void onSquelchChanged(int sliderValue);
     void onWpmRangeChanged();
@@ -124,6 +125,8 @@ private:
     QWidget* m_rowsContainer = nullptr;
     QVector<CwDecoderRow> m_rows;
     QPushButton* m_clearButton = nullptr;
+    QPushButton* m_startStopButton = nullptr;
+    void updateStartStopButton();
     QSpinBox* m_centerHzSpin = nullptr;
     QSpinBox* m_binCountSpin = nullptr;
     QSlider* m_squelchSlider = nullptr;
