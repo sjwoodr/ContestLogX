@@ -231,6 +231,12 @@ void CWWindow::setMemories(const QList<CwMemory>& mems)
             label += "\n---";
         }
         memoryButtons[i]->setText(label);
+
+        // Tooltip shows the full memory text so the operator can see
+        // exactly what will be sent without opening the editor. Empty
+        // slots get an empty tooltip (Qt suppresses the popup entirely).
+        const QString tip = (i < memories.size()) ? memories[i].text : QString();
+        memoryButtons[i]->setToolTip(tip);
     }
 }
 

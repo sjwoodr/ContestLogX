@@ -4,6 +4,9 @@ All notable changes to ContestLogX are documented in this file.
 
 ## [0.7.27]
 
+### Other Changes and Bugfixes
+- CW memory buttons (F1–F8) in the CW console now show the full memory text as a tooltip on hover, so you can see exactly what each one sends without opening the memories editor; empty slots show no tooltip
+
 ## [0.7.26]
 
 ### Other Changes and Bugfixes
