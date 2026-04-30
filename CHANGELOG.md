@@ -4,6 +4,9 @@ All notable changes to ContestLogX are documented in this file.
 
 ## [0.7.28]
 
+### Other Changes and Bugfixes
+- Fixed Linux AppImage failing to launch with `dlopen(): error loading libfuse.so.2` on Ubuntu 22.04+ / Debian 12+ and other modern distros that no longer ship `libfuse2` by default — the AppImage now uses the modern type2 runtime (supports both fuse2 and fuse3) instead of the fuse2-only runtime that AppImageKit's `appimagetool` bundles by default. Regression introduced in 0.7.26 when AppImage packaging switched from `linuxdeploy --output appimage` to `appimagetool` to fix CW Decoder GStreamer plugin bundling
+
 ## [0.7.27]
 
 ### Contest Updates

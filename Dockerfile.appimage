@@ -24,10 +24,16 @@ RUN apt-get update && apt-get install -y \
     gstreamer1.0-alsa gstreamer1.0-pulseaudio \
     && rm -rf /var/lib/apt/lists/*
 
-# Download linuxdeploy, Qt plugin, and appimagetool.
+# Download linuxdeploy, Qt plugin, appimagetool, and the modern type2 runtime.
 # We need appimagetool separately because after linuxdeploy bundles deps we
 # strip system libs (glib/gio/gobject) and then re-package — re-running
 # linuxdeploy would re-scan deps and bring those libs back.
+#
+# The runtime from AppImage/type2-runtime supports both fuse2 and fuse3 hosts;
+# the runtime bundled inside AppImage/AppImageKit's appimagetool is fuse2-only,
+# which breaks on Ubuntu 22.04+ where libfuse2 is no longer preinstalled.
+# We download the runtime separately and pass it via --runtime-file at package
+# time so end users on modern distros don't need to install libfuse2.
 RUN wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage \
         -O /usr/local/bin/linuxdeploy && \
     chmod +x /usr/local/bin/linuxdeploy && \
@@ -36,7 +42,10 @@ RUN wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continu
     chmod +x /usr/local/bin/linuxdeploy-plugin-qt && \
     wget -q https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage \
         -O /usr/local/bin/appimagetool && \
-    chmod +x /usr/local/bin/appimagetool
+    chmod +x /usr/local/bin/appimagetool && \
+    wget -q https://github.com/AppImage/type2-runtime/releases/download/continuous/runtime-x86_64 \
+        -O /usr/local/bin/appimage-runtime-x86_64 && \
+    chmod +x /usr/local/bin/appimage-runtime-x86_64
 
 COPY . /src
 WORKDIR /src

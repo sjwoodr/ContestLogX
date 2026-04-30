@@ -108,9 +108,17 @@ chmod +x AppDir/AppRun
 
 # Package AppDir into an AppImage using appimagetool directly so it doesn't
 # re-scan deps or touch our custom AppRun.
+#
+# --runtime-file points appimagetool at the modern type2-runtime instead of
+# the fuse2-only runtime bundled inside AppImage/AppImageKit's appimagetool.
+# Without this, the produced AppImage refuses to launch on Ubuntu 22.04+ /
+# Debian 12+ hosts that no longer ship libfuse2 (only fuse3). The Dockerfile
+# fetches this runtime as /usr/local/bin/appimage-runtime-x86_64.
 echo ""
 echo "Packaging AppImage with appimagetool..."
-appimagetool --no-appstream AppDir ContestLogX-x86_64.AppImage
+appimagetool --no-appstream \
+    --runtime-file /usr/local/bin/appimage-runtime-x86_64 \
+    AppDir ContestLogX-x86_64.AppImage
 
 # Copy result to mounted output directory
 cp ContestLogX-*.AppImage /output/
