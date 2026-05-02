@@ -309,14 +309,33 @@ QList<CharEvent> BinChannel::processBlock(const int16_t* samples, int count,
     const float baseOff = squelchThreshold * 0.7f;
     const float floorLifted = static_cast<float>(noiseFloor * 1.3);
     const float peakRelative = static_cast<float>(m_currentToneOnPeak * 0.3);
-    const float offThreshold = qMin(squelchThreshold * 0.9f,
+    // The squelch-relative ceiling caps the off-threshold so on > off is
+    // always guaranteed for hysteresis. When the operator has the squelch
+    // slider at zero, that cap collapses the whole expression to 0 — and
+    // with offThreshold=0 the Schmitt off-test (`normMag > 0`) holds the
+    // tone "on" forever for any non-zero magnitude, so dits and dashes
+    // never close and no characters get emitted (regardless of how strong
+    // the actual signal is). Fall back to a 1.0 ceiling when squelch is
+    // zero so the floor-lifted / peak-relative branches still produce a
+    // sane off-threshold and decoding works without a manual squelch nudge.
+    const float ceiling = (squelchThreshold > 0.0f) ? squelchThreshold * 0.9f
+                                                    : 1.0f;
+    const float offThreshold = qMin(ceiling,
                                     qMax(baseOff,
                                          qMax(floorLifted, peakRelative)));
     bool toneDetected;
     if (m_toneActive) {
         toneDetected = normMag > offThreshold;       // sticky — hold on until drop
     } else {
-        toneDetected = normMag > squelchThreshold;   // need full threshold to turn on
+        // When squelch is zero, "any non-zero magnitude" would let pure
+        // noise turn the tone on too — so use the noise-floor-lifted
+        // value as the on-threshold floor in that case. This keeps the
+        // operator-friendly behavior of "no manual squelch needed" while
+        // still suppressing the noise floor.
+        const float onThreshold = (squelchThreshold > 0.0f)
+            ? squelchThreshold
+            : qMax(0.05f, floorLifted);
+        toneDetected = normMag > onThreshold;
     }
 
     // Commit transition immediately (hysteresis handles the jitter cleanup

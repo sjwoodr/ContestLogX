@@ -207,15 +207,29 @@ void AudioCapture::onReadyRead()
     // and peak amplitude. If the operator reports the decoder as dead we can
     // see immediately whether the stream is delivering data and whether the
     // bytes are non-zero, without asking them to flip the per-component
-    // debug toggle first.
-    if (m_chunkLogCount < 3) {
-        ++m_chunkLogCount;
+    // debug toggle first. After the first three, when CW Decoder Debug is
+    // enabled we drop a heartbeat every kHeartbeatChunks chunks (≈ 5 s at
+    // 10 ms/chunk) so we can tell whether the audio path is still flowing
+    // — the failure mode of "Windows WASAPI delivers an initial buffered
+    // burst and then silently stops calling readyRead" is otherwise
+    // invisible to the operator and to us.
+    ++m_chunkLogCount;
+    constexpr int kHeartbeatChunks = 500;
+    if (m_chunkLogCount <= 3) {
         DebugLogger::instance().log("CwDecoder",
             QString("Audio chunk #%1 from '%2': %3 bytes, %4 frames, peak |sample|=%5")
                 .arg(m_chunkLogCount)
                 .arg(m_device.description())
                 .arg(chunk.size())
                 .arg(totalFrames)
+                .arg(peakAbs));
+    } else if (DebugLogger::instance().isCwDecoderDebugEnabled()
+               && (m_chunkLogCount % kHeartbeatChunks) == 0) {
+        DebugLogger::instance().log("CwDecoder",
+            QString("Audio heartbeat from '%1': chunk #%2, %3 bytes, peak |sample|=%4")
+                .arg(m_device.description())
+                .arg(m_chunkLogCount)
+                .arg(chunk.size())
                 .arg(peakAbs));
     }
 

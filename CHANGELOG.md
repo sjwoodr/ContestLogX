@@ -4,6 +4,10 @@ All notable changes to ContestLogX are documented in this file.
 
 ## [0.7.32]
 
+### Other Changes and Bugfixes
+- Fixed CW Decoder failing to emit characters when the operator left the squelch slider at 0% — the Schmitt off-threshold expression `qMin(squelch * 0.9, …)` collapsed to zero when squelch was zero, so any non-zero magnitude held the tone "on" forever and elements never closed (no key-up edge → no dits/dashes → no characters), regardless of how strong the CW signal actually was. Now the squelch ceiling falls back to 1.0 when squelch=0 so the floor-lifted and peak-relative branches still produce a sane off-threshold; the on-threshold also degrades to a noise-floor-lifted value so noise doesn't constantly trigger key-down. Net result: leaving squelch at zero now works for clean CW signals, instead of being a silent foot-gun
+- Added an audio-flow heartbeat to AudioCapture — when CW Decoder Debug is enabled, log a single line every 500 chunks (~5 s at 10 ms/chunk) confirming the QAudioSource is still delivering data. Catches the failure mode where Windows WASAPI delivers an initial buffered burst (~300 ms) and then silently stops calling `readyRead`, which otherwise looks identical to "decoder is broken" from the UI side. The first three chunks still log unconditionally for fast triage; the heartbeat only kicks in afterwards when the toggle is on so normal operation stays quiet
+
 ## [0.7.31]
 
 ### Other Changes and Bugfixes
