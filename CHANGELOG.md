@@ -4,6 +4,11 @@ All notable changes to ContestLogX are documented in this file.
 
 ## [0.7.33]
 
+### Other Changes and Bugfixes
+- Fixed CW Decoder audio path stalling on Windows after only 2-3 audio chunks (~20-30 ms of samples) so the decoder appeared "dead" even though the QAudioSource opened cleanly and Windows showed ContestLogX as actively using the microphone — root cause was AudioCapture being moved to the worker thread from the *destination* thread (inside the worker's startCapture slot) instead of the *source* thread (in the widget, where AudioCapture was constructed). Qt's contract requires moveToThread to be called from the object's current thread; calling it from the destination is technically forbidden and on Windows left Qt's WASAPI plugin uncertain about which thread owned its internal polling timer, manifesting as a silent stall after the initial buffered burst. CwDecoderWidget::beginDecoding now does the move from the main thread before invokeMethod hands the pointer off, and the worker side asserts the move already happened
+- Added always-on QAudioSource state-change logging — every Active / Idle / Suspended / Stopped transition is logged with the current QAudio::Error value, so future "decoder shows nothing" reports surface the failure mode (e.g. "Active -> Idle (NoError)" = waiting for data, "Active -> Stopped (IOError)" = driver failure) instead of failing silently. Always-on, not gated by CW Decoder Debug, because state transitions are rare and exactly the smoking gun needed for triage
+- Updated `docs/BUILD.md` with full Windows local-build instructions (Visual Studio + Qt + scripts/build-windows.ps1), a brief macOS section, and a Strawberry-Perl/MinGW shadowing-MSVC gotcha that produces "undefined reference to `__imp__ZN5QFontD1Ev`" link errors when an x86_64 MinGW toolchain ends up ahead of MSVC on PATH. Linux section unchanged. Also fixed the runtime data section's claim that `clx_debug.log` lives in cwd — since 0.7.30 it lands in `QStandardPaths::AppLocalDataLocation`
+
 ## [0.7.32]
 
 ### Other Changes and Bugfixes

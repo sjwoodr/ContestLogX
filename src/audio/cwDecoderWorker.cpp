@@ -221,14 +221,19 @@ void CwDecoderWorker::drainAndProcess()
         const qint64 ts = monotonicNowMs();
         QList<CharEvent> events = m_decoder.processBlock(block.data(), m_blockSamples, ts);
         for (const auto& ev : events) {
-            if (DebugLogger::instance().isCwDecoderDebugEnabled()) {
-                DebugLogger::instance().log("CwDecoder",
-                    QString("Char emitted: bin=%1 (%2 Hz), char='%3', ts=%4ms")
-                        .arg(ev.binIndex)
-                        .arg(static_cast<int>(m_decoder.binCenterFreq(ev.binIndex)))
-                        .arg(ev.ch)
-                        .arg(ev.timestampMs));
-            }
+            // Per-character emission log — kept commented out because at
+            // 25 WPM it's ~50 lines/min, drowning the bin-stats output.
+            // Uncomment temporarily if a "characters decode but don't
+            // appear in the UI" report comes in (i.e. need to confirm
+            // the worker is emitting and only the widget end is broken).
+            // if (DebugLogger::instance().isCwDecoderDebugEnabled()) {
+            //     DebugLogger::instance().log("CwDecoder",
+            //         QString("Char emitted: bin=%1 (%2 Hz), char='%3', ts=%4ms")
+            //             .arg(ev.binIndex)
+            //             .arg(static_cast<int>(m_decoder.binCenterFreq(ev.binIndex)))
+            //             .arg(ev.ch)
+            //             .arg(ev.timestampMs));
+            // }
             emit charDecoded(ev.binIndex, ev.ch, ev.timestampMs);
         }
 
