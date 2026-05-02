@@ -59,6 +59,7 @@ public:
     }
     bool toneActive() const { return m_toneActive; }
     double noiseFloorEstimate() const { return estimateNoiseFloor(); }
+    double noisePeakEstimate() const { return estimateNoisePeak(); }
 
     // Update the bin's WPM bounds (called when the operator changes the
     // bounding range). Does not reset the rolling window.
@@ -103,6 +104,7 @@ private:
     // levels, which is the level the Schmitt off-threshold must clear
     // to release cleanly.
     double estimateNoiseFloor() const;
+    double estimateNoisePeak() const;
 
     int m_binIndex;
     double m_centerFreqHz;

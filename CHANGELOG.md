@@ -2,6 +2,11 @@
 
 All notable changes to ContestLogX are documented in this file.
 
+## [0.7.35]
+
+### Other Changes and Bugfixes
+- Added an Auto checkbox next to the CW Decoder squelch slider — when checked, the worker recomputes the squelch threshold every second from per-bin noise-peak estimates (BinChannel's 90th-percentile of recent magnitudes) using the **median across bins** rather than max. Most bins are noise-only at any given moment, so the median lands on a noise bin almost always; this avoids the "max would catch the signal bin and gate the decoder" failure mode. Margin is `medianPeak × 1.8 + 0.02`, clamped to `[0.08, 0.6]`. The slider is disabled while Auto is on but visually tracks the auto-detected value so the operator can see the level the decoder picked. Toggling Auto off takes manual control back at the last auto value. State persists per-radio (Radio L / Radio R). **Known limitation:** when chasing a weak station whose signal magnitude is barely above the noise floor, Auto's safety margin can gate the weak signal out — uncheck Auto and slide manually for weak-signal copy (the checkbox tooltip notes this)
+
 ## [0.7.34]
 
 ### Other Changes and Bugfixes

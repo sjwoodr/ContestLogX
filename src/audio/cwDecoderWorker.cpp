@@ -159,6 +159,20 @@ void CwDecoderWorker::setSquelch(float threshold)
     m_decoder.setSquelch(threshold);
 }
 
+void CwDecoderWorker::setSquelchAuto(bool enabled)
+{
+    if (m_autoSquelchEnabled == enabled) return;
+    m_autoSquelchEnabled = enabled;
+    // Force a fresh computation on the next drainAndProcess pass so the
+    // operator gets immediate feedback when toggling on (otherwise they'd
+    // wait up to kAutoSquelchIntervalMs for the slider to move).
+    m_lastAutoSquelchMs = 0;
+    if (DebugLogger::instance().isCwDecoderDebugEnabled()) {
+        DebugLogger::instance().log("CwDecoder",
+            QString("Auto-squelch %1").arg(enabled ? "enabled" : "disabled"));
+    }
+}
+
 void CwDecoderWorker::setWordGapMultiplier(float multiplier)
 {
     m_decoder.setWordGapMultiplier(multiplier);
@@ -274,6 +288,63 @@ void CwDecoderWorker::drainAndProcess()
                     QString("Bin stats (squelch=%1): %2")
                         .arg(m_decoder.squelch(), 0, 'f', 3)
                         .arg(parts.join(" ")));
+            }
+        }
+
+        // Auto-squelch update. When enabled, recompute the threshold
+        // from per-bin noise-PEAK estimates (BinChannel's 90th-percentile
+        // of recent magnitudes — captures the upper end of typical noise
+        // excursions for idle bins, and tone-on level for active bins).
+        //
+        // Across-bins reduction: take the MEDIAN, not the max. The bin
+        // sitting on the operator's signal will have high noisePeak
+        // (many recent blocks are tone-on). Max would set squelch at
+        // the signal level and choke the decoder. Median picks a
+        // noise-only bin almost always (typical CW has 1-2 bins with
+        // signal out of 6 — median lands on noise). Adjacent-channel
+        // skirt bleed inflates bins next to the signal; median ignores
+        // those too.
+        //
+        // Margin: medianPeak × 1.8 + 0.02. The 90th-percentile leaves
+        // 10% of noise samples above it, including occasional QRN
+        // spikes; the multiplicative + additive margin covers those.
+        // Floor 0.08 (not 0.05) so even on dead-quiet bands the
+        // threshold sits above measurement bit-noise. Ceiling 0.6
+        // matches the manual slider's effective cap.
+        //
+        // KNOWN LIMITATION: when a weak station replies, its magnitude
+        // can be barely above noise — auto-squelch with this margin may
+        // gate it out. The operator can uncheck Auto and lower the
+        // slider manually for weak-signal copy.
+        if (m_autoSquelchEnabled) {
+            const qint64 now = monotonicNowMs();
+            if (now - m_lastAutoSquelchMs >= kAutoSquelchIntervalMs) {
+                m_lastAutoSquelchMs = now;
+                const int bins = m_decoder.binCount();
+                if (bins > 0) {
+                    std::vector<double> peaks;
+                    peaks.reserve(bins);
+                    for (int i = 0; i < bins; ++i) {
+                        peaks.push_back(m_decoder.binNoisePeak(i));
+                    }
+                    std::sort(peaks.begin(), peaks.end());
+                    const double medianPeak = peaks[peaks.size() / 2];
+                    float autoSq = static_cast<float>(medianPeak * 1.8 + 0.02);
+                    autoSq = qBound(0.08f, autoSq, 0.6f);
+                    if (qAbs(autoSq - m_decoder.squelch()) > 0.005f) {
+                        m_decoder.setSquelch(autoSq);
+                        emit squelchAutoUpdated(autoSq);
+                        if (DebugLogger::instance().isCwDecoderDebugEnabled()) {
+                            DebugLogger::instance().log("CwDecoder",
+                                QString("Auto-squelch -> %1 (median bin noise-peak=%2, "
+                                        "min=%3, max=%4)")
+                                    .arg(autoSq, 0, 'f', 3)
+                                    .arg(medianPeak, 0, 'f', 3)
+                                    .arg(peaks.front(), 0, 'f', 3)
+                                    .arg(peaks.back(), 0, 'f', 3));
+                        }
+                    }
+                }
             }
         }
 

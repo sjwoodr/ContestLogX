@@ -703,6 +703,14 @@ void Settings::setCwDecoderWordGap(bool right, double multiplier)
 {
     QJsonObject o = getCwDecoderSettings(right); o["wordGapMultiplier"] = multiplier; setCwDecoderSettings(right, o);
 }
+bool Settings::getCwDecoderSquelchAuto(bool right) const
+{
+    return getCwDecoderSettings(right).value("squelchAuto").toBool(false);
+}
+void Settings::setCwDecoderSquelchAuto(bool right, bool enabled)
+{
+    QJsonObject o = getCwDecoderSettings(right); o["squelchAuto"] = enabled; setCwDecoderSettings(right, o);
+}
 
 // ---------- end CW Decoder settings ----------
 

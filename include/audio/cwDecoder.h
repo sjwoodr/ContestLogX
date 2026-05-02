@@ -52,6 +52,14 @@ public:
         return (binIndex >= 0 && binIndex < static_cast<int>(m_bins.size()))
             && m_bins[binIndex]->toneActive();
     }
+    double binNoiseFloor(int binIndex) const {
+        return (binIndex < 0 || binIndex >= static_cast<int>(m_bins.size()))
+            ? 0.0 : m_bins[binIndex]->noiseFloorEstimate();
+    }
+    double binNoisePeak(int binIndex) const {
+        return (binIndex < 0 || binIndex >= static_cast<int>(m_bins.size()))
+            ? 0.0 : m_bins[binIndex]->noisePeakEstimate();
+    }
     float squelch() const { return m_squelch; }
 
     // Runtime tuning

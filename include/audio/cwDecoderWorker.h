@@ -40,6 +40,7 @@ public slots:
     void reconfigure(int passbandLowHz, int passbandHighHz, int binCount);
     void setWpmRange(int wpmMin, int wpmMax);
     void setSquelch(float threshold);
+    void setSquelchAuto(bool enabled);
     void setWordGapMultiplier(float multiplier);
     void setPttMute(bool active);
     void muteForInternalSend(int durationMs);
@@ -55,6 +56,9 @@ signals:
     void captureStopped();
     void errorOccurred(const QString& message);
     void pttFallbackLogged();   // emitted once when PTT signal missing + mute needed
+    // Emitted when auto-squelch picks a new threshold so the widget can
+    // mirror the value on its (disabled) slider for operator visibility.
+    void squelchAutoUpdated(float threshold);
 
 private:
     void drainAndProcess();
@@ -74,6 +78,16 @@ private:
     // of enabling the toggle, then a fresh sample every kBinStatsIntervalMs).
     qint64 m_lastBinStatsLogMs = 0;
     static constexpr int kBinStatsIntervalMs = 5000;
+
+    // Auto-squelch state. When enabled, the worker recomputes the squelch
+    // threshold every kAutoSquelchIntervalMs from the worst-case per-bin
+    // noise-floor estimate (10th percentile of recent magnitudes), with
+    // both multiplicative (×1.5) and additive (+0.02) margins, clamped
+    // to [0.05, 0.6]. The result is pushed into the decoder and emitted
+    // via squelchAutoUpdated so the widget can mirror it on the slider.
+    bool m_autoSquelchEnabled = false;
+    qint64 m_lastAutoSquelchMs = 0;
+    static constexpr int kAutoSquelchIntervalMs = 1000;
 };
 
 } // namespace clx::audio

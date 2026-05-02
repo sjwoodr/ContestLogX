@@ -15,6 +15,7 @@
 
 #include <QAbstractItemView>
 #include <QAudioDevice>
+#include <QCheckBox>
 #include <QComboBox>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -261,6 +262,21 @@ void CwDecoderWidget::buildUi()
     m_squelchSlider->setMinimumWidth(80);
     controls->addWidget(m_squelchSlider);
 
+    // Auto-squelch checkbox — when checked, the worker recomputes the
+    // squelch threshold every second from the worst-case per-bin noise
+    // floor (×1.5 + 0.02 margin, clamped to [0.05, 0.6]) and updates
+    // the slider visually so the operator can see what it picked. The
+    // slider becomes read-only while Auto is on; toggling off takes
+    // manual control back at the last auto value.
+    m_squelchAutoCheck = new QCheckBox(tr("Auto"), this);
+    m_squelchAutoCheck->setToolTip(
+        tr("Auto-squelch — track band noise and place the threshold "
+           "above typical noise spikes. Slider shows the current auto value.\n\n"
+           "Note: when chasing a weak station whose signal is just above "
+           "the noise floor, uncheck Auto and lower the slider manually — "
+           "Auto's safety margin can gate weak signals out."));
+    controls->addWidget(m_squelchAutoCheck);
+
     m_muteIndicator = new QLabel(tr(""), this);
     m_muteIndicator->setStyleSheet(QStringLiteral("color: #c0392b; font-weight: bold;"));
     controls->addWidget(m_muteIndicator);
@@ -303,6 +319,8 @@ void CwDecoderWidget::buildUi()
             this, &CwDecoderWidget::onCenterOrBinsChanged);
     connect(m_squelchSlider, &QSlider::valueChanged,
             this, &CwDecoderWidget::onSquelchChanged);
+    connect(m_squelchAutoCheck, &QCheckBox::toggled,
+            this, &CwDecoderWidget::onSquelchAutoChanged);
     connect(m_wordGapSpin, qOverload<double>(&QDoubleSpinBox::valueChanged),
             this, &CwDecoderWidget::onWordGapChanged);
     connect(m_audioDeviceCombo, qOverload<int>(&QComboBox::currentIndexChanged),
@@ -323,6 +341,14 @@ void CwDecoderWidget::loadSettings()
     m_centerHzSpin->setValue(s.getCwDecoderCenterHz(r));
     m_binCountSpin->setValue(s.getCwDecoderBinCount(r));
     m_squelchSlider->setValue(static_cast<int>(s.getCwDecoderSquelch(r) * 100.0));
+    {
+        const bool autoOn = s.getCwDecoderSquelchAuto(r);
+        m_squelchAutoCheck->setChecked(autoOn);
+        // While Auto is on, the slider is a read-only indicator of the
+        // currently auto-detected threshold; manual edits don't make
+        // sense there. Disabled state still shows the value clearly.
+        m_squelchSlider->setEnabled(!autoOn);
+    }
 
     // Sync the audio combo to the persisted device (same setting the Rig
     // Connection dialog edits). If the previously-saved device is no
@@ -359,6 +385,7 @@ void CwDecoderWidget::saveSettings()
     s.setCwDecoderCenterHz(r, m_centerHzSpin->value());
     s.setCwDecoderBinCount(r, m_binCountSpin->value());
     s.setCwDecoderSquelch(r, m_squelchSlider->value() / 100.0);
+    s.setCwDecoderSquelchAuto(r, m_squelchAutoCheck->isChecked());
     s.setCwDecoderWordGap(r, m_wordGapSpin->value());
 }
 
@@ -466,6 +493,8 @@ void CwDecoderWidget::beginDecoding(const QString& audioDeviceDescription)
                     "on internal-send signalling only (FR-019b).")
                 .arg(isRightRadio() ? "Radio R" : "Radio L"));
     }, Qt::QueuedConnection);
+    connect(m_worker, &CwDecoderWorker::squelchAutoUpdated,
+            this, &CwDecoderWidget::onSquelchAutoUpdated, Qt::QueuedConnection);
     connect(m_workerThread, &QThread::finished, m_worker, &QObject::deleteLater);
 
     m_workerThread->start();
@@ -504,6 +533,11 @@ void CwDecoderWidget::beginDecoding(const QString& audioDeviceDescription)
     // here rather than as a startCapture argument.
     QMetaObject::invokeMethod(m_worker, "setWordGapMultiplier", Qt::QueuedConnection,
                               Q_ARG(float, static_cast<float>(m_wordGapSpin->value())));
+    // Seed the auto-squelch state. The slider's current value above
+    // is the starting point; if Auto is on, the worker will start
+    // overriding it within ~1 second based on the actual noise floor.
+    QMetaObject::invokeMethod(m_worker, "setSquelchAuto", Qt::QueuedConnection,
+                              Q_ARG(bool, m_squelchAutoCheck->isChecked()));
     updateStartStopButton();
 }
 
@@ -1039,6 +1073,33 @@ void CwDecoderWidget::onSquelchChanged(int sliderValue)
     if (!m_worker) return;
     QMetaObject::invokeMethod(m_worker, "setSquelch", Qt::QueuedConnection,
                               Q_ARG(float, static_cast<float>(sliderValue / 100.0)));
+}
+
+void CwDecoderWidget::onSquelchAutoChanged(bool enabled)
+{
+    if (m_applyingSettings) return;
+    // Disable the slider visually when Auto is on — the worker's
+    // periodic update will be the only thing changing its position.
+    // Re-enable when Auto is off so the operator can take manual
+    // control at the last auto value.
+    m_squelchSlider->setEnabled(!enabled);
+    saveSettings();
+    if (!m_worker) return;
+    QMetaObject::invokeMethod(m_worker, "setSquelchAuto", Qt::QueuedConnection,
+                              Q_ARG(bool, enabled));
+}
+
+void CwDecoderWidget::onSquelchAutoUpdated(float threshold)
+{
+    // Auto-squelch picked a new value — mirror it on the slider so the
+    // operator can see what the decoder is using. Guard with
+    // m_applyingSettings so onSquelchChanged doesn't fire and re-send
+    // the value back to the worker (which would be both wasteful and
+    // would persist the auto-derived value as the "manual" setting).
+    if (!m_squelchSlider) return;
+    m_applyingSettings = true;
+    m_squelchSlider->setValue(static_cast<int>(threshold * 100.0f + 0.5f));
+    m_applyingSettings = false;
 }
 
 void CwDecoderWidget::onWordGapChanged(double multiplier)

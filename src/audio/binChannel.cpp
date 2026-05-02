@@ -73,6 +73,28 @@ double BinChannel::estimateNoiseFloor() const
     return sorted[sorted.size() / 10];
 }
 
+double BinChannel::estimateNoisePeak() const
+{
+    // 90th-percentile of recent smoothed magnitudes — captures the upper
+    // end of typical noise excursions. Used by auto-squelch with an
+    // additional ×1.8 + 0.02 margin at the worker level so the threshold
+    // sits above the long-tail noise spikes (the 10% above the 90th
+    // percentile by definition) that aren't represented in the bulk
+    // distribution. An earlier 75th-percentile version let occasional
+    // QRN spikes slip through and re-trigger the decoder with phantom
+    // 'E' / 'T' single-element false-positives even when the signal-side
+    // decoder behavior was correct.
+    //
+    // Picking 10th percentile (estimateNoiseFloor) and multiplying by
+    // some constant does NOT work — band noise distributions vary too
+    // widely for any single multiplier to keep peaks below threshold
+    // without cratering sensitivity in quiet conditions.
+    if (m_noiseFloorWindow.size() < 20) return 0.0;
+    std::vector<double> sorted(m_noiseFloorWindow.begin(), m_noiseFloorWindow.end());
+    std::sort(sorted.begin(), sorted.end());
+    return sorted[sorted.size() * 9 / 10];
+}
+
 int BinChannel::currentDotEstimateMs() const
 {
     // Bootstrap: not enough samples yet — return a baseline derived from

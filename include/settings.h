@@ -195,6 +195,8 @@ public:
     void setCwDecoderWpmMax(bool right, int wpm);
     double getCwDecoderWordGap(bool right) const;
     void setCwDecoderWordGap(bool right, double multiplier);
+    bool getCwDecoderSquelchAuto(bool right) const;
+    void setCwDecoderSquelchAuto(bool right, bool enabled);
 
     // WSJT-X integration
     bool getWsjtxEnabled() const;
