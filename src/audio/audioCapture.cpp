@@ -63,6 +63,36 @@ bool AudioCapture::start()
     }
 
     m_source.reset(new QAudioSource(m_device, m_format, this));
+
+    // Diagnostic: log every QAudioSource state transition. On Windows we've
+    // seen the source go silently Idle or Stopped after the initial buffered
+    // burst (~20 ms at 48 kHz), without any visible error — readyRead just
+    // stops firing and the decoder appears dead. Logging the state changes
+    // makes the failure mode visible. Always-on (not gated by debug toggle)
+    // because state transitions are rare events and exactly the smoking
+    // gun for "decoder shows nothing" reports.
+    connect(m_source.get(), &QAudioSource::stateChanged, this,
+            [this](QAudio::State state) {
+                const char* stateStr =
+                    (state == QAudio::ActiveState)    ? "Active"
+                  : (state == QAudio::SuspendedState) ? "Suspended"
+                  : (state == QAudio::StoppedState)   ? "Stopped"
+                  : (state == QAudio::IdleState)      ? "Idle"
+                  : "Unknown";
+                const QAudio::Error err = m_source ? m_source->error()
+                                                   : QAudio::NoError;
+                const char* errStr =
+                    (err == QAudio::NoError)        ? "NoError"
+                  : (err == QAudio::OpenError)      ? "OpenError"
+                  : (err == QAudio::IOError)        ? "IOError"
+                  : (err == QAudio::UnderrunError)  ? "UnderrunError"
+                  : (err == QAudio::FatalError)     ? "FatalError"
+                  : "Unknown";
+                DebugLogger::instance().log("CwDecoder",
+                    QString("QAudioSource state -> %1 (error=%2) on '%3'")
+                        .arg(stateStr, errStr, m_device.description()));
+            });
+
     m_io = m_source->start();
     if (!m_io) {
         emit deviceError(QStringLiteral("QAudioSource::start() returned null I/O"));

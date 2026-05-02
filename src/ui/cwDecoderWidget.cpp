@@ -458,6 +458,18 @@ void CwDecoderWidget::beginDecoding(const QString& audioDeviceDescription)
 
     m_workerThread->start();
 
+    // Push the capture onto the worker thread BEFORE handing the pointer
+    // off via invokeMethod. moveToThread() must be called from the
+    // object's *current* thread (here, the main thread — capture was
+    // just constructed a few lines above). Doing this on the worker
+    // side is technically forbidden by Qt and on Windows leaves Qt's
+    // WASAPI plugin uncertain about which thread owns its internal
+    // polling timer — manifesting as a silent stall after the initial
+    // buffered burst (only the first 2-3 readyRead callbacks fire,
+    // then nothing further). The ASSERT in CwDecoderWorker::startCapture
+    // catches future regressions if anyone moves this call back.
+    capture->moveToThread(m_workerThread);
+
     // Derive passband from center + bins (50 Hz fixed spacing).
     const int center = m_centerHzSpin->value();
     const int bins = m_binCountSpin->value();
