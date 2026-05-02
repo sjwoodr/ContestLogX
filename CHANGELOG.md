@@ -2,6 +2,8 @@
 
 All notable changes to ContestLogX are documented in this file.
 
+## [0.7.32]
+
 ## [0.7.31]
 
 ### Other Changes and Bugfixes
