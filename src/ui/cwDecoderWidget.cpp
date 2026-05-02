@@ -32,9 +32,15 @@
 // version-gating: if it's present we use the API, otherwise we degrade
 // gracefully (the silence watchdog already covers the actual "no audio"
 // failure mode regardless of whether we can ask the OS about permission).
+//
+// Include only <QPermission> (not <QMicrophonePermission>): the QPermission
+// header forwards to qpermissions.h which declares every permission class
+// in one shot, so QMicrophonePermission becomes available transitively. Some
+// Qt installs (e.g. CI's macOS Qt 6.5.* via aqtinstall) ship the QPermission
+// forwarder but NOT the per-class QMicrophonePermission forwarder, so trying
+// to include the latter directly fails even when the API is fully available.
 #if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0) && __has_include(<QPermission>)
 #  include <QPermission>
-#  include <QMicrophonePermission>
 #  define CLX_HAS_QPERMISSION_API 1
 #endif
 #include <QPlainTextEdit>
