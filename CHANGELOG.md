@@ -4,6 +4,9 @@ All notable changes to ContestLogX are documented in this file.
 
 ## [0.7.31]
 
+### Other Changes and Bugfixes
+- Added debug-gated diagnostic logging to the CW Decoder pipeline to triage "decoder shows nothing" reports when the audio path is confirmed working but no characters appear. Enable Debug → CW Decoder Debug to get: a one-line decoder configuration summary at capture start (passband Hz range, every bin's center frequency, WPM bounds, squelch threshold); a per-bin magnitude snapshot every 5 seconds (each bin's current normalized Goertzel magnitude with a `*` marker on bins currently in tone-active state) so it's instantly visible whether the operator's CW pitch lands in any configured bin with usable signal level; and a per-character emission log so it's clear whether characters are being decoded at all (vs not being shown in the UI). All three are gated by the existing toggle so they don't bloat the log in normal use
+
 ## [0.7.30]
 
 ### Other Changes and Bugfixes

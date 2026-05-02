@@ -51,6 +51,15 @@ public:
     LockState lockState() const { return m_lockState; }
     const QString& textBuffer() const { return m_textBuffer; }
 
+    // Diagnostic accessors — used by the worker's debug-gated periodic
+    // stats logger to surface "is signal reaching this bin at all?"
+    // without invasive logging on every block.
+    double lastNormalizedMagnitude() const {
+        return m_recentMagnitudes.empty() ? 0.0 : m_recentMagnitudes.back();
+    }
+    bool toneActive() const { return m_toneActive; }
+    double noiseFloorEstimate() const { return estimateNoiseFloor(); }
+
     // Update the bin's WPM bounds (called when the operator changes the
     // bounding range). Does not reset the rolling window.
     void setWpmBounds(int wpmMin, int wpmMax);

@@ -66,6 +66,13 @@ private:
     QMutex m_mutex;                   // guards mute-state mutations
     int m_sampleRateHz = 0;           // actual capture rate, set after start()
     int m_blockSamples = 0;           // samples per DSP block at m_sampleRateHz
+
+    // Periodic per-bin magnitude sampler, gated by isCwDecoderDebugEnabled().
+    // Wallclock ms of the last bin-stats line; 0 = uninitialized (next pass
+    // will log immediately so the operator gets a baseline within a few ms
+    // of enabling the toggle, then a fresh sample every kBinStatsIntervalMs).
+    qint64 m_lastBinStatsLogMs = 0;
+    static constexpr int kBinStatsIntervalMs = 5000;
 };
 
 } // namespace clx::audio

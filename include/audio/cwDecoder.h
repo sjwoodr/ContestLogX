@@ -43,6 +43,17 @@ public:
     QList<double> binCenterFrequencies() const;
     int sampleRateHz() const { return m_sampleRateHz; }
 
+    // Diagnostic accessors used by the worker's periodic stats logger.
+    double binLastMagnitude(int binIndex) const {
+        return (binIndex < 0 || binIndex >= static_cast<int>(m_bins.size()))
+            ? 0.0 : m_bins[binIndex]->lastNormalizedMagnitude();
+    }
+    bool binToneActive(int binIndex) const {
+        return (binIndex >= 0 && binIndex < static_cast<int>(m_bins.size()))
+            && m_bins[binIndex]->toneActive();
+    }
+    float squelch() const { return m_squelch; }
+
     // Runtime tuning
     void setSquelch(float threshold) { m_squelch = threshold; }
     void setWpmBounds(int wpmMin, int wpmMax);

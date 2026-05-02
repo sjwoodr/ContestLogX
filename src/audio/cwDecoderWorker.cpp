@@ -9,6 +9,7 @@
 #include "debugLogger.h"
 
 #include <QDateTime>
+#include <QStringList>
 #include <QVector>
 #include <vector>
 
@@ -93,6 +94,27 @@ void CwDecoderWorker::startCapture(AudioCapture* capture,
         emit errorOccurred(msg);
         return;
     }
+
+    // Decoder configuration summary, debug-gated. The single most important
+    // triage hint when the operator says "the decoder shows nothing" — we
+    // can immediately see whether their CW pitch (typically 600-800 Hz on
+    // most rigs) lands inside the configured passband and which specific
+    // bin centers will fire when it does.
+    if (DebugLogger::instance().isCwDecoderDebugEnabled()) {
+        QStringList centerStrs;
+        for (double f : m_decoder.binCenterFrequencies()) {
+            centerStrs.append(QString::number(static_cast<int>(f)) + "Hz");
+        }
+        DebugLogger::instance().log("CwDecoder",
+            QString("Decoder configured: passband=%1-%2 Hz (%3 bins at %4), "
+                    "WPM=%5-%6, squelch=%7")
+                .arg(passbandLowHz).arg(passbandHighHz)
+                .arg(binCount)
+                .arg(centerStrs.join(", "))
+                .arg(wpmMin).arg(wpmMax)
+                .arg(squelchThreshold, 0, 'f', 3));
+    }
+    m_lastBinStatsLogMs = 0;   // arm the periodic stats sampler
 
     m_lastReportedWpm.fill(-1, binCount);
     emit captureStarted();
@@ -197,7 +219,45 @@ void CwDecoderWorker::drainAndProcess()
         const qint64 ts = monotonicNowMs();
         QList<CharEvent> events = m_decoder.processBlock(block.data(), m_blockSamples, ts);
         for (const auto& ev : events) {
+            if (DebugLogger::instance().isCwDecoderDebugEnabled()) {
+                DebugLogger::instance().log("CwDecoder",
+                    QString("Char emitted: bin=%1 (%2 Hz), char='%3', ts=%4ms")
+                        .arg(ev.binIndex)
+                        .arg(static_cast<int>(m_decoder.binCenterFreq(ev.binIndex)))
+                        .arg(ev.ch)
+                        .arg(ev.timestampMs));
+            }
             emit charDecoded(ev.binIndex, ev.ch, ev.timestampMs);
+        }
+
+        // Periodic per-bin magnitude snapshot, debug-gated. Fires every
+        // kBinStatsIntervalMs (5 s) and surfaces the current normalized
+        // magnitude per bin plus the configured squelch — so we can
+        // immediately tell whether the operator's CW pitch is reaching
+        // any bin with usable signal level. A leading '*' marks bins
+        // currently in tone-active state. If every bin is well below
+        // squelch, the pitch is outside the passband or the rig audio
+        // is too quiet. If a bin sits above squelch but no characters
+        // arrive, it's a classifier / WPM-bounds issue.
+        if (DebugLogger::instance().isCwDecoderDebugEnabled()) {
+            const qint64 now = monotonicNowMs();
+            if (now - m_lastBinStatsLogMs >= kBinStatsIntervalMs) {
+                m_lastBinStatsLogMs = now;
+                const int bins = m_decoder.binCount();
+                QStringList parts;
+                parts.reserve(bins);
+                for (int i = 0; i < bins; ++i) {
+                    parts.append(QString("%1%2Hz=%3")
+                        .arg(m_decoder.binToneActive(i) ? QStringLiteral("*")
+                                                        : QStringLiteral(" "))
+                        .arg(static_cast<int>(m_decoder.binCenterFreq(i)))
+                        .arg(m_decoder.binLastMagnitude(i), 0, 'f', 3));
+                }
+                DebugLogger::instance().log("CwDecoder",
+                    QString("Bin stats (squelch=%1): %2")
+                        .arg(m_decoder.squelch(), 0, 'f', 3)
+                        .arg(parts.join(" ")));
+            }
         }
 
         // Emit WPM updates on change.
