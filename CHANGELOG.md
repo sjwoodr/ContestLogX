@@ -2,6 +2,11 @@
 
 All notable changes to ContestLogX are documented in this file.
 
+## [0.7.34]
+
+### Other Changes and Bugfixes
+- Added `scripts/clx-radio-usb` — a developer helper for the QEMU/KVM Windows VM workflow. Attaches and detaches the rig's two USB devices (Silicon Labs CP2102 for IC-7300 CAT, and the TI PCM2901 audio codec for receive audio) to/from a libvirt-managed Windows VM via `virsh attach-device` / `virsh detach-device`, so the host's PulseAudio and `/dev/ttyUSB*` get the devices back automatically when the VM doesn't need them. Subcommands: `attach`, `detach`, `toggle`, `status`. VM name defaults to `win11`; override with `CLX_VM_NAME`. Useful when iterating on Windows-specific changes (CW decoder audio path, MSVC-only behavior) without cutting a release each time
+
 ## [0.7.33]
 
 ### Other Changes and Bugfixes

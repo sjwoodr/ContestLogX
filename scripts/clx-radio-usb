@@ -1,0 +1,211 @@
+#!/usr/bin/env bash
+#
+# clx-radio-usb — attach / detach the rig's USB devices to/from the QEMU/KVM
+# Windows VM used for ContestLogX Windows-build testing.
+#
+# The two USB devices passed through together are:
+#   - Silicon Labs CP2102 USB-UART (IC-7300 internal CAT, /dev/ttyUSB1)
+#       vendor=0x10c4  product=0xea60
+#   - TI PCM2901 Audio Codec (rig receive audio for the CW decoder)
+#       vendor=0x08bb  product=0x2901
+#
+# If you switch rigs and the new one uses an FTDI FT232 cable on the
+# REMOTE jack instead of the IC-7300's Type-B USB, swap the CP210x
+# entry below for vendor=0x0403 product=0x6001 (FTDI FT232R).
+#
+# Usage:
+#   clx-radio-usb attach       attach both devices to the VM (live, not persistent)
+#   clx-radio-usb detach       detach both devices from the VM
+#   clx-radio-usb toggle       attach if currently detached, detach if attached
+#   clx-radio-usb status       show whether the VM has each device
+#
+# Override the VM name with $CLX_VM_NAME if needed.
+
+set -euo pipefail
+
+VM="${CLX_VM_NAME:-win11}"
+
+# Device list as "label:vendor:product" triples. Add more if you ever
+# pass additional rig peripherals through (PTT keyer, second CAT port…).
+DEVICES=(
+    "Silicon Labs CP2102 (IC-7300 CAT, /dev/ttyUSB1):10c4:ea60"
+    "TI PCM2901 Audio Codec (rig audio):08bb:2901"
+)
+
+if [[ -t 1 ]]; then
+    c_red()    { printf '\033[31m%s\033[0m' "$*"; }
+    c_green()  { printf '\033[32m%s\033[0m' "$*"; }
+    c_yellow() { printf '\033[33m%s\033[0m' "$*"; }
+    c_dim()    { printf '\033[2m%s\033[0m' "$*"; }
+else
+    c_red()    { printf '%s' "$*"; }
+    c_green()  { printf '%s' "$*"; }
+    c_yellow() { printf '%s' "$*"; }
+    c_dim()    { printf '%s' "$*"; }
+fi
+
+# Render a transient hostdev XML snippet on stdout for the given vendor/product.
+# Uses managed='yes' so libvirt detaches the device from the host kernel
+# driver before passing it through and re-attaches when the VM stops or
+# the device is removed.
+emit_xml() {
+    local vendor="$1" product="$2"
+    cat <<EOF
+<hostdev mode='subsystem' type='usb' managed='yes'>
+  <source>
+    <vendor id='0x${vendor}'/>
+    <product id='0x${product}'/>
+  </source>
+</hostdev>
+EOF
+}
+
+# Returns 0 if the device is currently attached to $VM, 1 if not.
+# Compares against the running domain XML (the --live state, which is
+# what we modify; persistent --config is irrelevant for this workflow).
+device_attached() {
+    local vendor="$1" product="$2"
+    virsh dumpxml --domain "$VM" \
+        | grep -A2 "vendor id='0x${vendor}'" 2>/dev/null \
+        | grep -q "product id='0x${product}'"
+}
+
+# Attach if not already, detach if not already. Quietly skip the no-op case.
+do_attach() {
+    local label="$1" vendor="$2" product="$3"
+    if device_attached "$vendor" "$product"; then
+        echo "  $(c_dim "[skip]") $label — already attached"
+        return 0
+    fi
+    local tmp; tmp=$(mktemp --suffix=.xml)
+    emit_xml "$vendor" "$product" >"$tmp"
+    if virsh attach-device "$VM" "$tmp" --live >/dev/null 2>&1; then
+        echo "  $(c_green "[ ok ]") $label — attached"
+    else
+        echo "  $(c_red "[fail]") $label — attach failed; running attach again with output:"
+        virsh attach-device "$VM" "$tmp" --live || true
+    fi
+    rm -f "$tmp"
+}
+
+do_detach() {
+    local label="$1" vendor="$2" product="$3"
+    if ! device_attached "$vendor" "$product"; then
+        echo "  $(c_dim "[skip]") $label — not currently attached"
+        return 0
+    fi
+    local tmp; tmp=$(mktemp --suffix=.xml)
+    emit_xml "$vendor" "$product" >"$tmp"
+    if virsh detach-device "$VM" "$tmp" --live >/dev/null 2>&1; then
+        echo "  $(c_green "[ ok ]") $label — detached"
+    else
+        echo "  $(c_red "[fail]") $label — detach failed; running detach again with output:"
+        virsh detach-device "$VM" "$tmp" --live || true
+    fi
+    rm -f "$tmp"
+}
+
+show_status() {
+    for entry in "${DEVICES[@]}"; do
+        local label="${entry%%:*}"
+        local rest="${entry#*:}"
+        local vendor="${rest%%:*}"
+        local product="${rest#*:}"
+        if device_attached "$vendor" "$product"; then
+            echo "  $(c_green "[attached]") $label"
+        else
+            echo "  $(c_yellow "[detached]") $label"
+        fi
+    done
+}
+
+# Returns 0 if any device in $DEVICES is currently attached to $VM,
+# 1 if none are. Used by `toggle` to decide direction without relying
+# on show_status' exit code (which doesn't play well with set -e).
+any_attached() {
+    for entry in "${DEVICES[@]}"; do
+        local rest="${entry#*:}"
+        local vendor="${rest%%:*}"
+        local product="${rest#*:}"
+        if device_attached "$vendor" "$product"; then
+            return 0
+        fi
+    done
+    return 1
+}
+
+# Verify libvirt is running and the VM exists.
+preflight() {
+    if ! command -v virsh >/dev/null 2>&1; then
+        echo "$(c_red "error:") virsh not found. Install libvirt-clients." >&2
+        exit 2
+    fi
+    if ! virsh dominfo "$VM" >/dev/null 2>&1; then
+        echo "$(c_red "error:") VM '$VM' not found. Set \$CLX_VM_NAME or list with: virsh list --all" >&2
+        exit 2
+    fi
+    local state
+    state=$(virsh domstate "$VM" 2>/dev/null || echo "unknown")
+    if [[ "$state" != "running" ]]; then
+        echo "$(c_red "error:") VM '$VM' is $state, not running. Start it first: virsh start $VM" >&2
+        exit 2
+    fi
+}
+
+usage() {
+    sed -n '3,18p' "$0" | sed 's/^# \{0,1\}//'
+    exit 1
+}
+
+main() {
+    local cmd="${1:-}"
+    case "$cmd" in
+        attach)
+            preflight
+            echo "Attaching radio USB devices to '$(c_yellow "$VM")':"
+            for entry in "${DEVICES[@]}"; do
+                local label="${entry%%:*}"
+                local rest="${entry#*:}"
+                local vendor="${rest%%:*}"
+                local product="${rest#*:}"
+                do_attach "$label" "$vendor" "$product"
+            done
+            ;;
+        detach)
+            preflight
+            echo "Detaching radio USB devices from '$(c_yellow "$VM")':"
+            for entry in "${DEVICES[@]}"; do
+                local label="${entry%%:*}"
+                local rest="${entry#*:}"
+                local vendor="${rest%%:*}"
+                local product="${rest#*:}"
+                do_detach "$label" "$vendor" "$product"
+            done
+            ;;
+        toggle)
+            preflight
+            # If either device is attached, treat the pair as attached
+            # and detach. Otherwise attach. Handles half-attached state
+            # from a previous failed run.
+            if any_attached; then
+                "$0" detach
+            else
+                "$0" attach
+            fi
+            ;;
+        status|"")
+            preflight
+            echo "Radio USB status on VM '$(c_yellow "$VM")':"
+            show_status
+            ;;
+        -h|--help|help)
+            usage
+            ;;
+        *)
+            echo "$(c_red "error:") unknown command '$cmd'" >&2
+            usage
+            ;;
+    esac
+}
+
+main "$@"
