@@ -236,12 +236,6 @@ void CwDecoderWidget::buildUi()
     // operator on the bands. The toolbar real-estate is reused for the
     // Word Gap control below.
 
-    controls->addWidget(new QLabel(tr("Squelch")));
-    m_squelchSlider = new QSlider(Qt::Horizontal, this);
-    m_squelchSlider->setRange(0, 100);
-    m_squelchSlider->setMinimumWidth(80);
-    controls->addWidget(m_squelchSlider);
-
     // Word Gap multiplier — controls how aggressive the decoder is about
     // detecting word boundaries. Default 4.0 is a contest-friendly
     // compromise between textbook 7× spacing and tightly-sent QRQ contest
@@ -260,6 +254,12 @@ void CwDecoderWidget::buildUi()
            "Higher = stricter (textbook 7× standard).\n"
            "Default 4.0 splits the difference."));
     controls->addWidget(m_wordGapSpin);
+
+    controls->addWidget(new QLabel(tr("Squelch")));
+    m_squelchSlider = new QSlider(Qt::Horizontal, this);
+    m_squelchSlider->setRange(0, 100);
+    m_squelchSlider->setMinimumWidth(80);
+    controls->addWidget(m_squelchSlider);
 
     m_muteIndicator = new QLabel(tr(""), this);
     m_muteIndicator->setStyleSheet(QStringLiteral("color: #c0392b; font-weight: bold;"));
