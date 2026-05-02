@@ -693,6 +693,16 @@ void Settings::setCwDecoderWpmMax(bool right, int wpm)
 {
     QJsonObject o = getCwDecoderSettings(right); o["wpmMax"] = wpm; setCwDecoderSettings(right, o);
 }
+double Settings::getCwDecoderWordGap(bool right) const
+{
+    // 4.0 = current decoder default, contest-friendly compromise between
+    // textbook 7× spacing and tight QRQ contest CW that runs ~3×.
+    return getCwDecoderSettings(right).value("wordGapMultiplier").toDouble(4.0);
+}
+void Settings::setCwDecoderWordGap(bool right, double multiplier)
+{
+    QJsonObject o = getCwDecoderSettings(right); o["wordGapMultiplier"] = multiplier; setCwDecoderSettings(right, o);
+}
 
 // ---------- end CW Decoder settings ----------
 

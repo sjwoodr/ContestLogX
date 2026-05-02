@@ -47,6 +47,7 @@
 #include <QPushButton>
 #include <QRegularExpression>
 #include <QSlider>
+#include <QDoubleSpinBox>
 #include <QSpinBox>
 #include <QStandardItemModel>
 #include <QTextBlock>
@@ -230,20 +231,35 @@ void CwDecoderWidget::buildUi()
     m_binCountSpin->setRange(1, kMaxBinCount);
     controls->addWidget(m_binCountSpin);
 
-    controls->addWidget(new QLabel(tr("WPM")));
-    m_wpmMinSpin = new QSpinBox(this);
-    m_wpmMinSpin->setRange(3, 99);
-    m_wpmMaxSpin = new QSpinBox(this);
-    m_wpmMaxSpin->setRange(4, 100);
-    controls->addWidget(m_wpmMinSpin);
-    controls->addWidget(new QLabel(QStringLiteral("–")));
-    controls->addWidget(m_wpmMaxSpin);
+    // The WPM bounds spinboxes were removed — the decoder hard-codes the
+    // operator-relevant range (5–60 WPM) which already covers every CW
+    // operator on the bands. The toolbar real-estate is reused for the
+    // Word Gap control below.
 
     controls->addWidget(new QLabel(tr("Squelch")));
     m_squelchSlider = new QSlider(Qt::Horizontal, this);
     m_squelchSlider->setRange(0, 100);
     m_squelchSlider->setMinimumWidth(80);
     controls->addWidget(m_squelchSlider);
+
+    // Word Gap multiplier — controls how aggressive the decoder is about
+    // detecting word boundaries. Default 4.0 is a contest-friendly
+    // compromise between textbook 7× spacing and tightly-sent QRQ contest
+    // CW where operators compress inter-word gaps to ~3×. Lower = more
+    // spaces inserted (helpful when the decoder is running characters
+    // together); higher = stricter (helpful for textbook CW so no spaces
+    // appear inside callsigns).
+    controls->addWidget(new QLabel(tr("Word Gap")));
+    m_wordGapSpin = new QDoubleSpinBox(this);
+    m_wordGapSpin->setRange(3.0, 8.0);
+    m_wordGapSpin->setSingleStep(0.5);
+    m_wordGapSpin->setDecimals(1);
+    m_wordGapSpin->setToolTip(
+        tr("Word boundary multiplier (× dot length).\n"
+           "Lower = more aggressive (more spaces inserted) — good for tightly-sent contest CW.\n"
+           "Higher = stricter (textbook 7× standard).\n"
+           "Default 4.0 splits the difference."));
+    controls->addWidget(m_wordGapSpin);
 
     m_muteIndicator = new QLabel(tr(""), this);
     m_muteIndicator->setStyleSheet(QStringLiteral("color: #c0392b; font-weight: bold;"));
@@ -287,10 +303,8 @@ void CwDecoderWidget::buildUi()
             this, &CwDecoderWidget::onCenterOrBinsChanged);
     connect(m_squelchSlider, &QSlider::valueChanged,
             this, &CwDecoderWidget::onSquelchChanged);
-    connect(m_wpmMinSpin, qOverload<int>(&QSpinBox::valueChanged),
-            this, &CwDecoderWidget::onWpmRangeChanged);
-    connect(m_wpmMaxSpin, qOverload<int>(&QSpinBox::valueChanged),
-            this, &CwDecoderWidget::onWpmRangeChanged);
+    connect(m_wordGapSpin, qOverload<double>(&QDoubleSpinBox::valueChanged),
+            this, &CwDecoderWidget::onWordGapChanged);
     connect(m_audioDeviceCombo, qOverload<int>(&QComboBox::currentIndexChanged),
             this, &CwDecoderWidget::onAudioDeviceChanged);
 
@@ -320,8 +334,7 @@ void CwDecoderWidget::loadSettings()
         int idx = m_audioDeviceCombo->findData(device);
         m_audioDeviceCombo->setCurrentIndex(idx >= 0 ? idx : 0);
     }
-    m_wpmMinSpin->setValue(s.getCwDecoderWpmMin(r));
-    m_wpmMaxSpin->setValue(s.getCwDecoderWpmMax(r));
+    m_wordGapSpin->setValue(s.getCwDecoderWordGap(r));
 
     // Apply the saved Preferences → Fonts "CW Decoder" font at
     // construction so the widget picks it up on first spawn. Without
@@ -346,8 +359,7 @@ void CwDecoderWidget::saveSettings()
     s.setCwDecoderCenterHz(r, m_centerHzSpin->value());
     s.setCwDecoderBinCount(r, m_binCountSpin->value());
     s.setCwDecoderSquelch(r, m_squelchSlider->value() / 100.0);
-    s.setCwDecoderWpmMin(r, m_wpmMinSpin->value());
-    s.setCwDecoderWpmMax(r, m_wpmMaxSpin->value());
+    s.setCwDecoderWordGap(r, m_wordGapSpin->value());
 }
 
 void CwDecoderWidget::beginDecoding(const QString& audioDeviceDescription)
@@ -475,15 +487,23 @@ void CwDecoderWidget::beginDecoding(const QString& audioDeviceDescription)
     const int bins = m_binCountSpin->value();
     const int lowHz = center - bins * 25;
     const int highHz = center + bins * 25;
-    // Invoke startCapture on the worker thread.
+    // Invoke startCapture on the worker thread. WPM bounds are
+    // hard-coded to the broadly-useful 5-60 range — every CW operator
+    // on the bands falls inside it, so a per-operator UI knob added no
+    // value and just consumed widget toolbar real estate.
     QMetaObject::invokeMethod(m_worker, "startCapture", Qt::QueuedConnection,
                               Q_ARG(clx::audio::AudioCapture*, capture),
                               Q_ARG(int, lowHz),
                               Q_ARG(int, highHz),
                               Q_ARG(int, bins),
-                              Q_ARG(int, m_wpmMinSpin->value()),
-                              Q_ARG(int, m_wpmMaxSpin->value()),
+                              Q_ARG(int, clx::audio::kDefaultWpmMin),
+                              Q_ARG(int, clx::audio::kDefaultWpmMax),
                               Q_ARG(float, static_cast<float>(m_squelchSlider->value() / 100.0)));
+    // Apply the operator's word-gap preference — must be sent after
+    // startCapture has built the bins, so do it via a queued setter
+    // here rather than as a startCapture argument.
+    QMetaObject::invokeMethod(m_worker, "setWordGapMultiplier", Qt::QueuedConnection,
+                              Q_ARG(float, static_cast<float>(m_wordGapSpin->value())));
     updateStartStopButton();
 }
 
@@ -1021,19 +1041,13 @@ void CwDecoderWidget::onSquelchChanged(int sliderValue)
                               Q_ARG(float, static_cast<float>(sliderValue / 100.0)));
 }
 
-void CwDecoderWidget::onWpmRangeChanged()
+void CwDecoderWidget::onWordGapChanged(double multiplier)
 {
     if (m_applyingSettings) return;
-    // Ensure max > min.
-    if (m_wpmMaxSpin->value() <= m_wpmMinSpin->value()) {
-        m_wpmMaxSpin->setValue(m_wpmMinSpin->value() + 1);
-        return;
-    }
     saveSettings();
     if (!m_worker) return;
-    QMetaObject::invokeMethod(m_worker, "setWpmRange", Qt::QueuedConnection,
-                              Q_ARG(int, m_wpmMinSpin->value()),
-                              Q_ARG(int, m_wpmMaxSpin->value()));
+    QMetaObject::invokeMethod(m_worker, "setWordGapMultiplier", Qt::QueuedConnection,
+                              Q_ARG(float, static_cast<float>(multiplier)));
 }
 
 void CwDecoderWidget::onAudioDeviceChanged(int comboIndex)

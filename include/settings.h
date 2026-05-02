@@ -193,6 +193,8 @@ public:
     void setCwDecoderWpmMin(bool right, int wpm);
     int getCwDecoderWpmMax(bool right) const;
     void setCwDecoderWpmMax(bool right, int wpm);
+    double getCwDecoderWordGap(bool right) const;
+    void setCwDecoderWordGap(bool right, double multiplier);
 
     // WSJT-X integration
     bool getWsjtxEnabled() const;

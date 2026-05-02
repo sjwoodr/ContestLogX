@@ -20,6 +20,7 @@
 #include "audio/audioTypes.h"
 
 class QComboBox;
+class QDoubleSpinBox;
 class QLabel;
 class QPlainTextEdit;
 class QPushButton;
@@ -100,7 +101,7 @@ private slots:
     void onStartStopClicked();
     void onCenterOrBinsChanged();
     void onSquelchChanged(int sliderValue);
-    void onWpmRangeChanged();
+    void onWordGapChanged(double multiplier);
     void onAudioDeviceChanged(int comboIndex);
 
 protected:
@@ -141,8 +142,7 @@ private:
     QSpinBox* m_centerHzSpin = nullptr;
     QSpinBox* m_binCountSpin = nullptr;
     QSlider* m_squelchSlider = nullptr;
-    QSpinBox* m_wpmMinSpin = nullptr;
-    QSpinBox* m_wpmMaxSpin = nullptr;
+    QDoubleSpinBox* m_wordGapSpin = nullptr;
     QComboBox* m_audioDeviceCombo = nullptr;
     QLabel* m_muteIndicator = nullptr;
 

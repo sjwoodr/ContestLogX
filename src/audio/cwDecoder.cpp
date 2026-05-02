@@ -90,6 +90,11 @@ void CwDecoder::setWpmBounds(int wpmMin, int wpmMax)
     for (auto& b : m_bins) b->setWpmBounds(wpmMin, wpmMax);
 }
 
+void CwDecoder::setWordGapMultiplier(float multiplier)
+{
+    for (auto& b : m_bins) b->setWordGapMultiplier(multiplier);
+}
+
 void CwDecoder::clearAllBuffers()
 {
     for (auto& b : m_bins) b->clearTextBuffer();

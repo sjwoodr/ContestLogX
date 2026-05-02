@@ -96,10 +96,16 @@ int BinChannel::currentDotEstimateMs() const
 
 int BinChannel::wordGapThresholdMs(int dotBaselineMs) const
 {
-    const int fallback = dotBaselineMs * 4;
+    // Configurable multiplier — 4.0 by default (compromise between
+    // textbook 7× and tight contest CW ~3×). Lower = more aggressive
+    // about inserting spaces. Operator can tune via the Word Gap
+    // control in the CW Decoder widget.
+    const int fallback = static_cast<int>(dotBaselineMs * m_wordGapMultiplier + 0.5f);
     // Never let the word-gap threshold drop below 3 dot-units; below that
     // it would overlap the 2-dot-unit character-gap threshold and produce
-    // a word split on every inter-character boundary.
+    // a word split on every inter-character boundary. (Keep this floor
+    // hardcoded — going below 3× breaks the inter-character / inter-word
+    // distinction regardless of operator preference.)
     const int floorMs = dotBaselineMs * 3;
 
     // Bootstrap: need enough boundary-gap samples for any statistical

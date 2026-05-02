@@ -64,6 +64,18 @@ public:
     // bounding range). Does not reset the rolling window.
     void setWpmBounds(int wpmMin, int wpmMax);
 
+    // Set the word-gap multiplier — the factor applied to the bin's
+    // current dot-length estimate to derive the fallback word-boundary
+    // gap threshold (and the bootstrap default before adaptive analysis
+    // has enough samples). Textbook CW spacing is 7×; tightly-sent
+    // contest CW often runs 3-4× because operators compress inter-word
+    // gaps for speed. Lower = more aggressive about inserting spaces;
+    // higher = stricter / textbook. Default 4.0 (a contest-friendly
+    // compromise).
+    void setWordGapMultiplier(float multiplier) {
+        if (multiplier > 0.5f) m_wordGapMultiplier = multiplier;
+    }
+
     // Clear ONLY the scrolling text buffer. Preserves Goertzel state,
     // WPM estimator, and the in-progress Morse element buffer — decoding
     // continues without a re-convergence penalty (FR-012).
@@ -154,6 +166,10 @@ private:
 
     int m_wpmMin;
     int m_wpmMax;
+
+    // Multiplier applied to the dot-length estimate to derive the
+    // fallback word-gap threshold. See setWordGapMultiplier() above.
+    float m_wordGapMultiplier = 4.0f;
 
     // Scrolling decoded text for this bin.
     QString m_textBuffer;

@@ -57,6 +57,7 @@ public:
     // Runtime tuning
     void setSquelch(float threshold) { m_squelch = threshold; }
     void setWpmBounds(int wpmMin, int wpmMax);
+    void setWordGapMultiplier(float multiplier);
     void setMuted(bool muted) { m_muted = muted; }
     bool isMuted() const { return m_muted; }
 

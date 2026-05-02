@@ -159,6 +159,16 @@ void CwDecoderWorker::setSquelch(float threshold)
     m_decoder.setSquelch(threshold);
 }
 
+void CwDecoderWorker::setWordGapMultiplier(float multiplier)
+{
+    m_decoder.setWordGapMultiplier(multiplier);
+    if (DebugLogger::instance().isCwDecoderDebugEnabled()) {
+        DebugLogger::instance().log("CwDecoder",
+            QString("Word-gap multiplier set to %1 (× dot length)")
+                .arg(multiplier, 0, 'f', 1));
+    }
+}
+
 void CwDecoderWorker::setPttMute(bool active)
 {
     QMutexLocker lk(&m_mutex);

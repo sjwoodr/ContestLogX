@@ -40,6 +40,7 @@ public slots:
     void reconfigure(int passbandLowHz, int passbandHighHz, int binCount);
     void setWpmRange(int wpmMin, int wpmMax);
     void setSquelch(float threshold);
+    void setWordGapMultiplier(float multiplier);
     void setPttMute(bool active);
     void muteForInternalSend(int durationMs);
     void clearBuffers();
