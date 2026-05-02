@@ -68,23 +68,43 @@ The bundle is universal (x86_64 + arm64), ad-hoc signed, and includes `Info.plis
    - **aqtinstall** (CLI, no Qt account, matches CI exactly):
      ```powershell
      pip install aqtinstall
-     aqt install-qt windows desktop 6.5.3 win64_msvc2019_64 -m qtmultimedia qtnetworkauth -O C:\Qt
+     python -m aqt install-qt windows desktop 6.5.3 win64_msvc2019_64 -m qtmultimedia qtnetworkauth -O C:\Qt
      ```
 
 3. **Git** — https://git-scm.com/download/win
 
 ### Build & run
 
-Open the **"x64 Native Tools Command Prompt for VS 2022"** from the Start menu (this sets up the MSVC environment so `cl.exe`, `cmake`, and `windeployqt` resolve correctly), then:
+Open **"x64 Native Tools Command Prompt for VS 2022"** from the Start menu — *not* a regular PowerShell window, *not* "Developer Command Prompt." The "x64 Native Tools" shortcut runs `vcvarsall.bat x64` for you, putting MSVC's `cl.exe` and the matching linker first on PATH. Without it CMake can pick up the wrong toolchain (e.g. MinGW from Strawberry Perl, Git for Windows' bash, or anything else with a `g++` on PATH) and produce confusing `undefined reference to '__imp__ZNxxx'` link errors against Qt-MSVC binaries — see the gotcha below.
+
+Then in that cmd prompt:
 
 ```cmd
-:: Add Qt's bin to PATH for this session — replace path with where you installed
+:: Sanity check — should print MSVC's compiler, NOT MinGW or anything from
+::   C:\Strawberry, C:\msys64, C:\Program Files\Git\..., etc.
+where cl
+
+:: Add Qt's bin to PATH so windeployqt + the Qt runtime DLLs resolve.
+:: Replace the path if you installed Qt somewhere other than C:\Qt\6.5.3\.
 set PATH=C:\Qt\6.5.3\msvc2019_64\bin;%PATH%
+
+:: Tell CMake where to find Qt's CMake config files. Without this the
+:: configure step fails with "Could not find a package configuration file
+:: provided by Qt6" / "Qt6Config.cmake or qt6-config.cmake".
+:: Path should be the Qt install root (containing bin\, lib\, include\),
+:: NOT the bin\ subdir.
+set CMAKE_PREFIX_PATH=C:\Qt\6.5.3\msvc2019_64
 
 cd path\to\ContestLogX
 git pull
-powershell -File scripts\build-windows.ps1
+powershell -ExecutionPolicy Bypass -File scripts\build-windows.ps1
 ```
+
+The `-ExecutionPolicy Bypass` flag on the `powershell` invocation handles the "*cannot be loaded because running scripts is disabled on this system*" error from PowerShell's default policy — it only applies to that single invocation, no global / persistent change. (If you'd rather flip the policy permanently for your user: from any PowerShell window run `Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned`.)
+
+`set` in cmd applies for the current window only, so closing the prompt resets everything.
+
+CI doesn't need `CMAKE_PREFIX_PATH` set explicitly because `jurplel/install-qt-action` (the GitHub Action wrapping `aqtinstall`) sets `Qt6_DIR` and `CMAKE_PREFIX_PATH` automatically. Local Qt installs don't.
 
 Result lands in `dist\ContestLogX\`. Just double-click `ContestLogX.exe` to run; no install needed for testing iteration. The `dist\` tree contains the executable plus all the Qt DLLs and plugins `windeployqt` bundled — exactly what the CI installer would deploy.
 
@@ -92,13 +112,37 @@ The `iscc.exe scripts\installer.iss` step that CI runs to wrap `dist\` into the 
 
 ### Iteration loop after first setup
 
+In the same x64 Native Tools Command Prompt (env vars persist for the window):
+
 ```cmd
 git pull
-powershell -File scripts\build-windows.ps1
+rmdir /s /q build dist 2>nul     :: only when you've changed Qt or generator settings
+powershell -ExecutionPolicy Bypass -File scripts\build-windows.ps1
 .\dist\ContestLogX\ContestLogX.exe
 ```
 
-Or just `cmake --build build --config Release` from inside the build dir if the Qt DLLs are already bundled in `dist\` and you only changed source.
+For routine source-only changes you don't need to nuke `build\` — `cmake --build build --config Release` from inside the build dir will rebuild incrementally. The full `build-windows.ps1` re-runs `windeployqt` to refresh the bundled Qt DLLs, which you only need when you switched Qt versions or modified resources.
+
+### Gotcha: MinGW / Strawberry Perl shadowing MSVC
+
+If the link step fails with errors like:
+
+```
+C:\Strawberry\c\bin\...\ld.exe: undefined reference to `__imp__ZN5QFontD1Ev`
+collect2.exe: error: ld returned 1 exit status
+ninja: build stopped: subcommand failed.
+```
+
+…you're not actually in the MSVC environment — CMake picked up `g++` and `ld` from MinGW (typically Strawberry Perl, MSYS2, or Git for Windows) instead of MSVC's `cl.exe`. MinGW can't link against MSVC-built Qt DLLs because of name mangling and calling-convention differences. Fix:
+
+1. Close the current prompt.
+2. Open **x64 Native Tools Command Prompt for VS 2022** specifically.
+3. `where cl` — should print `C:\Program Files\Microsoft Visual Studio\…\cl.exe`. If it doesn't, you're still in the wrong environment.
+4. Nuke the stale build dir (CMake caches the discovered compiler in `build\CMakeCache.txt`, so even a fresh PATH won't help unless you delete it):
+   ```cmd
+   rmdir /s /q build dist 2>nul
+   ```
+5. Re-run with the env vars set as above.
 
 ## CMake-only flow (any platform)
 
