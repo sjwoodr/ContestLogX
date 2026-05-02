@@ -179,14 +179,30 @@ void AudioCapture::onReadyRead()
     const size_t totalFrames = chunk.size() / (bytesPerSample * channels);
     if (totalFrames == 0) return;
 
-    // Convert each interleaved frame to a single int16 mono sample by
-    // averaging every channel the device delivered. Earlier versions took
-    // only channel 0, which silently failed on stereo USB CODECs that route
-    // the rig's audio to the right channel only — averaging captures the
-    // signal regardless of which side the operator wired up. NO resampling:
-    // we operate at the device's native rate end-to-end, eliminating the
-    // nearest-neighbor alias fold that was corrupting the CW detection
-    // band with noise from above Nyquist/2.
+    // Convert each interleaved frame to a single int16 mono sample. For
+    // multi-channel input we pick the channel with the larger absolute
+    // value per frame and pass it through with sign preserved.
+    //
+    // Why not average? Averaging an N-channel input attenuates a mono
+    // source (rig audio routed to one channel of a stereo USB CODEC,
+    // which is the typical wiring) by N×, costing ~6 dB of SNR on a
+    // stereo device. That manifested as the decoder catching real
+    // tokens but also a stream of single-dit "E" / single-dah "T"
+    // false-positives — noise breaching the on-threshold whose
+    // hysteresis was no longer matched to the true signal level.
+    //
+    // Why not just take channel 0? It silently failed on stereo
+    // CODECs that route the rig's audio to the right channel only.
+    // Per-frame max-abs picks up signal regardless of which side
+    // the operator wired up AND restores full signal level.
+    //
+    // For true stereo input (rare for ham radio) max-abs acts as a
+    // "loudest channel wins" mixdown — fine for CW where the signal
+    // is concentrated at one tone frequency.
+    //
+    // NO resampling: we operate at the device's native rate end-to-end,
+    // eliminating the nearest-neighbor alias fold that was corrupting
+    // the CW detection band with noise from above Nyquist/2.
     std::vector<int16_t> mono;
     mono.reserve(totalFrames);
 
@@ -194,7 +210,8 @@ void AudioCapture::onReadyRead()
     const char* data = chunk.constData();
     for (size_t i = 0; i < totalFrames; ++i) {
         const char* frame = data + i * bytesPerSample * channels;
-        int32_t accum = 0;  // sum of channels at int16 scale; divide at end
+        int16_t pick = 0;
+        int pickAbs = -1;   // -1 forces first channel to win on tie at zero
         for (int ch = 0; ch < channels; ++ch) {
             const char* sptr = frame + ch * bytesPerSample;
             int16_t sample = 0;
@@ -223,12 +240,14 @@ void AudioCapture::onReadyRead()
             default:
                 break;
             }
-            accum += sample;
+            const int a = std::abs(static_cast<int>(sample));
+            if (a > pickAbs) {
+                pickAbs = a;
+                pick = sample;
+            }
         }
-        const int16_t mixed = static_cast<int16_t>(accum / channels);
-        mono.push_back(mixed);
-        const int absVal = std::abs(static_cast<int>(mixed));
-        if (absVal > peakAbs) peakAbs = absVal;
+        mono.push_back(pick);
+        if (pickAbs > peakAbs) peakAbs = pickAbs;
     }
 
     if (peakAbs > 0) m_seenNonZeroSample = true;
