@@ -16,6 +16,7 @@
 #include <QAudioFormat>
 #include <QAudioSource>
 #include <QIODevice>
+#include <QTimer>
 #include <memory>
 
 #include "audio/audioTypes.h"
@@ -76,6 +77,20 @@ private:
     QAudioDevice m_device;
     std::unique_ptr<QAudioSource> m_source;
     QIODevice* m_io = nullptr;
+
+    // Silence-detection diagnostic (real-device capture only — PracticeAudioSource
+    // overrides start() and never enables this). If we open a stream against a
+    // device that the OS reports as in-use but no non-zero sample ever arrives,
+    // emit a clear deviceError so the operator gets a real message instead of
+    // staring at an empty decoder. Catches the Windows-with-WASAPI failure mode
+    // where the driver/format negotiation succeeds but only zero-filled frames
+    // are delivered (e.g., wrong channel, an OS-level mute we can't see, or
+    // some app having grabbed the device in exclusive mode).
+    static constexpr int kSilenceDetectionMs = 3000;
+    QTimer* m_silenceTimer = nullptr;
+    bool m_seenNonZeroSample = false;
+    bool m_silenceWarned = false;
+    int m_chunkLogCount = 0;            // first few chunks get logged for triage
 };
 
 } // namespace clx::audio

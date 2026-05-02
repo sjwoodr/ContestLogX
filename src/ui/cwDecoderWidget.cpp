@@ -18,9 +18,15 @@
 #include <QComboBox>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QApplication>
 #include <QMediaDevices>
+#include <QMessageBox>
 #include <QMouseEvent>
 #include <QPalette>
+#include <QtGlobal>
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
+#  include <QPermissions>
+#endif
 #include <QPlainTextEdit>
 #include <QPushButton>
 #include <QRegularExpression>
@@ -85,6 +91,31 @@ CwDecoderWidget::CwDecoderWidget(RadioSide owningRadio, QWidget* parent)
             : Settings::instance().getRadioLAudioInputDevice();
         dl.log("CwDecoder", QString("%1 saved audio device setting: '%2'")
             .arg(side, saved.isEmpty() ? QStringLiteral("(none)") : saved));
+
+        // Log the OS-level microphone permission state alongside the device
+        // enumeration. On macOS this reflects TCC; on Windows it reflects
+        // the Privacy & Security → Microphone → "Let desktop apps access
+        // your microphone" toggle (and any per-app override below it); on
+        // Linux QtCore returns Granted unconditionally. Doing this here
+        // (not just inside beginDecoding) means the debug log answers
+        // "did the OS deny CLX?" the moment the widget exists, even if
+        // the operator hasn't tried to start the decoder yet. Requires
+        // Qt 6.5+ for the QPermission API; on older Qt versions we skip
+        // the check (and beginDecoding does the same — see the call site
+        // there for the runtime guard).
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
+        QMicrophonePermission micPerm;
+        const Qt::PermissionStatus permStatus = qApp->checkPermission(micPerm);
+        const char* permStr = (permStatus == Qt::PermissionStatus::Granted)      ? "Granted"
+                            : (permStatus == Qt::PermissionStatus::Denied)        ? "Denied"
+                            : (permStatus == Qt::PermissionStatus::Undetermined)  ? "Undetermined"
+                            : "Unknown";
+        dl.log("CwDecoder",
+            QString("%1 OS microphone permission: %2").arg(side, permStr));
+#else
+        dl.log("CwDecoder",
+            QString("%1 OS microphone permission: (Qt < 6.5 — check skipped)").arg(side));
+#endif
     }
 
     buildUi();
@@ -326,6 +357,16 @@ void CwDecoderWidget::beginDecoding(const QString& audioDeviceDescription)
     const bool isPracticeCw   = (audioDeviceDescription == QLatin1String("practice-cw"));
     const bool isPracticeTest = (audioDeviceDescription == QLatin1String("practice-test"));
 
+    // Real-device path needs OS-level microphone permission. Practice
+    // virtual sources don't (they synthesize audio internally) so we
+    // skip the check for them. ensureMicrophonePermissionFor() handles
+    // the three cases: Granted (returns true, fall through), Denied
+    // (shows dialog, returns false), Undetermined (kicks off async
+    // request, returns false; on grant it re-invokes beginDecoding).
+    if (!isPracticeCw && !isPracticeTest) {
+        if (!ensureMicrophonePermissionFor(audioDeviceDescription)) return;
+    }
+
     AudioCapture* capture = nullptr;
     if (isPracticeCw || isPracticeTest) {
         if (isPracticeTest && (!m_contestEngine
@@ -374,6 +415,20 @@ void CwDecoderWidget::beginDecoding(const QString& audioDeviceDescription)
             this, &CwDecoderWidget::onBinLayoutChanged, Qt::QueuedConnection);
     connect(m_worker, &CwDecoderWorker::muteStateChanged,
             this, &CwDecoderWidget::onMuteStateChanged, Qt::QueuedConnection);
+    // Surface real audio-path errors (silence watchdog, format negotiation,
+    // null I/O) to the operator instead of letting them vanish into the
+    // debug log. Fires at most once per session per device-start because
+    // we tear the decoder down right after — the next click on Start will
+    // re-arm the watchdog. Use queued connection because errorOccurred is
+    // emitted from the worker thread.
+    connect(m_worker, &CwDecoderWorker::errorOccurred,
+            this, [this](const QString& message) {
+        DebugLogger::instance().log("CwDecoder",
+            QString("Audio path error for %1: %2")
+                .arg(isRightRadio() ? "Radio R" : "Radio L", message));
+        endDecoding();
+        QMessageBox::warning(this, tr("CW Decoder — no audio"), message);
+    }, Qt::QueuedConnection);
     connect(m_worker, &CwDecoderWorker::pttFallbackLogged, this, [this]() {
         // FR-019b fallback notice — always log this one since it indicates a
         // real functional limitation the operator needs to know about.
@@ -401,6 +456,92 @@ void CwDecoderWidget::beginDecoding(const QString& audioDeviceDescription)
                               Q_ARG(int, m_wpmMaxSpin->value()),
                               Q_ARG(float, static_cast<float>(m_squelchSlider->value() / 100.0)));
     updateStartStopButton();
+}
+
+bool CwDecoderWidget::ensureMicrophonePermissionFor(const QString& audioDeviceDescription)
+{
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
+    QMicrophonePermission micPerm;
+    const Qt::PermissionStatus status = qApp->checkPermission(micPerm);
+
+    if (status == Qt::PermissionStatus::Granted) {
+        return true;
+    }
+
+    if (status == Qt::PermissionStatus::Undetermined) {
+        // Trigger the OS to record / surface a decision. On macOS this
+        // pops the TCC consent prompt the first time. On Windows for
+        // unpackaged desktop apps the OS rarely shows an interactive
+        // prompt — Undetermined collapses straight to Granted or Denied
+        // based on the global "Let desktop apps access your microphone"
+        // toggle, which is fine: we get a definitive status either way
+        // and the lambda below routes accordingly.
+        DebugLogger::instance().log("CwDecoder",
+            QString("%1 microphone permission undetermined — requesting from OS")
+                .arg(isRightRadio() ? "Radio R" : "Radio L"));
+        qApp->requestPermission(micPerm, this,
+            [this, audioDeviceDescription](const QPermission& p) {
+                DebugLogger::instance().log("CwDecoder",
+                    QString("%1 microphone permission resolved: %2")
+                        .arg(isRightRadio() ? "Radio R" : "Radio L",
+                             p.status() == Qt::PermissionStatus::Granted
+                                 ? QStringLiteral("Granted")
+                                 : QStringLiteral("Denied")));
+                if (p.status() == Qt::PermissionStatus::Granted) {
+                    beginDecoding(audioDeviceDescription);
+                } else {
+                    showMicrophonePermissionDeniedDialog();
+                }
+            });
+        return false;
+    }
+
+    // Denied.
+    DebugLogger::instance().log("CwDecoder",
+        QString("%1 microphone permission denied — decoder cannot capture from '%2'")
+            .arg(isRightRadio() ? "Radio R" : "Radio L", audioDeviceDescription));
+    showMicrophonePermissionDeniedDialog();
+    return false;
+#else
+    // Qt < 6.5 has no QPermission API. Linux Qt 6.4 has no permission
+    // system to query anyway; macOS/Windows builds use Qt 6.5+ via CI
+    // so this branch is only hit by local dev builds on older distros.
+    Q_UNUSED(audioDeviceDescription);
+    return true;
+#endif
+}
+
+void CwDecoderWidget::showMicrophonePermissionDeniedDialog()
+{
+    // Platform-specific instructions because the fix path differs. The
+    // generic case covers Linux (where Qt currently always reports
+    // Granted, so reaching this branch usually means a custom Qt build
+    // or a future Linux permission system).
+    QString detail;
+#ifdef Q_OS_WIN
+    detail = tr(
+        "Open Settings → Privacy & security → Microphone and enable both:\n"
+        "  • \"Microphone access\"\n"
+        "  • \"Let desktop apps access your microphone\"\n\n"
+        "If ContestLogX is listed below the toggle, make sure it is allowed. "
+        "Then click Start in the CW Decoder again.");
+#elif defined(Q_OS_MACOS)
+    detail = tr(
+        "Open System Settings → Privacy & Security → Microphone and enable "
+        "ContestLogX. You may need to restart the app for the change to take "
+        "effect, then click Start in the CW Decoder again.");
+#else
+    detail = tr(
+        "ContestLogX is not allowed to access the microphone. Check your "
+        "platform's audio permission settings, then click Start in the CW "
+        "Decoder again.");
+#endif
+
+    QMessageBox::warning(
+        this,
+        tr("CW Decoder — microphone access denied"),
+        tr("The operating system has not granted ContestLogX access to your "
+           "microphone, so the CW Decoder cannot capture audio.\n\n%1").arg(detail));
 }
 
 void CwDecoderWidget::endDecoding()

@@ -114,6 +114,17 @@ private:
     // Determines which row a viewport belongs to; returns -1 if not one of ours.
     int rowIndexForViewport(QObject* viewport) const;
 
+    // OS-level microphone permission check used by beginDecoding() before
+    // a real-device capture is started. Returns true if we already hold
+    // permission and beginDecoding should continue immediately. Returns
+    // false if permission is denied or pending — the helper itself handles
+    // user feedback (modal dialog on denial) and async retry on grant
+    // (re-invokes beginDecoding with the same device when the OS responds).
+    // Skipped for the practice virtual sources since they don't touch a
+    // real audio input device.
+    bool ensureMicrophonePermissionFor(const QString& audioDeviceDescription);
+    void showMicrophonePermissionDeniedDialog();
+
     clx::audio::RadioSide m_owningRadio;
 
     // Worker on its own QThread.

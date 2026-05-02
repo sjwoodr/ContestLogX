@@ -4,6 +4,12 @@ All notable changes to ContestLogX are documented in this file.
 
 ## [0.7.29]
 
+### Other Changes and Bugfixes
+- Fixed CW Decoder receiving zero audio on Windows even when Microphone privacy settings show ContestLogX as "Currently in use" — the WASAPI backend was reporting `isFormatSupported(monoInt16)` as true and the stream opened cleanly, but the driver only actually delivered samples in its native format (typically stereo Float on USB CODEC devices), so every readyRead callback returned zero-filled buffers. AudioCapture now uses each device's preferred format unchanged and converts to mono int16 in software (handles every Qt sample format and arbitrary channel counts already)
+- CW Decoder mono mixdown now averages all input channels instead of taking only channel 0, so USB CODECs that route the rig audio to the right channel (or any channel other than the first) capture the signal correctly
+- Added a 3-second silence watchdog to AudioCapture — if a real-device capture stream is open but every sample so far is zero, a clear warning dialog is shown to the operator (with platform-specific causes: muted level, wrong endpoint, exclusive-mode conflict, OS privacy block) instead of the decoder silently showing nothing. AudioCapture now also logs the negotiated format and the first three audio chunks (size, frames, peak amplitude) unconditionally so "decoder shows nothing" reports can be triaged from the debug log without flipping per-component debug toggles first
+- Added an OS microphone-permission check to the CW Decoder — the widget logs the current permission state (Granted / Denied / Undetermined) for each radio at construction (visible in the debug log alongside the audio device enumeration), and re-checks before starting a real-device capture. On Denied, a platform-specific dialog explains where to grant access (Windows: Privacy & security → Microphone → Let desktop apps access your microphone; macOS: System Settings → Privacy & Security → Microphone) instead of letting the decoder come up silent. On Undetermined, the OS is asked for a decision and decoding auto-resumes if granted. Skipped for the practice virtual sources since they synthesize audio internally
+
 ## [0.7.28]
 
 ### Other Changes and Bugfixes
