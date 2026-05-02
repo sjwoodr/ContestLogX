@@ -6,8 +6,10 @@
  */
 
 #include "debugLogger.h"
+#include <QDir>
 #include <QMutex>
 #include <QSettings>
+#include <QStandardPaths>
 
 static QMutex g_logMutex;
 static const qint64 MAX_LOG_SIZE = 5 * 1024 * 1024; // 5 MB
@@ -24,7 +26,29 @@ void DebugLogger::init(const QString& logPath)
     if (m_logFile.isOpen())
         m_logFile.close();
 
-    m_logFile.setFileName(logPath.isEmpty() ? "clx_debug.log" : logPath);
+    // Resolve the log path. Explicit --debug-log overrides; otherwise default
+    // to the per-user writable data dir so the path is the same regardless
+    // of where CLX was launched from. The old default was the relative
+    // path "clx_debug.log" which silently broke on Windows when CLX's
+    // cwd was the install dir (`C:\Program Files\ContestLogX\` — not
+    // writable for normal users; UAC virtualization would redirect the
+    // write to %LOCALAPPDATA%\VirtualStore\... while the in-app log
+    // viewer kept looking at the install dir and failed to open
+    // anything). Absolute path resolves both sides to the same file.
+    //
+    // QStandardPaths::AppLocalDataLocation gives:
+    //   Linux:   ~/.local/share/ContestLogX/
+    //   macOS:   ~/Library/Application Support/ContestLogX/
+    //   Windows: C:/Users/<user>/AppData/Local/ContestLogX/
+    QString resolvedPath = logPath;
+    if (resolvedPath.isEmpty()) {
+        const QString dir = QStandardPaths::writableLocation(
+            QStandardPaths::AppLocalDataLocation);
+        QDir().mkpath(dir);
+        resolvedPath = dir + QStringLiteral("/clx_debug.log");
+    }
+
+    m_logFile.setFileName(resolvedPath);
     m_logFile.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text);
     m_logBytesWritten = 0;
 

@@ -42,6 +42,20 @@ void CwDecoderWorker::startCapture(AudioCapture* capture,
         emit errorOccurred(QStringLiteral("Null AudioCapture pointer"));
         return;
     }
+    // Move the capture object to the worker thread BEFORE assigning a parent.
+    // AudioCapture is constructed on the main thread (in
+    // CwDecoderWidget::beginDecoding) but the QAudioSource it owns and the
+    // timers it manages must live on this worker thread. setParent() does
+    // NOT move thread affinity — it only sets the parent pointer — so without
+    // an explicit moveToThread() the QAudioSource winds up on the main thread
+    // while the worker drives readyRead handlers from this thread. On Windows
+    // that triggers Qt's WASAPI plugin to start/stop its internal polling
+    // timer across threads (the user-visible symptom is a flood of
+    // "QObject::startTimer/killTimer: Timers cannot be (started/stopped) from
+    // another thread" warnings on every audio block, plus an apparent stall
+    // where only the first ~300ms of buffered samples have real audio and
+    // every subsequent chunk is silence).
+    m_capture->moveToThread(this->thread());
     m_capture->setParent(this);
 
     connect(m_capture, &AudioCapture::audioBlockReady,

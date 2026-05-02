@@ -4,6 +4,10 @@ All notable changes to ContestLogX are documented in this file.
 
 ## [0.7.30]
 
+### Other Changes and Bugfixes
+- Fixed CW Decoder receiving only ~300 ms of buffered audio on Windows and then going silent on the same USB CODEC where 0.7.29 finally got the format/channel handling right — the AudioCapture object was being created on the main thread and handed to the worker thread via `setParent()`, but `setParent()` does not move QObject thread affinity. As a result the QAudioSource and its WASAPI polling timer lived on the main thread while the worker thread drove `readyRead` handlers, generating a flood of `QObject::startTimer / killTimer: Timers cannot be (started/stopped) from another thread` warnings on every audio block and (apparently) corrupting WASAPI's polling state so only the initial buffered chunk delivered real samples. The worker now explicitly `moveToThread()`s the capture before assigning the parent, so the audio pipeline lives entirely on the worker thread
+- Fixed Debug Log Viewer ("Could not open log file") on Windows — the debug log path defaulted to the relative filename `clx_debug.log`, which resolved against whatever working directory CLX inherited at launch. On Windows that was typically `C:\Program Files\ContestLogX\` (not writable for normal users; UAC virtualization redirected the actual write to `%LOCALAPPDATA%\VirtualStore\…`), and the in-app log viewer then tried to read from the original install-dir path and failed. Default path is now an absolute, per-user, writable location via `QStandardPaths::AppLocalDataLocation`: `~/.local/share/ContestLogX/clx_debug.log` on Linux, `~/Library/Application Support/ContestLogX/clx_debug.log` on macOS, `C:\Users\<user>\AppData\Local\ContestLogX\clx_debug.log` on Windows. `--debug-log <path>` on the command line still overrides as before
+
 ## [0.7.29]
 
 ### Other Changes and Bugfixes
