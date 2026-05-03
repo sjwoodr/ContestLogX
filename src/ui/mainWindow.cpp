@@ -8336,7 +8336,7 @@ QString MainWindow::generateSummaryString()
             }
 
             if (!workedMults.isEmpty()) {
-                QString categoryDisplay = (category == "named" || category == "namedMults") ? m_contestEngine->getNamedMultsLabel() : (category == "dxcc") ? "DXCC Entities" : (category == "eadx100") ? "EADX-100 Entities" : (category == "namedCallPrefixes") ? "Call Prefixes" : (category == "gridSquares") ? "Grid Squares" : category;
+                QString categoryDisplay = (category == "named" || category == "namedMults") ? m_contestEngine->getNamedMultsLabel() : (category == "dxcc") ? "DXCC Entities" : (category == "eadx100") ? "EADX-100 Entities" : (category == "namedCallPrefixes" || category == "wpxPrefix") ? "Call Prefixes" : (category == "gridSquares") ? "Grid Squares" : category;
                 out << categoryDisplay << " (Worked: " << workedMults.size() << ")\n";
 
                 QStringList sortedMults = QStringList(workedMults.begin(), workedMults.end());
@@ -8371,7 +8371,7 @@ QString MainWindow::generateSummaryString()
             }
 
             for (const auto& band : multsPerBand.keys()) {
-                QString categoryDisplay = (category == "named" || category == "namedMults") ? m_contestEngine->getNamedMultsLabel() : (category == "dxcc") ? "DXCC Entities" : (category == "eadx100") ? "EADX-100 Entities" : (category == "namedCallPrefixes") ? "Call Prefixes" : (category == "gridSquares") ? "Grid Squares" : category;
+                QString categoryDisplay = (category == "named" || category == "namedMults") ? m_contestEngine->getNamedMultsLabel() : (category == "dxcc") ? "DXCC Entities" : (category == "eadx100") ? "EADX-100 Entities" : (category == "namedCallPrefixes" || category == "wpxPrefix") ? "Call Prefixes" : (category == "gridSquares") ? "Grid Squares" : category;
                 out << categoryDisplay << " - " << band << " (Worked: " << multsPerBand[band].size() << ")\n";
 
                 QStringList sortedMults = QStringList(multsPerBand[band].begin(), multsPerBand[band].end());
@@ -8422,7 +8422,7 @@ QString MainWindow::generateSummaryString()
             }
 
             for (const auto& mode : multsPerMode.keys()) {
-                QString categoryDisplay = (category == "named" || category == "namedMults") ? m_contestEngine->getNamedMultsLabel() : (category == "dxcc") ? "DXCC Entities" : (category == "eadx100") ? "EADX-100 Entities" : (category == "namedCallPrefixes") ? "Call Prefixes" : (category == "gridSquares") ? "Grid Squares" : category;
+                QString categoryDisplay = (category == "named" || category == "namedMults") ? m_contestEngine->getNamedMultsLabel() : (category == "dxcc") ? "DXCC Entities" : (category == "eadx100") ? "EADX-100 Entities" : (category == "namedCallPrefixes" || category == "wpxPrefix") ? "Call Prefixes" : (category == "gridSquares") ? "Grid Squares" : category;
                 out << categoryDisplay << " - " << mode << " (Worked: " << multsPerMode[mode].size() << ")\n";
 
                 QStringList sortedMults = QStringList(multsPerMode[mode].begin(), multsPerMode[mode].end());
@@ -8459,7 +8459,7 @@ QString MainWindow::generateSummaryString()
             }
 
             for (const auto& key : multsPerBandMode.keys()) {
-                QString categoryDisplay = (category == "named" || category == "namedMults") ? m_contestEngine->getNamedMultsLabel() : (category == "dxcc") ? "DXCC Entities" : (category == "eadx100") ? "EADX-100 Entities" : (category == "namedCallPrefixes") ? "Call Prefixes" : (category == "gridSquares") ? "Grid Squares" : category;
+                QString categoryDisplay = (category == "named" || category == "namedMults") ? m_contestEngine->getNamedMultsLabel() : (category == "dxcc") ? "DXCC Entities" : (category == "eadx100") ? "EADX-100 Entities" : (category == "namedCallPrefixes" || category == "wpxPrefix") ? "Call Prefixes" : (category == "gridSquares") ? "Grid Squares" : category;
                 out << categoryDisplay << " - " << key << " (Worked: " << multsPerBandMode[key].size() << ")\n";
 
                 QStringList sortedMults = QStringList(multsPerBandMode[key].begin(), multsPerBandMode[key].end());

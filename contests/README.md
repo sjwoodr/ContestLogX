@@ -304,6 +304,13 @@ The `type` field determines how multipliers are counted:
 The `categories` field specifies what types of multipliers are counted:
 - `namedMults`: Exchange-based multipliers from the `validation.namedMults` array (e.g., US states, Canadian provinces, serial numbers)
 - `namedCallPrefixes`: Call sign prefix-based multipliers from the `validation.namedCallPrefixes` array. These are extracted from the callsign itself based on defined prefixes. For example, in the YBDX contest, YB0-YB9, YE0-YE9, YC0-YC9, YF0-YF9, YD0-YD9, YG0-YG9, 7A-7I, and 8A-8I are valid prefixes. When working YB2ARZ, the prefix "YB2" is extracted as a multiplier.
+- `wpxPrefix`: Dynamic CQ WPX prefix multiplier — the prefix is extracted from each worked callsign per the official CQ WPX rules at the time the QSO is logged, rather than matched against a static list. The prefix is the leading letters + immediately-following digits of the active call (e.g. `N8XX → N8`, `WD8ABC → WD8`, `HG19ABC → HG19`, `LY1000ABC → LY1000`). Slash notation is handled per WPX:
+  - License-class / non-prefix-affecting suffixes are stripped: `/MM`, `/M`, `/A`, `/E`, `/J`, `/P`, `/QRP`, `/AM`, `/AE`, `/AG` (e.g. `N9OH/P → N9`, `DL1ABC/QRP → DL1`)
+  - A digit-only side is treated as a call-area change and combined with the base call's letters (e.g. `W1AW/4 → W4`)
+  - Otherwise the side that matches a country-prefix shape (letters + optional digits, no trailing letters) becomes the prefix (e.g. `PA/N8BJQ → PA0`, `N8BJQ/PA → PA0`, `W1AW/KH6 → KH6`, `PJ2/N9OH → PJ2`)
+  - Callsigns without any digits get a `0` appended after the second letter (e.g. `XEFTJW → XE0`, `PA → PA0`)
+
+  Used by the CQ WPX contest (`cqwpx.json`) with `multsOnce` so each unique prefix counts once across the entire contest. Counts flow into the same accounting bucket as `namedCallPrefixes`.
 - `dxcc`: DXCC country entities (automatically looked up from callsign)
 - `ituRegions`: ITU regions (automatically looked up from callsign)
 
@@ -335,6 +342,25 @@ Example with call prefixes (YBDX contest):
 - `differentCountry`: Backward compatibility alias for `differentDxccEntity`
 - `sameContinent`: Points for same continent contacts
 - `differentContinent`: Points for different continent contacts
+- `bothInXX`: Points for contacts where **both** stations are in continent `XX` (e.g. `bothInNA`, `bothInEU`, `bothInAS`). Used by CQ WPX for the North-America-only point exception (intra-NA contacts are 2/4 pts HF/LF). The 2-letter continent code is appended to the rule name; falls back through the precedence chain when not satisfied.
+
+**Per-Band Point Tiers within a Rule:**
+A scoring rule's `points` block can specify a `byBand` object to tier its values by band. This is independent of the top-level `byBand` and is evaluated before the per-mode lookup. Used by CQ WPX, where same-continent QSOs earn 1 pt on 28/21/14 MHz and 2 pts on 7/3.5/1.8 MHz.
+
+```json
+"sameContinent": {
+  "byBand": {
+    "10m":  {"CW": 1, "SSB": 1},
+    "15m":  {"CW": 1, "SSB": 1},
+    "20m":  {"CW": 1, "SSB": 1},
+    "40m":  {"CW": 2, "SSB": 2},
+    "80m":  {"CW": 2, "SSB": 2},
+    "160m": {"CW": 2, "SSB": 2}
+  }
+}
+```
+
+If a rule's `byBand` has no entry for the QSO's band, the engine falls through to per-prompt and per-mode lookups as usual.
 
 **Precedence Array:**
 The optional `precedence` array defines the order in which scoring rules are evaluated. The first matching rule is used. If not specified, defaults to:

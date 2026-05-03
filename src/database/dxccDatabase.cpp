@@ -260,60 +260,78 @@ QString DxccDatabase::stripPortableSuffixes(const QString &callsign) const
         int slashPos = call.indexOf("/");
         QString beforeSlash = call.left(slashPos);
         QString afterSlash = call.mid(slashPos + 1);
-        
-        // Portable suffixes that don't change DXCC lookup
-        QStringList portableSuffixes = {"M", "P", "MM", "AG", "AE"};
-        
-        // If after slash is a portable suffix, ignore it
-        if (portableSuffixes.contains(afterSlash)) {
-            DebugLogger::instance().log("DxccDatabase", 
-                QString("Stripped portable suffix: %1 -> %2").arg(call, beforeSlash));
+        QString upperAfterSlash = afterSlash.toUpper();
+
+        // Step 1: license-class / non-location-changing portable suffixes —
+        // strip and use the base call's DXCC (operator stays in home country).
+        // /A and /E are formal license-class indicators per the CQ WPX rule.
+        // /MM (maritime mobile) and /AM (aeronautical mobile) do not change
+        // the licensing country either. /AE, /AG, /T, /N are US class markers.
+        // /QRP is a power-class marker.
+        static const QStringList licenseSuffixes = {
+            "M", "MM", "AM", "P", "A", "E", "J",
+            "AE", "AG", "T", "N", "QRP"
+        };
+        if (licenseSuffixes.contains(upperAfterSlash)) {
+            DebugLogger::instance().log("DxccDatabase",
+                QString("Stripped license/portable suffix: %1 -> %2").arg(call, beforeSlash));
             return beforeSlash;
         }
-        
-        // Check if the base call starts with a known DXCC prefix
-        // If it does, the suffix is likely a region number (like /2 in YB1AR/2), not a portable location
-        // So we should use the base call for DXCC lookup
+
+        // Step 2: digit-only suffix is a call-area-change indicator (e.g.,
+        // K1AAA/4, YB1AR/2). The operator stays in the same DXCC entity, so
+        // use the base call for the DXCC lookup.
+        static const QRegularExpression digitsOnly("^[0-9]+$");
+        if (digitsOnly.match(upperAfterSlash).hasMatch()) {
+            DebugLogger::instance().log("DxccDatabase",
+                QString("Digit suffix /%1 — using base call %2 for DXCC").arg(afterSlash, beforeSlash));
+            return beforeSlash;
+        }
+
+        // Step 3: if the part after the slash IS a known DXCC prefix, the
+        // operator has moved to that location and we MUST use it for DXCC
+        // lookup (e.g., W1AAA/KH6 → Hawaii, not USA; W1AW/HB → Switzerland,
+        // not USA). This must be checked BEFORE the base-call test below,
+        // otherwise common base prefixes (W, K, etc.) would short-circuit
+        // and we'd report the home country instead of the operating location.
+        if (m_prefixMap.contains(upperAfterSlash)) {
+            DebugLogger::instance().log("DxccDatabase",
+                QString("Portable to known location: %1 -> %2").arg(call, afterSlash));
+            return upperAfterSlash;
+        }
+
+        // Step 4: partial-prefix match for slightly unusual designators
+        // (e.g., /VP2 → VP2E or VP2M, the shortest match wins).
+        QString bestMatch;
+        for (const QString& prefix : m_prefixMap.keys()) {
+            if (prefix.startsWith(upperAfterSlash) &&
+                (bestMatch.isEmpty() || prefix.length() < bestMatch.length())) {
+                bestMatch = prefix;
+            }
+        }
+        if (!bestMatch.isEmpty()) {
+            DebugLogger::instance().log("DxccDatabase",
+                QString("Partial-prefix portable match: %1 -> %2 (matched %3)").arg(call, afterSlash, bestMatch));
+            return bestMatch;
+        }
+
+        // Step 5: afterSlash is unrecognised. If the base call begins with a
+        // known DXCC prefix, fall back to that (covers oddball designators
+        // like a region number embedded in a slash that didn't match step 2).
         for (const QString& prefix : m_prefixMap.keys()) {
             if (beforeSlash.startsWith(prefix)) {
-                DebugLogger::instance().log("DxccDatabase", 
-                    QString("Base call %1 matches prefix %2, ignoring portable suffix %3").arg(beforeSlash, prefix, afterSlash));
+                DebugLogger::instance().log("DxccDatabase",
+                    QString("Unknown designator %1; base %2 matches prefix %3").arg(afterSlash, beforeSlash, prefix));
                 return beforeSlash;
             }
         }
-        
-        // Check if afterSlash is a valid DXCC prefix in our prefix map
-        // If it is, it's a portable location (like /W4 or /VP2), use that for lookup
-        QString upperAfterSlash = afterSlash.toUpper();
-        if (m_prefixMap.contains(upperAfterSlash)) {
-            // The part after slash is a valid portable location (like /W4 or /VP2)
-            DebugLogger::instance().log("DxccDatabase", 
-                QString("Using portable location: %1 -> %2").arg(call, afterSlash));
-            return afterSlash;
-        } else {
-            // Check for partial matches (e.g., VP2 matches VP2E, VP2M)
-            // Find the best matching prefix that starts with afterSlash
-            QString bestMatch;
-            for (const QString& prefix : m_prefixMap.keys()) {
-                if (prefix.startsWith(upperAfterSlash) && 
-                    (bestMatch.isEmpty() || prefix.length() < bestMatch.length())) {
-                    bestMatch = prefix;
-                }
-            }
-            
-            if (!bestMatch.isEmpty()) {
-                DebugLogger::instance().log("DxccDatabase", 
-                    QString("Using partial portable match: %1 -> %2 (matched %3)").arg(call, afterSlash, bestMatch));
-                return bestMatch;
-            } else {
-                // Unknown suffix, use the base call
-                DebugLogger::instance().log("DxccDatabase", 
-                    QString("Unknown suffix %1, using base call %2").arg(afterSlash, beforeSlash));
-                return beforeSlash;
-            }
-        }
+
+        // Step 6: nothing matched. Fall back to the base call as a last resort.
+        DebugLogger::instance().log("DxccDatabase",
+            QString("Unrecognised slash form %1, using base %2").arg(call, beforeSlash));
+        return beforeSlash;
     }
-    
+
     return call;
 }
 

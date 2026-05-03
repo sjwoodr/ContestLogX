@@ -309,6 +309,21 @@
       "name": "RSGB 3.5MHz CC (24 QSOs incl 1 dupe + 3 bonus-station QSOs across CW/PSK63/RTTY, no multipliers, score = 23 contact + 12 bonus = 35)",
       "log_file": "test_rsgb_80m_cc.clx",
       "expected_score": 35
+    },
+    {
+      "name": "CQ WPX CW - NA op N9OH (27 QSOs incl 1 dupe + 1 OOB, multsOnce wpxPrefix, sameDxccEntity + bothInNA HF/LF + differentContinent HF/LF, digit-led prefixes 3D2/4U1/9A1, portables /4 /KH6 /MM /QRP, PJ2/N9OH designator, OE25 multi-digit special-event)",
+      "log_file": "test_cqwpx_na.clx",
+      "expected_score": 2040
+    },
+    {
+      "name": "CQ WPX CW - DX op DL5XX (27 QSOs incl 1 dupe + 1 OOB, multsOnce wpxPrefix, sameDxccEntity + sameContinent HF/LF + differentContinent HF/LF, F5XX/4 call-area-change, W1AW/HB designator, LY1000 special-event, OE25 multi-digit, EA8 same-prefix-different-continent)",
+      "log_file": "test_cqwpx_dx.clx",
+      "expected_score": 1518
+    },
+    {
+      "name": "CQ WPX SSB - NA op N9OH (8 QSOs, multsOnce wpxPrefix, exercises SSB scoring path: sameDxccEntity + bothInNA HF/LF + differentContinent HF/LF)",
+      "log_file": "test_cqwpx_ssb.clx",
+      "expected_score": 224
     }
   ]
 }

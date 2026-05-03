@@ -7,6 +7,7 @@
 
 #include "contestEngine.h"
 #include "debugLogger.h"
+#include "utils/callsignUtils.h"
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QRegularExpression>
@@ -966,6 +967,13 @@ int ContestEngine::calculatePoints(const QsoRecord& qso, const QString& myCallsi
                     ruleApplies = sameContinent;
                 } else if (rule == "differentContinent") {
                     ruleApplies = !sameContinent;
+                } else if (rule.startsWith("bothIn") && rule.length() == 8) {
+                    // "bothInXX" rule: matches when BOTH stations are located in
+                    // continent XX (e.g., bothInNA for the CQ WPX NA-NA exception
+                    // worth 2/4 pts vs. the 1/2 pts other intra-continent QSOs earn).
+                    QString cont = rule.mid(6);
+                    ruleApplies = (myContinent == cont && theirContinent == cont
+                                   && !myContinent.isEmpty());
                 } else {
                     // Generic prefix-match rule: check for a "<ruleName>Prefixes" array
                     QString prefixKey = rule + "Prefixes";
@@ -1003,6 +1011,22 @@ int ContestEngine::calculatePoints(const QsoRecord& qso, const QString& myCallsi
                 // If rule applies and points are defined, return them
                 if (ruleApplies && points.contains(rule)) {
                     QJsonObject rulePoints = points[rule].toObject();
+
+                    // Check for per-band point tiers within a rule (e.g., CQ WPX:
+                    // sameContinent worth 1 pt on 28/21/14 MHz but 2 pts on 7/3.5/1.8 MHz).
+                    // Band keys use the existing "20m"/"40m"/etc. naming.
+                    if (rulePoints.contains("byBand")) {
+                        QJsonObject byBand = rulePoints["byBand"].toObject();
+                        if (byBand.contains(band)) {
+                            QJsonObject bandPoints = byBand[band].toObject();
+                            if (bandPoints.contains(mode)) {
+                                int pts = bandPoints[mode].toInt();
+                                DebugLogger::instance().log("ContestEngine",
+                                    QString("  Points: %1 (%2, byBand %3)").arg(pts).arg(rule, band));
+                                return pts;
+                            }
+                        }
+                    }
 
                     // Check for per-prompt point overrides (e.g., sameDxccEntity = 1 for DX, 2 for OK/OM)
                     if (rulePoints.contains("byPrompt")) {
@@ -1325,6 +1349,20 @@ QList<ContestEngine::MultiplierInfo> ContestEngine::getMultipliersWithCategory(c
         }
     }
     
+    // WPX-style prefix multiplier (CQ WPX contest). Unlike namedCallPrefixes,
+    // the prefix is extracted dynamically from each callsign per CQ WPX rules
+    // (handles portable designators, /<digit> call-area changes, license-class
+    // suffix stripping, and zero-padding for callsigns without numbers).
+    // Routed into the same accounting bucket as namedCallPrefixCount downstream.
+    if (m_cachedMultCategories.contains("wpxPrefix")) {
+        QString wpxPrefix = CallsignUtils::extractWpxPrefix(qso.getCall());
+        if (!wpxPrefix.isEmpty()) {
+            result.append({wpxPrefix, "wpxPrefix"});
+            DebugLogger::instance().log("ContestEngine",
+                QString("  Found WPX prefix multiplier '%1' from %2").arg(wpxPrefix).arg(qso.getCall()));
+        }
+    }
+
     // Check if Grid Squares are a multiplier category
     bool gridSquareIsMult = m_cachedMultCategories.contains("gridSquares");
     if (gridSquareIsMult) {
@@ -2580,7 +2618,7 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
                     if (!dxccMultsOnce.contains(mult)) dxccMultsOnce.insert(mult);
                 } else if (category == "ituRegions") {
                     if (!ituRegionMultsOnce.contains(mult)) ituRegionMultsOnce.insert(mult);
-                } else if (category == "namedCallPrefixes") {
+                } else if (category == "namedCallPrefixes" || category == "wpxPrefix") {
                     if (!namedCallPrefixesOnce.contains(mult)) namedCallPrefixesOnce.insert(mult);
                 } else if (category == "gridSquares") {
                     if (!gridSquaresOnce.contains(mult)) gridSquaresOnce.insert(mult);
@@ -2603,7 +2641,7 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
                     if (!dxccMultsPerBand.contains(oldKey)) dxccMultsPerBand.insert(oldKey);
                 } else if (category == "ituRegions") {
                     if (!ituRegionMultsPerBand.contains(oldKey)) ituRegionMultsPerBand.insert(oldKey);
-                } else if (category == "namedCallPrefixes") {
+                } else if (category == "namedCallPrefixes" || category == "wpxPrefix") {
                     if (!namedCallPrefixesPerBand.contains(oldKey)) namedCallPrefixesPerBand.insert(oldKey);
                 } else if (category == "gridSquares") {
                     if (!gridSquaresPerBand.contains(oldKey)) gridSquaresPerBand.insert(oldKey);
@@ -2637,7 +2675,7 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
                     if (!dxccMultsPerMode.contains(oldKey)) dxccMultsPerMode.insert(oldKey);
                 } else if (category == "ituRegions") {
                     if (!ituRegionMultsPerMode.contains(oldKey)) ituRegionMultsPerMode.insert(oldKey);
-                } else if (category == "namedCallPrefixes") {
+                } else if (category == "namedCallPrefixes" || category == "wpxPrefix") {
                     if (!namedCallPrefixesPerMode.contains(oldKey)) namedCallPrefixesPerMode.insert(oldKey);
                 } else if (category == "gridSquares") {
                     if (!gridSquaresPerMode.contains(oldKey)) gridSquaresPerMode.insert(oldKey);
@@ -2660,7 +2698,7 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
                     if (!dxccMultsPerBandAndMode.contains(oldKey)) dxccMultsPerBandAndMode.insert(oldKey);
                 } else if (category == "ituRegions") {
                     if (!ituRegionMultsPerBandAndMode.contains(oldKey)) ituRegionMultsPerBandAndMode.insert(oldKey);
-                } else if (category == "namedCallPrefixes") {
+                } else if (category == "namedCallPrefixes" || category == "wpxPrefix") {
                     if (!namedCallPrefixesPerBandAndMode.contains(oldKey)) namedCallPrefixesPerBandAndMode.insert(oldKey);
                 } else if (category == "gridSquares") {
                     if (!gridSquaresPerBandAndMode.contains(oldKey)) gridSquaresPerBandAndMode.insert(oldKey);

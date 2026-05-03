@@ -1,0 +1,246 @@
+{
+  "contest": {
+    "name": "CQ World-Wide WPX Contest",
+    "abbreviation": "CQWPX",
+    "version": "1.0.0",
+    "sponsor": "CQ Magazine / WPX Contest Committee",
+    "description": "Worldwide contest where the goal is to contact as many amateurs and unique callsign prefixes as possible. The CW and SSB weekends are scored as separate contests. Prefix multipliers count once across the entire contest (not per band).",
+    "startDate": "SSB: last full weekend of March; CW: last full weekend of May",
+    "duration": 48,
+    "offTimeGapMinutes": 60,
+    "modes": ["CW", "SSB"],
+    "bands": ["160m", "80m", "40m", "20m", "15m", "10m"],
+    "url": "https://www.cqwpx.com/rules.htm",
+    "categories": {
+      "stations": ["SINGLE_OP", "MULTI_ONE", "MULTI_TWO", "MULTI_UNLIMITED", "MULTI_DISTRIBUTED"],
+      "power": ["HIGH", "LOW", "QRP"],
+      "modes": ["CW", "SSB"]
+    }
+  },
+  "frequencies": {
+    "160m": {
+      "start": 1800,
+      "end": 2000,
+      "cw": {"start": 1800, "end": 1850},
+      "phone": {"start": 1850, "end": 2000}
+    },
+    "80m": {
+      "start": 3500,
+      "end": 4000,
+      "cw": {"start": 3500, "end": 3600},
+      "phone": {"start": 3600, "end": 4000}
+    },
+    "40m": {
+      "start": 7000,
+      "end": 7300,
+      "cw": {"start": 7000, "end": 7125},
+      "phone": {"start": 7125, "end": 7300}
+    },
+    "20m": {
+      "start": 14000,
+      "end": 14350,
+      "cw": {"start": 14000, "end": 14150},
+      "phone": {"start": 14150, "end": 14350}
+    },
+    "15m": {
+      "start": 21000,
+      "end": 21450,
+      "cw": {"start": 21000, "end": 21200},
+      "phone": {"start": 21200, "end": 21450}
+    },
+    "10m": {
+      "start": 28000,
+      "end": 29700,
+      "cw": {"start": 28000, "end": 28300},
+      "phone": {"start": 28300, "end": 29700}
+    }
+  },
+  "stationClasses": {
+    "enabled": false
+  },
+  "userPrompts": [
+    {
+      "id": "contestMode",
+      "question": "Which contest weekend are you entering?",
+      "type": "select",
+      "options": [
+        {"value": "CW",  "label": "CW (last full weekend of May)"},
+        {"value": "SSB", "label": "SSB (last full weekend of March)"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "restrictMode": true,
+      "description": "CW and SSB are scored as two separate contests with separate logs"
+    },
+    {
+      "id": "operatingCategory",
+      "question": "Select your operating category",
+      "type": "select",
+      "options": [
+        {"value": "SOAB-HP",      "label": "Single-Op All-Band High Power (>100W)"},
+        {"value": "SOAB-LP",      "label": "Single-Op All-Band Low Power (<=100W)"},
+        {"value": "SOAB-QRP",     "label": "Single-Op All-Band QRP (<=5W)"},
+        {"value": "SOSB-160-HP",  "label": "Single-Op 160m High Power"},
+        {"value": "SOSB-160-LP",  "label": "Single-Op 160m Low Power"},
+        {"value": "SOSB-80-HP",   "label": "Single-Op 80m High Power"},
+        {"value": "SOSB-80-LP",   "label": "Single-Op 80m Low Power"},
+        {"value": "SOSB-40-HP",   "label": "Single-Op 40m High Power"},
+        {"value": "SOSB-40-LP",   "label": "Single-Op 40m Low Power"},
+        {"value": "SOSB-20-HP",   "label": "Single-Op 20m High Power"},
+        {"value": "SOSB-20-LP",   "label": "Single-Op 20m Low Power"},
+        {"value": "SOSB-15-HP",   "label": "Single-Op 15m High Power"},
+        {"value": "SOSB-15-LP",   "label": "Single-Op 15m Low Power"},
+        {"value": "SOSB-10-HP",   "label": "Single-Op 10m High Power"},
+        {"value": "SOSB-10-LP",   "label": "Single-Op 10m Low Power"},
+        {"value": "M1-HP",        "label": "Multi-Op Single-Transmitter High Power"},
+        {"value": "M1-LP",        "label": "Multi-Op Single-Transmitter Low Power"},
+        {"value": "M2",           "label": "Multi-Op Two-Transmitter"},
+        {"value": "MM",           "label": "Multi-Op Multi-Transmitter (Unlimited)"},
+        {"value": "MULTI-DIST",   "label": "Multi-Op Distributed"},
+        {"value": "CHECKLOG",     "label": "Checklog (not eligible for awards)"}
+      ],
+      "required": true,
+      "storeInMeta": true
+    }
+  ],
+  "exchangeFields": {
+    "sent": [
+      {
+        "name": "RST",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report sent (599 / 59)"
+      },
+      {
+        "name": "SNs",
+        "type": "serial",
+        "required": true,
+        "description": "Progressive serial number, starting at 001"
+      }
+    ],
+    "received": [
+      {
+        "name": "RST",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report received"
+      },
+      {
+        "name": "SNr",
+        "type": "string",
+        "required": true,
+        "description": "Serial number received"
+      }
+    ]
+  },
+  "qsoFields": [
+    {"name": "Date",         "column": "DATE",   "type": "date",   "format": "yyyy-MM-dd", "required": true},
+    {"name": "Time",         "column": "TIME",   "type": "time",   "format": "HH:mm:ss",   "required": true},
+    {"name": "Callsign",     "column": "CALL",   "type": "string", "required": true, "uppercase": true},
+    {"name": "Frequency",    "column": "FREQ",   "type": "number", "unit": "kHz",    "required": true},
+    {"name": "Mode",         "column": "MODE",   "type": "enum",   "values": ["CW", "SSB"], "required": true},
+    {"name": "RST Sent",     "column": "RSTs",   "type": "string", "required": true, "default": "599"},
+    {"name": "RST Rcvd",     "column": "RSTr",   "type": "string", "required": true},
+    {"name": "Serial Sent",  "column": "SNs",    "type": "serial", "required": true},
+    {"name": "Serial Rcvd",  "column": "SNr",    "type": "string", "required": true},
+    {"name": "Points",       "column": "POINTS", "type": "number", "calculated": true},
+    {"name": "Prefix",       "column": "WPX",    "type": "string", "calculated": true}
+  ],
+  "scoring": {
+    "__points_comment": "CQ WPX point structure: same DXCC = 1 pt regardless of band; intra-NA different-country = 2 pts on HF (10/15/20) and 4 pts on LF (40/80/160); other same-continent = 1/2 pts; inter-continent = 3/6 pts. The bothInNA rule fires for NA-NA different-country contacts only — sameDxccEntity catches NA-NA same-country at 1 pt before bothInNA is evaluated.",
+    "points": {
+      "sameDxccEntity": {
+        "CW":  1,
+        "SSB": 1
+      },
+      "bothInNA": {
+        "byBand": {
+          "10m":  {"CW": 2, "SSB": 2},
+          "15m":  {"CW": 2, "SSB": 2},
+          "20m":  {"CW": 2, "SSB": 2},
+          "40m":  {"CW": 4, "SSB": 4},
+          "80m":  {"CW": 4, "SSB": 4},
+          "160m": {"CW": 4, "SSB": 4}
+        }
+      },
+      "sameContinent": {
+        "byBand": {
+          "10m":  {"CW": 1, "SSB": 1},
+          "15m":  {"CW": 1, "SSB": 1},
+          "20m":  {"CW": 1, "SSB": 1},
+          "40m":  {"CW": 2, "SSB": 2},
+          "80m":  {"CW": 2, "SSB": 2},
+          "160m": {"CW": 2, "SSB": 2}
+        }
+      },
+      "differentContinent": {
+        "byBand": {
+          "10m":  {"CW": 3, "SSB": 3},
+          "15m":  {"CW": 3, "SSB": 3},
+          "20m":  {"CW": 3, "SSB": 3},
+          "40m":  {"CW": 6, "SSB": 6},
+          "80m":  {"CW": 6, "SSB": 6},
+          "160m": {"CW": 6, "SSB": 6}
+        }
+      }
+    },
+    "precedence": [
+      "sameDxccEntity",
+      "bothInNA",
+      "sameContinent",
+      "differentContinent"
+    ],
+    "multipliers": {
+      "type": "multsOnce",
+      "description": "Each unique callsign prefix counts once for the entire contest (not per band)",
+      "categories": ["wpxPrefix"]
+    },
+    "finalScore": "SUM(points) * wpxPrefixes"
+  },
+  "dupeChecking": {
+    "type": "perBand",
+    "description": "A station may be worked once per band for QSO point credit"
+  },
+  "logging": {
+    "requiredFields": ["date", "time", "frequency", "mode", "callsign", "rstSent", "rstReceived", "serialSent", "serialReceived"],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "CQ-WPX-CW",
+      "contestMapping": {
+        "CW": "CQ-WPX-CW",
+        "SSB": "CQ-WPX-SSB"
+      },
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {rst_sent} {serial_sent} {call} {rst_rcvd} {serial_rcvd}",
+      "requiredHeaders": ["CONTEST", "CALLSIGN", "CATEGORY-OPERATOR", "CATEGORY-BAND", "CATEGORY-POWER", "CATEGORY-MODE", "CATEGORY-TRANSMITTER", "CLAIMED-SCORE", "CLUB", "NAME", "ADDRESS", "OPERATORS"]
+    }
+  },
+  "callHistory": {
+    "fieldsToSave": [],
+    "description": "WPX exchange is RST + serial; nothing useful to save for future-contest lookups"
+  },
+  "validation": {
+    "minimumQSOs": 1,
+    "maxOperatingTime": 48,
+    "offTimesRequired": false,
+    "exchangeValidation": {
+      "type": "serial",
+      "description": "Serial number, starting at 001",
+      "serialFormat": "^[0-9]+$"
+    }
+  },
+  "ui": {
+    "showMultiplierPanel": true,
+    "logColumns": ["DATE", "TIME", "CALL", "FREQ", "MODE", "RSTs", "RSTr", "SNs", "SNr", "POINTS", "WPX"],
+    "entryFields": ["CALL", "RSTr", "SNr"],
+    "fieldNavigation": {
+      "keys": "tab"
+    },
+    "bandMap": {
+      "enabled": true,
+      "bands": ["160m", "80m", "40m", "20m", "15m", "10m"]
+    },
+    "multiplierDisplay": {
+      "showWpxPrefixes": true
+    }
+  }
+}
