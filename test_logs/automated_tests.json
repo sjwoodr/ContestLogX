@@ -284,6 +284,16 @@
       "name": "ARQP Out-of-State MA (116 QSOs incl 3 dupes + 1 WR5P bonus QSO, multsOnce, AR counties only, 8 bands, +200 WR5P bonus)",
       "log_file": "test_arqp_outar.clx",
       "expected_score": 7093
+    },
+    {
+      "name": "King of Spain CW - EA op Madrid (115 QSOs, 30% EA at 2pts + 70% DX at 1pt, multsPerBand provinces+EADX-100 with EA excluded)",
+      "log_file": "test_kos_ea.clx",
+      "expected_score": 12533
+    },
+    {
+      "name": "King of Spain CW - DX op USA (115 QSOs, 50% EA at 3pts + 50% DX at 1pt, multsPerBand provinces+EADX-100 with EA excluded)",
+      "log_file": "test_kos_dx.clx",
+      "expected_score": 19380
     }
   ]
 }

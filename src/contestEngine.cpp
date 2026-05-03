@@ -284,6 +284,29 @@ void ContestEngine::cacheContestProperties()
         }
     }
     m_cachedDxccIsMult = m_cachedMultCategories.contains("dxcc");
+    m_cachedEadx100IsMult = m_cachedMultCategories.contains("eadx100");
+
+    // Load optional eadx100Excludes — entity prefixes that should be skipped
+    // when crediting eadx100 mults (e.g., King of Spain excludes EA/EA6/EA8/EA9
+    // because those entities are tracked via the namedMults province list,
+    // not the EADX-100 country list).
+    m_cachedEadx100Excludes.clear();
+    if (m_contestDef.contains("scoring")) {
+        QJsonObject scoring = m_contestDef["scoring"].toObject();
+        if (scoring.contains("multipliers")) {
+            QJsonObject mults = scoring["multipliers"].toObject();
+            if (mults.contains("eadx100Excludes")) {
+                QJsonArray arr = mults["eadx100Excludes"].toArray();
+                for (const QJsonValue& v : arr)
+                    m_cachedEadx100Excludes.insert(v.toString().toUpper());
+            }
+        }
+    }
+    if (m_cachedEadx100IsMult) {
+        DebugLogger::instance().log("ContestEngine",
+            QString("eadx100 multiplier category enabled (%1 prefix exclusion(s))")
+                .arg(m_cachedEadx100Excludes.size()));
+    }
 
     // Score multiplier (e.g., power category: QRP ×3, Low ×2, High ×1)
     m_cachedScoreMultiplierPromptId.clear();
@@ -1214,6 +1237,18 @@ QList<ContestEngine::MultiplierInfo> ContestEngine::getMultipliersWithCategory(c
         }
     }
 
+    // EADX-100 multiplier — independent of dxcc/namedMults. Used by URE-sponsored
+    // contests (King of Spain, etc.) that score against URE's curated entity list
+    // rather than ARRL DXCC. Entries listed in eadx100Excludes are skipped (the
+    // contest tracks those via namedMults instead — KoS uses this to avoid double-
+    // counting EA/EA6/EA8/EA9 since Spanish stations contribute province mults).
+    if (m_cachedEadx100IsMult && m_eadxDatabase && m_eadxDatabase->isLoaded()) {
+        QString eadxPrefix = m_eadxDatabase->getEntityPrefix(qso.getCall());
+        if (!eadxPrefix.isEmpty() && !m_cachedEadx100Excludes.contains(eadxPrefix.toUpper())) {
+            result.append({eadxPrefix, "eadx100"});
+        }
+    }
+
     // Named call-prefix multiplier (e.g. YBDX contest)
     if (m_cachedMultCategories.contains("namedCallPrefixes") && !m_validCallPrefixes.isEmpty()) {
         QString call = qso.getCall().toUpper();
@@ -1355,7 +1390,9 @@ ContestEngine::QsoMultiplierCredit ContestEngine::getQsoMultiplierCredit(const Q
         if (isNew) {
             if (multInfo.category == "named" || multInfo.category == "namedMults") {
                 credit.namedMultCount++;
-            } else if (multInfo.category == "dxcc") {
+            } else if (multInfo.category == "dxcc" || multInfo.category == "eadx100") {
+                // dxcc and eadx100 cover ~99% the same entity set, so they share
+                // a bucket. A contest uses one or the other, not both.
                 credit.dxccMultCount++;
             } else if (multInfo.category == "ituRegions") {
                 credit.ituRegionMultCount++;
@@ -1364,7 +1401,7 @@ ContestEngine::QsoMultiplierCredit ContestEngine::getQsoMultiplierCredit(const Q
             }
         }
     }
-    
+
     return credit;
 }
 
@@ -2539,7 +2576,7 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
                 if (category == "named" || category == "namedMults") {
                     if (!namedMultsOnce.contains(mult)) namedMultsOnce.insert(mult);
                     m_workedNamedMults.insert(mult);
-                } else if (category == "dxcc") {
+                } else if (category == "dxcc" || category == "eadx100") {
                     if (!dxccMultsOnce.contains(mult)) dxccMultsOnce.insert(mult);
                 } else if (category == "ituRegions") {
                     if (!ituRegionMultsOnce.contains(mult)) ituRegionMultsOnce.insert(mult);
@@ -2562,7 +2599,7 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
                 if (category == "named" || category == "namedMults") {
                     if (!namedMultsPerBand.contains(oldKey)) namedMultsPerBand.insert(oldKey);
                     m_workedNamedMultsPerBand.insert(oldKey);
-                } else if (category == "dxcc") {
+                } else if (category == "dxcc" || category == "eadx100") {
                     if (!dxccMultsPerBand.contains(oldKey)) dxccMultsPerBand.insert(oldKey);
                 } else if (category == "ituRegions") {
                     if (!ituRegionMultsPerBand.contains(oldKey)) ituRegionMultsPerBand.insert(oldKey);
@@ -2596,7 +2633,7 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
                 if (category == "named" || category == "namedMults") {
                     if (!namedMultsPerMode.contains(oldKey)) namedMultsPerMode.insert(oldKey);
                     m_workedNamedMultsPerMode.insert(oldKey);
-                } else if (category == "dxcc") {
+                } else if (category == "dxcc" || category == "eadx100") {
                     if (!dxccMultsPerMode.contains(oldKey)) dxccMultsPerMode.insert(oldKey);
                 } else if (category == "ituRegions") {
                     if (!ituRegionMultsPerMode.contains(oldKey)) ituRegionMultsPerMode.insert(oldKey);
@@ -2619,7 +2656,7 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
                 if (category == "named" || category == "namedMults") {
                     if (!namedMultsPerBandAndMode.contains(oldKey)) namedMultsPerBandAndMode.insert(oldKey);
                     m_workedNamedMultsPerBandAndMode.insert(oldKey);
-                } else if (category == "dxcc") {
+                } else if (category == "dxcc" || category == "eadx100") {
                     if (!dxccMultsPerBandAndMode.contains(oldKey)) dxccMultsPerBandAndMode.insert(oldKey);
                 } else if (category == "ituRegions") {
                     if (!ituRegionMultsPerBandAndMode.contains(oldKey)) ituRegionMultsPerBandAndMode.insert(oldKey);
@@ -2638,7 +2675,7 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
             if (isNew) {
                 if (category == "named" || category == "namedMults") {
                     qsoNamedMults++;
-                } else if (category == "dxcc") {
+                } else if (category == "dxcc" || category == "eadx100") {
                     qsoDxccMults++;
                 } else if (category == "gridSquares") {
                     qsoGridSquareMults++;

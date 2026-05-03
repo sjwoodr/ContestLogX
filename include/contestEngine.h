@@ -17,6 +17,7 @@
 #include <QHash>
 #include "qsoRecord.h"
 #include "dxccDatabase.h"
+#include "eadxDatabase.h"
 
 class ContestEngine : public QObject
 {
@@ -108,7 +109,7 @@ public:
         int contactScore = 0;
         int multipliers = 0;
         int namedMultCount = 0;   // Named multiplier count (for category scoring)
-        int dxccMultCount = 0;    // DXCC multipliers (for category scoring)
+        int dxccMultCount = 0;    // DXCC/EADX-100 multipliers (entity mults — both share this bucket since they cover ~99% the same set)
         int ituRegionMultCount = 0;   // ITU Region multipliers (for category scoring)
         int namedCallPrefixCount = 0;  // Call prefix multipliers (for category scoring)
         int gridSquareMultCount = 0;  // Grid square multipliers (for category scoring)
@@ -128,6 +129,9 @@ public:
     // DXCC
     void setDxccDatabase(DxccDatabase* dxcc) { m_dxccDatabase = dxcc; }
     DxccDatabase* dxccDatabase() const { return m_dxccDatabase; }
+
+    void setEadxDatabase(EadxDatabase* eadx) { m_eadxDatabase = eadx; }
+    EadxDatabase* eadxDatabase() const { return m_eadxDatabase; }
     
     // Band/Mode validation
     bool isValidBand(double freqKhz) const;
@@ -222,6 +226,7 @@ private:
     QString m_restrictedMode;  // Restrict logging to a specific mode when loading from file
     QMap<QString, QString> m_userPromptValues;  // Store user prompt responses (e.g., grid square)
     DxccDatabase* m_dxccDatabase;
+    EadxDatabase* m_eadxDatabase = nullptr;
     ContestScore m_runningScore;
 
     // Cached contest properties — populated in loadContest(), avoids repeated JSON parsing
@@ -231,6 +236,8 @@ private:
     QString m_cachedDupeScope;
     QStringList m_cachedMultCategories;
     bool m_cachedDxccIsMult = false;
+    bool m_cachedEadx100IsMult = false;
+    QSet<QString> m_cachedEadx100Excludes;  // entity prefixes to skip for eadx100 mult counting
     bool m_cachedCallsignIsMult = false;
     bool m_cachedAkHiCountDxcc = true;
     bool m_cachedUsAndCanadaCountDxcc = true;

@@ -1,0 +1,2852 @@
+{
+  "name": "EADX-100",
+  "version": "2026-05-03",
+  "source": "https://diplomas.ure.es/diplomas/eadx100/entidades/",
+  "description": "EADX-100 entity list maintained by Unión de Radioaficionados Españoles (URE). Used as a multiplier source by URE-sponsored contests (King of Spain CW/SSB, EA RTTY, etc.). The list is largely a superset of ARRL DXCC with a handful of additional entities (Sicily IT9, Shetland GM/s, Bear JW/b, ITU Vienna 4U1V, etc.) that are recognized by URE for award purposes.",
+  "active": [
+    {
+      "prefix": "1A0",
+      "name": "Orden de Malta",
+      "continent": "EU",
+      "cqZone": "15",
+      "ituZone": "28"
+    },
+    {
+      "prefix": "1S",
+      "name": "Spratly",
+      "continent": "AS",
+      "cqZone": "26",
+      "ituZone": "50"
+    },
+    {
+      "prefix": "3A",
+      "name": "Mónaco",
+      "continent": "EU",
+      "cqZone": "14",
+      "ituZone": "27"
+    },
+    {
+      "prefix": "3B6",
+      "name": "Agalega y S. Brandon",
+      "continent": "AF",
+      "cqZone": "39",
+      "ituZone": "53"
+    },
+    {
+      "prefix": "3B8",
+      "name": "Mauricio",
+      "continent": "AF",
+      "cqZone": "39",
+      "ituZone": "53"
+    },
+    {
+      "prefix": "3B9",
+      "name": "Rodrigues",
+      "continent": "AF",
+      "cqZone": "39",
+      "ituZone": "53"
+    },
+    {
+      "prefix": "3C",
+      "name": "Guinea Ecuatorial",
+      "continent": "AF",
+      "cqZone": "36",
+      "ituZone": "47"
+    },
+    {
+      "prefix": "3C0",
+      "name": "Annobón",
+      "continent": "AF",
+      "cqZone": "36",
+      "ituZone": "52"
+    },
+    {
+      "prefix": "3D2",
+      "name": "Fídji",
+      "continent": "OC",
+      "cqZone": "32",
+      "ituZone": "56"
+    },
+    {
+      "prefix": "3D2/c",
+      "name": "Conway Reef",
+      "continent": "OC",
+      "cqZone": "32",
+      "ituZone": "56"
+    },
+    {
+      "prefix": "3D2/r",
+      "name": "Rotuma",
+      "continent": "OC",
+      "cqZone": "32",
+      "ituZone": "56"
+    },
+    {
+      "prefix": "3DA",
+      "name": "Eswatini",
+      "continent": "AF",
+      "cqZone": "38",
+      "ituZone": "57"
+    },
+    {
+      "prefix": "3V",
+      "name": "Túnez",
+      "continent": "AF",
+      "cqZone": "33",
+      "ituZone": "37"
+    },
+    {
+      "prefix": "3W",
+      "name": "Vietnam",
+      "continent": "AS",
+      "cqZone": "26",
+      "ituZone": "49"
+    },
+    {
+      "prefix": "3X",
+      "name": "Guinea Conakry",
+      "continent": "AF",
+      "cqZone": "35",
+      "ituZone": "46"
+    },
+    {
+      "prefix": "3Y/B",
+      "name": "Bouvet",
+      "continent": "AF",
+      "cqZone": "38",
+      "ituZone": "67"
+    },
+    {
+      "prefix": "3Y/P",
+      "name": "Pedro I",
+      "continent": "AN",
+      "cqZone": "12",
+      "ituZone": "72"
+    },
+    {
+      "prefix": "4J",
+      "name": "Azerbaijan",
+      "continent": "AS",
+      "cqZone": "21",
+      "ituZone": "29"
+    },
+    {
+      "prefix": "4L",
+      "name": "Georgia",
+      "continent": "AS",
+      "cqZone": "21",
+      "ituZone": "29"
+    },
+    {
+      "prefix": "4O",
+      "name": "Montenegro",
+      "continent": "EU",
+      "cqZone": "15",
+      "ituZone": "28"
+    },
+    {
+      "prefix": "4S",
+      "name": "Sri Lanka",
+      "continent": "AS",
+      "cqZone": "22",
+      "ituZone": "41"
+    },
+    {
+      "prefix": "4U1I",
+      "name": "ITU Ginebra",
+      "continent": "EU",
+      "cqZone": "14",
+      "ituZone": "28"
+    },
+    {
+      "prefix": "4U1U",
+      "name": "ONU Nueva York",
+      "continent": "NA",
+      "cqZone": "5",
+      "ituZone": "8"
+    },
+    {
+      "prefix": "4U1V",
+      "name": "ONU Viena",
+      "continent": "EU",
+      "cqZone": "",
+      "ituZone": ""
+    },
+    {
+      "prefix": "4W",
+      "name": "Timor Oriental",
+      "continent": "OC",
+      "cqZone": "28",
+      "ituZone": "54"
+    },
+    {
+      "prefix": "4X",
+      "name": "Israel",
+      "continent": "AS",
+      "cqZone": "20",
+      "ituZone": "39"
+    },
+    {
+      "prefix": "5A",
+      "name": "Libia",
+      "continent": "AF",
+      "cqZone": "34",
+      "ituZone": "38"
+    },
+    {
+      "prefix": "5B",
+      "name": "Chipre",
+      "continent": "AS",
+      "cqZone": "20",
+      "ituZone": "39"
+    },
+    {
+      "prefix": "5H",
+      "name": "Tanzania",
+      "continent": "AF",
+      "cqZone": "37",
+      "ituZone": "53"
+    },
+    {
+      "prefix": "5N",
+      "name": "Nigeria",
+      "continent": "AF",
+      "cqZone": "35",
+      "ituZone": "46"
+    },
+    {
+      "prefix": "5R",
+      "name": "Madagascar",
+      "continent": "AF",
+      "cqZone": "39",
+      "ituZone": "53"
+    },
+    {
+      "prefix": "5T",
+      "name": "Mauritania",
+      "continent": "AF",
+      "cqZone": "35",
+      "ituZone": "46"
+    },
+    {
+      "prefix": "5U",
+      "name": "Níger",
+      "continent": "AF",
+      "cqZone": "35",
+      "ituZone": "46"
+    },
+    {
+      "prefix": "5V",
+      "name": "Togo",
+      "continent": "AF",
+      "cqZone": "35",
+      "ituZone": "46"
+    },
+    {
+      "prefix": "5W",
+      "name": "Samoa",
+      "continent": "OC",
+      "cqZone": "32",
+      "ituZone": "62"
+    },
+    {
+      "prefix": "5X",
+      "name": "Uganda",
+      "continent": "AF",
+      "cqZone": "37",
+      "ituZone": "48"
+    },
+    {
+      "prefix": "5Z",
+      "name": "Kenia",
+      "continent": "AF",
+      "cqZone": "37",
+      "ituZone": "48"
+    },
+    {
+      "prefix": "6W",
+      "name": "Senegal",
+      "continent": "AF",
+      "cqZone": "35",
+      "ituZone": "46"
+    },
+    {
+      "prefix": "6Y",
+      "name": "Jamaica",
+      "continent": "NA",
+      "cqZone": "8",
+      "ituZone": "11"
+    },
+    {
+      "prefix": "7O",
+      "name": "Yemen",
+      "continent": "AS",
+      "cqZone": "21",
+      "ituZone": "39"
+    },
+    {
+      "prefix": "7P",
+      "name": "Lesotho",
+      "continent": "AF",
+      "cqZone": "38",
+      "ituZone": "57"
+    },
+    {
+      "prefix": "7Q",
+      "name": "Malawi",
+      "continent": "AF",
+      "cqZone": "37",
+      "ituZone": "53"
+    },
+    {
+      "prefix": "7X",
+      "name": "Argelia",
+      "continent": "AF",
+      "cqZone": "33",
+      "ituZone": "37"
+    },
+    {
+      "prefix": "8P",
+      "name": "Barbados",
+      "continent": "NA",
+      "cqZone": "8",
+      "ituZone": "11"
+    },
+    {
+      "prefix": "8Q",
+      "name": "Maldivas",
+      "continent": "AS",
+      "cqZone": "22",
+      "ituZone": "41"
+    },
+    {
+      "prefix": "8R",
+      "name": "Guyana",
+      "continent": "SA",
+      "cqZone": "9",
+      "ituZone": "12"
+    },
+    {
+      "prefix": "9A",
+      "name": "Croatia",
+      "continent": "EU",
+      "cqZone": "15",
+      "ituZone": "28"
+    },
+    {
+      "prefix": "9G",
+      "name": "Ghana",
+      "continent": "AF",
+      "cqZone": "35",
+      "ituZone": "46"
+    },
+    {
+      "prefix": "9H",
+      "name": "Malta",
+      "continent": "EU",
+      "cqZone": "15",
+      "ituZone": "28"
+    },
+    {
+      "prefix": "9J",
+      "name": "Zambia",
+      "continent": "AF",
+      "cqZone": "36",
+      "ituZone": "53"
+    },
+    {
+      "prefix": "9K",
+      "name": "Kuwait",
+      "continent": "AS",
+      "cqZone": "21",
+      "ituZone": "39"
+    },
+    {
+      "prefix": "9L",
+      "name": "Sierra Leona",
+      "continent": "AF",
+      "cqZone": "35",
+      "ituZone": "46"
+    },
+    {
+      "prefix": "9M2",
+      "name": "Malasia Occidental",
+      "continent": "AS",
+      "cqZone": "28",
+      "ituZone": "54"
+    },
+    {
+      "prefix": "9M6",
+      "name": "Malasia Oriental",
+      "continent": "OC",
+      "cqZone": "28",
+      "ituZone": "54"
+    },
+    {
+      "prefix": "9N",
+      "name": "Nepal",
+      "continent": "AS",
+      "cqZone": "22",
+      "ituZone": "42"
+    },
+    {
+      "prefix": "9Q",
+      "name": "Rep. Dem del Congo",
+      "continent": "AF",
+      "cqZone": "36",
+      "ituZone": "52"
+    },
+    {
+      "prefix": "9U",
+      "name": "Burundi",
+      "continent": "AF",
+      "cqZone": "36",
+      "ituZone": "52"
+    },
+    {
+      "prefix": "9V",
+      "name": "Singapore",
+      "continent": "AS",
+      "cqZone": "28",
+      "ituZone": "54"
+    },
+    {
+      "prefix": "9X",
+      "name": "Ruanda",
+      "continent": "AF",
+      "cqZone": "36",
+      "ituZone": "52"
+    },
+    {
+      "prefix": "9Y",
+      "name": "Trinidad y Tobago",
+      "continent": "SA",
+      "cqZone": "9",
+      "ituZone": "11"
+    },
+    {
+      "prefix": "A2",
+      "name": "Botswana",
+      "continent": "AF",
+      "cqZone": "38",
+      "ituZone": "57"
+    },
+    {
+      "prefix": "A3",
+      "name": "Tonga",
+      "continent": "OC",
+      "cqZone": "32",
+      "ituZone": "62"
+    },
+    {
+      "prefix": "A4",
+      "name": "Omán",
+      "continent": "AS",
+      "cqZone": "21",
+      "ituZone": "39"
+    },
+    {
+      "prefix": "A5",
+      "name": "Bhután",
+      "continent": "AS",
+      "cqZone": "22",
+      "ituZone": "41"
+    },
+    {
+      "prefix": "A6",
+      "name": "Emiratos Árabes",
+      "continent": "AS",
+      "cqZone": "21",
+      "ituZone": "39"
+    },
+    {
+      "prefix": "A7",
+      "name": "Qatar",
+      "continent": "AS",
+      "cqZone": "21",
+      "ituZone": "39"
+    },
+    {
+      "prefix": "A9",
+      "name": "Bahrain",
+      "continent": "AS",
+      "cqZone": "21",
+      "ituZone": "39"
+    },
+    {
+      "prefix": "ANT-CE9",
+      "name": "Antártida",
+      "continent": "AN",
+      "cqZone": "13",
+      "ituZone": "73"
+    },
+    {
+      "prefix": "AP",
+      "name": "Pakistán",
+      "continent": "AS",
+      "cqZone": "21",
+      "ituZone": "41"
+    },
+    {
+      "prefix": "BS7",
+      "name": "Scarborough Reef",
+      "continent": "OC",
+      "cqZone": "27",
+      "ituZone": "50"
+    },
+    {
+      "prefix": "BV",
+      "name": "Taiwán",
+      "continent": "AS",
+      "cqZone": "24",
+      "ituZone": "44"
+    },
+    {
+      "prefix": "BV9P",
+      "name": "Pratas",
+      "continent": "AS",
+      "cqZone": "24",
+      "ituZone": "44"
+    },
+    {
+      "prefix": "BY",
+      "name": "China",
+      "continent": "AS",
+      "cqZone": "23-24",
+      "ituZone": "33 42-44"
+    },
+    {
+      "prefix": "C2",
+      "name": "Nauru",
+      "continent": "OC",
+      "cqZone": "31",
+      "ituZone": "65"
+    },
+    {
+      "prefix": "C3",
+      "name": "Andorra",
+      "continent": "EU",
+      "cqZone": "14",
+      "ituZone": "27"
+    },
+    {
+      "prefix": "C5",
+      "name": "Gambia",
+      "continent": "AF",
+      "cqZone": "35",
+      "ituZone": "46"
+    },
+    {
+      "prefix": "C6",
+      "name": "Bahamas",
+      "continent": "NA",
+      "cqZone": "8",
+      "ituZone": "11"
+    },
+    {
+      "prefix": "C9",
+      "name": "Mozambique",
+      "continent": "AF",
+      "cqZone": "37",
+      "ituZone": "53"
+    },
+    {
+      "prefix": "CE",
+      "name": "Chile",
+      "continent": "SA",
+      "cqZone": "12",
+      "ituZone": "14 16"
+    },
+    {
+      "prefix": "CE0A",
+      "name": "Pascua",
+      "continent": "SA",
+      "cqZone": "12",
+      "ituZone": "63"
+    },
+    {
+      "prefix": "CE0X",
+      "name": "San Félix",
+      "continent": "SA",
+      "cqZone": "12",
+      "ituZone": "14"
+    },
+    {
+      "prefix": "CE0Z",
+      "name": "Juan Fernández",
+      "continent": "SA",
+      "cqZone": "12",
+      "ituZone": "14"
+    },
+    {
+      "prefix": "CN",
+      "name": "Marruecos",
+      "continent": "AF",
+      "cqZone": "33",
+      "ituZone": "37"
+    },
+    {
+      "prefix": "CO",
+      "name": "Cuba",
+      "continent": "NA",
+      "cqZone": "8",
+      "ituZone": "11"
+    },
+    {
+      "prefix": "CP",
+      "name": "Bolivia",
+      "continent": "SA",
+      "cqZone": "10",
+      "ituZone": "12 14"
+    },
+    {
+      "prefix": "CT",
+      "name": "Portugal",
+      "continent": "EU",
+      "cqZone": "14",
+      "ituZone": "37"
+    },
+    {
+      "prefix": "CT3",
+      "name": "Madeira",
+      "continent": "AF",
+      "cqZone": "33",
+      "ituZone": "36"
+    },
+    {
+      "prefix": "CU",
+      "name": "Azores",
+      "continent": "EU",
+      "cqZone": "14",
+      "ituZone": "36"
+    },
+    {
+      "prefix": "CX",
+      "name": "Uruguay",
+      "continent": "SA",
+      "cqZone": "13",
+      "ituZone": "14"
+    },
+    {
+      "prefix": "CY0",
+      "name": "Sable",
+      "continent": "NA",
+      "cqZone": "5",
+      "ituZone": "9"
+    },
+    {
+      "prefix": "CY9",
+      "name": "St. Paul",
+      "continent": "NA",
+      "cqZone": "5",
+      "ituZone": "9"
+    },
+    {
+      "prefix": "D2",
+      "name": "Angola",
+      "continent": "AF",
+      "cqZone": "36",
+      "ituZone": "52"
+    },
+    {
+      "prefix": "D4",
+      "name": "Cabo Verde",
+      "continent": "AF",
+      "cqZone": "35",
+      "ituZone": "46"
+    },
+    {
+      "prefix": "D6",
+      "name": "Comoros",
+      "continent": "AF",
+      "cqZone": "39",
+      "ituZone": "53"
+    },
+    {
+      "prefix": "DL",
+      "name": "Alemania",
+      "continent": "EU",
+      "cqZone": "14",
+      "ituZone": "28"
+    },
+    {
+      "prefix": "DU",
+      "name": "Filipinas",
+      "continent": "OC",
+      "cqZone": "27",
+      "ituZone": "50"
+    },
+    {
+      "prefix": "E3",
+      "name": "Eritrea",
+      "continent": "AF",
+      "cqZone": "37",
+      "ituZone": "48"
+    },
+    {
+      "prefix": "E4",
+      "name": "Palestina",
+      "continent": "AS",
+      "cqZone": "20",
+      "ituZone": "39"
+    },
+    {
+      "prefix": "E5N",
+      "name": "Cook del Norte",
+      "continent": "OC",
+      "cqZone": "32",
+      "ituZone": "62"
+    },
+    {
+      "prefix": "E5S",
+      "name": "Cook del Sur",
+      "continent": "OC",
+      "cqZone": "32",
+      "ituZone": "62"
+    },
+    {
+      "prefix": "E7",
+      "name": "Bosnia-Herzegovina",
+      "continent": "EU",
+      "cqZone": "15",
+      "ituZone": "28"
+    },
+    {
+      "prefix": "EA",
+      "name": "España",
+      "continent": "EU",
+      "cqZone": "14",
+      "ituZone": "37"
+    },
+    {
+      "prefix": "EA6",
+      "name": "Baleares",
+      "continent": "EU",
+      "cqZone": "14",
+      "ituZone": "37"
+    },
+    {
+      "prefix": "EA8",
+      "name": "Canarias",
+      "continent": "AF",
+      "cqZone": "33",
+      "ituZone": "36"
+    },
+    {
+      "prefix": "EA9",
+      "name": "Ceuta y Melilla",
+      "continent": "AF",
+      "cqZone": "33",
+      "ituZone": "37"
+    },
+    {
+      "prefix": "EI",
+      "name": "Irlanda",
+      "continent": "EU",
+      "cqZone": "14",
+      "ituZone": "27"
+    },
+    {
+      "prefix": "EK",
+      "name": "Armenia",
+      "continent": "AS",
+      "cqZone": "21",
+      "ituZone": "29"
+    },
+    {
+      "prefix": "EL",
+      "name": "Liberia",
+      "continent": "AF",
+      "cqZone": "35",
+      "ituZone": "46"
+    },
+    {
+      "prefix": "EP",
+      "name": "Irán",
+      "continent": "AS",
+      "cqZone": "21",
+      "ituZone": "40"
+    },
+    {
+      "prefix": "ER",
+      "name": "Moldavia",
+      "continent": "EU",
+      "cqZone": "16",
+      "ituZone": "29"
+    },
+    {
+      "prefix": "ES",
+      "name": "Estonia",
+      "continent": "EU",
+      "cqZone": "15",
+      "ituZone": "29"
+    },
+    {
+      "prefix": "ET",
+      "name": "Etiopía",
+      "continent": "AF",
+      "cqZone": "37",
+      "ituZone": "48"
+    },
+    {
+      "prefix": "EU",
+      "name": "Bielorusia",
+      "continent": "EU",
+      "cqZone": "16",
+      "ituZone": "29"
+    },
+    {
+      "prefix": "EX",
+      "name": "Kirguizistán",
+      "continent": "AS",
+      "cqZone": "17",
+      "ituZone": "42"
+    },
+    {
+      "prefix": "EY",
+      "name": "Tadjikistán",
+      "continent": "AS",
+      "cqZone": "17",
+      "ituZone": "42"
+    },
+    {
+      "prefix": "EZ",
+      "name": "Turkmenistán",
+      "continent": "AS",
+      "cqZone": "17",
+      "ituZone": "30"
+    },
+    {
+      "prefix": "F",
+      "name": "Francia",
+      "continent": "EU",
+      "cqZone": "14",
+      "ituZone": "27"
+    },
+    {
+      "prefix": "FG",
+      "name": "Guadalupe",
+      "continent": "NA",
+      "cqZone": "8",
+      "ituZone": "11"
+    },
+    {
+      "prefix": "FH",
+      "name": "Mayotte",
+      "continent": "AF",
+      "cqZone": "39",
+      "ituZone": "53"
+    },
+    {
+      "prefix": "FJ",
+      "name": "St. Barthelemy",
+      "continent": "NA",
+      "cqZone": "8",
+      "ituZone": "11"
+    },
+    {
+      "prefix": "FK",
+      "name": "Nueva Caledonia",
+      "continent": "OC",
+      "cqZone": "32",
+      "ituZone": "56"
+    },
+    {
+      "prefix": "FK/C",
+      "name": "Chesterfield",
+      "continent": "OC",
+      "cqZone": "32",
+      "ituZone": "56"
+    },
+    {
+      "prefix": "FM",
+      "name": "Martinica",
+      "continent": "NA",
+      "cqZone": "8",
+      "ituZone": "11"
+    },
+    {
+      "prefix": "FO",
+      "name": "Polinesia Francesa",
+      "continent": "OC",
+      "cqZone": "32",
+      "ituZone": "63"
+    },
+    {
+      "prefix": "FO/A",
+      "name": "Australes",
+      "continent": "OC",
+      "cqZone": "32",
+      "ituZone": "63"
+    },
+    {
+      "prefix": "FO/M",
+      "name": "Marquesas",
+      "continent": "OC",
+      "cqZone": "31",
+      "ituZone": "63"
+    },
+    {
+      "prefix": "FO0/C",
+      "name": "Clipperton",
+      "continent": "NA",
+      "cqZone": "7",
+      "ituZone": "10"
+    },
+    {
+      "prefix": "FP",
+      "name": "St. Pierre y Miquelón",
+      "continent": "NA",
+      "cqZone": "5",
+      "ituZone": "9"
+    },
+    {
+      "prefix": "FR",
+      "name": "Reunión",
+      "continent": "AF",
+      "cqZone": "39",
+      "ituZone": "53"
+    },
+    {
+      "prefix": "FR/G",
+      "name": "Gloriosos",
+      "continent": "AF",
+      "cqZone": "39",
+      "ituZone": "53"
+    },
+    {
+      "prefix": "FR/J",
+      "name": "Juan de Nova, Europa",
+      "continent": "AF",
+      "cqZone": "39",
+      "ituZone": "53"
+    },
+    {
+      "prefix": "FR/T",
+      "name": "Tromelin",
+      "continent": "AF",
+      "cqZone": "39",
+      "ituZone": "53"
+    },
+    {
+      "prefix": "FS",
+      "name": "San Martín Francés",
+      "continent": "NA",
+      "cqZone": "8",
+      "ituZone": "11"
+    },
+    {
+      "prefix": "FT/W",
+      "name": "Crozet",
+      "continent": "AF",
+      "cqZone": "39",
+      "ituZone": "68"
+    },
+    {
+      "prefix": "FT/X",
+      "name": "Kerguelen",
+      "continent": "AF",
+      "cqZone": "39",
+      "ituZone": "68"
+    },
+    {
+      "prefix": "FT/Z",
+      "name": "Amsterdam y St. Paul",
+      "continent": "AF",
+      "cqZone": "39",
+      "ituZone": "68"
+    },
+    {
+      "prefix": "FW",
+      "name": "Wallis y Futuna",
+      "continent": "OC",
+      "cqZone": "32",
+      "ituZone": "62"
+    },
+    {
+      "prefix": "FY",
+      "name": "Guayana Francesa",
+      "continent": "SA",
+      "cqZone": "9",
+      "ituZone": "12"
+    },
+    {
+      "prefix": "G",
+      "name": "Inglaterra",
+      "continent": "EU",
+      "cqZone": "14",
+      "ituZone": "27"
+    },
+    {
+      "prefix": "GD",
+      "name": "Isla de Man",
+      "continent": "EU",
+      "cqZone": "14",
+      "ituZone": "27"
+    },
+    {
+      "prefix": "GI",
+      "name": "Irlanda del Norte",
+      "continent": "EU",
+      "cqZone": "14",
+      "ituZone": "27"
+    },
+    {
+      "prefix": "GJ",
+      "name": "Jersey",
+      "continent": "EU",
+      "cqZone": "14",
+      "ituZone": "27"
+    },
+    {
+      "prefix": "GM",
+      "name": "Escocia",
+      "continent": "EU",
+      "cqZone": "14",
+      "ituZone": "27"
+    },
+    {
+      "prefix": "GM/s",
+      "name": "Islas Shetland",
+      "continent": "EU",
+      "cqZone": "",
+      "ituZone": ""
+    },
+    {
+      "prefix": "GU",
+      "name": "Guernsey",
+      "continent": "EU",
+      "cqZone": "14",
+      "ituZone": "27"
+    },
+    {
+      "prefix": "GW",
+      "name": "Gales",
+      "continent": "EU",
+      "cqZone": "14",
+      "ituZone": "27"
+    },
+    {
+      "prefix": "H4",
+      "name": "Solomon",
+      "continent": "OC",
+      "cqZone": "28",
+      "ituZone": "51"
+    },
+    {
+      "prefix": "H40",
+      "name": "Temotu",
+      "continent": "OC",
+      "cqZone": "32",
+      "ituZone": "51"
+    },
+    {
+      "prefix": "HA",
+      "name": "Hungría",
+      "continent": "EU",
+      "cqZone": "15",
+      "ituZone": "28"
+    },
+    {
+      "prefix": "HB",
+      "name": "Suiza",
+      "continent": "EU",
+      "cqZone": "14",
+      "ituZone": "28"
+    },
+    {
+      "prefix": "HB0",
+      "name": "Liechtenstein",
+      "continent": "EU",
+      "cqZone": "14",
+      "ituZone": "28"
+    },
+    {
+      "prefix": "HC",
+      "name": "Ecuador",
+      "continent": "SA",
+      "cqZone": "10",
+      "ituZone": "12"
+    },
+    {
+      "prefix": "HC8",
+      "name": "Galápagos",
+      "continent": "SA",
+      "cqZone": "10",
+      "ituZone": "12"
+    },
+    {
+      "prefix": "HH",
+      "name": "Haití",
+      "continent": "NA",
+      "cqZone": "8",
+      "ituZone": "11"
+    },
+    {
+      "prefix": "HI",
+      "name": "Rep. Dominicana",
+      "continent": "NA",
+      "cqZone": "8",
+      "ituZone": "11"
+    },
+    {
+      "prefix": "HK",
+      "name": "Colombia",
+      "continent": "SA",
+      "cqZone": "9",
+      "ituZone": "12"
+    },
+    {
+      "prefix": "HK0M",
+      "name": "Malpelo",
+      "continent": "SA",
+      "cqZone": "10",
+      "ituZone": "12"
+    },
+    {
+      "prefix": "HK0S",
+      "name": "San Andrés y Providencia",
+      "continent": "NA",
+      "cqZone": "7",
+      "ituZone": "11"
+    },
+    {
+      "prefix": "HL",
+      "name": "Corea del Sur",
+      "continent": "AS",
+      "cqZone": "25",
+      "ituZone": "44"
+    },
+    {
+      "prefix": "HP",
+      "name": "Panamá",
+      "continent": "NA",
+      "cqZone": "7",
+      "ituZone": "11"
+    },
+    {
+      "prefix": "HR",
+      "name": "Honduras",
+      "continent": "NA",
+      "cqZone": "7",
+      "ituZone": "11"
+    },
+    {
+      "prefix": "HS",
+      "name": "Tailandia",
+      "continent": "AS",
+      "cqZone": "26",
+      "ituZone": "49"
+    },
+    {
+      "prefix": "HV",
+      "name": "Vaticano",
+      "continent": "EU",
+      "cqZone": "15",
+      "ituZone": "28"
+    },
+    {
+      "prefix": "HZ",
+      "name": "Arabia Saudí",
+      "continent": "AS",
+      "cqZone": "21",
+      "ituZone": "39"
+    },
+    {
+      "prefix": "I",
+      "name": "Italia",
+      "continent": "EU",
+      "cqZone": "15",
+      "ituZone": "28"
+    },
+    {
+      "prefix": "IS",
+      "name": "Cerdeña",
+      "continent": "EU",
+      "cqZone": "15",
+      "ituZone": "28"
+    },
+    {
+      "prefix": "IT9",
+      "name": "Sicilia",
+      "continent": "EU",
+      "cqZone": "",
+      "ituZone": ""
+    },
+    {
+      "prefix": "J2",
+      "name": "Djibouti",
+      "continent": "AF",
+      "cqZone": "37",
+      "ituZone": "48"
+    },
+    {
+      "prefix": "J3",
+      "name": "Granada",
+      "continent": "NA",
+      "cqZone": "8",
+      "ituZone": "11"
+    },
+    {
+      "prefix": "J5",
+      "name": "Guinea-Bissau",
+      "continent": "AF",
+      "cqZone": "35",
+      "ituZone": "46"
+    },
+    {
+      "prefix": "J6",
+      "name": "Santa Lucía",
+      "continent": "NA",
+      "cqZone": "8",
+      "ituZone": "11"
+    },
+    {
+      "prefix": "J7",
+      "name": "Dominica",
+      "continent": "NA",
+      "cqZone": "8",
+      "ituZone": "11"
+    },
+    {
+      "prefix": "J8",
+      "name": "San Vicente",
+      "continent": "NA",
+      "cqZone": "8",
+      "ituZone": "11"
+    },
+    {
+      "prefix": "JA",
+      "name": "Japón",
+      "continent": "AS",
+      "cqZone": "25",
+      "ituZone": "45"
+    },
+    {
+      "prefix": "JD1",
+      "name": "Minami Torishima",
+      "continent": "OC",
+      "cqZone": "27",
+      "ituZone": "45"
+    },
+    {
+      "prefix": "JD1/O",
+      "name": "Ogasawara",
+      "continent": "AS",
+      "cqZone": "27",
+      "ituZone": "45"
+    },
+    {
+      "prefix": "JT",
+      "name": "Mongolia",
+      "continent": "AS",
+      "cqZone": "23",
+      "ituZone": "32-33"
+    },
+    {
+      "prefix": "JW",
+      "name": "Svalbard",
+      "continent": "EU",
+      "cqZone": "40",
+      "ituZone": "18"
+    },
+    {
+      "prefix": "JW/b",
+      "name": "Bear",
+      "continent": "EU",
+      "cqZone": "",
+      "ituZone": ""
+    },
+    {
+      "prefix": "JX",
+      "name": "Jan Mayen",
+      "continent": "EU",
+      "cqZone": "40",
+      "ituZone": "18"
+    },
+    {
+      "prefix": "JY",
+      "name": "Jordania",
+      "continent": "AS",
+      "cqZone": "20",
+      "ituZone": "39"
+    },
+    {
+      "prefix": "K",
+      "name": "Estados Unidos",
+      "continent": "NA",
+      "cqZone": "3-5",
+      "ituZone": "6-8"
+    },
+    {
+      "prefix": "KG4",
+      "name": "Guantánamo",
+      "continent": "NA",
+      "cqZone": "8",
+      "ituZone": "11"
+    },
+    {
+      "prefix": "KH0",
+      "name": "Marianas",
+      "continent": "OC",
+      "cqZone": "27",
+      "ituZone": "64"
+    },
+    {
+      "prefix": "KH1",
+      "name": "Baker y Howland",
+      "continent": "OC",
+      "cqZone": "31",
+      "ituZone": "61"
+    },
+    {
+      "prefix": "KH2",
+      "name": "Guam",
+      "continent": "OC",
+      "cqZone": "27",
+      "ituZone": "64"
+    },
+    {
+      "prefix": "KH3",
+      "name": "Johnston",
+      "continent": "OC",
+      "cqZone": "31",
+      "ituZone": "61"
+    },
+    {
+      "prefix": "KH4",
+      "name": "Midway",
+      "continent": "OC",
+      "cqZone": "31",
+      "ituZone": "61"
+    },
+    {
+      "prefix": "KH5",
+      "name": "Palmyra y Jarvis",
+      "continent": "OC",
+      "cqZone": "31",
+      "ituZone": "62"
+    },
+    {
+      "prefix": "KH6",
+      "name": "Hawaii",
+      "continent": "OC",
+      "cqZone": "31",
+      "ituZone": "61"
+    },
+    {
+      "prefix": "KH7K",
+      "name": "Kure",
+      "continent": "OC",
+      "cqZone": "31",
+      "ituZone": "61"
+    },
+    {
+      "prefix": "KH8",
+      "name": "Samoa Americana",
+      "continent": "OC",
+      "cqZone": "32",
+      "ituZone": "62"
+    },
+    {
+      "prefix": "KH8S",
+      "name": "Swains Is.",
+      "continent": "OC",
+      "cqZone": "32",
+      "ituZone": "63"
+    },
+    {
+      "prefix": "KH9",
+      "name": "Wake",
+      "continent": "OC",
+      "cqZone": "31",
+      "ituZone": "65"
+    },
+    {
+      "prefix": "KL7",
+      "name": "Alaska",
+      "continent": "NA",
+      "cqZone": "1",
+      "ituZone": "1-2"
+    },
+    {
+      "prefix": "KP1",
+      "name": "Navassa",
+      "continent": "NA",
+      "cqZone": "8",
+      "ituZone": "11"
+    },
+    {
+      "prefix": "KP2",
+      "name": "Virgenes Americanas",
+      "continent": "NA",
+      "cqZone": "8",
+      "ituZone": "11"
+    },
+    {
+      "prefix": "KP4",
+      "name": "Puerto Rico",
+      "continent": "NA",
+      "cqZone": "8",
+      "ituZone": "11"
+    },
+    {
+      "prefix": "KP5",
+      "name": "Desecheo",
+      "continent": "NA",
+      "cqZone": "8",
+      "ituZone": "11"
+    },
+    {
+      "prefix": "LA",
+      "name": "Noruega",
+      "continent": "EU",
+      "cqZone": "14",
+      "ituZone": "18"
+    },
+    {
+      "prefix": "LU",
+      "name": "Argentina",
+      "continent": "SA",
+      "cqZone": "13",
+      "ituZone": "14 16"
+    },
+    {
+      "prefix": "LX",
+      "name": "Luxemburgo",
+      "continent": "EU",
+      "cqZone": "14",
+      "ituZone": "27"
+    },
+    {
+      "prefix": "LY",
+      "name": "Lituania",
+      "continent": "EU",
+      "cqZone": "15",
+      "ituZone": "29"
+    },
+    {
+      "prefix": "LZ",
+      "name": "Bulgaria",
+      "continent": "EU",
+      "cqZone": "20",
+      "ituZone": "28"
+    },
+    {
+      "prefix": "OA",
+      "name": "Perú",
+      "continent": "SA",
+      "cqZone": "10",
+      "ituZone": "12"
+    },
+    {
+      "prefix": "OD",
+      "name": "Líbano",
+      "continent": "AS",
+      "cqZone": "20",
+      "ituZone": "39"
+    },
+    {
+      "prefix": "OE",
+      "name": "Austria",
+      "continent": "EU",
+      "cqZone": "15",
+      "ituZone": "28"
+    },
+    {
+      "prefix": "OH",
+      "name": "Finlandia",
+      "continent": "EU",
+      "cqZone": "15",
+      "ituZone": "18"
+    },
+    {
+      "prefix": "OH0",
+      "name": "Aland",
+      "continent": "EU",
+      "cqZone": "15",
+      "ituZone": "18"
+    },
+    {
+      "prefix": "OJ0",
+      "name": "Market Reef",
+      "continent": "EU",
+      "cqZone": "15",
+      "ituZone": "18"
+    },
+    {
+      "prefix": "OK",
+      "name": "República Checa",
+      "continent": "EU",
+      "cqZone": "15",
+      "ituZone": "28"
+    },
+    {
+      "prefix": "OM",
+      "name": "Eslovaquia",
+      "continent": "EU",
+      "cqZone": "15",
+      "ituZone": "28"
+    },
+    {
+      "prefix": "ON",
+      "name": "Bélgica",
+      "continent": "EU",
+      "cqZone": "14",
+      "ituZone": "27"
+    },
+    {
+      "prefix": "OX",
+      "name": "Groenlandia",
+      "continent": "NA",
+      "cqZone": "40",
+      "ituZone": "5 75"
+    },
+    {
+      "prefix": "OY",
+      "name": "Feroe",
+      "continent": "EU",
+      "cqZone": "14",
+      "ituZone": "18"
+    },
+    {
+      "prefix": "OZ",
+      "name": "Dinamarca",
+      "continent": "EU",
+      "cqZone": "14",
+      "ituZone": "18"
+    },
+    {
+      "prefix": "P2",
+      "name": "Papúa Nueva Guinea",
+      "continent": "OC",
+      "cqZone": "28",
+      "ituZone": "51"
+    },
+    {
+      "prefix": "P4",
+      "name": "Aruba",
+      "continent": "SA",
+      "cqZone": "9",
+      "ituZone": "11"
+    },
+    {
+      "prefix": "P5",
+      "name": "Corea del Norte",
+      "continent": "AS",
+      "cqZone": "",
+      "ituZone": ""
+    },
+    {
+      "prefix": "PA",
+      "name": "Países Bajos",
+      "continent": "EU",
+      "cqZone": "14",
+      "ituZone": "27"
+    },
+    {
+      "prefix": "PJ2",
+      "name": "Curacao",
+      "continent": "SA",
+      "cqZone": "9",
+      "ituZone": "11"
+    },
+    {
+      "prefix": "PJ4",
+      "name": "Bonaire",
+      "continent": "SA",
+      "cqZone": "9",
+      "ituZone": "11"
+    },
+    {
+      "prefix": "PJ5-6",
+      "name": "San Eustaquio y Saba",
+      "continent": "NA",
+      "cqZone": "8",
+      "ituZone": "11"
+    },
+    {
+      "prefix": "PJ7",
+      "name": "San Martin",
+      "continent": "NA",
+      "cqZone": "8",
+      "ituZone": "11"
+    },
+    {
+      "prefix": "PY",
+      "name": "Brasil",
+      "continent": "SA",
+      "cqZone": "11",
+      "ituZone": "12 13 15"
+    },
+    {
+      "prefix": "PY0F",
+      "name": "Fernando de Noronha",
+      "continent": "SA",
+      "cqZone": "11",
+      "ituZone": "13"
+    },
+    {
+      "prefix": "PY0S",
+      "name": "San Pedro y San Pablo",
+      "continent": "SA",
+      "cqZone": "11",
+      "ituZone": "13"
+    },
+    {
+      "prefix": "PY0T",
+      "name": "Trinidady y Martín Vaz",
+      "continent": "SA",
+      "cqZone": "11",
+      "ituZone": "15"
+    },
+    {
+      "prefix": "PZ",
+      "name": "Surinam",
+      "continent": "SA",
+      "cqZone": "9",
+      "ituZone": "12"
+    },
+    {
+      "prefix": "R1FJ",
+      "name": "Tierra Franz Josef",
+      "continent": "EU",
+      "cqZone": "40",
+      "ituZone": "75"
+    },
+    {
+      "prefix": "S0",
+      "name": "Sahara Occidental",
+      "continent": "AF",
+      "cqZone": "33",
+      "ituZone": "37"
+    },
+    {
+      "prefix": "S2",
+      "name": "Bangladesh",
+      "continent": "AS",
+      "cqZone": "22",
+      "ituZone": "41"
+    },
+    {
+      "prefix": "S5",
+      "name": "Eslovenia",
+      "continent": "EU",
+      "cqZone": "15",
+      "ituZone": "28"
+    },
+    {
+      "prefix": "S7",
+      "name": "Seychelles",
+      "continent": "AF",
+      "cqZone": "39",
+      "ituZone": "53"
+    },
+    {
+      "prefix": "S9",
+      "name": "Santo Tomé y Príncipe",
+      "continent": "AF",
+      "cqZone": "36",
+      "ituZone": "47"
+    },
+    {
+      "prefix": "SM",
+      "name": "Suecia",
+      "continent": "EU",
+      "cqZone": "14",
+      "ituZone": "18"
+    },
+    {
+      "prefix": "SP",
+      "name": "Polonia",
+      "continent": "EU",
+      "cqZone": "15",
+      "ituZone": "28"
+    },
+    {
+      "prefix": "ST",
+      "name": "Sudán",
+      "continent": "AF",
+      "cqZone": "34",
+      "ituZone": "47 48"
+    },
+    {
+      "prefix": "SU",
+      "name": "Egipto",
+      "continent": "AF",
+      "cqZone": "34",
+      "ituZone": "38"
+    },
+    {
+      "prefix": "SV",
+      "name": "Grecia",
+      "continent": "EU",
+      "cqZone": "20",
+      "ituZone": "28"
+    },
+    {
+      "prefix": "SV/A",
+      "name": "MonteAthos",
+      "continent": "EU",
+      "cqZone": "20",
+      "ituZone": "28"
+    },
+    {
+      "prefix": "SV5",
+      "name": "Dodecaneso",
+      "continent": "EU",
+      "cqZone": "20",
+      "ituZone": "28"
+    },
+    {
+      "prefix": "SV9",
+      "name": "Creta",
+      "continent": "EU",
+      "cqZone": "20",
+      "ituZone": "28"
+    },
+    {
+      "prefix": "T2",
+      "name": "Tuvalu",
+      "continent": "OC",
+      "cqZone": "31",
+      "ituZone": "65"
+    },
+    {
+      "prefix": "T30",
+      "name": "Kiribati Occidental",
+      "continent": "OC",
+      "cqZone": "31",
+      "ituZone": "65"
+    },
+    {
+      "prefix": "T31",
+      "name": "Kiribati Central",
+      "continent": "OC",
+      "cqZone": "31",
+      "ituZone": "62"
+    },
+    {
+      "prefix": "T32",
+      "name": "Kiribati Oriental",
+      "continent": "OC",
+      "cqZone": "31",
+      "ituZone": "61 63"
+    },
+    {
+      "prefix": "T33",
+      "name": "Banaba",
+      "continent": "OC",
+      "cqZone": "31",
+      "ituZone": "65"
+    },
+    {
+      "prefix": "T5",
+      "name": "Somalia",
+      "continent": "AF",
+      "cqZone": "37",
+      "ituZone": "48"
+    },
+    {
+      "prefix": "T7",
+      "name": "San Marino",
+      "continent": "EU",
+      "cqZone": "15",
+      "ituZone": "28"
+    },
+    {
+      "prefix": "T8",
+      "name": "Belau",
+      "continent": "OC",
+      "cqZone": "27",
+      "ituZone": "64"
+    },
+    {
+      "prefix": "TA",
+      "name": "Turquía",
+      "continent": "AS",
+      "cqZone": "20",
+      "ituZone": "39"
+    },
+    {
+      "prefix": "TF",
+      "name": "Islandia",
+      "continent": "EU",
+      "cqZone": "40",
+      "ituZone": "17"
+    },
+    {
+      "prefix": "TG",
+      "name": "Guatemala",
+      "continent": "NA",
+      "cqZone": "7",
+      "ituZone": "11"
+    },
+    {
+      "prefix": "TI",
+      "name": "Costa Rica",
+      "continent": "NA",
+      "cqZone": "7",
+      "ituZone": "11"
+    },
+    {
+      "prefix": "TI9",
+      "name": "Isla del Coco",
+      "continent": "NA",
+      "cqZone": "7",
+      "ituZone": "11"
+    },
+    {
+      "prefix": "TJ",
+      "name": "Camerún",
+      "continent": "AF",
+      "cqZone": "36",
+      "ituZone": "47"
+    },
+    {
+      "prefix": "TK",
+      "name": "Corcega",
+      "continent": "EU",
+      "cqZone": "15",
+      "ituZone": "28"
+    },
+    {
+      "prefix": "TL",
+      "name": "República Centroafricana",
+      "continent": "AF",
+      "cqZone": "36",
+      "ituZone": "47"
+    },
+    {
+      "prefix": "TN",
+      "name": "Congo",
+      "continent": "AF",
+      "cqZone": "36",
+      "ituZone": "52"
+    },
+    {
+      "prefix": "TR",
+      "name": "Gabón",
+      "continent": "AF",
+      "cqZone": "36",
+      "ituZone": "52"
+    },
+    {
+      "prefix": "TT",
+      "name": "Chad",
+      "continent": "AF",
+      "cqZone": "36",
+      "ituZone": "47"
+    },
+    {
+      "prefix": "TU",
+      "name": "Costa de Marfil",
+      "continent": "AF",
+      "cqZone": "35",
+      "ituZone": "46"
+    },
+    {
+      "prefix": "TY",
+      "name": "Benín",
+      "continent": "AF",
+      "cqZone": "35",
+      "ituZone": "46"
+    },
+    {
+      "prefix": "TZ",
+      "name": "Mali",
+      "continent": "AF",
+      "cqZone": "35",
+      "ituZone": "46"
+    },
+    {
+      "prefix": "UA",
+      "name": "Rusia Europea",
+      "continent": "EU",
+      "cqZone": "16",
+      "ituZone": "19-20 29-30"
+    },
+    {
+      "prefix": "UA2",
+      "name": "Kaliningrado",
+      "continent": "EU",
+      "cqZone": "15",
+      "ituZone": "29"
+    },
+    {
+      "prefix": "UA9",
+      "name": "Rusia Asiática",
+      "continent": "AS",
+      "cqZone": "17-19 23",
+      "ituZone": "20-26 30-35"
+    },
+    {
+      "prefix": "UK",
+      "name": "Uzbekistán",
+      "continent": "AS",
+      "cqZone": "17",
+      "ituZone": "30"
+    },
+    {
+      "prefix": "UN",
+      "name": "Kazajstán",
+      "continent": "AS",
+      "cqZone": "17",
+      "ituZone": "30"
+    },
+    {
+      "prefix": "UR",
+      "name": "Ucrania",
+      "continent": "EU",
+      "cqZone": "16",
+      "ituZone": "29"
+    },
+    {
+      "prefix": "V2",
+      "name": "Antigua y Barbuda",
+      "continent": "NA",
+      "cqZone": "8",
+      "ituZone": "11"
+    },
+    {
+      "prefix": "V3",
+      "name": "Belize",
+      "continent": "NA",
+      "cqZone": "7",
+      "ituZone": "11"
+    },
+    {
+      "prefix": "V4",
+      "name": "St. Kitts y Nevis",
+      "continent": "NA",
+      "cqZone": "8",
+      "ituZone": "11"
+    },
+    {
+      "prefix": "V5",
+      "name": "Namibia",
+      "continent": "AF",
+      "cqZone": "38",
+      "ituZone": "57"
+    },
+    {
+      "prefix": "V6",
+      "name": "Micronesia",
+      "continent": "OC",
+      "cqZone": "27",
+      "ituZone": "65"
+    },
+    {
+      "prefix": "V7",
+      "name": "Marshall",
+      "continent": "OC",
+      "cqZone": "31",
+      "ituZone": "65"
+    },
+    {
+      "prefix": "V8",
+      "name": "Brunéi",
+      "continent": "OC",
+      "cqZone": "28",
+      "ituZone": "54"
+    },
+    {
+      "prefix": "VE",
+      "name": "Canadá",
+      "continent": "NA",
+      "cqZone": "1-5",
+      "ituZone": "2-4 9 75"
+    },
+    {
+      "prefix": "VK",
+      "name": "Australia",
+      "continent": "OC",
+      "cqZone": "29 30",
+      "ituZone": "55 58 59"
+    },
+    {
+      "prefix": "VK0H",
+      "name": "Heard",
+      "continent": "AF",
+      "cqZone": "39",
+      "ituZone": "68"
+    },
+    {
+      "prefix": "VK0M",
+      "name": "Macquarie",
+      "continent": "OC",
+      "cqZone": "30",
+      "ituZone": "60"
+    },
+    {
+      "prefix": "VK9C",
+      "name": "Cocos-Keeling",
+      "continent": "OC",
+      "cqZone": "29",
+      "ituZone": "54"
+    },
+    {
+      "prefix": "VK9L",
+      "name": "Lord Howe",
+      "continent": "OC",
+      "cqZone": "30",
+      "ituZone": "60"
+    },
+    {
+      "prefix": "VK9M",
+      "name": "Mellish Reef",
+      "continent": "OC",
+      "cqZone": "30",
+      "ituZone": "56"
+    },
+    {
+      "prefix": "VK9N",
+      "name": "Norfolk",
+      "continent": "OC",
+      "cqZone": "32",
+      "ituZone": "60"
+    },
+    {
+      "prefix": "VK9W",
+      "name": "Willis",
+      "continent": "OC",
+      "cqZone": "30",
+      "ituZone": "55"
+    },
+    {
+      "prefix": "VK9X",
+      "name": "Christmas",
+      "continent": "OC",
+      "cqZone": "29",
+      "ituZone": "54"
+    },
+    {
+      "prefix": "VP2E",
+      "name": "Anguilla",
+      "continent": "NA",
+      "cqZone": "8",
+      "ituZone": "11"
+    },
+    {
+      "prefix": "VP2M",
+      "name": "Montserrat",
+      "continent": "NA",
+      "cqZone": "8",
+      "ituZone": "11"
+    },
+    {
+      "prefix": "VP2V",
+      "name": "Vírgenes Británicas",
+      "continent": "NA",
+      "cqZone": "8",
+      "ituZone": "11"
+    },
+    {
+      "prefix": "VP5",
+      "name": "Turks y Caicos Islands",
+      "continent": "NA",
+      "cqZone": "8",
+      "ituZone": "11"
+    },
+    {
+      "prefix": "VP6",
+      "name": "Pitcairn",
+      "continent": "OC",
+      "cqZone": "32",
+      "ituZone": "63"
+    },
+    {
+      "prefix": "VP6D",
+      "name": "Ducie",
+      "continent": "OC",
+      "cqZone": "32",
+      "ituZone": "63"
+    },
+    {
+      "prefix": "VP8/G",
+      "name": "Georgia del Sur",
+      "continent": "SA",
+      "cqZone": "13",
+      "ituZone": "73"
+    },
+    {
+      "prefix": "VP8/H",
+      "name": "Shetland del Sur",
+      "continent": "SA",
+      "cqZone": "13",
+      "ituZone": "73"
+    },
+    {
+      "prefix": "VP8/M",
+      "name": "Malvinas",
+      "continent": "SA",
+      "cqZone": "13",
+      "ituZone": "16"
+    },
+    {
+      "prefix": "VP8/O",
+      "name": "Orcadas del Sur",
+      "continent": "SA",
+      "cqZone": "13",
+      "ituZone": "73"
+    },
+    {
+      "prefix": "VP8/S",
+      "name": "Sandwich del Sur",
+      "continent": "SA",
+      "cqZone": "13",
+      "ituZone": "73"
+    },
+    {
+      "prefix": "VP9",
+      "name": "Bermuda",
+      "continent": "NA",
+      "cqZone": "5",
+      "ituZone": "11"
+    },
+    {
+      "prefix": "VQ9",
+      "name": "Chagos",
+      "continent": "AF",
+      "cqZone": "39",
+      "ituZone": "41"
+    },
+    {
+      "prefix": "VR2",
+      "name": "Hong Kong",
+      "continent": "AS",
+      "cqZone": "24",
+      "ituZone": "44"
+    },
+    {
+      "prefix": "VU",
+      "name": "India",
+      "continent": "AS",
+      "cqZone": "22",
+      "ituZone": "41"
+    },
+    {
+      "prefix": "VU4",
+      "name": "Andamán y Nicobar",
+      "continent": "AS",
+      "cqZone": "26",
+      "ituZone": "49"
+    },
+    {
+      "prefix": "VU7",
+      "name": "Laccadives",
+      "continent": "AS",
+      "cqZone": "22",
+      "ituZone": "41"
+    },
+    {
+      "prefix": "XE",
+      "name": "México",
+      "continent": "NA",
+      "cqZone": "6",
+      "ituZone": "10"
+    },
+    {
+      "prefix": "XF4",
+      "name": "Revilla Gigedo",
+      "continent": "NA",
+      "cqZone": "6",
+      "ituZone": "10"
+    },
+    {
+      "prefix": "XT",
+      "name": "Burkina Faso",
+      "continent": "AF",
+      "cqZone": "35",
+      "ituZone": "46"
+    },
+    {
+      "prefix": "XU",
+      "name": "Camboya",
+      "continent": "AS",
+      "cqZone": "26",
+      "ituZone": "49"
+    },
+    {
+      "prefix": "XW",
+      "name": "Laos",
+      "continent": "AS",
+      "cqZone": "26",
+      "ituZone": "49"
+    },
+    {
+      "prefix": "XX9",
+      "name": "Macao",
+      "continent": "AS",
+      "cqZone": "24",
+      "ituZone": "44"
+    },
+    {
+      "prefix": "XZ",
+      "name": "Myanmar",
+      "continent": "AS",
+      "cqZone": "26",
+      "ituZone": "49"
+    },
+    {
+      "prefix": "YA",
+      "name": "Afganistán",
+      "continent": "AS",
+      "cqZone": "21",
+      "ituZone": "40"
+    },
+    {
+      "prefix": "YB",
+      "name": "Indonesia",
+      "continent": "OC",
+      "cqZone": "28",
+      "ituZone": "51 54"
+    },
+    {
+      "prefix": "YI",
+      "name": "Iraq",
+      "continent": "AS",
+      "cqZone": "21",
+      "ituZone": "39"
+    },
+    {
+      "prefix": "YJ",
+      "name": "Vanuatu",
+      "continent": "OC",
+      "cqZone": "32",
+      "ituZone": "56"
+    },
+    {
+      "prefix": "YK",
+      "name": "Siria",
+      "continent": "AS",
+      "cqZone": "20",
+      "ituZone": "39"
+    },
+    {
+      "prefix": "YL",
+      "name": "Letonia",
+      "continent": "EU",
+      "cqZone": "15",
+      "ituZone": "29"
+    },
+    {
+      "prefix": "YN",
+      "name": "Nicaragua",
+      "continent": "NA",
+      "cqZone": "7",
+      "ituZone": "11"
+    },
+    {
+      "prefix": "YO",
+      "name": "Rumanía",
+      "continent": "EU",
+      "cqZone": "20",
+      "ituZone": "28"
+    },
+    {
+      "prefix": "YS",
+      "name": "El Salvador",
+      "continent": "NA",
+      "cqZone": "7",
+      "ituZone": "11"
+    },
+    {
+      "prefix": "YU",
+      "name": "Rep. De Serbia",
+      "continent": "EU",
+      "cqZone": "15",
+      "ituZone": "28"
+    },
+    {
+      "prefix": "YV",
+      "name": "Venezuela",
+      "continent": "SA",
+      "cqZone": "9",
+      "ituZone": "12"
+    },
+    {
+      "prefix": "YV0",
+      "name": "Aves",
+      "continent": "NA",
+      "cqZone": "8",
+      "ituZone": "11"
+    },
+    {
+      "prefix": "Z2",
+      "name": "Zimbabwe",
+      "continent": "AF",
+      "cqZone": "38",
+      "ituZone": "53"
+    },
+    {
+      "prefix": "Z3",
+      "name": "Macedonia del Norte",
+      "continent": "EU",
+      "cqZone": "15",
+      "ituZone": "28"
+    },
+    {
+      "prefix": "Z6",
+      "name": "República de Kosovo",
+      "continent": "EU",
+      "cqZone": "15",
+      "ituZone": "28"
+    },
+    {
+      "prefix": "Z8",
+      "name": "Sudán del Sur",
+      "continent": "AF",
+      "cqZone": "34",
+      "ituZone": "48"
+    },
+    {
+      "prefix": "ZA",
+      "name": "Albania",
+      "continent": "EU",
+      "cqZone": "15",
+      "ituZone": "28"
+    },
+    {
+      "prefix": "ZB",
+      "name": "Gibraltar",
+      "continent": "EU",
+      "cqZone": "14",
+      "ituZone": "37"
+    },
+    {
+      "prefix": "ZC4",
+      "name": "Bases Británicas Chipre",
+      "continent": "AS",
+      "cqZone": "20",
+      "ituZone": "39"
+    },
+    {
+      "prefix": "ZD7",
+      "name": "Santa Elena",
+      "continent": "AF",
+      "cqZone": "36",
+      "ituZone": "66"
+    },
+    {
+      "prefix": "ZD8",
+      "name": "Ascensión",
+      "continent": "AF",
+      "cqZone": "36",
+      "ituZone": "66"
+    },
+    {
+      "prefix": "ZD9",
+      "name": "Tristán da Cunha",
+      "continent": "AF",
+      "cqZone": "38",
+      "ituZone": "66"
+    },
+    {
+      "prefix": "ZF",
+      "name": "Caymán",
+      "continent": "NA",
+      "cqZone": "8",
+      "ituZone": "11"
+    },
+    {
+      "prefix": "ZK2",
+      "name": "Niue",
+      "continent": "OC",
+      "cqZone": "32",
+      "ituZone": "62"
+    },
+    {
+      "prefix": "ZK3",
+      "name": "Tokelau",
+      "continent": "OC",
+      "cqZone": "31",
+      "ituZone": "62"
+    },
+    {
+      "prefix": "ZL",
+      "name": "Nueva Zelanda",
+      "continent": "OC",
+      "cqZone": "32",
+      "ituZone": "60"
+    },
+    {
+      "prefix": "ZL7",
+      "name": "Chatham",
+      "continent": "OC",
+      "cqZone": "32",
+      "ituZone": "60"
+    },
+    {
+      "prefix": "ZL8",
+      "name": "Kermadec",
+      "continent": "OC",
+      "cqZone": "32",
+      "ituZone": "60"
+    },
+    {
+      "prefix": "ZL9",
+      "name": "Islas Subantárticas de N.Z.",
+      "continent": "OC",
+      "cqZone": "32",
+      "ituZone": "60"
+    },
+    {
+      "prefix": "ZP",
+      "name": "Paraguay",
+      "continent": "SA",
+      "cqZone": "11",
+      "ituZone": "14"
+    },
+    {
+      "prefix": "ZS",
+      "name": "Sudáfrica",
+      "continent": "AF",
+      "cqZone": "38",
+      "ituZone": "57"
+    },
+    {
+      "prefix": "ZS8",
+      "name": "Principe Eduardo y Marión",
+      "continent": "AF",
+      "cqZone": "38",
+      "ituZone": "57"
+    }
+  ],
+  "cancelled": [
+    {
+      "prefix": "1B",
+      "name": "Blenheim Reef",
+      "continent": "AF",
+      "from": "1967-05-04",
+      "to": "1975-06-30"
+    },
+    {
+      "prefix": "1G",
+      "name": "Geyser Reef",
+      "continent": "AF",
+      "from": "1967-05-04",
+      "to": "1978-02-28"
+    },
+    {
+      "prefix": "1M",
+      "name": "Minerva Reef",
+      "continent": "AF",
+      "from": "1945-11-15",
+      "to": "1972-07-15"
+    },
+    {
+      "prefix": "4W/",
+      "name": "Rep. Árabe del Yemen",
+      "continent": "AS",
+      "from": "1945-11-15",
+      "to": "1990-05-21"
+    },
+    {
+      "prefix": "8Z4",
+      "name": "Arabia Saudí-Iraq/Zona Neutral",
+      "continent": "AS",
+      "from": "1945-11-15",
+      "to": "1981-12-25"
+    },
+    {
+      "prefix": "8Z5",
+      "name": "Kuwait/Arabia S. Zona Neutral",
+      "continent": "AS",
+      "from": "1945-11-15",
+      "to": "1969-12-14"
+    },
+    {
+      "prefix": "9S4",
+      "name": "Saar",
+      "continent": "EU",
+      "from": "1945-11-15",
+      "to": "1957-03-31"
+    },
+    {
+      "prefix": "9U5",
+      "name": "Ruanda-Burundi",
+      "continent": "AF",
+      "from": "1960-07-01",
+      "to": "1962-06-30"
+    },
+    {
+      "prefix": "A1",
+      "name": "Abu Ail",
+      "continent": "AS",
+      "from": "1945-11-15",
+      "to": "1991-03-30"
+    },
+    {
+      "prefix": "AC3",
+      "name": "Sikkim",
+      "continent": "AS",
+      "from": "1945-11-15",
+      "to": "1975-04-30"
+    },
+    {
+      "prefix": "AC4",
+      "name": "Tibet",
+      "continent": "AS",
+      "from": "1945-11-15",
+      "to": "1974-05-30"
+    },
+    {
+      "prefix": "C8",
+      "name": "Manchuria",
+      "continent": "AS",
+      "from": "1945-11-15",
+      "to": "1963-09-15"
+    },
+    {
+      "prefix": "CN2",
+      "name": "Tanger",
+      "continent": "AF",
+      "from": "1945-11-15",
+      "to": "1960-06-30"
+    },
+    {
+      "prefix": "CR8/D",
+      "name": "Damao, Diu",
+      "continent": "AS",
+      "from": "1945-11-15",
+      "to": "1961-12-31"
+    },
+    {
+      "prefix": "CR8/G",
+      "name": "Goa",
+      "continent": "AS",
+      "from": "1945-11-15",
+      "to": "1961-12-31"
+    },
+    {
+      "prefix": "CR8/T",
+      "name": "Timor Portugués",
+      "continent": "OC",
+      "from": "1945-11-15",
+      "to": "1976-09-14"
+    },
+    {
+      "prefix": "DA",
+      "name": "Alemania Occidental",
+      "continent": "EU",
+      "from": "1945-11-15",
+      "to": "1973-09-16"
+    },
+    {
+      "prefix": "EA9/I",
+      "name": "Ifni",
+      "continent": "AF",
+      "from": "1945-11-15",
+      "to": "1969-05-13"
+    },
+    {
+      "prefix": "FF",
+      "name": "África Oeste Francés",
+      "continent": "AF",
+      "from": "1945-11-15",
+      "to": "1960-08-06"
+    },
+    {
+      "prefix": "FH/D",
+      "name": "Comoros",
+      "continent": "AF",
+      "from": "1945-11-15",
+      "to": "1975-07-05"
+    },
+    {
+      "prefix": "FI8",
+      "name": "Indochina Francesa",
+      "continent": "AS",
+      "from": "1945-11-15",
+      "to": "1950-12-20"
+    },
+    {
+      "prefix": "FN8",
+      "name": "India Francesa",
+      "continent": "AS",
+      "from": "1945-11-15",
+      "to": "1954-10-31"
+    },
+    {
+      "prefix": "FQ8",
+      "name": "África Ecuatorial Francesa",
+      "continent": "AF",
+      "from": "1945-11-15",
+      "to": "1960-08-16"
+    },
+    {
+      "prefix": "HK0/B",
+      "name": "Bajo Nuevo",
+      "continent": "NA",
+      "from": "1945-11-15",
+      "to": "1981-09-16"
+    },
+    {
+      "prefix": "HK0/S",
+      "name": "Serrana y Cayo Ronc.",
+      "continent": "NA",
+      "from": "1945-11-15",
+      "to": "1981-09-16"
+    },
+    {
+      "prefix": "I1",
+      "name": "Trieste",
+      "continent": "EU",
+      "from": "1945-11-15",
+      "to": "1957-03-31"
+    },
+    {
+      "prefix": "I5",
+      "name": "Somalia Italiana",
+      "continent": "AF",
+      "from": "1945-11-15",
+      "to": "1960-06-30"
+    },
+    {
+      "prefix": "JD1/T",
+      "name": "Okino Torishima",
+      "continent": "AS",
+      "from": "1976-05-30",
+      "to": "1980-11-30"
+    },
+    {
+      "prefix": "JZ0",
+      "name": "Nueva Guinea Holandesa",
+      "continent": "OC",
+      "from": "1945-11-15",
+      "to": "1963-04-30"
+    },
+    {
+      "prefix": "KH5K",
+      "name": "Kingman Reef",
+      "continent": "OC",
+      "from": "1945-11-15",
+      "to": "2016-03-29"
+    },
+    {
+      "prefix": "KR6,8",
+      "name": "Okinawa (Ryukyu)",
+      "continent": "AS",
+      "from": "1945-11-15",
+      "to": "1972-05-14"
+    },
+    {
+      "prefix": "KS4",
+      "name": "Swan Is.",
+      "continent": "NA",
+      "from": "1945-11-15",
+      "to": "1972-08-31"
+    },
+    {
+      "prefix": "KZ5",
+      "name": "Zona del Canal",
+      "continent": "NA",
+      "from": "1945-11-15",
+      "to": "1979-09-30"
+    },
+    {
+      "prefix": "OK-OM",
+      "name": "Checoslovaquia",
+      "continent": "EU",
+      "from": "1945-11-15",
+      "to": "1992-12-31"
+    },
+    {
+      "prefix": "P2/NG",
+      "name": "Territorio Nueva Guinea",
+      "continent": "OC",
+      "from": "1945-11-15",
+      "to": "1975-09-15"
+    },
+    {
+      "prefix": "P2/P",
+      "name": "Territorio Papúa",
+      "continent": "OC",
+      "from": "1945-11-15",
+      "to": "1975-09-15"
+    },
+    {
+      "prefix": "PJ1-PJ4",
+      "name": "Antillas Holandesas",
+      "continent": "SA",
+      "from": "1945-11-15",
+      "to": "2010-10-10"
+    },
+    {
+      "prefix": "PJ5-PJ8",
+      "name": "San Martín y Saba",
+      "continent": "NA",
+      "from": "1945-11-15",
+      "to": "2010-10-10"
+    },
+    {
+      "prefix": "PK1-3",
+      "name": "Java",
+      "continent": "OC",
+      "from": "1945-11-15",
+      "to": "1963-04-30"
+    },
+    {
+      "prefix": "PK4",
+      "name": "Sumatra",
+      "continent": "OC",
+      "from": "1945-11-15",
+      "to": "1963-04-30"
+    },
+    {
+      "prefix": "PK5",
+      "name": "Borneo Holandés",
+      "continent": "OC",
+      "from": "1945-11-15",
+      "to": "1963-04-30"
+    },
+    {
+      "prefix": "PK6",
+      "name": "Celebes y Molucas",
+      "continent": "OC",
+      "from": "1945-11-15",
+      "to": "1963-04-30"
+    },
+    {
+      "prefix": "R1MV",
+      "name": "Malyj Vysotskij",
+      "continent": "EU",
+      "from": "1945-11-15",
+      "to": "2012-02-16"
+    },
+    {
+      "prefix": "ST0",
+      "name": "Sudán del Sur",
+      "continent": "AF",
+      "from": "1972-05-07",
+      "to": "1994-12-31"
+    },
+    {
+      "prefix": "UN1",
+      "name": "Karelia",
+      "continent": "EU",
+      "from": "1945-11-15",
+      "to": "1970-06-30"
+    },
+    {
+      "prefix": "VO",
+      "name": "Labrador",
+      "continent": "NA",
+      "from": "1945-11-15",
+      "to": "1949-03-31"
+    },
+    {
+      "prefix": "VQ1",
+      "name": "Zanzibar",
+      "continent": "AF",
+      "from": "1945-11-15",
+      "to": "1974-05-31"
+    },
+    {
+      "prefix": "VQ6",
+      "name": "Somalia Británica",
+      "continent": "AF",
+      "from": "1945-11-15",
+      "to": "1960-06-30"
+    },
+    {
+      "prefix": "VQ9/A",
+      "name": "Aldabra",
+      "continent": "AF",
+      "from": "1945-11-15",
+      "to": "1976-06-28"
+    },
+    {
+      "prefix": "VQ9/D",
+      "name": "Desroches",
+      "continent": "AF",
+      "from": "1945-11-15",
+      "to": "1976-06-28"
+    },
+    {
+      "prefix": "VQ9/F",
+      "name": "Farquhar",
+      "continent": "AF",
+      "from": "1945-11-15",
+      "to": "1976-06-28"
+    },
+    {
+      "prefix": "VS2",
+      "name": "Federacion Malaya",
+      "continent": "AS",
+      "from": "1945-11-15",
+      "to": "1963-09-15"
+    },
+    {
+      "prefix": "VS4",
+      "name": "Sarawak",
+      "continent": "OC",
+      "from": "1945-11-15",
+      "to": "1963-09-15"
+    },
+    {
+      "prefix": "VS9A",
+      "name": "Rep Democrática Yemen",
+      "continent": "AS",
+      "from": "1945-11-15",
+      "to": "1990-05-22"
+    },
+    {
+      "prefix": "VS9H",
+      "name": "Kuria Muria",
+      "continent": "AS",
+      "from": "1945-11-15",
+      "to": "1967-11-29"
+    },
+    {
+      "prefix": "VS9K",
+      "name": "Karaman",
+      "continent": "AS",
+      "from": "1945-11-15",
+      "to": "1982-03-11"
+    },
+    {
+      "prefix": "Y2",
+      "name": "Alemania Oriental",
+      "continent": "EU",
+      "from": "1973-09-17",
+      "to": "1990-10-03"
+    },
+    {
+      "prefix": "ZC5",
+      "name": "Borneo Británico",
+      "continent": "OC",
+      "from": "1945-11-15",
+      "to": "1963-09-15"
+    },
+    {
+      "prefix": "ZC6",
+      "name": "Palestina",
+      "continent": "AS",
+      "from": "1945-11-15",
+      "to": "1968-06-30"
+    },
+    {
+      "prefix": "ZD4",
+      "name": "Costa de Oro, Togo",
+      "continent": "AF",
+      "from": "1945-11-15",
+      "to": "1957-03-05"
+    },
+    {
+      "prefix": "ZS1",
+      "name": "Penguin",
+      "continent": "AF",
+      "from": "1945-11-15",
+      "to": "1994-02-28"
+    },
+    {
+      "prefix": "ZS9",
+      "name": "Walvis Bay",
+      "continent": "AF",
+      "from": "1977-09-01",
+      "to": "1994-02-28"
+    }
+  ]
+}

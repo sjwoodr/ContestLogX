@@ -1,0 +1,190 @@
+{
+  "contest": {
+    "name": "His Majesty The King of Spain CW",
+    "abbreviation": "KOS-CW",
+    "version": "1.0.0",
+    "sponsor": "Unión de Radioaficionados Españoles (URE)",
+    "description": "His Majesty The King of Spain CW Contest — third full weekend of May, 24-hour single window from 1200Z Saturday to 1159Z Sunday. Anyone may participate. Spanish stations send 2-letter province codes; DX stations send incrementing serial numbers (001+); the special station EF0F (HM the King of Spain) sends SMR. Multipliers are 52 Spanish provinces, the SMR special-station identifier, and EADX-100 entities (URE-curated, ~344 entities). Asymmetric per-direction scoring: EA→EA = 2 pts, EA→DX = 1 pt, DX→EA = 3 pts, DX→DX = 1 pt.",
+    "startDate": "Third full weekend of May, 1200Z Saturday to 1159Z Sunday (2026: May 16-17)",
+    "duration": 24,
+    "offTimeGapMinutes": 0,
+    "modes": ["CW"],
+    "bands": ["160m", "80m", "40m", "20m", "15m", "10m"],
+    "url": "https://concursos.ure.es/en/his-majesty-the-king-of-spain-cw/",
+    "categories": {
+      "stations": ["SINGLE_OP", "MULTI_OP"],
+      "power": ["LOW_POWER", "QRP", "HIGH_POWER"],
+      "modes": ["CW"]
+    }
+  },
+  "contestOnlineScore": {
+    "contestId": "EA-MAJESTAD-CW",
+    "mult1Name": "Provinces / EADX-100",
+    "mult1Attribute": "exchange"
+  },
+  "frequencies": {
+    "160m": {"start": 1810, "end": 1840, "cw": {"start": 1810, "end": 1840}},
+    "80m":  {"start": 3500, "end": 3570, "cw": {"start": 3500, "end": 3570}},
+    "40m":  {"start": 7000, "end": 7040, "cw": {"start": 7000, "end": 7040}},
+    "20m":  {"start": 14000, "end": 14060, "cw": {"start": 14000, "end": 14060}},
+    "15m":  {"start": 21000, "end": 21070, "cw": {"start": 21000, "end": 21070}},
+    "10m":  {"start": 28000, "end": 28070, "cw": {"start": 28000, "end": 28070}}
+  },
+  "stationClasses": {
+    "enabled": false
+  },
+  "userPrompts": [
+    {
+      "id": "stationType",
+      "question": "Are you operating from Spanish territory?",
+      "type": "select",
+      "options": [
+        {"value": "EA", "label": "Spain (mainland EA, EA6 Baleares, EA8 Canarias, or EA9 Ceuta/Melilla — 'Spanish stations' per the rules)"},
+        {"value": "DX", "label": "DX (any station outside Spanish territory)"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "Spanish stations send a 2-letter province code; DX stations send a serial number starting at 001."
+    },
+    {
+      "id": "operatingClass",
+      "question": "Select your entry category",
+      "type": "select",
+      "options": [
+        {"value": "SO_HP",        "label": "Single Op All Band - High Power (max legal)"},
+        {"value": "SO_LP",        "label": "Single Op All Band - Low Power (≤100 W)"},
+        {"value": "SO_QRP",       "label": "Single Op All Band - QRP (≤5 W)"},
+        {"value": "SO_YOUTH",     "label": "Single Op All Band - YOUTH (≤25 years old)"},
+        {"value": "SO_SINGLEBAND","label": "Single Op Single Band (entry on one band only)"},
+        {"value": "MULTI_HP",     "label": "Multi Op Multiband - High Power"},
+        {"value": "MULTI_LP",     "label": "Multi Op Multiband - Low Power"}
+      ],
+      "required": true,
+      "storeInMeta": true
+    },
+    {
+      "id": "myExchange",
+      "question": "Enter your sent exchange. Spanish stations: 2-letter province code (e.g., MA for Málaga, M for Madrid, B for Barcelona). DX stations: leave as 001 — the engine will increment serial numbers automatically.",
+      "type": "text",
+      "required": true,
+      "forceUppercase": true,
+      "storeInMeta": true,
+      "description": "Province code for Spanish stations; serial number (auto-incrementing) for DX stations. Special station EF0F sends 'SMR'.",
+      "exchangeFieldMapping": {
+        "myExchange": "EXCHs"
+      }
+    }
+  ],
+  "exchangeFields": {
+    "sent": [
+      {"name": "RSTs",  "type": "rst",    "required": true,  "description": "Signal report sent (599 standard)"},
+      {"name": "EXCHs", "type": "string", "required": true,  "description": "Province code (Spain) or serial number (DX) sent"}
+    ],
+    "received": [
+      {"name": "RSTr",  "type": "rst",    "required": true,  "description": "Signal report received"},
+      {"name": "EXCHr", "type": "string", "required": true,  "description": "Province code (from Spain) or serial number (from DX) received"}
+    ]
+  },
+  "qsoFields": [
+    {"name": "Date",      "column": "DATE",  "type": "date", "format": "yyyy-MM-dd", "required": true},
+    {"name": "Time",      "column": "TIME",  "type": "time", "format": "HH:mm:ss",   "required": true},
+    {"name": "Callsign",  "column": "CALL",  "type": "string", "required": true, "uppercase": true},
+    {"name": "Frequency", "column": "FREQ",  "type": "number", "unit": "kHz", "required": true},
+    {"name": "Mode",      "column": "MODE",  "type": "enum", "values": ["CW"], "required": true},
+    {"name": "RST Sent",     "column": "RSTs", "type": "rst", "required": true},
+    {"name": "RST Received", "column": "RSTr", "type": "rst", "required": true},
+    {"name": "Exchange Sent",     "column": "EXCHs", "type": "string", "required": true},
+    {"name": "Exchange Received", "column": "EXCHr", "type": "string", "required": true},
+    {"name": "Points",     "column": "POINTS", "type": "number", "calculated": true},
+    {"name": "Multiplier", "column": "M",      "type": "string", "calculated": true}
+  ],
+  "scoring": {
+    "points": {
+      "partnerEaForEaOp":    {"CW": 2},
+      "partnerEaForDxOp":    {"CW": 3},
+      "sameDxccEntity":      {"CW": 1},
+      "differentDxccEntity": {"CW": 1}
+    },
+    "partnerEaForEaOpPrefixes": ["EA", "EA6", "EA8", "EA9"],
+    "partnerEaForDxOpPrefixes": ["EA", "EA6", "EA8", "EA9"],
+    "scoringRuleConditions": {
+      "partnerEaForEaOp": {
+        "promptId": "stationType",
+        "values":   ["EA"]
+      },
+      "partnerEaForDxOp": {
+        "promptId": "stationType",
+        "values":   ["DX"]
+      }
+    },
+    "precedence": [
+      "partnerEaForEaOp",
+      "partnerEaForDxOp",
+      "sameDxccEntity",
+      "differentDxccEntity"
+    ],
+    "multipliers": {
+      "type": "multsPerBand",
+      "description": "Per-band multipliers: 52 Spanish provinces + SMR (His Majesty The King of Spain special station EF0F) + EADX-100 entities (URE list, ~344). EA-related entities (EA, EA6, EA8, EA9) are excluded from EADX-100 counting because Spanish stations contribute the more granular province multiplier — counting them via both namedMults (province) and eadx100 (country) would double-credit.",
+      "categories": ["namedMults", "eadx100"],
+      "eadx100Excludes": ["EA", "EA6", "EA8", "EA9"],
+      "alaskaAndHawaiiCountDxcc": false,
+      "usAndCanadaCountDxcc": false
+    },
+    "finalScore": "SUM(points) * SUM(multipliers)"
+  },
+  "dupeChecking": {
+    "type": "perBand",
+    "description": "A station may be worked once per band. CW only — no mode dimension."
+  },
+  "logging": {
+    "requiredFields": ["date", "time", "frequency", "mode", "callsign", "rstSent", "rstReceived", "exchSent", "exchReceived"],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "EA-MAJESTAD-CW",
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {rst_sent} {exch_sent} {call} {rst_rcvd} {exch_rcvd}"
+    }
+  },
+  "callHistory": {
+    "fieldsToSave": ["EXCHr"],
+    "description": "Save received province code (or serial number) for future lookups"
+  },
+  "validation": {
+    "minimumQSOs": 1,
+    "maxOperatingTime": 24,
+    "offTimesRequired": false,
+    "namedMults": [
+      "AV", "BU", "C", "LE", "LO", "LU", "O", "OU", "P", "PO", "S", "SA", "SG", "SO", "VA", "ZA",
+      "BI", "HU", "NA", "SS", "TE", "VI", "Z",
+      "B", "GI", "L", "T",
+      "BA", "CC", "CR", "CU", "GU", "M", "TO",
+      "A", "AB", "CS", "MU", "V",
+      "IB",
+      "AL", "CA", "CO", "GR", "H", "J", "MA", "SE",
+      "GC", "TF",
+      "CE", "ML",
+      "SMR"
+    ],
+    "exchangeValidation": {
+      "type": "multiplier",
+      "description": "Spanish stations send one of 52 province codes (1-2 letters) or SMR (the King's special station EF0F). DX stations send a 3-digit incrementing serial number. The engine recognizes the province codes as namedMults; serial numbers fall through and the operator's DXCC entity (looked up from callsign) provides the EADX-100 entity multiplier."
+    }
+  },
+  "ui": {
+    "showMultiplierPanel": true,
+    "logColumns": ["DATE", "TIME", "CALL", "FREQ", "MODE", "RSTs", "RSTr", "EXCHs", "EXCHr", "POINTS", "M", "COMMENT"],
+    "entryFields": ["CALL", "RSTr", "EXCHr"],
+    "fieldNavigation": {
+      "keys": "tab"
+    },
+    "bandMap": {
+      "enabled": true,
+      "bands": ["160m", "80m", "40m", "20m", "15m", "10m"]
+    },
+    "multiplierDisplay": {
+      "showStates": false,
+      "showProvinces": true,
+      "showDXCC": true
+    }
+  }
+}

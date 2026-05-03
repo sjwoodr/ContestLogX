@@ -40,6 +40,7 @@
 #include "debugLogger.h"
 #include "debugLogViewer.h"
 #include "dxccDatabase.h"
+#include "eadxDatabase.h"
 #include "onlineScoreClient.h"
 #include "cwDecoderWidget.h"
 #include "net/clxSnapshot.h"
@@ -133,6 +134,7 @@ MainWindow::MainWindow(QWidget *parent)
     , m_sessionStationInfo(new StationInfo())
     , m_contestEngine(new ContestEngine(this))
     , m_dxccDatabase(new DxccDatabase(this))
+    , m_eadxDatabase(new EadxDatabase(this))
     , m_rigClient(nullptr)
     , m_onlineScoreClient(new OnlineScoreClient(this))
     , m_scorePostTimer(new QTimer(this))
@@ -184,6 +186,25 @@ MainWindow::MainWindow(QWidget *parent)
         }
     } else {
         DebugLogger::instance().log("MainWindow", "cty.dat not found, will prompt for download");
+    }
+
+    // Initialize EADX-100 database (URE-curated entity list used by King of Spain
+    // and other URE contests). Optional — absence is logged but not fatal, since
+    // most contests don't use eadx100 as a multiplier category. Lives in the
+    // bundled data directory (shipped with the app, not downloaded), unlike
+    // cty.dat which is fetched at runtime to user data.
+    m_contestEngine->setEadxDatabase(m_eadxDatabase);
+    QString eadxPath = Settings::getDataPath() + "/eadx100.json";
+    if (QFile::exists(eadxPath)) {
+        if (m_eadxDatabase->loadFromFile(eadxPath)) {
+            DebugLogger::instance().log("MainWindow",
+                QString("EADX-100 database loaded (%1 active entities)")
+                    .arg(m_eadxDatabase->activeEntityCount()));
+        } else {
+            DebugLogger::instance().log("MainWindow", "Failed to load EADX-100 database");
+        }
+    } else {
+        DebugLogger::instance().log("MainWindow", "eadx100.json not found (optional — only required for URE contests)");
     }
     
     setupUi();
@@ -8108,8 +8129,13 @@ QString MainWindow::generateSummaryString()
             multTypes.append(namedLabel);
         }
         if (score.dxccMultCount > 0) {
-            out << "DXCC Multipliers:         " << score.dxccMultCount << "\n";
-            multTypes.append("DXCC");
+            // eadx100 mults flow into dxccMultCount but should display as
+            // EADX-100 when the contest uses the URE list rather than ARRL DXCC.
+            QStringList engineCats = m_contestEngine->getMultiplierCategories();
+            const bool isEadx100 = engineCats.contains("eadx100") && !engineCats.contains("dxcc");
+            const QString label = isEadx100 ? "EADX-100 Multipliers:    " : "DXCC Multipliers:         ";
+            out << label << score.dxccMultCount << "\n";
+            multTypes.append(isEadx100 ? "EADX-100" : "DXCC");
         }
         if (score.ituRegionMultCount > 0) {
             out << "ITU Region Multipliers:   " << score.ituRegionMultCount << "\n";
@@ -8310,7 +8336,7 @@ QString MainWindow::generateSummaryString()
             }
 
             if (!workedMults.isEmpty()) {
-                QString categoryDisplay = (category == "named" || category == "namedMults") ? m_contestEngine->getNamedMultsLabel() : (category == "dxcc") ? "DXCC Entities" : (category == "namedCallPrefixes") ? "Call Prefixes" : (category == "gridSquares") ? "Grid Squares" : category;
+                QString categoryDisplay = (category == "named" || category == "namedMults") ? m_contestEngine->getNamedMultsLabel() : (category == "dxcc") ? "DXCC Entities" : (category == "eadx100") ? "EADX-100 Entities" : (category == "namedCallPrefixes") ? "Call Prefixes" : (category == "gridSquares") ? "Grid Squares" : category;
                 out << categoryDisplay << " (Worked: " << workedMults.size() << ")\n";
 
                 QStringList sortedMults = QStringList(workedMults.begin(), workedMults.end());
@@ -8345,7 +8371,7 @@ QString MainWindow::generateSummaryString()
             }
 
             for (const auto& band : multsPerBand.keys()) {
-                QString categoryDisplay = (category == "named" || category == "namedMults") ? m_contestEngine->getNamedMultsLabel() : (category == "dxcc") ? "DXCC Entities" : (category == "namedCallPrefixes") ? "Call Prefixes" : (category == "gridSquares") ? "Grid Squares" : category;
+                QString categoryDisplay = (category == "named" || category == "namedMults") ? m_contestEngine->getNamedMultsLabel() : (category == "dxcc") ? "DXCC Entities" : (category == "eadx100") ? "EADX-100 Entities" : (category == "namedCallPrefixes") ? "Call Prefixes" : (category == "gridSquares") ? "Grid Squares" : category;
                 out << categoryDisplay << " - " << band << " (Worked: " << multsPerBand[band].size() << ")\n";
 
                 QStringList sortedMults = QStringList(multsPerBand[band].begin(), multsPerBand[band].end());
@@ -8396,7 +8422,7 @@ QString MainWindow::generateSummaryString()
             }
 
             for (const auto& mode : multsPerMode.keys()) {
-                QString categoryDisplay = (category == "named" || category == "namedMults") ? m_contestEngine->getNamedMultsLabel() : (category == "dxcc") ? "DXCC Entities" : (category == "namedCallPrefixes") ? "Call Prefixes" : (category == "gridSquares") ? "Grid Squares" : category;
+                QString categoryDisplay = (category == "named" || category == "namedMults") ? m_contestEngine->getNamedMultsLabel() : (category == "dxcc") ? "DXCC Entities" : (category == "eadx100") ? "EADX-100 Entities" : (category == "namedCallPrefixes") ? "Call Prefixes" : (category == "gridSquares") ? "Grid Squares" : category;
                 out << categoryDisplay << " - " << mode << " (Worked: " << multsPerMode[mode].size() << ")\n";
 
                 QStringList sortedMults = QStringList(multsPerMode[mode].begin(), multsPerMode[mode].end());
@@ -8433,7 +8459,7 @@ QString MainWindow::generateSummaryString()
             }
 
             for (const auto& key : multsPerBandMode.keys()) {
-                QString categoryDisplay = (category == "named" || category == "namedMults") ? m_contestEngine->getNamedMultsLabel() : (category == "dxcc") ? "DXCC Entities" : (category == "namedCallPrefixes") ? "Call Prefixes" : (category == "gridSquares") ? "Grid Squares" : category;
+                QString categoryDisplay = (category == "named" || category == "namedMults") ? m_contestEngine->getNamedMultsLabel() : (category == "dxcc") ? "DXCC Entities" : (category == "eadx100") ? "EADX-100 Entities" : (category == "namedCallPrefixes") ? "Call Prefixes" : (category == "gridSquares") ? "Grid Squares" : category;
                 out << categoryDisplay << " - " << key << " (Worked: " << multsPerBandMode[key].size() << ")\n";
 
                 QStringList sortedMults = QStringList(multsPerBandMode[key].begin(), multsPerBandMode[key].end());

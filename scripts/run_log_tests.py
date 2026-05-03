@@ -62,8 +62,8 @@ def validate_multipliers(log_content, test_name):
     mults_section = re.search(r'Contact Points:.*?Score Calculation:', summary, re.DOTALL)
     if mults_section:
         known_labels = {'Contact Points', 'Named Multipliers', 'DXCC Multipliers',
-                        'Grid Square Multipliers', 'Call Prefix Multipliers',
-                        'ITU Region Multipliers'}
+                        'EADX-100 Multipliers', 'Grid Square Multipliers',
+                        'Call Prefix Multipliers', 'ITU Region Multipliers'}
         for m in re.finditer(r'^([A-Za-z][^:\n]+):\s+(\d+)\s*$', mults_section.group(0), re.MULTILINE):
             label = m.group(1).strip()
             if label not in known_labels:
@@ -72,6 +72,12 @@ def validate_multipliers(log_content, test_name):
     dxcc_match = re.search(r'DXCC Multipliers:\s+(\d+)', summary)
     if dxcc_match:
         claimed_mults['DXCC Entities'] = int(dxcc_match.group(1))
+
+    # EADX-100 mults flow into the same internal bucket as DXCC but the summary
+    # sheet labels them differently when the contest uses URE's entity list.
+    eadx_match = re.search(r'EADX-100 Multipliers:\s+(\d+)', summary)
+    if eadx_match:
+        claimed_mults['EADX-100 Entities'] = int(eadx_match.group(1))
 
     grid_match = re.search(r'Grid Square Multipliers:\s+(\d+)', summary)
     if grid_match:

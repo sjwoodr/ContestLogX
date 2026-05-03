@@ -75,6 +75,7 @@ set(SOURCES
     src/utils/ttsManager.cpp
     src/utils/piperManager.cpp
     src/database/dxccDatabase.cpp
+    src/database/eadxDatabase.cpp
     src/qrzcqApi.cpp
     src/qrzApi.cpp
     src/net/onlineScoreClient.cpp
@@ -147,6 +148,7 @@ set(HEADERS
      src/utils/bandPlan.h
      src/utils/callsignUtils.h
      include/dxccDatabase.h
+     include/eadxDatabase.h
      include/qrzcqApi.h
      include/qrzApi.h
      include/onlineScoreClient.h

@@ -382,6 +382,7 @@ private:
     QString m_fieldNavigationKeys;  // "space", "tab", or "both" - from contest definition
     class ContestEngine *m_contestEngine;
     class DxccDatabase *m_dxccDatabase;
+    class EadxDatabase *m_eadxDatabase = nullptr;
     
     // Rig control — Radio L
     RigInterface *m_rigClient;

@@ -222,6 +222,11 @@ void ScoreWidget::updateMultsSummary(const ContestEngine::ContestScore& score)
     }
     if (m_multCategories.contains("dxcc") && score.dxccMultCount > 0) {
         parts.append(QString("DXCC: %1").arg(score.dxccMultCount));
+    } else if (m_multCategories.contains("eadx100") && score.dxccMultCount > 0) {
+        // eadx100 mults flow into the same dxccMultCount bucket but should be
+        // labeled differently in the UI since the operator is competing against
+        // the URE EADX-100 list, not ARRL DXCC.
+        parts.append(QString("EADX-100: %1").arg(score.dxccMultCount));
     }
     if (m_multCategories.contains("ituRegions") && score.ituRegionMultCount > 0) {
         parts.append(QString("ITU: %1").arg(score.ituRegionMultCount));
