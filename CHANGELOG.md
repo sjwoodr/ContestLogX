@@ -4,6 +4,15 @@ All notable changes to ContestLogX are documented in this file.
 
 ## [0.8.1]
 
+### Contest Updates
+- Added the Canadian Prairies QSO Party (CPQP) — second weekend of May. CW/SSB only, 40–10m. Cabrillo CONTEST tag: `CPQP`
+
+### Contest Engine Changes
+- Extended `multAliases` with a new `sourceValues` field — an inline array of exact-match values that lets one alias rule target a specific subset of values without requiring a named list. Used by CPQP to map each prairie province's Federal Electoral District codes to its 2-letter province code in three rules (one per province). Backward-compatible — every existing contest definition still works unchanged
+
+### Other Changes and Bugfixes
+- Added a positional argument form to `make version` — `make version 0.8.1` updates to 0.8.1 directly without the interactive prompt. The no-arg form still prompts as before
+
 ## [0.8.0]
 
 ### Contest Updates

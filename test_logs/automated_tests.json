@@ -259,6 +259,16 @@
       "name": "NEQP Out-of-State FL (115 QSOs incl 3 dupes, multsOnce, 56 NE county mults only, 5 bands)",
       "log_file": "test_neqp_outofstate.clx",
       "expected_score": 9184
+    },
+    {
+      "name": "CPQP In-Prairie SK (115 QSOs incl 3 dupes, multsPerBand, FED→province aliasing for prairie-prairie QSOs, 4 bands)",
+      "log_file": "test_cpqp_inprairie.clx",
+      "expected_score": 7616
+    },
+    {
+      "name": "CPQP Out-of-Prairie FL (115 QSOs incl 3 dupes, multsPerBand, 65 FED mults, 4 bands)",
+      "log_file": "test_cpqp_outprairie.clx",
+      "expected_score": 10304
     }
   ]
 }

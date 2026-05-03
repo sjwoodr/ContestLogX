@@ -201,6 +201,7 @@ private:
         QString promptValue;          // legacy: single trigger value
         QStringList promptValueIn;    // newer: any-of trigger values (overrides promptValue if non-empty)
         QString sourceList;           // "inStateMults" or "namedMults"
+        QStringList sourceValues;     // newer: inline exact-match list (overrides sourceList when non-empty). Lets one alias rule target a specific subset of values without requiring a named list — used by CPQP to map FED codes to one of three prairie provinces with a separate rule per province.
         QString mapsTo;               // legacy: replace whole rawMult with this string
         int mapByPrefix = 0;          // newer: take rawMult.left(mapByPrefix) instead of mapsTo (e.g., 2 = first 2 chars). 0 = disabled.
     };

@@ -137,6 +137,12 @@ bool ContestEngine::loadContest(const QJsonObject& contestDef)
                 }
             }
             alias.sourceList  = obj["sourceList"].toString();
+            if (obj.contains("sourceValues")) {
+                QJsonArray arr = obj["sourceValues"].toArray();
+                for (const QJsonValue& av : arr) {
+                    alias.sourceValues.append(av.toString().toUpper());
+                }
+            }
             alias.mapsTo      = obj["mapsTo"].toString().toUpper();
             alias.mapByPrefix = obj["mapByPrefix"].toInt(0);
             // A rule is well-formed if it has promptId and either a static
@@ -1533,10 +1539,14 @@ QStringList ContestEngine::getEffectiveNamedMultiplierList() const
         }
         if (!triggered) continue;
 
-        if (alias.sourceList == "inStateMults")
+        if (!alias.sourceValues.isEmpty()) {
+            for (const QString& v : alias.sourceValues)
+                aliasedSources.insert(v);
+        } else if (alias.sourceList == "inStateMults") {
             aliasedSources += m_inStateMults;
-        else if (alias.sourceList == "namedMults")
+        } else if (alias.sourceList == "namedMults") {
             aliasedSources += m_validMultipliers;
+        }
     }
 
     if (aliasedSources.isEmpty())
@@ -1973,13 +1983,22 @@ QString ContestEngine::applyMultAlias(const QString& rawMult) const
         }
         if (!triggered) continue;
 
-        const QSet<QString>* sourceSet = nullptr;
-        if (alias.sourceList == "inStateMults")
-            sourceSet = &m_inStateMults;
-        else if (alias.sourceList == "namedMults")
-            sourceSet = &m_validMultipliers;
+        // sourceValues (inline exact-match list) wins over sourceList
+        // (named list reference) when present. Lets one alias rule target
+        // a specific subset of values without needing a named list.
+        bool inSource = false;
+        if (!alias.sourceValues.isEmpty()) {
+            inSource = alias.sourceValues.contains(rawMult);
+        } else {
+            const QSet<QString>* sourceSet = nullptr;
+            if (alias.sourceList == "inStateMults")
+                sourceSet = &m_inStateMults;
+            else if (alias.sourceList == "namedMults")
+                sourceSet = &m_validMultipliers;
+            inSource = (sourceSet && sourceSet->contains(rawMult));
+        }
 
-        if (sourceSet && sourceSet->contains(rawMult)) {
+        if (inSource) {
             // mapByPrefix wins over mapsTo when present — extracts the
             // first N characters from rawMult (e.g., 7QP's 5-letter county
             // code WYALB with mapByPrefix=2 → WY).

@@ -517,6 +517,8 @@ Two examples that drove the design:
 
 - **7QP (7th Call Area QSO Party)** — 7th-area stations work everyone, including each other. Two 7th-area stations exchange 5-letter `<state><county>` codes (e.g., `WYALB`, `ORDES`). For a 7th-area operator, those codes count toward the **state** multiplier, not the county. A `multAliases` rule extracts the first 2 characters as the mult value, *only when the operator is in one of the eight 7th-area states*.
 
+- **CPQP (Canadian Prairies QSO Party)** — prairie stations (MB/SK/AB) work each other and exchange 3-letter Federal Electoral District (FED) codes that aren't algorithmically convertible to a province (`AIR`, `BAT`, `RGW`, `BRA`, etc.). A prairie operator who works two MB stations on the same band should earn one MB province mult, not two FED mults. Three `multAliases` rules — one per prairie province — use `sourceValues` to enumerate that province's FED codes and `mapsTo` the 2-letter province code. Only one rule's source set contains any given FED, so the right province wins.
+
 ### JSON shape
 
 `multAliases` lives at the **top level** of the contest definition (sibling to `scoring`, `dupeChecking`, etc.) and contains an array of rule objects:
@@ -556,7 +558,8 @@ When a rule fires, the engine inspects the rawMult value (the received exchange 
 
 | Field | Effect |
 |-------|--------|
-| `sourceList` | Required. Either `"inStateMults"` (the same list referenced by `validation.inStateMults`) or `"namedMults"` (`validation.namedMults`). The rule's mapping only applies if rawMult is in this set. |
+| `sourceList` | Either `"inStateMults"` (the same list referenced by `validation.inStateMults`) or `"namedMults"` (`validation.namedMults`). The rule's mapping only applies if rawMult is in this set. Required unless `sourceValues` is set. |
+| `sourceValues` | Inline exact-match list — array of specific values (e.g., `["AIR","BAT","BOW",…]`) that this rule applies to. Use when different subsets of the source list need to map to different targets, so each subset gets its own rule. Wins over `sourceList` when present. CPQP uses this to map each prairie province's FED codes to its 2-letter province code with one rule per province. |
 | `mapsTo` | Static replacement: rawMult is replaced with this string in the engine's mult lookup. |
 | `mapByPrefix` | Prefix extraction: take `rawMult.left(N)` as the mult value. Use for state-prefixed codes (e.g., 7QP's 5-letter `<state><county>` → 2-char state with `mapByPrefix: 2`). Wins over `mapsTo` when both are present. |
 
@@ -565,7 +568,7 @@ When a rule fires, the engine inspects the rawMult value (the received exchange 
 When a QSO is logged:
 
 1. The received exchange value is extracted from the `EXCHr` field.
-2. If any `multAliases` rule's trigger matches the current operator (`promptId` answer matches `promptValue` or appears in `promptValueIn`), AND rawMult is in that rule's `sourceList`, the alias activates.
+2. If any `multAliases` rule's trigger matches the current operator (`promptId` answer matches `promptValue` or appears in `promptValueIn`), AND rawMult is in that rule's source set (`sourceValues` if present, otherwise `sourceList`), the alias activates.
 3. The aliased value (`mapsTo` or `rawMult.left(mapByPrefix)`) replaces rawMult as the credited multiplier.
 4. If no rule matches, rawMult is used unchanged.
 

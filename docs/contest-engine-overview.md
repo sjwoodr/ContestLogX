@@ -112,11 +112,11 @@ Two layered remap mechanisms run before the engine's mult-lookup, used when a re
 
 1. **`validation.namedMultAliases`** — an unconditional 1:1 key→value table. Always applied regardless of operator. Use for input forgiveness or scoring-equivalent codes (e.g., `"DC" → "MD"`).
 
-2. **`multAliases`** (top-level, conditional) — an array of rules triggered by the operator's `userPrompts` answer. Each rule names a `sourceList` (`"inStateMults"` or `"namedMults"`) and a mapping. Two mapping forms are supported:
-   - **Static**: `mapsTo` replaces the rawMult with a fixed string (e.g., FQP: every FL county → `FL` for FL operators).
+2. **`multAliases`** (top-level, conditional) — an array of rules triggered by the operator's `userPrompts` answer. Each rule names a source set and a mapping. The source set is either a named list (`sourceList: "inStateMults"` or `"namedMults"`) or an inline array of exact values (`sourceValues: ["AIR","BAT",…]`). Two mapping forms are supported:
+   - **Static**: `mapsTo` replaces the rawMult with a fixed string (e.g., FQP: every FL county → `FL` for FL operators; CPQP: each prairie province's FED codes → its 2-letter province code, with one rule per province via `sourceValues`).
    - **Prefix**: `mapByPrefix: N` returns `rawMult.left(N)` (e.g., 7QP: `WYALB` → `WY` for 7th-area operators, where the 5-letter exchange's first 2 chars name the state).
 
-   The trigger can be a single value (`promptValue: "FL"`) or any-of (`promptValueIn: ["AZ","ID",…]`). Values listed in a rule's `sourceList` are also hidden from the multiplier panel display when the rule is active, since the operator is earning credit for the aliased target instead.
+   The trigger can be a single value (`promptValue: "FL"`) or any-of (`promptValueIn: ["AZ","ID",…]`). Values in a rule's source set are also hidden from the multiplier panel display when the rule is active, since the operator is earning credit for the aliased target instead.
 
 Both mechanisms are documented in detail in `docs/contest-module-format.md`.
 

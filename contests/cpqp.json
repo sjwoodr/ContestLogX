@@ -1,0 +1,270 @@
+{
+  "contest": {
+    "name": "Canadian Prairies QSO Party",
+    "abbreviation": "CPQP",
+    "version": "1.0.0",
+    "sponsor": "VE6HAMS Calgary Amateur Radio Association",
+    "description": "Canadian Prairies QSO Party — second weekend of May, 10-hour contest. Prairie stations (VA/VE 4, 5, 6 — Manitoba, Saskatchewan, Alberta) work everyone; non-prairie stations work only prairie stations. Exchange is RST + 3-letter Federal Electoral District (FED) code for prairie stations, or RST + 2-letter state/province (or DX) for everyone else. CW + SSB only — no digital modes per the contest rules.",
+    "startDate": "Second weekend of May (2026: May 9-10)",
+    "duration": 10,
+    "offTimeGapMinutes": 0,
+    "modes": ["CW", "SSB"],
+    "bands": ["40m", "20m", "15m", "10m"],
+    "url": "https://cpqp.ve6hams.ca",
+    "categories": {
+      "stations": ["SINGLE_OP", "MULTI_OP", "MOBILE", "ROVER"],
+      "power": ["LOW_POWER", "QRP", "HIGH_POWER"],
+      "modes": ["MIXED", "CW", "PHONE"]
+    }
+  },
+  "contestOnlineScore": {
+    "contestId": "CPQP",
+    "mult1Name": "FEDs / States / Prov.",
+    "mult1Attribute": "exchange"
+  },
+  "frequencies": {
+    "40m": {
+      "start": 7000, "end": 7300,
+      "cw":    {"start": 7000, "end": 7125},
+      "phone": {"start": 7125, "end": 7300}
+    },
+    "20m": {
+      "start": 14000, "end": 14350,
+      "cw":    {"start": 14000, "end": 14150},
+      "phone": {"start": 14150, "end": 14350}
+    },
+    "15m": {
+      "start": 21000, "end": 21450,
+      "cw":    {"start": 21000, "end": 21200},
+      "phone": {"start": 21200, "end": 21450}
+    },
+    "10m": {
+      "start": 28000, "end": 29700,
+      "cw":    {"start": 28000, "end": 28300},
+      "phone": {"start": 28300, "end": 29700}
+    }
+  },
+  "stationClasses": {
+    "enabled": false
+  },
+  "userPrompts": [
+    {
+      "id": "stationType",
+      "question": "Select your station location",
+      "type": "select",
+      "options": [
+        {"value": "CP",      "label": "Canadian Prairies (MB / SK / AB — VA/VE 4, 5, 6)"},
+        {"value": "OUTSIDE", "label": "Outside Canadian Prairies (W / VE other than 4, 5, 6)"},
+        {"value": "DX",      "label": "DX (outside W / VE)"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "Prairie stations work everyone; non-prairie stations work only prairie stations. DX stations may also enter (TOP DX certificate awarded)."
+    },
+    {
+      "id": "operatingClass",
+      "question": "Select your operating class",
+      "type": "select",
+      "options": [
+        {"value": "SO_HP",   "label": "Single Op: High Power (>100 W)"},
+        {"value": "SO_LP",   "label": "Single Op: Low Power (≤100 W)"},
+        {"value": "SO_QRP",  "label": "Single Op: QRP (≤5 W)"},
+        {"value": "MULTI",   "label": "Multi-Op (single transmitter)"},
+        {"value": "MOBILE",  "label": "Mobile (independent of commercial power; non-prairie or QRP only)"},
+        {"value": "ROVER",   "label": "Rover (prairie only — moves between FEDs)"},
+        {"value": "CHECK",   "label": "Check Log"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "Use of assistance (spotting, RBN, cluster, Skimmer) is allowed in all categories. Self-spotting is not allowed."
+    },
+    {
+      "id": "myExchange",
+      "question": "Enter your exchange. Prairie stations: 3-letter FED code (e.g., AIR for Airdrie-Cochrane, RGW for Regina Wascana, BRA for Brandon-Souris). Non-prairie W/VE: 2-letter state/province. DX: DX.",
+      "type": "text",
+      "required": true,
+      "forceUppercase": true,
+      "storeInMeta": true,
+      "description": "3-letter FED code for prairie stations; 2-letter state/province for non-prairie W/VE; DX otherwise. Rovers must change this when crossing into a new FED.",
+      "exchangeFieldMapping": {
+        "myExchange": "EXCHs"
+      }
+    }
+  ],
+  "exchangeFields": {
+    "sent": [
+      {
+        "name": "RSTs",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report sent (default 599 CW / 59 Phone)"
+      },
+      {
+        "name": "EXCHs",
+        "type": "string",
+        "required": true,
+        "description": "3-letter FED code for prairie stations; 2-letter state/province for non-prairie W/VE; DX otherwise"
+      }
+    ],
+    "received": [
+      {
+        "name": "RSTr",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report received"
+      },
+      {
+        "name": "EXCHr",
+        "type": "string",
+        "required": true,
+        "description": "3-letter FED from prairie stations; 2-letter state/province from W/VE; DX otherwise"
+      }
+    ]
+  },
+  "qsoFields": [
+    {"name": "Date",      "column": "DATE",  "type": "date", "format": "yyyy-MM-dd", "required": true},
+    {"name": "Time",      "column": "TIME",  "type": "time", "format": "HH:mm:ss",   "required": true},
+    {"name": "Callsign",  "column": "CALL",  "type": "string", "required": true, "uppercase": true},
+    {"name": "Frequency", "column": "FREQ",  "type": "number", "unit": "kHz", "required": true},
+    {"name": "Mode",      "column": "MODE",  "type": "enum", "values": ["CW", "SSB"], "required": true},
+    {"name": "RST Sent",     "column": "RSTs", "type": "rst", "required": true, "description": "Signal report sent"},
+    {"name": "RST Received", "column": "RSTr", "type": "rst", "required": true, "description": "Signal report received"},
+    {"name": "Exchange Sent",     "column": "EXCHs", "type": "string", "required": true, "description": "Exchange sent"},
+    {"name": "Exchange Received", "column": "EXCHr", "type": "string", "required": true, "description": "Exchange received"},
+    {"name": "Points",     "column": "POINTS", "type": "number", "calculated": true},
+    {"name": "Multiplier", "column": "M",      "type": "string", "calculated": true}
+  ],
+  "scoring": {
+    "points": {
+      "cw":    1,
+      "phone": 1
+    },
+    "multipliers": {
+      "type": "multsPerBand",
+      "description": "Multipliers count once per band. Non-prairie operators count the 65 FED codes (max 65 × 4 bands). Prairie operators count US states (50) + non-prairie Canadian provinces (10) + the 3 prairie provinces (MB/SK/AB — credited via FED → province aliasing on prairie-prairie QSOs, max 1 per band per prairie province) for a maximum of 63 mults per band (252 total). DC counts as MD via namedMultAliases.",
+      "categories": ["namedMults"],
+      "alaskaAndHawaiiCountDxcc": false,
+      "usAndCanadaCountDxcc": false
+    },
+    "finalScore": "SUM(points) * SUM(multipliers)"
+  },
+  "dupeChecking": {
+    "type": "perBandAndMode",
+    "description": "A station may be worked once on CW and once on SSB on each of the four bands (max 8 QSOs with any one station). Duplicates earn no QSO credit but should NOT be removed from the log — they help with log checking. CW contacts must be made outside the phone sub-bands. Rovers and mobiles changing FED count as new stations and may be re-worked for additional points and mult credit."
+  },
+  "multAliases": [
+    {
+      "promptId": "stationType",
+      "promptValue": "CP",
+      "sourceValues": [
+        "AIR", "BAT", "BOW", "CCE", "CCO", "CCF", "CET", "CHE", "CMC", "CMI",
+        "CNH", "CSH", "CSG", "CSK", "EDC", "EGA", "EDG", "EDM", "ENW", "ERV",
+        "ESE", "EST", "EDW", "FTH", "FTM", "GPR", "LAK", "LWT", "LTH", "MED",
+        "PRK", "PRW", "PON", "RED", "SPK", "STS", "YEL"
+      ],
+      "mapsTo": "AB",
+      "description": "Alberta FEDs → AB province mult for CP operators (the 37 Alberta FED codes published in the CPQP multiplier chart)"
+    },
+    {
+      "promptId": "stationType",
+      "promptValue": "CP",
+      "sourceValues": [
+        "BLM", "CAR", "DES", "MOO", "PRI", "RGL", "RGQ", "RGW", "SKS", "SKU",
+        "SKW", "SOU", "SGK", "YOR"
+      ],
+      "mapsTo": "SK",
+      "description": "Saskatchewan FEDs → SK province mult for CP operators (the 14 Saskatchewan FED codes)"
+    },
+    {
+      "promptId": "stationType",
+      "promptValue": "CP",
+      "sourceValues": [
+        "BRA", "CHU", "ELM", "KIL", "POR", "PRO", "RDM", "STB", "SEL", "WPC",
+        "WPN", "WPS", "WSC", "WWT"
+      ],
+      "mapsTo": "MB",
+      "description": "Manitoba FEDs → MB province mult for CP operators (the 14 Manitoba FED codes)"
+    }
+  ],
+  "logging": {
+    "requiredFields": ["date", "time", "frequency", "mode", "callsign", "rstSent", "rstReceived", "exchSent", "exchReceived"],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "CPQP",
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {rst_sent} {exch_sent} {call} {rst_rcvd} {exch_rcvd}"
+    }
+  },
+  "callHistory": {
+    "fieldsToSave": ["EXCHr"],
+    "description": "Save received exchange (FED, state, or province) for future lookups"
+  },
+  "validation": {
+    "minimumQSOs": 1,
+    "maxOperatingTime": 10,
+    "offTimesRequired": false,
+    "namedMults": [
+      "AIR", "BAT", "BOW", "CCE", "CCO", "CCF", "CET", "CHE", "CMC", "CMI",
+      "CNH", "CSH", "CSG", "CSK", "EDC", "EGA", "EDG", "EDM", "ENW", "ERV",
+      "ESE", "EST", "EDW", "FTH", "FTM", "GPR", "LAK", "LWT", "LTH", "MED",
+      "PRK", "PRW", "PON", "RED", "SPK", "STS", "YEL",
+
+      "BLM", "CAR", "DES", "MOO", "PRI", "RGL", "RGQ", "RGW", "SKS", "SKU",
+      "SKW", "SOU", "SGK", "YOR",
+
+      "BRA", "CHU", "ELM", "KIL", "POR", "PRO", "RDM", "STB", "SEL", "WPC",
+      "WPN", "WPS", "WSC", "WWT",
+
+      "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA",
+      "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD",
+      "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ",
+      "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC",
+      "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY",
+
+      "BC", "AB", "SK", "MB", "ON", "QC", "NT", "NU", "YT", "NB", "NL", "NS", "PE"
+    ],
+    "namedMultAliases": {
+      "DC": "MD"
+    },
+    "exchangeValidation": {
+      "type": "multiplier",
+      "description": "Exchange should be a 3-letter FED code (one of 65 prairie FEDs published by the sponsor) for prairie stations, a 2-letter US state or Canadian province code for non-prairie W/VE, or DX. DC counts as MD via the namedMultAliases unconditional remap."
+    },
+    "receivedExchangeFilter": {
+      "promptId": "stationType",
+      "rules": {
+        "OUTSIDE": "inStateMults",
+        "DX":      "inStateMults"
+      }
+    },
+    "inStateMults": [
+      "AIR", "BAT", "BOW", "CCE", "CCO", "CCF", "CET", "CHE", "CMC", "CMI",
+      "CNH", "CSH", "CSG", "CSK", "EDC", "EGA", "EDG", "EDM", "ENW", "ERV",
+      "ESE", "EST", "EDW", "FTH", "FTM", "GPR", "LAK", "LWT", "LTH", "MED",
+      "PRK", "PRW", "PON", "RED", "SPK", "STS", "YEL",
+
+      "BLM", "CAR", "DES", "MOO", "PRI", "RGL", "RGQ", "RGW", "SKS", "SKU",
+      "SKW", "SOU", "SGK", "YOR",
+
+      "BRA", "CHU", "ELM", "KIL", "POR", "PRO", "RDM", "STB", "SEL", "WPC",
+      "WPN", "WPS", "WSC", "WWT"
+    ]
+  },
+  "ui": {
+    "showMultiplierPanel": true,
+    "logColumns": ["DATE", "TIME", "CALL", "FREQ", "MODE", "RSTs", "RSTr", "EXCHs", "EXCHr", "POINTS", "M", "COMMENT"],
+    "entryFields": ["CALL", "RSTr", "EXCHr"],
+    "fieldNavigation": {
+      "keys": "tab"
+    },
+    "bandMap": {
+      "enabled": true,
+      "bands": ["40m", "20m", "15m", "10m"]
+    },
+    "multiplierDisplay": {
+      "showCounties": true,
+      "showStates": true,
+      "showProvinces": true,
+      "showDXCC": false
+    }
+  }
+}
