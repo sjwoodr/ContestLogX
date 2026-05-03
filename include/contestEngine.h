@@ -198,9 +198,11 @@ private:
     
     struct MultAlias {
         QString promptId;
-        QString promptValue;
-        QString sourceList;  // "inStateMults" or "namedMults"
-        QString mapsTo;
+        QString promptValue;          // legacy: single trigger value
+        QStringList promptValueIn;    // newer: any-of trigger values (overrides promptValue if non-empty)
+        QString sourceList;           // "inStateMults" or "namedMults"
+        QString mapsTo;               // legacy: replace whole rawMult with this string
+        int mapByPrefix = 0;          // newer: take rawMult.left(mapByPrefix) instead of mapsTo (e.g., 2 = first 2 chars). 0 = disabled.
     };
     QList<MultAlias> m_multAliases;
     QHash<QString, QString> m_namedMultAliases;  // 1:1 alias map (e.g., "5" → "05")

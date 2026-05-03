@@ -26,8 +26,25 @@ Settings::Settings() : m_modified(false)
     load();
 }
 
+namespace { QString s_overrideConfigDir; }
+
+void Settings::setOverrideConfigDir(const QString& dir)
+{
+    s_overrideConfigDir = dir;
+}
+
+QString Settings::overrideConfigDir()
+{
+    return s_overrideConfigDir;
+}
+
 QString Settings::settingsFilePath() const
 {
+    if (!s_overrideConfigDir.isEmpty()) {
+        QDir dir(s_overrideConfigDir);
+        if (!dir.exists()) dir.mkpath(".");
+        return dir.filePath("ContestLogX.json");
+    }
     QString configPath = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
     QDir dir(configPath);
     if (!dir.exists("ContestLogX")) {

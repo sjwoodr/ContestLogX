@@ -1,0 +1,373 @@
+{
+  "contest": {
+    "name": "7th Call Area QSO Party",
+    "abbreviation": "7QP",
+    "version": "1.0.0",
+    "sponsor": "Western Washington DX Club, Willamette Valley DX Club, et al.",
+    "description": "7th call area state QSO party — 7th-area stations work everyone, others work 7th-area stations only. CW, SSB, and non-WSJT digital modes (RTTY, PSK, etc.). WSJT modes (FT8, FT4, MSK144, JT65) are NOT allowed because they cannot transmit the required 7QP exchange.",
+    "startDate": "First Saturday in May, 1300 UTC (2026: May 2)",
+    "duration": 18,
+    "offTimeGapMinutes": 0,
+    "modes": ["CW", "SSB", "DIGITAL"],
+    "bands": ["160m", "80m", "40m", "20m", "15m", "10m"],
+    "url": "https://www.7qp.org/",
+    "categories": {
+      "stations": ["SINGLE_OP", "MULTI_OP", "MOBILE", "EXPEDITION"],
+      "power": ["LOW_POWER", "QRP", "HIGH_POWER"],
+      "modes": ["MIXED", "CW", "PHONE", "DIGITAL"]
+    }
+  },
+  "contestOnlineScore": {
+    "contestId": "7QP",
+    "mult1Name": "Counties / States / Prov.",
+    "mult1Attribute": "exchange"
+  },
+  "frequencies": {
+    "160m": {
+      "start": 1800, "end": 2000,
+      "cw":    {"start": 1800, "end": 1850},
+      "phone": {"start": 1850, "end": 2000}
+    },
+    "80m": {
+      "start": 3500, "end": 4000,
+      "cw":    {"start": 3500, "end": 3600},
+      "phone": {"start": 3600, "end": 4000}
+    },
+    "40m": {
+      "start": 7000, "end": 7300,
+      "cw":    {"start": 7000, "end": 7125},
+      "phone": {"start": 7125, "end": 7300}
+    },
+    "20m": {
+      "start": 14000, "end": 14350,
+      "cw":    {"start": 14000, "end": 14150},
+      "phone": {"start": 14150, "end": 14350}
+    },
+    "15m": {
+      "start": 21000, "end": 21450,
+      "cw":    {"start": 21000, "end": 21200},
+      "phone": {"start": 21200, "end": 21450}
+    },
+    "10m": {
+      "start": 28000, "end": 29700,
+      "cw":    {"start": 28000, "end": 28300},
+      "phone": {"start": 28300, "end": 29700}
+    }
+  },
+  "stationClasses": {
+    "enabled": false
+  },
+  "userPrompts": [
+    {
+      "id": "stationType",
+      "question": "Select your station location",
+      "type": "select",
+      "options": [
+        {"value": "7TH_AREA", "label": "7th Call Area (AZ / ID / MT / NV / OR / UT / WA / WY)"},
+        {"value": "OUTSIDE",  "label": "Outside 7th Area (W / VE / other)"},
+        {"value": "DX",       "label": "DX (outside W / VE)"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "7th-area stations work everyone; non-7th-area stations work 7th-area stations only. Your specific state is conveyed by the exchange you send (the first 2 letters of your 5-letter code)."
+    },
+    {
+      "id": "operatingClass",
+      "question": "Select your operating class",
+      "type": "select",
+      "options": [
+        {"value": "SO_HP_CW",      "label": "Single Op: High Power, CW"},
+        {"value": "SO_HP_PH",      "label": "Single Op: High Power, Phone"},
+        {"value": "SO_HP_DIG",     "label": "Single Op: High Power, Digital"},
+        {"value": "SO_HP_MIXED",   "label": "Single Op: High Power, Mixed"},
+        {"value": "SO_LP_CW",      "label": "Single Op: Low Power (<100W), CW"},
+        {"value": "SO_LP_PH",      "label": "Single Op: Low Power (<100W), Phone"},
+        {"value": "SO_LP_DIG",     "label": "Single Op: Low Power (<100W), Digital"},
+        {"value": "SO_LP_MIXED",   "label": "Single Op: Low Power (<100W), Mixed"},
+        {"value": "SO_QRP_CW",     "label": "Single Op: QRP (<5W), CW"},
+        {"value": "SO_QRP_PH",     "label": "Single Op: QRP (<5W), Phone"},
+        {"value": "SO_QRP_DIG",    "label": "Single Op: QRP (<5W), Digital"},
+        {"value": "SO_QRP_MIXED",  "label": "Single Op: QRP (<5W), Mixed"},
+        {"value": "MS_HP",         "label": "Multi-Single: High Power"},
+        {"value": "MS_LP",         "label": "Multi-Single: Low Power"},
+        {"value": "MM",            "label": "Multi-Multi"},
+        {"value": "EXP_SC",        "label": "7th-Area County Expedition: Single County"},
+        {"value": "EXP_CL",        "label": "7th-Area County Expedition: County Line"},
+        {"value": "EXP_OPEN",      "label": "7th-Area County Expedition: Open"},
+        {"value": "MOB_SO_HP",     "label": "Mobile Single Op: High Power"},
+        {"value": "MOB_SO_LP",     "label": "Mobile Single Op: Low Power"},
+        {"value": "MOB_MS_HP",     "label": "Mobile Multi-Single: High Power"},
+        {"value": "MOB_MS_LP",     "label": "Mobile Multi-Single: Low Power"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "Spotting assistance is permitted in all categories. Mixed-mode entries with all QSOs in one mode are re-classified to single-mode. Digital includes RTTY, PSK, AMTOR, etc.; WSJT modes (FT8, FT4, MSK144, JT65) are NOT allowed because they cannot transmit the 7QP exchange."
+    },
+    {
+      "id": "myExchange",
+      "question": "Enter your exchange. 7th-area ops: 5-letter <state><county>; Others: 2-letter state/prov code, or DX.",
+      "type": "text",
+      "required": true,
+      "forceUppercase": true,
+      "storeInMeta": true,
+      "description": "5-letter <state><county> code for 7th-area stations; 2-letter state/province or DX for everyone else.",
+      "exchangeFieldMapping": {
+        "myExchange": "EXCHs"
+      }
+    }
+  ],
+  "exchangeFields": {
+    "sent": [
+      {
+        "name": "RSTs",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report sent (default 599 CW / 59 Phone)"
+      },
+      {
+        "name": "EXCHs",
+        "type": "string",
+        "required": true,
+        "description": "5-letter <state><county> for 7th-area stations; 2-letter state/province or DX for non-7th-area"
+      }
+    ],
+    "received": [
+      {
+        "name": "RSTr",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report received"
+      },
+      {
+        "name": "EXCHr",
+        "type": "string",
+        "required": true,
+        "description": "5-letter <state><county> from 7th-area stations; 2-letter state/province or DX from others"
+      }
+    ]
+  },
+  "qsoFields": [
+    {"name": "Date",      "column": "DATE",  "type": "date", "format": "yyyy-MM-dd", "required": true},
+    {"name": "Time",      "column": "TIME",  "type": "time", "format": "HH:mm:ss",   "required": true},
+    {"name": "Callsign",  "column": "CALL",  "type": "string", "required": true, "uppercase": true},
+    {"name": "Frequency", "column": "FREQ",  "type": "number", "unit": "kHz", "required": true},
+    {"name": "Mode",      "column": "MODE",  "type": "enum", "values": ["CW", "SSB", "DIGITAL"], "required": true},
+    {"name": "RST Sent",     "column": "RSTs", "type": "rst", "required": true, "description": "Signal report sent"},
+    {"name": "RST Received", "column": "RSTr", "type": "rst", "required": true, "description": "Signal report received"},
+    {"name": "Exchange Sent",     "column": "EXCHs", "type": "string", "required": true, "description": "Exchange sent (5-letter county or 2-letter state/prov/DX)"},
+    {"name": "Exchange Received", "column": "EXCHr", "type": "string", "required": true, "description": "Exchange received"},
+    {"name": "Points",     "column": "POINTS", "type": "number", "calculated": true},
+    {"name": "Multiplier", "column": "M",      "type": "string", "calculated": true}
+  ],
+  "scoring": {
+    "points": {
+      "cw":      3,
+      "phone":   2,
+      "digital": 4
+    },
+    "multipliers": {
+      "type": "multsOnce",
+      "description": "7th-area stations multiply by states (50) + provinces (13) + DXCC entities worked (max 10). Non-7th-area stations multiply by 7th-area counties worked (max 259). Each multiplier counts once for the contest, not per band or mode.",
+      "categories": ["namedMults"],
+      "alaskaAndHawaiiCountDxcc": false,
+      "usAndCanadaCountDxcc": false
+    },
+    "finalScore": "SUM(points) * SUM(multipliers)"
+  },
+  "dupeChecking": {
+    "type": "perBandAndMode",
+    "description": "A station may be worked once per band/mode combination. 7th-area mobiles and stations participating in concurrent QSO parties may be re-worked from new counties. County-line contacts: log each county as a separate QSO with the same callsign — the per-band-and-mode dupe check by exchange code allows this naturally."
+  },
+  "multAliases": [
+    {
+      "promptId": "stationType",
+      "promptValue": "7TH_AREA",
+      "sourceList": "inStateMults",
+      "mapByPrefix": 2,
+      "comment": "When the operator is in the 7th call area, received 5-letter <state><county> codes (WYALB, ORDES, AZAPH, etc.) are reduced to their 2-letter state prefix so they count as state multipliers per 7QP rules. Non-7th-area operators (OUTSIDE / DX) don't trigger this rule and instead see each county as a separate multiplier (per the receivedExchangeFilter)."
+    }
+  ],
+  "logging": {
+    "requiredFields": ["date", "time", "frequency", "mode", "callsign", "rstSent", "rstReceived", "exchSent", "exchReceived"],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "7QP",
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {rst_sent} {exch_sent} {call} {rst_rcvd} {exch_rcvd}"
+    }
+  },
+  "callHistory": {
+    "fieldsToSave": ["EXCHr"],
+    "description": "Save received exchange (county or state/province) for future lookups"
+  },
+  "validation": {
+    "minimumQSOs": 1,
+    "maxOperatingTime": 18,
+    "offTimesRequired": false,
+    "namedMults": [
+      "AZAPH", "AZGLA", "AZLPZ", "AZNVO", "AZSCZ",
+      "AZCHS", "AZGHM", "AZMCP", "AZPMA", "AZYVP",
+      "AZCNO", "AZGLE", "AZMHV", "AZPNL", "AZYMA",
+
+      "IDADA", "IDBNV", "IDCUS", "IDKOO", "IDOWY",
+      "IDADM", "IDBOU", "IDELM", "IDLAT", "IDPAY",
+      "IDBAN", "IDBUT", "IDFRA", "IDLEM", "IDPOW",
+      "IDBEA", "IDCAM", "IDFRE", "IDLEW", "IDSHO",
+      "IDBEN", "IDCAN", "IDGEM", "IDLIN", "IDTET",
+      "IDBIN", "IDCAR", "IDGOO", "IDMAD", "IDTWI",
+      "IDBLA", "IDCAS", "IDIDA", "IDMIN", "IDVAL",
+      "IDBOI", "IDCLA", "IDJEF", "IDNEZ", "IDWAS",
+      "IDBNR", "IDCLE", "IDJER", "IDONE",
+
+      "MTBEA", "MTFAL", "MTLAK", "MTPET", "MTSHE",
+      "MTBIG", "MTFER", "MTLEW", "MTPHI", "MTSIL",
+      "MTBLA", "MTFLA", "MTLIB", "MTPON", "MTSTI",
+      "MTBRO", "MTGAL", "MTLIN", "MTPWD", "MTSWE",
+      "MTCRB", "MTGAR", "MTMAD", "MTPWL", "MTTET",
+      "MTCRT", "MTGLA", "MTMCC", "MTPRA", "MTTOO",
+      "MTCAS", "MTGOL", "MTMEA", "MTRAV", "MTTRE",
+      "MTCHO", "MTGRA", "MTMIN", "MTRIC", "MTVAL",
+      "MTCUS", "MTHIL", "MTMIS", "MTROO", "MTWHE",
+      "MTDAN", "MTJEF", "MTMUS", "MTROS", "MTWIB",
+      "MTDAW", "MTJUD", "MTPAR", "MTSAN", "MTYEL",
+      "MTDEE",
+
+      "NVCAR", "NVELK", "NVLAN", "NVMIN", "NVSTO",
+      "NVCHU", "NVESM", "NVLIN", "NVNYE", "NVWAS",
+      "NVCLA", "NVEUR", "NVLYO", "NVPER", "NVWHI",
+      "NVDOU", "NVHUM",
+
+      "ORBAK", "ORDES", "ORJEF", "ORMAL", "ORUMA",
+      "ORBEN", "ORDOU", "ORJOS", "ORMAR", "ORUNI",
+      "ORCLK", "ORGIL", "ORKLA", "ORMOR", "ORWAL",
+      "ORCLT", "ORGRA", "ORLAK", "ORMUL", "ORWCO",
+      "ORCOL", "ORHAR", "ORLAN", "ORPOL", "ORWSH",
+      "ORCOO", "ORHOO", "ORLCN", "ORSHE", "ORWHE",
+      "ORCRO", "ORJAC", "ORLNN", "ORTIL", "ORYAM",
+      "ORCUR",
+
+      "UTBEA", "UTDUC", "UTKAN", "UTSNJ", "UTUTA",
+      "UTBOX", "UTEME", "UTMIL", "UTSNP", "UTWST",
+      "UTCAC", "UTGAR", "UTMOR", "UTSEV", "UTWSH",
+      "UTCAR", "UTGRA", "UTPIU", "UTSUM", "UTWAY",
+      "UTDAG", "UTIRO", "UTRIC", "UTTOO", "UTWEB",
+      "UTDAV", "UTJUA", "UTSAL", "UTUIN",
+
+      "WAADA", "WADOU", "WAKLI", "WAPAC", "WASTE",
+      "WAASO", "WAFER", "WAKNG", "WAPEN", "WATHU",
+      "WABEN", "WAFRA", "WAKTP", "WAPIE", "WAWAH",
+      "WACHE", "WAGAR", "WAKTT", "WASAN", "WAWAL",
+      "WACLL", "WAGRN", "WALEW", "WASKG", "WAWHA",
+      "WACLR", "WAGRY", "WALIN", "WASKM", "WAWHI",
+      "WACOL", "WAISL", "WAMAS", "WASNO", "WAYAK",
+      "WACOW", "WAJEF", "WAOKA", "WASPO",
+
+      "WYALB", "WYCRO", "WYLAR", "WYPLA", "WYTET",
+      "WYBIG", "WYFRE", "WYLIN", "WYSHE", "WYUIN",
+      "WYCAM", "WYGOS", "WYNAT", "WYSUB", "WYWAS",
+      "WYCAR", "WYHOT", "WYNIO", "WYSWE", "WYWES",
+      "WYCON", "WYJOH", "WYPAR",
+
+      "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL",
+      "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME",
+      "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH",
+      "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI",
+      "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY",
+
+      "NS", "QC", "ON", "MB", "SK", "AB", "BC", "NT", "NB", "NL", "NU", "YT", "PE",
+
+      "DX"
+    ],
+    "exchangeValidation": {
+      "type": "multiplier",
+      "description": "Exchange should be a 5-letter <state><county> code for 7th-area stations, a 2-letter US state or Canadian province code for non-7th-area stations, or DX."
+    },
+    "receivedExchangeFilter": {
+      "promptId": "stationType",
+      "rules": {
+        "OUTSIDE": "inStateMults",
+        "DX":      "inStateMults"
+      }
+    },
+    "inStateMults": [
+      "AZAPH", "AZGLA", "AZLPZ", "AZNVO", "AZSCZ",
+      "AZCHS", "AZGHM", "AZMCP", "AZPMA", "AZYVP",
+      "AZCNO", "AZGLE", "AZMHV", "AZPNL", "AZYMA",
+
+      "IDADA", "IDBNV", "IDCUS", "IDKOO", "IDOWY",
+      "IDADM", "IDBOU", "IDELM", "IDLAT", "IDPAY",
+      "IDBAN", "IDBUT", "IDFRA", "IDLEM", "IDPOW",
+      "IDBEA", "IDCAM", "IDFRE", "IDLEW", "IDSHO",
+      "IDBEN", "IDCAN", "IDGEM", "IDLIN", "IDTET",
+      "IDBIN", "IDCAR", "IDGOO", "IDMAD", "IDTWI",
+      "IDBLA", "IDCAS", "IDIDA", "IDMIN", "IDVAL",
+      "IDBOI", "IDCLA", "IDJEF", "IDNEZ", "IDWAS",
+      "IDBNR", "IDCLE", "IDJER", "IDONE",
+
+      "MTBEA", "MTFAL", "MTLAK", "MTPET", "MTSHE",
+      "MTBIG", "MTFER", "MTLEW", "MTPHI", "MTSIL",
+      "MTBLA", "MTFLA", "MTLIB", "MTPON", "MTSTI",
+      "MTBRO", "MTGAL", "MTLIN", "MTPWD", "MTSWE",
+      "MTCRB", "MTGAR", "MTMAD", "MTPWL", "MTTET",
+      "MTCRT", "MTGLA", "MTMCC", "MTPRA", "MTTOO",
+      "MTCAS", "MTGOL", "MTMEA", "MTRAV", "MTTRE",
+      "MTCHO", "MTGRA", "MTMIN", "MTRIC", "MTVAL",
+      "MTCUS", "MTHIL", "MTMIS", "MTROO", "MTWHE",
+      "MTDAN", "MTJEF", "MTMUS", "MTROS", "MTWIB",
+      "MTDAW", "MTJUD", "MTPAR", "MTSAN", "MTYEL",
+      "MTDEE",
+
+      "NVCAR", "NVELK", "NVLAN", "NVMIN", "NVSTO",
+      "NVCHU", "NVESM", "NVLIN", "NVNYE", "NVWAS",
+      "NVCLA", "NVEUR", "NVLYO", "NVPER", "NVWHI",
+      "NVDOU", "NVHUM",
+
+      "ORBAK", "ORDES", "ORJEF", "ORMAL", "ORUMA",
+      "ORBEN", "ORDOU", "ORJOS", "ORMAR", "ORUNI",
+      "ORCLK", "ORGIL", "ORKLA", "ORMOR", "ORWAL",
+      "ORCLT", "ORGRA", "ORLAK", "ORMUL", "ORWCO",
+      "ORCOL", "ORHAR", "ORLAN", "ORPOL", "ORWSH",
+      "ORCOO", "ORHOO", "ORLCN", "ORSHE", "ORWHE",
+      "ORCRO", "ORJAC", "ORLNN", "ORTIL", "ORYAM",
+      "ORCUR",
+
+      "UTBEA", "UTDUC", "UTKAN", "UTSNJ", "UTUTA",
+      "UTBOX", "UTEME", "UTMIL", "UTSNP", "UTWST",
+      "UTCAC", "UTGAR", "UTMOR", "UTSEV", "UTWSH",
+      "UTCAR", "UTGRA", "UTPIU", "UTSUM", "UTWAY",
+      "UTDAG", "UTIRO", "UTRIC", "UTTOO", "UTWEB",
+      "UTDAV", "UTJUA", "UTSAL", "UTUIN",
+
+      "WAADA", "WADOU", "WAKLI", "WAPAC", "WASTE",
+      "WAASO", "WAFER", "WAKNG", "WAPEN", "WATHU",
+      "WABEN", "WAFRA", "WAKTP", "WAPIE", "WAWAH",
+      "WACHE", "WAGAR", "WAKTT", "WASAN", "WAWAL",
+      "WACLL", "WAGRN", "WALEW", "WASKG", "WAWHA",
+      "WACLR", "WAGRY", "WALIN", "WASKM", "WAWHI",
+      "WACOL", "WAISL", "WAMAS", "WASNO", "WAYAK",
+      "WACOW", "WAJEF", "WAOKA", "WASPO",
+
+      "WYALB", "WYCRO", "WYLAR", "WYPLA", "WYTET",
+      "WYBIG", "WYFRE", "WYLIN", "WYSHE", "WYUIN",
+      "WYCAM", "WYGOS", "WYNAT", "WYSUB", "WYWAS",
+      "WYCAR", "WYHOT", "WYNIO", "WYSWE", "WYWES",
+      "WYCON", "WYJOH", "WYPAR"
+    ]
+  },
+  "ui": {
+    "showMultiplierPanel": true,
+    "logColumns": ["DATE", "TIME", "CALL", "FREQ", "MODE", "RSTs", "RSTr", "EXCHs", "EXCHr", "POINTS", "M", "COMMENT"],
+    "entryFields": ["CALL", "RSTr", "EXCHr"],
+    "fieldNavigation": {
+      "keys": "tab"
+    },
+    "bandMap": {
+      "enabled": true,
+      "bands": ["160m", "80m", "40m", "20m", "15m", "10m"]
+    },
+    "multiplierDisplay": {
+      "showCounties": true,
+      "showStates": true,
+      "showProvinces": true
+    }
+  }
+}

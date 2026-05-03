@@ -650,9 +650,8 @@ F8  N9OH`}</pre>
           <p class="opacity-80 mb-4">
             Each bin automatically detects and continuously adapts to the sender's speed &mdash; no manual WPM
             setting. The live WPM readout next to each row's frequency label updates as the decoder tracks
-            changes in sending speed within a few characters. A <strong>WPM bounding range</strong> control
-            (default 15&ndash;40 WPM) constrains the estimator so noise bursts can't drive it to implausible
-            values; widen the range for very slow or very fast content.
+            changes in sending speed within a few characters. The estimator is bounded internally to a 5&ndash;60
+            WPM working range, which covers every CW operator on the bands.
           </p>
 
           <h3 class="text-lg font-semibold mb-2">Click to Fill</h3>
@@ -682,6 +681,46 @@ F8  N9OH`}</pre>
             tracks a per-bin rolling noise-floor estimate and lifts the release threshold above it &mdash; so
             bins close to a strong signal release cleanly between characters instead of wedging on. In practice
             a squelch setting of 10&ndash;30% works well on most HF audio; raise it on noisy bands.
+          </p>
+          <p class="opacity-80 mb-4">
+            <strong>Auto checkbox</strong> &mdash; check it and the decoder picks the squelch level for you,
+            re-evaluating once per second from per-bin noise-peak estimates (90th-percentile of recent
+            magnitudes, taken from the median bin so the signal-occupied bins don't pull the threshold up to
+            their own level). Margin sits at <em>medianPeak &times; 1.8 + 0.02</em>, clamped to the
+            <code>[0.08, 0.6]</code> range. While Auto is on the slider is read-only but visually tracks the
+            level the decoder picked, so you can see at a glance what threshold is currently in effect.
+            Toggling Auto off takes manual control back at the last auto value &mdash; a smooth handoff for
+            tweaking from a known-good baseline. The setting persists per-radio.
+          </p>
+          <p class="opacity-80 mb-4">
+            <strong>When NOT to use Auto:</strong> chasing a weak station whose signal magnitude is barely
+            above the noise floor. Auto's safety margin is what keeps it stable in normal copy, but it'll
+            also gate out a signal that sits inside that margin. For weak-signal copy, uncheck Auto and slide
+            manually down to <code>0.05</code> or lower &mdash; the decoder will produce some noise-triggered
+            <code>E</code>/<code>T</code> false-positives but the weak content gets through.
+          </p>
+
+          <h3 class="text-lg font-semibold mb-2">Word Gap</h3>
+          <p class="opacity-80 mb-4">
+            The <strong>Word Gap</strong> spinbox in the toolbar controls how aggressive the decoder is about
+            inserting spaces between words. Internally it's a multiplier (&times; the current dot-length
+            estimate) that sets the gap threshold: a silence longer than <em>dot &times; multiplier</em> is
+            treated as a word boundary; shorter silences become inter-character gaps within a word.
+          </p>
+          <p class="opacity-80 mb-4">
+            Default is <code>4.0</code> &mdash; a contest-friendly compromise between the textbook 7&times;
+            spacing and the &asymp;3&times; spacing that's common in tight QRQ contest sending where operators
+            compress inter-word gaps for speed. Tunable from <code>3.0</code> (most aggressive about inserting
+            spaces, useful for tightly-sent contest sending where calls and exchanges run together) up to
+            <code>8.0</code> (textbook strict, useful for relaxed CW where word spaces are well-marked and
+            you don't want spaces accidentally appearing inside callsigns). Range is <code>3.0&ndash;8.0</code>
+            in <code>0.5</code> steps; persists per-radio. The setting takes effect immediately &mdash; no
+            need to restart the decoder.
+          </p>
+          <p class="opacity-80 mb-4">
+            Symptom-to-knob mapping: callsigns and exchanges showing as one fused token like
+            <code>CQK1ABCNY</code>? Lower the Word Gap value. Spaces appearing inside callsigns like
+            <code>K1 ABC NY</code>? Raise it.
           </p>
 
           <h3 class="text-lg font-semibold mb-2">Tuning Tips</h3>
@@ -735,9 +774,12 @@ F8  N9OH`}</pre>
             <li>The WPM readout is typically ~5&ndash;15% below the sender's actual speed due to 10 ms DSP block
             quantization. Character decoding accuracy is unaffected because the dot:dash ratio is preserved;
             this is a display-only imprecision.</li>
-            <li>Operators who send with compressed word gaps (common in fast contest CW like CWT) will produce
-            fused tokens like <code>TUK4RO</code> &mdash; the decoder is reporting what was actually keyed. Click-
-            to-fill in that case puts the literal token into CALL; manual edit fixes it.</li>
+            <li>Operators who send with very compressed word gaps (common in fast contest CW like CWT, where
+            word spacing can drop to &asymp;3&times; the dot length instead of the textbook 7&times;) can produce
+            fused tokens like <code>TUK4RO</code>. Lowering the <strong>Word Gap</strong> control toward
+            <code>3.0</code> mitigates this; at the floor, the decoder will split tokens at any silence longer
+            than the inter-character gap. Past that, click-to-fill puts the literal token into CALL and manual
+            edit fixes it.</li>
             <li>The decoder supports one audio path per radio. Multi-signal separation within a single bin (two
             stations on the same tone frequency) is not attempted.</li>
           </ul>

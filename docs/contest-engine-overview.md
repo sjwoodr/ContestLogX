@@ -106,6 +106,20 @@ Notable edge-case flags:
 - `alaskaAndHawaiiCountDxcc` — when true, AK/HI count as both a state *and* a DXCC entity.
 - `usAndCanadaCountDxcc` — when false (ARRL DX default), W/VE callsigns are excluded from DXCC multiplier credit.
 
+#### Multiplier aliasing
+
+Two layered remap mechanisms run before the engine's mult-lookup, used when a received exchange code needs to be rewritten before it counts:
+
+1. **`validation.namedMultAliases`** — an unconditional 1:1 key→value table. Always applied regardless of operator. Use for input forgiveness or scoring-equivalent codes (e.g., `"DC" → "MD"`).
+
+2. **`multAliases`** (top-level, conditional) — an array of rules triggered by the operator's `userPrompts` answer. Each rule names a `sourceList` (`"inStateMults"` or `"namedMults"`) and a mapping. Two mapping forms are supported:
+   - **Static**: `mapsTo` replaces the rawMult with a fixed string (e.g., FQP: every FL county → `FL` for FL operators).
+   - **Prefix**: `mapByPrefix: N` returns `rawMult.left(N)` (e.g., 7QP: `WYALB` → `WY` for 7th-area operators, where the 5-letter exchange's first 2 chars name the state).
+
+   The trigger can be a single value (`promptValue: "FL"`) or any-of (`promptValueIn: ["AZ","ID",…]`). Values listed in a rule's `sourceList` are also hidden from the multiplier panel display when the rule is active, since the operator is earning credit for the aliased target instead.
+
+Both mechanisms are documented in detail in `docs/contest-module-format.md`.
+
 ### Final Score
 
 Evaluated by `scoring.finalScore`, a formula string with tokens:

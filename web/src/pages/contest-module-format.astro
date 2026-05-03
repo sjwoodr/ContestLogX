@@ -34,6 +34,7 @@ import Layout from '../layouts/Layout.astro';
           <li><a href="#logging" style="color: #58a6ff;" class="hover:underline">logging</a></li>
           <li><a href="#call-history" style="color: #58a6ff;" class="hover:underline">callHistory</a></li>
           <li><a href="#validation" style="color: #58a6ff;" class="hover:underline">validation</a></li>
+          <li><a href="#mult-aliases" style="color: #58a6ff;" class="hover:underline">multAliases</a></li>
           <li><a href="#ui" style="color: #58a6ff;" class="hover:underline">ui</a></li>
           <li><a href="#minimal-example" style="color: #58a6ff;" class="hover:underline">Minimal Example</a></li>
         </ol>
@@ -561,6 +562,102 @@ import Layout from '../layouts/Layout.astro';
               <tr><td class="py-2 pr-4 font-mono">freeForm</td><td>No validation — user is responsible for correct entry</td></tr>
             </tbody>
           </table>
+
+          <h3 class="text-lg font-semibold mb-2 mt-4">namedMultAliases (unconditional 1:1 remap)</h3>
+          <p class="opacity-80 mb-3">
+            A simple key&rarr;value table applied to <strong>every</strong> received exchange before mult lookup. Use it for input forgiveness or for codes that are scoring-equivalent.
+          </p>
+          <pre class="rounded p-4 text-sm overflow-x-auto mb-3" style="background-color: #0d1117; color: #e6edf3;">{`"validation": {
+  "namedMultAliases": {
+    "5":  "05",
+    "DC": "MD"
+  }
+}`}</pre>
+          <p class="opacity-80">
+            Unlike <code>multAliases</code> (the conditional system below), this remap is unconditional &mdash; it applies regardless of operator class. Common uses: the operator types a short form that doesn't appear in the <code>namedMults</code> list (<code>"5"</code>&rarr;<code>"05"</code>), or two codes are administratively distinct but scoring-equivalent (<code>"DC"</code>&rarr;<code>"MD"</code> for ARRL contests where DC ARES counts as MD).
+          </p>
+        </section>
+
+        <!-- multAliases -->
+        <section id="mult-aliases" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
+          <h2 class="text-2xl font-semibold mb-4">multAliases</h2>
+          <p class="opacity-80 mb-4">
+            Conditionally rewrite a received exchange value to a different multiplier based on the operator's <code>userPrompts</code> answer. Used when the same on-air exchange means different things to different participant classes.
+          </p>
+
+          <p class="opacity-80 mb-3">Two examples that drove the design:</p>
+          <ul class="list-disc list-inside space-y-2 opacity-80 mb-4">
+            <li><strong>FQP (Florida QSO Party)</strong> &mdash; Florida operators send their county code (e.g. <code>ALA</code>) and receive county codes back from in-state contacts. But for a Florida operator, every Florida county counts as a single <code>FL</code> mult &mdash; they're not collecting their own counties. A <code>multAliases</code> rule maps "any value in <code>inStateMults</code>" &rarr; <code>FL</code>, <em>only when the operator is a FL station</em>.</li>
+            <li><strong>7QP (7th Call Area QSO Party)</strong> &mdash; 7th-area stations work everyone, including each other. Two 7th-area stations exchange 5-letter <code>&lt;state&gt;&lt;county&gt;</code> codes (e.g. <code>WYALB</code>, <code>ORDES</code>). For a 7th-area operator, those codes count toward the <strong>state</strong> multiplier, not the county. A <code>multAliases</code> rule extracts the first 2 characters as the mult value, <em>only when the operator is in one of the eight 7th-area states</em>.</li>
+          </ul>
+
+          <h3 class="text-lg font-semibold mb-2 mt-2">JSON shape</h3>
+          <p class="opacity-80 mb-3">
+            <code>multAliases</code> lives at the <strong>top level</strong> of the contest definition (sibling to <code>scoring</code>, <code>dupeChecking</code>, etc.) and contains an array of rule objects:
+          </p>
+          <pre class="rounded p-4 text-sm overflow-x-auto mb-4" style="background-color: #0d1117; color: #e6edf3;">{`"multAliases": [
+  {
+    "promptId":      "stationType",
+    "promptValueIn": ["AZ","ID","MT","NV","OR","UT","WA","WY"],
+    "sourceList":    "inStateMults",
+    "mapByPrefix":   2,
+    "comment":       "7QP: 7th-area ops see WYALB → WY, ORDES → OR, etc."
+  },
+  {
+    "promptId":     "stationType",
+    "promptValue":  "FL",
+    "sourceList":   "inStateMults",
+    "mapsTo":       "FL",
+    "comment":      "FQP: Florida ops collapse all FL counties to a single FL mult."
+  }
+]`}</pre>
+
+          <h3 class="text-lg font-semibold mb-2 mt-2">Trigger fields</h3>
+          <p class="opacity-80 mb-3">
+            The rule fires when the operator's answer to <code>promptId</code> (set during contest startup via <code>userPrompts</code>) satisfies the trigger.
+          </p>
+          <table class="w-full text-sm opacity-80 mb-4">
+            <thead><tr class="text-left border-b" style="border-color: #30363d;">
+              <th class="pb-2 pr-4">Field</th><th class="pb-2">Purpose</th>
+            </tr></thead>
+            <tbody>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">promptId</td><td>Required. The <code>userPrompts</code> id whose stored answer is checked.</td></tr>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">promptValue</td><td>Single-value trigger &mdash; fires when the operator's answer equals this string.</td></tr>
+              <tr><td class="py-2 pr-4 font-mono">promptValueIn</td><td>Array trigger &mdash; fires when the operator's answer is in this list. Overrides <code>promptValue</code> if non-empty.</td></tr>
+            </tbody>
+          </table>
+
+          <h3 class="text-lg font-semibold mb-2 mt-2">Mapping fields</h3>
+          <p class="opacity-80 mb-3">
+            When a rule fires, the engine inspects the rawMult value (the received exchange string) and applies a mapping if it's in the rule's <code>sourceList</code>.
+          </p>
+          <table class="w-full text-sm opacity-80 mb-4">
+            <thead><tr class="text-left border-b" style="border-color: #30363d;">
+              <th class="pb-2 pr-4">Field</th><th class="pb-2">Effect</th>
+            </tr></thead>
+            <tbody>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">sourceList</td><td>Required. Either <code>"inStateMults"</code> (the same list referenced by <code>validation.inStateMults</code>) or <code>"namedMults"</code> (<code>validation.namedMults</code>). The mapping only applies if rawMult is in this set.</td></tr>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">mapsTo</td><td>Static replacement: rawMult is replaced with this string in the engine's mult lookup.</td></tr>
+              <tr><td class="py-2 pr-4 font-mono">mapByPrefix</td><td>Prefix extraction: take <code>rawMult.left(N)</code> as the mult value. Use for state-prefixed codes (e.g. 7QP's 5-letter <code>&lt;state&gt;&lt;county&gt;</code> &rarr; 2-char state with <code>mapByPrefix: 2</code>). Wins over <code>mapsTo</code> when both are present.</td></tr>
+            </tbody>
+          </table>
+
+          <h3 class="text-lg font-semibold mb-2 mt-2">How it fires</h3>
+          <p class="opacity-80 mb-3">When a QSO is logged:</p>
+          <ol class="list-decimal list-inside space-y-1 opacity-80 mb-4 ml-4">
+            <li>The received exchange value is extracted from the <code>EXCHr</code> field.</li>
+            <li>If any <code>multAliases</code> rule's trigger matches the current operator (<code>promptId</code> answer matches <code>promptValue</code> or appears in <code>promptValueIn</code>), AND rawMult is in that rule's <code>sourceList</code>, the alias activates.</li>
+            <li>The aliased value (<code>mapsTo</code> or <code>rawMult.left(mapByPrefix)</code>) replaces rawMult as the credited multiplier.</li>
+            <li>If no rule matches, rawMult is used unchanged.</li>
+          </ol>
+          <p class="opacity-80 mb-4">
+            The check happens after <code>validation.namedMultAliases</code> (the unconditional 1:1 remap), so a code can be canonicalized first and then aliased per-operator.
+          </p>
+
+          <h3 class="text-lg font-semibold mb-2 mt-2">Multiplier panel display</h3>
+          <p class="opacity-80">
+            When a <code>multAliases</code> rule is active for the current operator, the values in its <code>sourceList</code> are <strong>hidden from the multiplier panel display</strong>. They would just clutter the panel &mdash; the operator is earning credit for the aliased <em>target</em>, not the individual source values. The remaining <code>namedMults</code> (states, provinces, DX, etc., that don't appear in the source list) are shown normally. For example, a 7QP operator in Wyoming sees ~65 destination mults (50 states + DC + 13 provinces + DX), while the 259 5-letter county codes are hidden because they all alias to state codes via <code>mapByPrefix: 2</code>.
+          </p>
         </section>
 
         <!-- ui -->

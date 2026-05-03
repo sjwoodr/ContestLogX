@@ -126,13 +126,23 @@ def validate_multipliers(log_content, test_name):
 
 def run_test(clx_path, log_file, test_name, index):
     """Run CLX with a test log and return (actual_score, mult_valid, output_lines, elapsed)."""
+    import shutil
     lines = []
 
     with tempfile.NamedTemporaryFile(suffix='.log', delete=False) as tmp:
         debug_log = tmp.name
 
+    # Per-test sandbox config dir so parallel workers don't race on the
+    # user's real config (and so the user's real config is never touched
+    # by `make test-logs` in any case). CLX's --config-dir flag seeds the
+    # sandbox from the real config on first use, which is what we want
+    # so tests inherit the user's identity / station info / decoder
+    # defaults rather than running as a first-launch defaults instance.
+    sandbox_dir = tempfile.mkdtemp(prefix='clx-test-sandbox-')
+
     try:
-        cmd = [clx_path, "--debug", "--log", log_file, "--test-only", "--debug-log", debug_log]
+        cmd = [clx_path, "--debug", "--log", log_file, "--test-only",
+               "--debug-log", debug_log, "--config-dir", sandbox_dir]
 
         try:
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
@@ -171,6 +181,10 @@ def run_test(clx_path, log_file, test_name, index):
     finally:
         try:
             os.unlink(debug_log)
+        except OSError:
+            pass
+        try:
+            shutil.rmtree(sandbox_dir, ignore_errors=True)
         except OSError:
             pass
 

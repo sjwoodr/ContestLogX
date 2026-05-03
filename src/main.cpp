@@ -23,6 +23,8 @@
 #include <QStyleFactory>
 #include <QPalette>
 #include <QIcon>
+#include <QSettings>
+#include <QStandardPaths>
 
 // Application version
 static const char* APP_VERSION = "0.7.36";
@@ -196,10 +198,61 @@ int main(int argc, char *argv[])
     QCommandLineOption debugLogOption("debug-log", "Write debug log to this file instead of clx_debug.log", "path");
     parser.addOption(debugLogOption);
 
+    QCommandLineOption configDirOption("config-dir",
+        "Use the given directory for ContestLogX.json (and the QSettings INI "
+        "used by Debug toggles) instead of the platform default. If the dir "
+        "doesn't already contain ContestLogX.json, the real config is copied "
+        "into it as a starting point so the sandbox session has full state. "
+        "Use for local smoke testing without stomping your real config.",
+        "path");
+    parser.addOption(configDirOption);
+
     parser.process(app);
 
     // Check if --debug flag is set
     debugToStdout = parser.isSet(debugOption);
+
+    // Apply --config-dir BEFORE the first Settings::instance() call. Both
+    // Settings (JSON) and DebugLogger (QSettings INI) are redirected.
+    // Pre-seed: if the sandbox dir doesn't already have a ContestLogX.json,
+    // copy the user's real config into it so the sandbox starts with full
+    // state (callsign, CW memories, station info, terms-accepted version,
+    // saved layout, etc.) instead of looking like a first-run install.
+    // The QSettings INI side gets the same dir via setPath(); we don't
+    // copy the INI in (it's mostly Debug toggles, low-stakes if reset).
+    if (parser.isSet(configDirOption)) {
+        const QString sandboxDir = parser.value(configDirOption);
+        QDir().mkpath(sandboxDir);
+        const QString sandboxFile = QDir(sandboxDir).filePath("ContestLogX.json");
+        if (!QFile::exists(sandboxFile)) {
+            const QString realConfigRoot = QStandardPaths::writableLocation(
+                QStandardPaths::ConfigLocation);
+            const QString realFile = QDir(realConfigRoot)
+                .filePath("ContestLogX/ContestLogX.json");
+            if (QFile::exists(realFile)) {
+                if (QFile::copy(realFile, sandboxFile)) {
+                    fprintf(stderr,
+                        "config-dir: seeded sandbox from %s -> %s\n",
+                        realFile.toLocal8Bit().constData(),
+                        sandboxFile.toLocal8Bit().constData());
+                } else {
+                    fprintf(stderr,
+                        "config-dir: WARNING — failed to copy %s into sandbox; "
+                        "CLX will start with default config\n",
+                        realFile.toLocal8Bit().constData());
+                }
+            } else {
+                fprintf(stderr,
+                    "config-dir: no real config at %s; sandbox will start fresh\n",
+                    realFile.toLocal8Bit().constData());
+            }
+        } else {
+            fprintf(stderr, "config-dir: using existing sandbox config at %s\n",
+                sandboxFile.toLocal8Bit().constData());
+        }
+        Settings::setOverrideConfigDir(sandboxDir);
+        QSettings::setPath(QSettings::IniFormat, QSettings::UserScope, sandboxDir);
+    }
 
     // Initialize debug logger FIRST — it owns the debug log file for the lifetime of the process
     DebugLogger::instance().init(parser.value(debugLogOption));
@@ -214,7 +267,11 @@ int main(int argc, char *argv[])
     DebugLogger::instance().log("INFO", QString("ContestLogX v%1 started").arg(APP_VERSION));
     if (qgetenv("QT_QPA_PLATFORM") == "xcb")
         DebugLogger::instance().log("INFO", "Force X11 backend enabled (QT_QPA_PLATFORM=xcb)");
-    
+    if (parser.isSet(configDirOption)) {
+        DebugLogger::instance().log("INFO",
+            QString("Using sandbox config dir: %1").arg(parser.value(configDirOption)));
+    }
+
     applyTheme();
 
     // Show terms of use on first run or when TERMS_VERSION has been bumped

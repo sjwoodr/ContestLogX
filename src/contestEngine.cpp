@@ -109,7 +109,20 @@ bool ContestEngine::loadContest(const QJsonObject& contestDef)
     }
 
     // Load multAliases — maps received exchange values to a different mult value
-    // based on the operator's userPrompt answer (e.g., FL county → "FL" for in-state ops)
+    // based on the operator's userPrompt answer.
+    //
+    // Two trigger forms:
+    //   - promptValue (string)        — fires when getUserPromptValue(promptId) == promptValue
+    //   - promptValueIn (array)       — fires when getUserPromptValue(promptId) is in the array
+    //                                   (overrides promptValue if non-empty)
+    //
+    // Two mapping forms:
+    //   - mapsTo (string)             — replace rawMult with this fixed string
+    //                                   (e.g., FL counties → "FL" for in-state FL ops in FQP)
+    //   - mapByPrefix (int)           — take rawMult.left(N) as the mult
+    //                                   (e.g., 7QP 5-letter county codes → 2-char state prefix:
+    //                                    WYALB → WY, ORDES → OR, AZAPH → AZ for 7th-area ops)
+    //                                   Wins over mapsTo when both are present.
     if (contestDef.contains("multAliases")) {
         QJsonArray aliases = contestDef["multAliases"].toArray();
         for (const QJsonValue& v : aliases) {
@@ -117,9 +130,19 @@ bool ContestEngine::loadContest(const QJsonObject& contestDef)
             MultAlias alias;
             alias.promptId    = obj["promptId"].toString();
             alias.promptValue = obj["promptValue"].toString();
+            if (obj.contains("promptValueIn")) {
+                QJsonArray arr = obj["promptValueIn"].toArray();
+                for (const QJsonValue& av : arr) {
+                    alias.promptValueIn.append(av.toString());
+                }
+            }
             alias.sourceList  = obj["sourceList"].toString();
             alias.mapsTo      = obj["mapsTo"].toString().toUpper();
-            if (!alias.promptId.isEmpty() && !alias.mapsTo.isEmpty()) {
+            alias.mapByPrefix = obj["mapByPrefix"].toInt(0);
+            // A rule is well-formed if it has promptId and either a static
+            // mapsTo or a non-zero mapByPrefix.
+            const bool hasMapping = !alias.mapsTo.isEmpty() || alias.mapByPrefix > 0;
+            if (!alias.promptId.isEmpty() && hasMapping) {
                 m_multAliases.append(alias);
             }
         }
@@ -1496,15 +1519,24 @@ QStringList ContestEngine::getEffectiveNamedMultiplierList() const
     // Full namedMults path. If a multAlias is active for this operator, exclude the
     // aliased-source values from the display — they map to something else and would
     // just clutter the widget (e.g., FL counties shown to FL in-state ops who only
-    // earn credit for the aliased "FL" state mult, not individual county entries).
+    // earn credit for the aliased "FL" state mult, not individual county entries;
+    // 7QP 5-letter county codes shown to 7th-area ops who get prefix-aliased to
+    // 2-letter state codes).
     QSet<QString> aliasedSources;
     for (const MultAlias& alias : m_multAliases) {
-        if (getUserPromptValue(alias.promptId) == alias.promptValue) {
-            if (alias.sourceList == "inStateMults")
-                aliasedSources += m_inStateMults;
-            else if (alias.sourceList == "namedMults")
-                aliasedSources += m_validMultipliers;
+        const QString currentValue = getUserPromptValue(alias.promptId);
+        bool triggered = false;
+        if (!alias.promptValueIn.isEmpty()) {
+            triggered = alias.promptValueIn.contains(currentValue);
+        } else {
+            triggered = (currentValue == alias.promptValue);
         }
+        if (!triggered) continue;
+
+        if (alias.sourceList == "inStateMults")
+            aliasedSources += m_inStateMults;
+        else if (alias.sourceList == "namedMults")
+            aliasedSources += m_validMultipliers;
     }
 
     if (aliasedSources.isEmpty())
@@ -1929,8 +1961,17 @@ QString ContestEngine::extractMultiplier(const QsoRecord& qso) const
 QString ContestEngine::applyMultAlias(const QString& rawMult) const
 {
     for (const MultAlias& alias : m_multAliases) {
-        if (getUserPromptValue(alias.promptId) != alias.promptValue)
-            continue;
+        // Trigger match: promptValueIn (any-of) wins over promptValue (single)
+        // when both are present, but if promptValueIn is empty we use the
+        // legacy single-value comparison.
+        const QString currentValue = getUserPromptValue(alias.promptId);
+        bool triggered = false;
+        if (!alias.promptValueIn.isEmpty()) {
+            triggered = alias.promptValueIn.contains(currentValue);
+        } else {
+            triggered = (currentValue == alias.promptValue);
+        }
+        if (!triggered) continue;
 
         const QSet<QString>* sourceSet = nullptr;
         if (alias.sourceList == "inStateMults")
@@ -1938,8 +1979,14 @@ QString ContestEngine::applyMultAlias(const QString& rawMult) const
         else if (alias.sourceList == "namedMults")
             sourceSet = &m_validMultipliers;
 
-        if (sourceSet && sourceSet->contains(rawMult))
+        if (sourceSet && sourceSet->contains(rawMult)) {
+            // mapByPrefix wins over mapsTo when present — extracts the
+            // first N characters from rawMult (e.g., 7QP's 5-letter county
+            // code WYALB with mapByPrefix=2 → WY).
+            if (alias.mapByPrefix > 0 && rawMult.size() >= alias.mapByPrefix)
+                return rawMult.left(alias.mapByPrefix);
             return alias.mapsTo;
+        }
     }
     return rawMult;
 }

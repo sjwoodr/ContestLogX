@@ -27,7 +27,16 @@ class Settings
 {
 public:
     static Settings& instance();
-    
+
+    // Override the directory where Settings reads/writes ContestLogX.json.
+    // Must be called BEFORE the first Settings::instance() call (ideally
+    // very early in main() right after CLI parsing). Used by the
+    // --config-dir flag to sandbox a CLX session — local smoke testing,
+    // running multiple CLX instances with different identities, etc.
+    // Empty string clears the override (default location is used).
+    static void setOverrideConfigDir(const QString& dir);
+    static QString overrideConfigDir();
+
     // Station info
     QString getCallsign() const;
     void setCallsign(const QString& call);

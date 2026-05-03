@@ -219,6 +219,16 @@
       "name": "MIQP MI Station (70 QSOs, multsPerMode, counties+states+prov+DX)",
       "log_file": "test_miqp_mi.clx",
       "expected_score": 6262
+    },
+    {
+      "name": "7QP In-State AZ (100 QSOs, multsOnce, prefix-alias 5-letter county codes to 2-letter state mults)",
+      "log_file": "test_7qp_instate.clx",
+      "expected_score": 12950
+    },
+    {
+      "name": "7QP Out-of-State FL (100 QSOs, multsOnce, 82 unique 7th-area county mults)",
+      "log_file": "test_7qp_outofstate.clx",
+      "expected_score": 21730
     }
   ]
 }

@@ -18,8 +18,9 @@ Drop a new file there and it appears in the contest selection dialog immediately
 10. [logging](#logging)
 11. [callHistory](#callhistory)
 12. [validation](#validation)
-13. [ui](#ui)
-14. [Minimal Example](#minimal-example)
+13. [multAliases](#multaliases)
+14. [ui](#ui)
+15. [Minimal Example](#minimal-example)
 
 ---
 
@@ -485,6 +486,96 @@ Set `fieldsToSave` to `[]` if no fields should be persisted (e.g., serial-number
 | `maidenheadGrid` | Validates against `gridSquareFormat` regex |
 | `serial` | Numeric serial number only |
 | `freeForm` | No validation — user is responsible for correct entry |
+
+### namedMultAliases (unconditional 1:1 remap)
+
+A simple key→value table applied to **every** received exchange before mult lookup. Use it for input forgiveness or for codes that are scoring-equivalent.
+
+```json
+"validation": {
+  "namedMultAliases": {
+    "5":  "05",
+    "DC": "MD"
+  }
+}
+```
+
+Unlike `multAliases` (the conditional system documented below), this remap is unconditional — it applies regardless of operator class. Common uses:
+
+- The operator types a short form that doesn't appear in the `namedMults` list (`"5"` → `"05"`).
+- Two codes are administratively distinct but scoring-equivalent (`"DC"` → `"MD"` for ARRL contests where DC ARES counts as MD).
+
+---
+
+## multAliases
+
+Conditionally rewrite a received exchange value to a different multiplier based on the operator's `userPrompts` answer. Used when the same on-air exchange means different things to different participant classes.
+
+Two examples that drove the design:
+
+- **FQP (Florida QSO Party)** — Florida operators send their county code (e.g., `ALA`) and receive county codes back from in-state contacts. But for a Florida operator, every Florida county counts as a single `FL` mult — they're not collecting their own counties. A `multAliases` rule maps "any value in `inStateMults`" → `FL`, *only when the operator is a FL station*.
+
+- **7QP (7th Call Area QSO Party)** — 7th-area stations work everyone, including each other. Two 7th-area stations exchange 5-letter `<state><county>` codes (e.g., `WYALB`, `ORDES`). For a 7th-area operator, those codes count toward the **state** multiplier, not the county. A `multAliases` rule extracts the first 2 characters as the mult value, *only when the operator is in one of the eight 7th-area states*.
+
+### JSON shape
+
+`multAliases` lives at the **top level** of the contest definition (sibling to `scoring`, `dupeChecking`, etc.) and contains an array of rule objects:
+
+```json
+"multAliases": [
+  {
+    "promptId":      "stationType",
+    "promptValueIn": ["AZ","ID","MT","NV","OR","UT","WA","WY"],
+    "sourceList":    "inStateMults",
+    "mapByPrefix":   2,
+    "comment":       "7QP: 7th-area ops see WYALB → WY, ORDES → OR, etc."
+  },
+  {
+    "promptId":     "stationType",
+    "promptValue":  "FL",
+    "sourceList":   "inStateMults",
+    "mapsTo":       "FL",
+    "comment":      "FQP: Florida ops collapse all FL counties to a single FL mult."
+  }
+]
+```
+
+### Trigger fields
+
+The rule fires when the operator's answer to `promptId` (set during contest startup via `userPrompts`) satisfies the trigger.
+
+| Field | Purpose |
+|-------|---------|
+| `promptId` | Required. The `userPrompts` id whose stored answer is checked. |
+| `promptValue` | Single-value trigger — fires when the operator's answer equals this string. |
+| `promptValueIn` | Array trigger — fires when the operator's answer is in this list. Overrides `promptValue` if non-empty. |
+
+### Mapping fields
+
+When a rule fires, the engine inspects the rawMult value (the received exchange string) and applies a mapping if it's in the rule's `sourceList`.
+
+| Field | Effect |
+|-------|--------|
+| `sourceList` | Required. Either `"inStateMults"` (the same list referenced by `validation.inStateMults`) or `"namedMults"` (`validation.namedMults`). The rule's mapping only applies if rawMult is in this set. |
+| `mapsTo` | Static replacement: rawMult is replaced with this string in the engine's mult lookup. |
+| `mapByPrefix` | Prefix extraction: take `rawMult.left(N)` as the mult value. Use for state-prefixed codes (e.g., 7QP's 5-letter `<state><county>` → 2-char state with `mapByPrefix: 2`). Wins over `mapsTo` when both are present. |
+
+### How it fires
+
+When a QSO is logged:
+
+1. The received exchange value is extracted from the `EXCHr` field.
+2. If any `multAliases` rule's trigger matches the current operator (`promptId` answer matches `promptValue` or appears in `promptValueIn`), AND rawMult is in that rule's `sourceList`, the alias activates.
+3. The aliased value (`mapsTo` or `rawMult.left(mapByPrefix)`) replaces rawMult as the credited multiplier.
+4. If no rule matches, rawMult is used unchanged.
+
+The check happens after `validation.namedMultAliases` (the unconditional 1:1 remap), so a code can be canonicalized first and then aliased per-operator.
+
+### Multiplier panel display
+
+When a `multAliases` rule is active for the current operator, the values in its `sourceList` are **hidden from the multiplier panel display**. They would just clutter the panel — the operator is earning credit for the aliased *target*, not the individual source values. The remaining `namedMults` (states, provinces, DX, etc., that don't appear in the source list) are shown normally.
+
+For example, a 7QP operator in Wyoming sees ~65 destination mults in the multiplier panel (50 states + DC + 13 provinces + DX), while the 259 5-letter county codes are hidden because they all alias to state codes via `mapByPrefix: 2`.
 
 ---
 

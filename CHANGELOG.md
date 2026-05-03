@@ -4,6 +4,17 @@ All notable changes to ContestLogX are documented in this file.
 
 ## [0.7.36]
 
+### Contest Updates
+- Added the 7th Call Area QSO Party (7QP) contest definition (`contests/7qp.json`). 18-hour event held the first Saturday in May, 1300Z–0700Z. 7th-area stations (AZ/ID/MT/NV/OR/UT/WA/WY) work everyone; non-7th-area stations work 7th-area stations only. Exchange is RST + 5-letter `<state><county>` for 7th-area stations or 2-letter state/province/`DX` for non-7th-area. Scoring: CW=3, SSB=2, Digital=4 points per QSO. Multiplier handling: non-7th-area operators count 7th-area counties (max 259); 7th-area operators count states + provinces + DXCC. Bands: 160/80/40/20/15/10m. WSJT modes (FT8/FT4/MSK144/JT65) excluded per sponsor rules — RTTY/PSK/AMTOR/etc. allowed. Cabrillo CONTEST tag: `7QP`
+
+### Contest Engine Changes
+- Extended the `multAliases` mechanism in the contest engine with two new fields. `promptValueIn: ["VAL1", "VAL2", …]` is an any-of trigger that fires when the operator's `userPrompts` answer is in the list (overrides the legacy single-value `promptValue` when present). `mapByPrefix: N` extracts the first N characters of the received exchange as the multiplier (e.g., `WYALB` → `WY` with `mapByPrefix: 2`), wins over the legacy `mapsTo` static replacement when both are present. Used by 7QP to prefix-extract 5-letter `<state><county>` codes to 2-letter state mults for 7th-area operators, while non-7th-area operators see each county as a separate mult per the existing `receivedExchangeFilter`. The new fields are fully backward-compatible — every existing contest definition that uses `multAliases` (FQP, etc.) is unaffected. Documented in `docs/contest-module-format.md`, `docs/contest-engine-overview.md`, and the public docs page
+
+### Other Changes and Bugfixes
+- Added a `--config-dir <path>` CLI flag for sandbox-isolated CLX sessions. When set, both the JSON settings (`ContestLogX.json`) and the QSettings INI (used by Debug toggles) read and write within `<path>` instead of the platform default. If `<path>` doesn't already contain a `ContestLogX.json`, the user's real config is copied in as a starting point so the sandbox session has full state (callsign, CW memories, station info, terms-accepted version, saved layout, etc.). Used for local smoke testing without stomping the user's real config — and now also used by the automated log-test runner (`scripts/run_log_tests.py`) which creates a fresh per-test sandbox via `tempfile.mkdtemp` so parallel test workers can't race on writes to the user's real config dir
+- Updated `CLAUDE.md` with an architectural overview of the CW Decoder pipeline (AudioCapture → BinChannel → CwDecoder → CwDecoderWorker → CwDecoderWidget) plus three new Common Pitfalls entries: the moveToThread thread-affinity rule (must be on the source thread, not the destination — silently breaks Windows WASAPI otherwise), the `device.preferredFormat()`-unchanged + per-frame max-abs channel mixdown rule (any of the intuitive alternatives — request mono Int16, take channel 0, average channels — silently fails on at least one platform), and the `clx_debug.log` per-platform path
+- Updated `web/src/pages/docs.astro` with the new CW Decoder Word Gap control description, Auto squelch checkbox description, and an updated "WPM Tracking" section that no longer references the removed WPM range spinboxes (gone since 0.7.33). Softened the `TUK4RO`-style fused-token entry under Known Limitations to point at the Word Gap knob as a mitigation
+
 ## [0.7.35]
 
 ### Other Changes and Bugfixes
