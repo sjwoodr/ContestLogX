@@ -269,6 +269,11 @@
       "name": "CPQP Out-of-Prairie FL (115 QSOs incl 3 dupes, multsPerBand, 65 FED mults, 4 bands)",
       "log_file": "test_cpqp_outprairie.clx",
       "expected_score": 10304
+    },
+    {
+      "name": "K1USN SST (12 QSOs, multsOnce, 6 states + 1 province + 3 DXCC = 10 mults — matches the rules example exactly)",
+      "log_file": "test_sst_example.clx",
+      "expected_score": 120
     }
   ]
 }

@@ -1,0 +1,203 @@
+{
+  "contest": {
+    "name": "K1USN Slow Speed Test",
+    "abbreviation": "SST",
+    "version": "1.0.0",
+    "sponsor": "K1USN Radio Club",
+    "description": "K1USN's Slow Speed Test (SST) — a CW-only, 20-WPM-max contest aimed at CW Academy students and any operator wanting low-pressure CW practice. Runs 1 hour, twice weekly: every Monday 0000-0100 UTC and every Friday 2000-2100 UTC. Exchange is NAME + STATE/PROVINCE for W/VE, NAME + DX for everyone else. Hawaii (KH6) and Alaska (KL7) count as DX, not as US states.",
+    "startDate": "Every Monday 0000-0100 UTC and every Friday 2000-2100 UTC",
+    "duration": 1,
+    "offTimeGapMinutes": 0,
+    "modes": ["CW"],
+    "bands": ["160m", "80m", "40m", "20m", "15m", "10m"],
+    "url": "https://www.k1usn.com/sst.html",
+    "categories": {
+      "stations": ["SINGLE_OP", "ACADEMY"],
+      "power": ["LOW_POWER", "QRP", "HIGH_POWER"],
+      "modes": ["CW"]
+    }
+  },
+  "contestOnlineScore": {
+    "contestId": "K1USN-SST",
+    "mult1Name": "States/Provinces/DXCC",
+    "mult1Attribute": "exchange"
+  },
+  "frequencies": {
+    "160m": {
+      "start": 1810, "end": 1830,
+      "cw": {"start": 1810, "end": 1830}
+    },
+    "80m": {
+      "start": 3525, "end": 3550,
+      "cw": {"start": 3525, "end": 3550}
+    },
+    "40m": {
+      "start": 7025, "end": 7050,
+      "cw": {"start": 7025, "end": 7050}
+    },
+    "20m": {
+      "start": 14025, "end": 14050,
+      "cw": {"start": 14025, "end": 14050}
+    },
+    "15m": {
+      "start": 21025, "end": 21050,
+      "cw": {"start": 21025, "end": 21050}
+    },
+    "10m": {
+      "start": 28025, "end": 28050,
+      "cw": {"start": 28025, "end": 28050}
+    }
+  },
+  "stationClasses": {
+    "enabled": false
+  },
+  "userPrompts": [
+    {
+      "id": "operatingClass",
+      "question": "Select your entry class",
+      "type": "select",
+      "options": [
+        {"value": "ACADEMY",  "label": "Academy Single Op (current/recent CW Academy student)"},
+        {"value": "SO_QRP",   "label": "Single Op QRP (≤5 W)"},
+        {"value": "SO_LP",    "label": "Single Op Low Power (≤100 W)"},
+        {"value": "SO_HP",    "label": "Single Op High Power (>100 W)"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "20 WPM upper speed limit. Slower speeds encouraged. All operators are asked to be patient and willing to slow down to match the other op's speed."
+    },
+    {
+      "id": "myName",
+      "question": "Enter your first name (sent in exchange)",
+      "type": "text",
+      "required": true,
+      "forceUppercase": true,
+      "storeInMeta": true,
+      "description": "Your first name, sent as the first part of the SST exchange.",
+      "exchangeFieldMapping": {
+        "myName": "NAMEs"
+      }
+    },
+    {
+      "id": "myExchange",
+      "question": "Enter your QTH exchange. USA: 2-letter state. Canada: 2-letter province. DX: DX.",
+      "type": "text",
+      "required": true,
+      "forceUppercase": true,
+      "storeInMeta": true,
+      "description": "2-letter state code for USA stations (incl. DC; KH6/KL7 send their state code, but those QSOs credit DXCC, not state). 2-letter province code for Canadian stations. 'DX' for everyone else.",
+      "exchangeFieldMapping": {
+        "myExchange": "EXCHs"
+      }
+    }
+  ],
+  "exchangeFields": {
+    "sent": [
+      {
+        "name": "NAMEs",
+        "type": "string",
+        "required": true,
+        "description": "Operator first name sent"
+      },
+      {
+        "name": "EXCHs",
+        "type": "string",
+        "required": true,
+        "description": "State/Province sent (or DX)"
+      }
+    ],
+    "received": [
+      {
+        "name": "NAMEr",
+        "type": "string",
+        "required": true,
+        "description": "Operator first name received"
+      },
+      {
+        "name": "EXCHr",
+        "type": "string",
+        "required": true,
+        "description": "State/Province received (or DX)"
+      }
+    ]
+  },
+  "qsoFields": [
+    {"name": "Date",      "column": "DATE",  "type": "date", "format": "yyyy-MM-dd", "required": true},
+    {"name": "Time",      "column": "TIME",  "type": "time", "format": "HH:mm:ss",   "required": true},
+    {"name": "Callsign",  "column": "CALL",  "type": "string", "required": true, "uppercase": true},
+    {"name": "Frequency", "column": "FREQ",  "type": "number", "unit": "kHz", "required": true},
+    {"name": "Mode",      "column": "MODE",  "type": "enum", "values": ["CW"], "required": true},
+    {"name": "Name Sent",     "column": "NAMEs", "type": "string", "required": true, "description": "Operator first name sent"},
+    {"name": "Name Received", "column": "NAMEr", "type": "string", "required": true, "description": "Operator first name received"},
+    {"name": "QTH Sent",      "column": "EXCHs", "type": "string", "required": true, "description": "State/Province sent (or DX)"},
+    {"name": "QTH Received",  "column": "EXCHr", "type": "string", "required": true, "description": "State/Province received (or DX)"},
+    {"name": "Points",     "column": "POINTS", "type": "number", "calculated": true},
+    {"name": "Multiplier", "column": "M",      "type": "string", "calculated": true}
+  ],
+  "scoring": {
+    "points": {
+      "sameDxccEntity":      {"CW": 1},
+      "differentDxccEntity": {"CW": 1}
+    },
+    "precedence": ["sameDxccEntity", "differentDxccEntity"],
+    "multipliers": {
+      "type": "multsOnce",
+      "description": "Multipliers count once for the contest (the sum of unique states + provinces + DXCC entities). Lower-48 US states and Canadian provinces do NOT credit DXCC. Hawaii (KH6) and Alaska (KL7) count as DXCC, not as US states.",
+      "categories": ["namedMults", "dxcc"],
+      "alaskaAndHawaiiCountDxcc": true,
+      "usAndCanadaCountDxcc": false
+    },
+    "finalScore": "SUM(points) * SUM(multipliers)"
+  },
+  "dupeChecking": {
+    "type": "perBand",
+    "description": "A station may be worked once per band."
+  },
+  "logging": {
+    "requiredFields": ["date", "time", "frequency", "mode", "callsign", "nameSent", "nameReceived", "exchSent", "exchReceived"],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "K1USN-SST",
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {name_sent} {exch_sent} {call} {name_rcvd} {exch_rcvd}"
+    }
+  },
+  "callHistory": {
+    "fieldsToSave": ["NAMEr", "EXCHr"],
+    "description": "Save received name and QTH for future lookups"
+  },
+  "validation": {
+    "minimumQSOs": 1,
+    "maxOperatingTime": 1,
+    "offTimesRequired": false,
+    "namedMults": [
+      "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL", "GA",
+      "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD",
+      "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ",
+      "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC",
+      "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY",
+
+      "AB", "BC", "MB", "NB", "NL", "NT", "NS", "NU", "ON", "PE", "QC", "SK", "YT"
+    ],
+    "exchangeValidation": {
+      "type": "nameAndMultiplier",
+      "description": "Exchange is NAME + 2-letter state/province (or DX). Hawaii/Alaska send their state code (HI/AK) but the QSO credits DXCC, not state, per the SST rules."
+    }
+  },
+  "ui": {
+    "showMultiplierPanel": true,
+    "logColumns": ["DATE", "TIME", "CALL", "FREQ", "MODE", "NAMEs", "NAMEr", "EXCHs", "EXCHr", "POINTS", "M", "COMMENT"],
+    "entryFields": ["CALL", "NAMEr", "EXCHr"],
+    "fieldNavigation": {
+      "keys": "tab"
+    },
+    "bandMap": {
+      "enabled": true,
+      "bands": ["160m", "80m", "40m", "20m", "15m", "10m"]
+    },
+    "multiplierDisplay": {
+      "showStates": true,
+      "showProvinces": true,
+      "showDXCC": true
+    }
+  }
+}
