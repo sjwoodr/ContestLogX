@@ -239,6 +239,16 @@
       "name": "INQP Out-of-State FL (110 QSOs incl 2 dupes, multsPerMode, IN counties only)",
       "log_file": "test_inqp_outofstate.clx",
       "expected_score": 17496
+    },
+    {
+      "name": "DEQP In-State DE (115 QSOs incl 3 dupes, asymmetric pts, multsPerBand, DE-DE no-mult via multAlias suppression, DXCC for DE ops, LP×2 power mult)",
+      "log_file": "test_deqp_instate.clx",
+      "expected_score": 25688
+    },
+    {
+      "name": "DEQP Out-of-State FL (115 QSOs incl 3 dupes, asymmetric pts 10/20/20, multsPerBand, 3 DE counties × 6 bands, LP×2 power mult)",
+      "log_file": "test_deqp_outofstate.clx",
+      "expected_score": 60480
     }
   ]
 }
