@@ -9,6 +9,7 @@ All notable changes to ContestLogX are documented in this file.
 - Added the K1USN Slow Speed Test (SST) — every Monday 0000-0100 UTC and every Friday 2000-2100 UTC. CW only, 20 WPM upper limit, 160–10m. Cabrillo CONTEST tag: `K1USN-SST`
 - Added the Arkansas QSO Party (ARQP) — third Saturday in May. CW/SSB/Digital, 160–2m. Cabrillo CONTEST tag: `ARQP`
 - Added His Majesty The King of Spain CW (KOS-CW) — third full weekend of May, 1200Z Saturday to 1159Z Sunday. CW only, 160–10m. Cabrillo CONTEST tag: `EA-MAJESTAD-CW`
+- Added the UN DX Contest — 16 May 0600-2059 UTC. CW/SSB, 80–10m. 212 KDA district codes as multipliers alongside DXCC entities. Cabrillo CONTEST tag: `UN-DX`
 
 ### Contest Engine Changes
 - Added `eadx100` as a new multiplier category, backed by a bundled `data/eadx100.json` reference file containing the 344 active EADX-100 entities (URE-curated, ≈superset of ARRL DXCC plus Sicily, Bear Island, Shetlands, etc.) and 62 historical/cancelled entities. Used by URE-sponsored contests as their entity multiplier source. Optional `eadx100Excludes` list in the contest definition lets a contest suppress specific entity prefixes from this category — used by King of Spain to skip EA/EA6/EA8/EA9, since Spanish stations contribute the more granular province multiplier and counting via both categories would double-credit. Entries flow into the same per-QSO entity bucket as `dxcc` (a contest uses one or the other, not both — they cover ≈99% the same set), and the score widget and summary sheet relabel "DXCC" → "EADX-100" when the eadx100 category is active

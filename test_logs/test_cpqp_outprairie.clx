@@ -16,12 +16,6 @@
     "exchange_fields": [],
     "format": "ContestLogX",
     "format_version": "1.0",
-    "metadata": {
-        "callsign": "K4XYZ",
-        "club": "",
-        "name": "Steve",
-        "qth": "FL"
-    },
     "modified": "2026-05-03T16:51:24",
     "qsos": [
         {
@@ -2904,5 +2898,14 @@
         "score": 0,
         "total_points": 0,
         "total_qsos": 115
+    },
+    "station": {
+        "callsign": "K4XYZ",
+        "operator": "Steve",
+        "location": {
+            "state": "FL",
+            "cq_zone": 5,
+            "itu_zone": 8
+        }
     }
 }

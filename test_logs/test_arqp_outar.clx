@@ -13,8 +13,7 @@
         "year": 2026
     },
     "created": "2026-05-03T15:43:19",
-    "exchange_fields": [
-    ],
+    "exchange_fields": [],
     "format": "ContestLogX",
     "format_version": "1.0",
     "modified": "2026-05-03T15:43:19",
@@ -3038,11 +3037,13 @@
         }
     ],
     "station": {
-        "callsign": "",
-        "equipment": {
-            "power": 100
-        },
-        "operator": ""
+        "callsign": "K1MAS",
+        "operator": "Steve",
+        "location": {
+            "state": "MA",
+            "cq_zone": 5,
+            "itu_zone": 8
+        }
     },
     "statistics": {
         "score": 7093,

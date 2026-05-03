@@ -16,12 +16,6 @@
     "exchange_fields": [],
     "format": "ContestLogX",
     "format_version": "1.0",
-    "metadata": {
-        "callsign": "VE5KAT",
-        "club": "",
-        "name": "Steve",
-        "qth": "SK"
-    },
     "modified": "2026-05-03T16:51:24",
     "qsos": [
         {
@@ -2904,5 +2898,14 @@
         "score": 0,
         "total_points": 0,
         "total_qsos": 115
+    },
+    "station": {
+        "callsign": "VE5KAT",
+        "operator": "Steve",
+        "location": {
+            "state": "SK",
+            "cq_zone": 4,
+            "itu_zone": 18
+        }
     }
 }

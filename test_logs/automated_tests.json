@@ -294,6 +294,16 @@
       "name": "King of Spain CW - DX op USA (115 QSOs, 50% EA at 3pts + 50% DX at 1pt, multsPerBand provinces+EADX-100 with EA excluded)",
       "log_file": "test_kos_dx.clx",
       "expected_score": 19380
+    },
+    {
+      "name": "UN DX Contest - UN op Almaty (115 QSOs, 15% UN at 10pts + 30% AS DX at 3pts + 55% other DX at 5pts, multsPerBand KDA+DXCC)",
+      "log_file": "test_undx_un.clx",
+      "expected_score": 34472
+    },
+    {
+      "name": "UN DX Contest - DX op USA (115 QSOs, 25% UN at 10pts + 25% own-USA at 2pts + 10% NA at 3pts + 40% other DX at 5pts, multsPerBand KDA+DXCC)",
+      "log_file": "test_undx_dx.clx",
+      "expected_score": 47502
     }
   ]
 }
