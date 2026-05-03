@@ -8504,7 +8504,22 @@ QString MainWindow::generateSummaryString()
             worked.sort();
             missed.sort();
 
-            int groupBonus = worked.size() * group.pointsEach;
+            // Count unique dedup keys (matching the engine's bonus accounting in
+            // updateRunningScore). For bonusOnce this is just unique callsigns;
+            // for bonusPerBand/bonusPerMode/bonusPerBandAndMode it can be higher
+            // because the same bonus station credits separately on each band/mode.
+            QSet<QString> seenKeys;
+            for (const QsoRecord& qso : m_qsoModel->getQsos()) {
+                QString call = qso.getCall().toUpper();
+                if (!group.stations.contains(call)) continue;
+                QString key;
+                if      (group.type == "bonusOnce")           key = call;
+                else if (group.type == "bonusPerBand")        key = call + "_" + qso.getBand();
+                else if (group.type == "bonusPerMode")        key = call + "_" + qso.getMode().toUpper();
+                else /* bonusPerBandAndMode */                key = call + "_" + qso.getBand() + "_" + qso.getMode().toUpper();
+                seenKeys.insert(key);
+            }
+            int groupBonus = seenKeys.size() * group.pointsEach;
             out << group.name << " (+" << group.pointsEach << " pts each";
             if      (group.type == "bonusOnce")         out << ", once overall";
             else if (group.type == "bonusPerBand")       out << ", once per band";

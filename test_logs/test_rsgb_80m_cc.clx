@@ -1,0 +1,53 @@
+{
+    "contest": {
+        "categories": {
+            "userPrompt_clubName": "Neasden Radio Club",
+            "userPrompt_myExchange": "1",
+            "userPrompt_operatingClass": "100W_ASSISTED",
+            "userPrompt_societyCategory": "GENERAL"
+        },
+        "contest_file": "rsgb_80m_cc.json",
+        "mode": "",
+        "name": "RSGB 3.5 MHz Club Championship",
+        "type": "RSGB 3.5 MHz Club Championship",
+        "version": "1.0.0",
+        "year": 2026
+    },
+    "created": "2026-02-09T19:00:00",
+    "exchange_fields": [],
+    "format": "ContestLogX",
+    "format_version": "1.0",
+    "modified": "2026-02-09T20:30:00",
+    "station": {
+        "callsign": "G3ABC",
+        "operator": "Steve",
+        "location": {"state": "ENG", "cq_zone": 14, "itu_zone": 27}
+    },
+    "qsos": [
+        {"id":  1, "band": "80m", "callsign": "G0AAA",  "duplicate": false, "exchange_fields": {"CALL": "G0AAA",  "EXCHr": "5",  "EXCHs": "1",  "RSTr": "599", "RSTs": "599"}, "frequency": 3540, "mode": "CW",    "points": 0, "rst_received": "599", "rst_sent": "599", "serial":  1, "timestamp": "2026-02-09T19:00:30Z", "dxcc_count": 0, "grid_square_count": 0, "multiplier_count": 0},
+        {"id":  2, "band": "80m", "callsign": "G0BBB",  "duplicate": false, "exchange_fields": {"CALL": "G0BBB",  "EXCHr": "8",  "EXCHs": "2",  "RSTr": "599", "RSTs": "599"}, "frequency": 3540, "mode": "CW",    "points": 0, "rst_received": "599", "rst_sent": "599", "serial":  2, "timestamp": "2026-02-09T19:01:30Z", "dxcc_count": 0, "grid_square_count": 0, "multiplier_count": 0},
+        {"id":  3, "band": "80m", "callsign": "G0CCC",  "duplicate": false, "exchange_fields": {"CALL": "G0CCC",  "EXCHr": "12", "EXCHs": "3",  "RSTr": "599", "RSTs": "599"}, "frequency": 3540, "mode": "CW",    "points": 0, "rst_received": "599", "rst_sent": "599", "serial":  3, "timestamp": "2026-02-09T19:02:30Z", "dxcc_count": 0, "grid_square_count": 0, "multiplier_count": 0},
+        {"id":  4, "band": "80m", "callsign": "G0DDD",  "duplicate": false, "exchange_fields": {"CALL": "G0DDD",  "EXCHr": "15", "EXCHs": "4",  "RSTr": "599", "RSTs": "599"}, "frequency": 3540, "mode": "CW",    "points": 0, "rst_received": "599", "rst_sent": "599", "serial":  4, "timestamp": "2026-02-09T19:03:30Z", "dxcc_count": 0, "grid_square_count": 0, "multiplier_count": 0},
+        {"id":  5, "band": "80m", "callsign": "M0EEE",  "duplicate": false, "exchange_fields": {"CALL": "M0EEE",  "EXCHr": "7",  "EXCHs": "5",  "RSTr": "599", "RSTs": "599"}, "frequency": 3542, "mode": "CW",    "points": 0, "rst_received": "599", "rst_sent": "599", "serial":  5, "timestamp": "2026-02-09T19:05:00Z", "dxcc_count": 0, "grid_square_count": 0, "multiplier_count": 0},
+        {"id":  6, "band": "80m", "callsign": "M0FFF",  "duplicate": false, "exchange_fields": {"CALL": "M0FFF",  "EXCHr": "9",  "EXCHs": "6",  "RSTr": "599", "RSTs": "599"}, "frequency": 3542, "mode": "CW",    "points": 0, "rst_received": "599", "rst_sent": "599", "serial":  6, "timestamp": "2026-02-09T19:06:00Z", "dxcc_count": 0, "grid_square_count": 0, "multiplier_count": 0},
+        {"id":  7, "band": "80m", "callsign": "2E0GGG", "duplicate": false, "exchange_fields": {"CALL": "2E0GGG", "EXCHr": "3",  "EXCHs": "7",  "RSTr": "599", "RSTs": "599"}, "frequency": 3542, "mode": "CW",    "points": 0, "rst_received": "599", "rst_sent": "599", "serial":  7, "timestamp": "2026-02-09T19:07:00Z", "dxcc_count": 0, "grid_square_count": 0, "multiplier_count": 0},
+        {"id":  8, "band": "80m", "callsign": "2E0HHH", "duplicate": false, "exchange_fields": {"CALL": "2E0HHH", "EXCHr": "11", "EXCHs": "8",  "RSTr": "599", "RSTs": "599"}, "frequency": 3542, "mode": "CW",    "points": 0, "rst_received": "599", "rst_sent": "599", "serial":  8, "timestamp": "2026-02-09T19:08:00Z", "dxcc_count": 0, "grid_square_count": 0, "multiplier_count": 0},
+        {"id":  9, "band": "80m", "callsign": "G3III",  "duplicate": false, "exchange_fields": {"CALL": "G3III",  "EXCHr": "20", "EXCHs": "9",  "RSTr": "599", "RSTs": "599"}, "frequency": 3545, "mode": "CW",    "points": 0, "rst_received": "599", "rst_sent": "599", "serial":  9, "timestamp": "2026-02-09T19:10:00Z", "dxcc_count": 0, "grid_square_count": 0, "multiplier_count": 0},
+        {"id": 10, "band": "80m", "callsign": "G3JJJ",  "duplicate": false, "exchange_fields": {"CALL": "G3JJJ",  "EXCHr": "25", "EXCHs": "10", "RSTr": "599", "RSTs": "599"}, "frequency": 3545, "mode": "CW",    "points": 0, "rst_received": "599", "rst_sent": "599", "serial": 10, "timestamp": "2026-02-09T19:11:00Z", "dxcc_count": 0, "grid_square_count": 0, "multiplier_count": 0},
+        {"id": 11, "band": "80m", "callsign": "G4KKK",  "duplicate": false, "exchange_fields": {"CALL": "G4KKK",  "EXCHr": "18", "EXCHs": "11", "RSTr": "599", "RSTs": "599"}, "frequency": 3548, "mode": "CW",    "points": 0, "rst_received": "599", "rst_sent": "599", "serial": 11, "timestamp": "2026-02-09T19:13:00Z", "dxcc_count": 0, "grid_square_count": 0, "multiplier_count": 0},
+        {"id": 12, "band": "80m", "callsign": "G4LLL",  "duplicate": false, "exchange_fields": {"CALL": "G4LLL",  "EXCHr": "22", "EXCHs": "12", "RSTr": "599", "RSTs": "599"}, "frequency": 3548, "mode": "CW",    "points": 0, "rst_received": "599", "rst_sent": "599", "serial": 12, "timestamp": "2026-02-09T19:14:00Z", "dxcc_count": 0, "grid_square_count": 0, "multiplier_count": 0},
+        {"id": 13, "band": "80m", "callsign": "G7MMM",  "duplicate": false, "exchange_fields": {"CALL": "G7MMM",  "EXCHr": "4",  "EXCHs": "13", "RSTr": "599", "RSTs": "599"}, "frequency": 3550, "mode": "CW",    "points": 0, "rst_received": "599", "rst_sent": "599", "serial": 13, "timestamp": "2026-02-09T19:15:30Z", "dxcc_count": 0, "grid_square_count": 0, "multiplier_count": 0},
+        {"id": 14, "band": "80m", "callsign": "G7NNN",  "duplicate": false, "exchange_fields": {"CALL": "G7NNN",  "EXCHr": "6",  "EXCHs": "14", "RSTr": "599", "RSTs": "599"}, "frequency": 3550, "mode": "CW",    "points": 0, "rst_received": "599", "rst_sent": "599", "serial": 14, "timestamp": "2026-02-09T19:16:30Z", "dxcc_count": 0, "grid_square_count": 0, "multiplier_count": 0},
+        {"id": 15, "band": "80m", "callsign": "M3OOO",  "duplicate": false, "exchange_fields": {"CALL": "M3OOO",  "EXCHr": "10", "EXCHs": "15", "RSTr": "599", "RSTs": "599"}, "frequency": 3553, "mode": "CW",    "points": 0, "rst_received": "599", "rst_sent": "599", "serial": 15, "timestamp": "2026-02-09T19:18:00Z", "dxcc_count": 0, "grid_square_count": 0, "multiplier_count": 0},
+        {"id": 16, "band": "80m", "callsign": "M3PPP",  "duplicate": false, "exchange_fields": {"CALL": "M3PPP",  "EXCHr": "13", "EXCHs": "16", "RSTr": "599", "RSTs": "599"}, "frequency": 3553, "mode": "CW",    "points": 0, "rst_received": "599", "rst_sent": "599", "serial": 16, "timestamp": "2026-02-09T19:19:00Z", "dxcc_count": 0, "grid_square_count": 0, "multiplier_count": 0},
+        {"id": 17, "band": "80m", "callsign": "GW0QQQ", "duplicate": false, "exchange_fields": {"CALL": "GW0QQQ", "EXCHr": "30", "EXCHs": "17", "RSTr": "599", "RSTs": "599"}, "frequency": 3555, "mode": "CW",    "points": 0, "rst_received": "599", "rst_sent": "599", "serial": 17, "timestamp": "2026-02-09T19:21:00Z", "dxcc_count": 0, "grid_square_count": 0, "multiplier_count": 0},
+        {"id": 18, "band": "80m", "callsign": "GW0RRR", "duplicate": false, "exchange_fields": {"CALL": "GW0RRR", "EXCHr": "33", "EXCHs": "18", "RSTr": "599", "RSTs": "599"}, "frequency": 3555, "mode": "CW",    "points": 0, "rst_received": "599", "rst_sent": "599", "serial": 18, "timestamp": "2026-02-09T19:22:00Z", "dxcc_count": 0, "grid_square_count": 0, "multiplier_count": 0},
+        {"id": 19, "band": "80m", "callsign": "GM3SSS", "duplicate": false, "exchange_fields": {"CALL": "GM3SSS", "EXCHr": "40", "EXCHs": "19", "RSTr": "599", "RSTs": "599"}, "frequency": 3558, "mode": "CW",    "points": 0, "rst_received": "599", "rst_sent": "599", "serial": 19, "timestamp": "2026-02-09T19:24:00Z", "dxcc_count": 0, "grid_square_count": 0, "multiplier_count": 0},
+        {"id": 20, "band": "80m", "callsign": "GM3TTT", "duplicate": false, "exchange_fields": {"CALL": "GM3TTT", "EXCHr": "42", "EXCHs": "20", "RSTr": "599", "RSTs": "599"}, "frequency": 3558, "mode": "CW",    "points": 0, "rst_received": "599", "rst_sent": "599", "serial": 20, "timestamp": "2026-02-09T19:25:00Z", "dxcc_count": 0, "grid_square_count": 0, "multiplier_count": 0},
+        {"id": 21, "band": "80m", "callsign": "G6XX",   "duplicate": false, "exchange_fields": {"CALL": "G6XX",   "EXCHr": "55", "EXCHs": "21", "RSTr": "599", "RSTs": "599"}, "frequency": 3560, "mode": "CW",    "points": 0, "rst_received": "599", "rst_sent": "599", "serial": 21, "timestamp": "2026-02-09T19:30:00Z", "dxcc_count": 0, "grid_square_count": 0, "multiplier_count": 0},
+        {"id": 22, "band": "80m", "callsign": "G0AAA",  "duplicate": false, "exchange_fields": {"CALL": "G0AAA",  "EXCHr": "85", "EXCHs": "22", "RSTr": "599", "RSTs": "599"}, "frequency": 3540, "mode": "CW",    "points": 0, "rst_received": "599", "rst_sent": "599", "serial": 22, "timestamp": "2026-02-09T19:35:00Z", "dxcc_count": 0, "grid_square_count": 0, "multiplier_count": 0},
+        {"id": 23, "band": "80m", "callsign": "G6XX",   "duplicate": false, "exchange_fields": {"CALL": "G6XX",   "EXCHr": "57", "EXCHs": "23", "RSTr": "599", "RSTs": "599"}, "frequency": 3585, "mode": "PSK63", "points": 0, "rst_received": "599", "rst_sent": "599", "serial": 23, "timestamp": "2026-02-09T19:55:00Z", "dxcc_count": 0, "grid_square_count": 0, "multiplier_count": 0},
+        {"id": 24, "band": "80m", "callsign": "GW6XX",  "duplicate": false, "exchange_fields": {"CALL": "GW6XX",  "EXCHr": "12", "EXCHs": "24", "RSTr": "599", "RSTs": "599"}, "frequency": 3600, "mode": "RTTY",  "points": 0, "rst_received": "599", "rst_sent": "599", "serial": 24, "timestamp": "2026-02-09T20:10:00Z", "dxcc_count": 0, "grid_square_count": 0, "multiplier_count": 0}
+    ],
+    "statistics": {"score": 0, "total_points": 0, "total_qsos": 24}
+}

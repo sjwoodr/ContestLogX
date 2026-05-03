@@ -304,6 +304,11 @@
       "name": "UN DX Contest - DX op USA (115 QSOs, 25% UN at 10pts + 25% own-USA at 2pts + 10% NA at 3pts + 40% other DX at 5pts, multsPerBand KDA+DXCC)",
       "log_file": "test_undx_dx.clx",
       "expected_score": 47502
+    },
+    {
+      "name": "RSGB 3.5MHz CC (24 QSOs incl 1 dupe + 3 bonus-station QSOs across CW/PSK63/RTTY, no multipliers, score = 23 contact + 12 bonus = 35)",
+      "log_file": "test_rsgb_80m_cc.clx",
+      "expected_score": 35
     }
   ]
 }

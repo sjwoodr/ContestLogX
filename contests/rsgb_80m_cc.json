@@ -1,0 +1,168 @@
+{
+  "contest": {
+    "name": "RSGB 3.5 MHz Club Championship",
+    "abbreviation": "RSGB-80M-CC",
+    "version": "1.0.0",
+    "sponsor": "Radio Society of Great Britain",
+    "description": "RSGB 3.5 MHz Club Championship — short evening contests on 80m, 1.5 hours each, run on Mondays/Wednesdays/Thursdays from February through July. Entrants represent RSGB Affiliated Societies; non-UK&CD stations welcome but do not contribute to Society scores. Exchange is RST + serial number starting at 1. One point per QSO; QSOs with the RSGB special station (G6XX or regional variant) are worth 5 points each. No multipliers. CW, SSB, PSK63, and RTTY sessions run on different dates within the series.",
+    "startDate": "Various Mondays/Wednesdays/Thursdays Feb-Jul (1.5-hour sessions)",
+    "duration": 1.5,
+    "offTimeGapMinutes": 0,
+    "modes": ["CW", "SSB", "PSK63", "RTTY"],
+    "bands": ["80m"],
+    "url": "https://www.rsgbcc.org/hf/rules/2026/r80mcc.shtml",
+    "categories": {
+      "stations": ["SINGLE_OP", "MULTI_OP"],
+      "power": ["LOW_POWER", "QRP"],
+      "modes": ["CW", "SSB", "PSK63", "RTTY"]
+    }
+  },
+  "contestOnlineScore": {
+    "contestId": "RSGB-80M-CC",
+    "mult1Name": "QSOs",
+    "mult1Attribute": "callsign"
+  },
+  "frequencies": {
+    "80m": {
+      "start": 3510, "end": 3775,
+      "cw":    {"start": 3510, "end": 3570},
+      "phone": {"start": 3600, "end": 3775},
+      "digital": {"start": 3580, "end": 3620}
+    }
+  },
+  "stationClasses": {
+    "enabled": false
+  },
+  "userPrompts": [
+    {
+      "id": "operatingClass",
+      "question": "Select your section",
+      "type": "select",
+      "options": [
+        {"value": "100W_ASSISTED",    "label": "100W Assisted (≤100W, SSB/CW/Data — required for SSB sessions)"},
+        {"value": "10W_ASSISTED",     "label": "10W Assisted (≤10W, SSB/CW/Data)"},
+        {"value": "100W_UNASSISTED",  "label": "100W Unassisted (≤100W, CW/Data only)"},
+        {"value": "10W_UNASSISTED",   "label": "10W Unassisted (≤10W, CW/Data only)"},
+        {"value": "MULTI_OP",         "label": "Multi-Operator (always Assisted)"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "All SSB session entries are classed as Assisted. Multi-Operator stations are always Assisted. Self-spotting is permitted for Assisted entries (≤ once per 10 minutes, on a new frequency)."
+    },
+    {
+      "id": "societyCategory",
+      "question": "Affiliated Society category (UK&CD entrants)",
+      "type": "select",
+      "options": [
+        {"value": "LOCAL",      "label": "Local Category (Society members operate within 80km of registered VMP)"},
+        {"value": "GENERAL",    "label": "General Category (members spread beyond 80km, or chose not to enter Local)"},
+        {"value": "INDIVIDUAL", "label": "Individual entry (RSGB member or non-UK)"}
+      ],
+      "required": false,
+      "storeInMeta": true,
+      "description": "Affiliated Societies must register a Virtual Meeting Place (VMP) before any member's first event. Individual entries are by RSGB members or non-UK stations who don't represent a Society."
+    },
+    {
+      "id": "clubName",
+      "question": "Affiliated Society name (leave blank for individual entry)",
+      "type": "text",
+      "required": false,
+      "storeInMeta": true,
+      "description": "Free-text Affiliated Society name. Used in Cabrillo CLUB: header and for Society scoring."
+    },
+    {
+      "id": "myExchange",
+      "question": "Sent serial number (defaults to 1; auto-increments per QSO)",
+      "type": "text",
+      "required": false,
+      "forceUppercase": true,
+      "storeInMeta": true,
+      "description": "Starting serial number. The engine auto-increments by 1 for each subsequent QSO. Entrants will not be penalised if their sent serial numbers are logged slightly out of sequence.",
+      "exchangeFieldMapping": {
+        "myExchange": "EXCHs"
+      }
+    }
+  ],
+  "exchangeFields": {
+    "sent": [
+      {"name": "RSTs",  "type": "rst",    "required": true,  "description": "Signal report sent (599 CW/Data, 59 SSB)"},
+      {"name": "EXCHs", "type": "string", "required": true,  "description": "Sent serial number"}
+    ],
+    "received": [
+      {"name": "RSTr",  "type": "rst",    "required": true,  "description": "Signal report received"},
+      {"name": "EXCHr", "type": "string", "required": true,  "description": "Received serial number (log a 0 if no exchange received)"}
+    ]
+  },
+  "qsoFields": [
+    {"name": "Date",      "column": "DATE",  "type": "date", "format": "yyyy-MM-dd", "required": true},
+    {"name": "Time",      "column": "TIME",  "type": "time", "format": "HH:mm:ss",   "required": true},
+    {"name": "Callsign",  "column": "CALL",  "type": "string", "required": true, "uppercase": true},
+    {"name": "Frequency", "column": "FREQ",  "type": "number", "unit": "kHz", "required": true},
+    {"name": "Mode",      "column": "MODE",  "type": "enum", "values": ["CW", "SSB", "PSK63", "RTTY"], "required": true},
+    {"name": "RST Sent",     "column": "RSTs", "type": "rst", "required": true},
+    {"name": "RST Received", "column": "RSTr", "type": "rst", "required": true},
+    {"name": "Exchange Sent",     "column": "EXCHs", "type": "string", "required": true},
+    {"name": "Exchange Received", "column": "EXCHr", "type": "string", "required": true},
+    {"name": "Points",     "column": "POINTS", "type": "number", "calculated": true},
+    {"name": "Multiplier", "column": "M",      "type": "string", "calculated": true}
+  ],
+  "scoring": {
+    "points": {
+      "cw":      1,
+      "phone":   1,
+      "digital": 1
+    },
+    "finalScore": "SUM(points) + bonusPoints"
+  },
+  "dupeChecking": {
+    "type": "perBandAndMode",
+    "description": "A station may be worked once per mode (CW, SSB, PSK63, RTTY counted separately). In Datamodes events, the same station may be worked once on PSK63 and once on RTTY."
+  },
+  "bonusStations": [
+    {
+      "name": "RSGB Special Station",
+      "pointsEach": 4,
+      "type": "bonusPerBandAndMode",
+      "stations": ["G6XX", "GD6XX", "GI6XX", "GJ6XX", "GM6XX", "GU6XX", "GW6XX"],
+      "note": "QSOs with the RSGB special station (G6XX or regional variant — GD/GI/GJ/GM/GU/GW6XX) are worth 5 QSO points (1 base + 4 bonus). RSGB activates only one of these per session, but all 7 variants are listed defensively."
+    }
+  ],
+  "logging": {
+    "requiredFields": ["date", "time", "frequency", "mode", "callsign", "rstSent", "rstReceived", "exchSent", "exchReceived"],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "RSGB-80M-CC",
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {rst_sent} {exch_sent} {call} {rst_rcvd} {exch_rcvd}"
+    }
+  },
+  "callHistory": {
+    "fieldsToSave": ["EXCHr"],
+    "description": "Save received serial number for future lookups (mostly useful as a dupe indicator within a session)"
+  },
+  "validation": {
+    "minimumQSOs": 1,
+    "maxOperatingTime": 1.5,
+    "offTimesRequired": false,
+    "exchangeValidation": {
+      "type": "serial",
+      "description": "Exchange is a serial number incrementing from 1. Engine accepts any digit string. Log a 0 for QSOs where no exchange was received."
+    }
+  },
+  "ui": {
+    "showMultiplierPanel": false,
+    "logColumns": ["DATE", "TIME", "CALL", "FREQ", "MODE", "RSTs", "RSTr", "EXCHs", "EXCHr", "POINTS", "COMMENT"],
+    "entryFields": ["CALL", "RSTr", "EXCHr"],
+    "fieldNavigation": {
+      "keys": "tab"
+    },
+    "bandMap": {
+      "enabled": true,
+      "bands": ["80m"]
+    },
+    "multiplierDisplay": {
+      "showStates": false,
+      "showProvinces": false,
+      "showDXCC": false
+    }
+  }
+}
