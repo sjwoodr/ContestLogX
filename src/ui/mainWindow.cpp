@@ -8364,13 +8364,29 @@ QString MainWindow::generateSummaryString()
                 out << "\n";
             }
         } else if (multType == "multsPerMode") {
-            // Breakdown by mode
+            // Breakdown by mode. Normalize the QSO's literal mode value to
+            // the same {CW, SSB, DIGITAL} mode-categories the scoring engine
+            // uses (see ContestEngine::updateRunningScore) — otherwise SSB
+            // QSOs split into LSB / USB sections in the printout, where the
+            // same multiplier (e.g. INMRN) appears under both because the
+            // operator worked LSB on 80m AND USB on 20m, double-counting in
+            // the printed total even though the actual score correctly counts
+            // it once. Keeps display consistent with score regardless of the
+            // contest's mode mix.
+            auto normalizeMode = [](const QString& m) -> QString {
+                const QString u = m.toUpper();
+                if (u == "CW") return "CW";
+                if (u == "SSB" || u == "USB" || u == "LSB" || u == "FM" || u == "AM") return "SSB";
+                if (u == "RTTY" || u == "PSK" || u == "FT8" || u == "FT4" || u == "DIGITAL") return "DIGITAL";
+                return u;
+            };
+
             QMap<QString, QSet<QString>> multsPerMode;
 
             for (int i = 0; i < m_qsoModel->rowCount(); ++i) {
                 QsoRecord qso = m_qsoModel->getQso(i);
                 if (qso.getPoints() == 0) continue;
-                QString mode = qso.getMode();
+                QString mode = normalizeMode(qso.getMode());
                 QList<ContestEngine::MultiplierInfo> mults = m_contestEngine->getMultipliersWithCategory(qso);
 
                 for (const ContestEngine::MultiplierInfo& mult : mults) {

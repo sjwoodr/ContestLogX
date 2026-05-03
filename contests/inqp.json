@@ -1,0 +1,247 @@
+{
+  "contest": {
+    "name": "Indiana QSO Party",
+    "abbreviation": "INQP",
+    "version": "1.0.0",
+    "sponsor": "Hoosier DX and Contest Club (HDXCC)",
+    "description": "Indiana state QSO party — Indiana stations work everyone, others work Indiana stations only. CW and Phone (no digital modes per sponsor rules).",
+    "startDate": "First full weekend of May, 1500 UTC Saturday to 0259 UTC Sunday (2026: May 2-3)",
+    "duration": 12,
+    "offTimeGapMinutes": 0,
+    "modes": ["CW", "SSB"],
+    "bands": ["160m", "80m", "40m", "20m", "15m", "10m"],
+    "url": "https://www.hdxcc.org/inqp",
+    "categories": {
+      "stations": ["SINGLE_OP", "MULTI_OP", "MOBILE", "PORTABLE", "ROVER"],
+      "power": ["LOW_POWER", "QRP", "HIGH_POWER"],
+      "modes": ["MIXED", "CW", "PHONE"]
+    }
+  },
+  "contestOnlineScore": {
+    "contestId": "INQP",
+    "mult1Name": "Counties / States / Prov.",
+    "mult1Attribute": "exchange"
+  },
+  "frequencies": {
+    "160m": {
+      "start": 1800, "end": 2000,
+      "cw":    {"start": 1800, "end": 1850},
+      "phone": {"start": 1850, "end": 2000}
+    },
+    "80m": {
+      "start": 3500, "end": 4000,
+      "cw":    {"start": 3500, "end": 3600},
+      "phone": {"start": 3600, "end": 4000}
+    },
+    "40m": {
+      "start": 7000, "end": 7300,
+      "cw":    {"start": 7000, "end": 7125},
+      "phone": {"start": 7125, "end": 7300}
+    },
+    "20m": {
+      "start": 14000, "end": 14350,
+      "cw":    {"start": 14000, "end": 14150},
+      "phone": {"start": 14150, "end": 14350}
+    },
+    "15m": {
+      "start": 21000, "end": 21450,
+      "cw":    {"start": 21000, "end": 21200},
+      "phone": {"start": 21200, "end": 21450}
+    },
+    "10m": {
+      "start": 28000, "end": 29700,
+      "cw":    {"start": 28000, "end": 28300},
+      "phone": {"start": 28300, "end": 29700}
+    }
+  },
+  "stationClasses": {
+    "enabled": false
+  },
+  "userPrompts": [
+    {
+      "id": "stationType",
+      "question": "Select your station location",
+      "type": "select",
+      "options": [
+        {"value": "IN",      "label": "Indiana (In-State)"},
+        {"value": "OUTSIDE", "label": "Outside Indiana (W / VE / other)"},
+        {"value": "DX",      "label": "DX (outside W / VE)"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "Indiana stations work everyone; non-Indiana stations work Indiana stations only."
+    },
+    {
+      "id": "operatingClass",
+      "question": "Select your operating class",
+      "type": "select",
+      "options": [
+        {"value": "SO_HP",   "label": "Single Op: High Power"},
+        {"value": "SO_LP",   "label": "Single Op: Low Power (≤100W)"},
+        {"value": "SO_QRP",  "label": "Single Op: QRP (≤5W)"},
+        {"value": "MS",      "label": "Multi-Op Single Transmitter"},
+        {"value": "MM",      "label": "Multi-Op Multi-Transmitter"},
+        {"value": "MOB",     "label": "Mobile (Indiana stations only — operates from one or two counties at a time)"},
+        {"value": "POR_SC",  "label": "Portable, Single County (Indiana stations only)"},
+        {"value": "POR_CL",  "label": "Portable, County Line (Indiana stations only — operate equally from both)"},
+        {"value": "ROV",     "label": "Rover (Indiana stations only — non-mobile antennas, multiple locations)"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "Spotting assistance (DX cluster, self-spotting) is permitted in all categories. Fixed stations enter as Single-Op, Multi-Single, or Multi-Multi only."
+    },
+    {
+      "id": "myExchange",
+      "question": "Enter your exchange. Indiana stations: 5-letter IN<county> code (e.g., INMRN for Marion). Non-Indiana W/VE: 2-letter state/province code. DX: DX.",
+      "type": "text",
+      "required": true,
+      "forceUppercase": true,
+      "storeInMeta": true,
+      "description": "5-letter IN<county> for Indiana stations; 2-letter state/province for non-Indiana W/VE; DX for stations outside W/VE.",
+      "exchangeFieldMapping": {
+        "myExchange": "EXCHs"
+      }
+    }
+  ],
+  "exchangeFields": {
+    "sent": [
+      {
+        "name": "RSTs",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report sent (default 599 CW / 59 Phone)"
+      },
+      {
+        "name": "EXCHs",
+        "type": "string",
+        "required": true,
+        "description": "5-letter IN<county> for Indiana; 2-letter state/province for non-Indiana W/VE; DX otherwise"
+      }
+    ],
+    "received": [
+      {
+        "name": "RSTr",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report received"
+      },
+      {
+        "name": "EXCHr",
+        "type": "string",
+        "required": true,
+        "description": "5-letter IN<county> from Indiana stations; 2-letter state/province from W/VE; DX from others"
+      }
+    ]
+  },
+  "qsoFields": [
+    {"name": "Date",      "column": "DATE",  "type": "date", "format": "yyyy-MM-dd", "required": true},
+    {"name": "Time",      "column": "TIME",  "type": "time", "format": "HH:mm:ss",   "required": true},
+    {"name": "Callsign",  "column": "CALL",  "type": "string", "required": true, "uppercase": true},
+    {"name": "Frequency", "column": "FREQ",  "type": "number", "unit": "kHz", "required": true},
+    {"name": "Mode",      "column": "MODE",  "type": "enum", "values": ["CW", "SSB"], "required": true},
+    {"name": "RST Sent",     "column": "RSTs", "type": "rst", "required": true, "description": "Signal report sent"},
+    {"name": "RST Received", "column": "RSTr", "type": "rst", "required": true, "description": "Signal report received"},
+    {"name": "Exchange Sent",     "column": "EXCHs", "type": "string", "required": true, "description": "Exchange sent"},
+    {"name": "Exchange Received", "column": "EXCHr", "type": "string", "required": true, "description": "Exchange received"},
+    {"name": "Points",     "column": "POINTS", "type": "number", "calculated": true},
+    {"name": "Multiplier", "column": "M",      "type": "string", "calculated": true}
+  ],
+  "scoring": {
+    "points": {
+      "cw":    2,
+      "phone": 2
+    },
+    "multipliers": {
+      "type": "multsPerMode",
+      "description": "Each multiplier counts once per mode (CW once, SSB once). Non-Indiana stations multiply by Indiana counties (max 92). Indiana stations multiply by 92 counties + 49 other US states (DC counts as MD via alias) + 13 Canadian provinces. Indiana stations may work DX for QSO point credit but DX is not a multiplier.",
+      "categories": ["namedMults"],
+      "alaskaAndHawaiiCountDxcc": false,
+      "usAndCanadaCountDxcc": false
+    },
+    "finalScore": "SUM(points) * SUM(multipliers)"
+  },
+  "dupeChecking": {
+    "type": "perBandAndMode",
+    "description": "A station may be worked once on CW and once on SSB per band — theoretically up to 12 times for a fixed station (6 bands × 2 modes). Indiana mobiles, rovers, and county-line portables may be re-worked from each new county. County-line contacts: log each county as a separate QSO with the same callsign, or one QSO with all counties noted; the per-band-and-mode dupe check by exchange code allows separate-QSO logging naturally."
+  },
+  "logging": {
+    "requiredFields": ["date", "time", "frequency", "mode", "callsign", "rstSent", "rstReceived", "exchSent", "exchReceived"],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "INQP",
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {rst_sent} {exch_sent} {call} {rst_rcvd} {exch_rcvd}"
+    }
+  },
+  "callHistory": {
+    "fieldsToSave": ["EXCHr"],
+    "description": "Save received exchange (county or state/province) for future lookups"
+  },
+  "validation": {
+    "minimumQSOs": 1,
+    "maxOperatingTime": 12,
+    "offTimesRequired": false,
+    "namedMults": [
+      "INADA", "INALL", "INBAR", "INBEN", "INBLA", "INBOO", "INBRO", "INCAR", "INCAS", "INCLR",
+      "INCLY", "INCLI", "INCRA", "INDAV", "INDEA", "INDEC", "INDEK", "INDEL", "INDUB", "INELK",
+      "INFAY", "INFLO", "INFOU", "INFRA", "INFUL", "INGIB", "INGRA", "INGRE", "INHAM", "INHAN",
+      "INHAR", "INHND", "INHNR", "INHOW", "INHUN", "INJAC", "INJAS", "INJAY", "INJEF", "INJEN",
+      "INJOH", "INKNO", "INKOS", "INLAG", "INLAK", "INLAP", "INLAW", "INMAD", "INMRN", "INMRS",
+      "INMRT", "INMIA", "INMNR", "INMNT", "INMOR", "INNEW", "INNOB", "INOHI", "INORA", "INOWE",
+      "INPAR", "INPER", "INPIK", "INPOR", "INPOS", "INPUL", "INPUT", "INRAN", "INRIP", "INRUS",
+      "INSCO", "INSHE", "INSPE", "INSTA", "INSTE", "INSTJ", "INSUL", "INSWI", "INTPP", "INTPT",
+      "INUNI", "INVAN", "INVER", "INVIG", "INWAB", "INWRN", "INWRK", "INWAS", "INWAY", "INWEL",
+      "INWHT", "INWHL",
+
+      "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA",
+      "HI", "ID", "IL", "IA", "KS", "KY", "LA", "ME", "MD", "MA",
+      "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM",
+      "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD",
+      "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY",
+
+      "NS", "QC", "ON", "MB", "SK", "AB", "BC", "NT", "NB", "NL", "NU", "YT", "PE"
+    ],
+    "namedMultAliases": {
+      "DC": "MD"
+    },
+    "exchangeValidation": {
+      "type": "multiplier",
+      "description": "Exchange should be a 5-letter IN<county> code (Indiana stations), a 2-letter US state or Canadian province code (non-Indiana W/VE), or DX. DC counts as MD via alias."
+    },
+    "receivedExchangeFilter": {
+      "promptId": "stationType",
+      "rules": {
+        "OUTSIDE": "inStateMults",
+        "DX":      "inStateMults"
+      }
+    },
+    "inStateMults": [
+      "INADA", "INALL", "INBAR", "INBEN", "INBLA", "INBOO", "INBRO", "INCAR", "INCAS", "INCLR",
+      "INCLY", "INCLI", "INCRA", "INDAV", "INDEA", "INDEC", "INDEK", "INDEL", "INDUB", "INELK",
+      "INFAY", "INFLO", "INFOU", "INFRA", "INFUL", "INGIB", "INGRA", "INGRE", "INHAM", "INHAN",
+      "INHAR", "INHND", "INHNR", "INHOW", "INHUN", "INJAC", "INJAS", "INJAY", "INJEF", "INJEN",
+      "INJOH", "INKNO", "INKOS", "INLAG", "INLAK", "INLAP", "INLAW", "INMAD", "INMRN", "INMRS",
+      "INMRT", "INMIA", "INMNR", "INMNT", "INMOR", "INNEW", "INNOB", "INOHI", "INORA", "INOWE",
+      "INPAR", "INPER", "INPIK", "INPOR", "INPOS", "INPUL", "INPUT", "INRAN", "INRIP", "INRUS",
+      "INSCO", "INSHE", "INSPE", "INSTA", "INSTE", "INSTJ", "INSUL", "INSWI", "INTPP", "INTPT",
+      "INUNI", "INVAN", "INVER", "INVIG", "INWAB", "INWRN", "INWRK", "INWAS", "INWAY", "INWEL",
+      "INWHT", "INWHL"
+    ]
+  },
+  "ui": {
+    "showMultiplierPanel": true,
+    "logColumns": ["DATE", "TIME", "CALL", "FREQ", "MODE", "RSTs", "RSTr", "EXCHs", "EXCHr", "POINTS", "M", "COMMENT"],
+    "entryFields": ["CALL", "RSTr", "EXCHr"],
+    "fieldNavigation": {
+      "keys": "tab"
+    },
+    "bandMap": {
+      "enabled": true,
+      "bands": ["160m", "80m", "40m", "20m", "15m", "10m"]
+    },
+    "multiplierDisplay": {
+      "showCounties": true,
+      "showStates": true,
+      "showProvinces": true
+    }
+  }
+}

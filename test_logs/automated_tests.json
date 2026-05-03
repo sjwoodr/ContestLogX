@@ -229,6 +229,16 @@
       "name": "7QP Out-of-State FL (100 QSOs, multsOnce, 82 unique 7th-area county mults)",
       "log_file": "test_7qp_outofstate.clx",
       "expected_score": 21730
+    },
+    {
+      "name": "INQP In-State IN (110 QSOs incl 2 dupes, multsPerMode, counties+states+VE, DC->MD alias, DX=pts only)",
+      "log_file": "test_inqp_instate.clx",
+      "expected_score": 17928
+    },
+    {
+      "name": "INQP Out-of-State FL (110 QSOs incl 2 dupes, multsPerMode, IN counties only)",
+      "log_file": "test_inqp_outofstate.clx",
+      "expected_score": 17496
     }
   ]
 }
