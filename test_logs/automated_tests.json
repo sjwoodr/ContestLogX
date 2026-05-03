@@ -249,6 +249,16 @@
       "name": "DEQP Out-of-State FL (115 QSOs incl 3 dupes, asymmetric pts 10/20/20, multsPerBand, 3 DE counties × 6 bands, LP×2 power mult)",
       "log_file": "test_deqp_outofstate.clx",
       "expected_score": 60480
+    },
+    {
+      "name": "NEQP In-State CT (115 QSOs incl 3 dupes, multsOnce, NE counties + 44 states + 14 prov + DXCC, 5 bands)",
+      "log_file": "test_neqp_instate.clx",
+      "expected_score": 12240
+    },
+    {
+      "name": "NEQP Out-of-State FL (115 QSOs incl 3 dupes, multsOnce, 56 NE county mults only, 5 bands)",
+      "log_file": "test_neqp_outofstate.clx",
+      "expected_score": 9184
     }
   ]
 }

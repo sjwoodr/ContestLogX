@@ -1,0 +1,260 @@
+{
+  "contest": {
+    "name": "New England QSO Party",
+    "abbreviation": "NEQP",
+    "version": "1.0.0",
+    "sponsor": "New England QSO Party Committee",
+    "description": "New England QSO Party — first full weekend of May, 20-hour contest. New England stations (CT/ME/MA/NH/RI/VT) work everyone; non-New England stations work New England only. Exchange is RST + 5-letter <state><county> code for New England (e.g., MAMID for Middlesex MA; CT uses Regional Councils of Government, e.g., CTCAP). All other US/Canada send RST + 2-letter state/province; DX sends DX. CW + SSB + Digital — Digital is scored at the CW point rate per the rules (2 pts).",
+    "startDate": "First full weekend of May (2026: May 2-3)",
+    "duration": 20,
+    "offTimeGapMinutes": 0,
+    "modes": ["CW", "SSB", "DIGITAL"],
+    "bands": ["80m", "40m", "20m", "15m", "10m"],
+    "url": "https://www.neqp.org",
+    "categories": {
+      "stations": ["SINGLE_OP", "MULTI_OP", "MOBILE"],
+      "power": ["LOW_POWER", "QRP", "HIGH_POWER"],
+      "modes": ["MIXED", "CW", "PHONE", "DIGITAL"]
+    }
+  },
+  "contestOnlineScore": {
+    "contestId": "NEQP",
+    "mult1Name": "Counties / States / Prov.",
+    "mult1Attribute": "exchange"
+  },
+  "frequencies": {
+    "80m": {
+      "start": 3500, "end": 4000,
+      "cw":    {"start": 3500, "end": 3600},
+      "phone": {"start": 3600, "end": 4000}
+    },
+    "40m": {
+      "start": 7000, "end": 7300,
+      "cw":    {"start": 7000, "end": 7125},
+      "phone": {"start": 7125, "end": 7300}
+    },
+    "20m": {
+      "start": 14000, "end": 14350,
+      "cw":    {"start": 14000, "end": 14150},
+      "phone": {"start": 14150, "end": 14350}
+    },
+    "15m": {
+      "start": 21000, "end": 21450,
+      "cw":    {"start": 21000, "end": 21200},
+      "phone": {"start": 21200, "end": 21450}
+    },
+    "10m": {
+      "start": 28000, "end": 29700,
+      "cw":    {"start": 28000, "end": 28300},
+      "phone": {"start": 28300, "end": 29700}
+    }
+  },
+  "stationClasses": {
+    "enabled": false
+  },
+  "userPrompts": [
+    {
+      "id": "stationType",
+      "question": "Select your station location",
+      "type": "select",
+      "options": [
+        {"value": "NE",      "label": "New England (CT / ME / MA / NH / RI / VT)"},
+        {"value": "OUTSIDE", "label": "Outside New England (W / VE / other)"},
+        {"value": "DX",      "label": "DX (outside W / VE)"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "New England stations work everyone; non-NE stations work New England only. Your specific NE state is conveyed by the 5-letter <state><county> code you send (e.g., MAMID identifies you as a Massachusetts Middlesex station)."
+    },
+    {
+      "id": "operatingClass",
+      "question": "Select your operating class",
+      "type": "select",
+      "options": [
+        {"value": "SO_HP",      "label": "Single Op: High Power"},
+        {"value": "SO_LP",      "label": "Single Op: Low Power (≤ 150 W)"},
+        {"value": "SO_QRP",     "label": "Single Op: QRP (≤ 5 W)"},
+        {"value": "MS",         "label": "Multi-Op Single Transmitter"},
+        {"value": "MM",         "label": "Multi-Op Multi-Transmitter"},
+        {"value": "MOB_SO_HP",  "label": "Mobile Single Op: High Power"},
+        {"value": "MOB_SO_LP",  "label": "Mobile Single Op: Low Power (≤ 150 W)"},
+        {"value": "MOB_SO_QRP", "label": "Mobile Single Op: QRP (≤ 5 W)"},
+        {"value": "MOB_MS",     "label": "Mobile Multi-Op Single Transmitter (Mobile Multi-Multi is not permitted)"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "Spotting assistance and self-spotting are permitted in all categories. Mobile classes have no Multi-Multi option per NEQP rules."
+    },
+    {
+      "id": "myExchange",
+      "question": "Enter your exchange. New England stations: 5-letter <state><county> code (e.g., MAMID for Middlesex MA, CTCAP for Capital Region CT). Non-NE W/VE: 2-letter state/province code. DX: DX.",
+      "type": "text",
+      "required": true,
+      "forceUppercase": true,
+      "storeInMeta": true,
+      "description": "5-letter <state><county> for New England stations; 2-letter state/province for non-NE W/VE; DX otherwise. Connecticut switched from counties to Regional Councils of Government in 2024.",
+      "exchangeFieldMapping": {
+        "myExchange": "EXCHs"
+      }
+    }
+  ],
+  "exchangeFields": {
+    "sent": [
+      {
+        "name": "RSTs",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report sent (default 599 CW / 59 Phone)"
+      },
+      {
+        "name": "EXCHs",
+        "type": "string",
+        "required": true,
+        "description": "5-letter <state><county> for New England; 2-letter state/province for non-NE W/VE; DX otherwise"
+      }
+    ],
+    "received": [
+      {
+        "name": "RSTr",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report received"
+      },
+      {
+        "name": "EXCHr",
+        "type": "string",
+        "required": true,
+        "description": "5-letter <state><county> from New England stations; 2-letter state/province from W/VE; DX from others"
+      }
+    ]
+  },
+  "qsoFields": [
+    {"name": "Date",      "column": "DATE",  "type": "date", "format": "yyyy-MM-dd", "required": true},
+    {"name": "Time",      "column": "TIME",  "type": "time", "format": "HH:mm:ss",   "required": true},
+    {"name": "Callsign",  "column": "CALL",  "type": "string", "required": true, "uppercase": true},
+    {"name": "Frequency", "column": "FREQ",  "type": "number", "unit": "kHz", "required": true},
+    {"name": "Mode",      "column": "MODE",  "type": "enum", "values": ["CW", "SSB", "DIGITAL"], "required": true},
+    {"name": "RST Sent",     "column": "RSTs", "type": "rst", "required": true, "description": "Signal report sent"},
+    {"name": "RST Received", "column": "RSTr", "type": "rst", "required": true, "description": "Signal report received"},
+    {"name": "Exchange Sent",     "column": "EXCHs", "type": "string", "required": true, "description": "Exchange sent"},
+    {"name": "Exchange Received", "column": "EXCHr", "type": "string", "required": true, "description": "Exchange received"},
+    {"name": "Points",     "column": "POINTS", "type": "number", "calculated": true},
+    {"name": "Multiplier", "column": "M",      "type": "string", "calculated": true}
+  ],
+  "scoring": {
+    "points": {
+      "cw":      2,
+      "phone":   1,
+      "digital": 2
+    },
+    "multipliers": {
+      "type": "multsOnce",
+      "description": "Multipliers count once for the contest (not per band or mode). Non-NE stations multiply by NE counties (max 68). NE stations multiply by US states (the 6 NE states themselves are not in the multiplier list — they're never received as 2-letter codes since other NE ops always send 5-letter <state><county> codes — so achievable max is 44 states) + 14 Canadian provinces (VO1 and VO2 separate per the rules) + DXCC entities (USA and Canada excluded — provinces handle Canada credit). DC counts as MD via the namedMultAliases unconditional remap.",
+      "categories": ["namedMults", "dxcc"],
+      "alaskaAndHawaiiCountDxcc": false,
+      "usAndCanadaCountDxcc": false,
+      "stationClassMultipliers": {
+        "NE":      ["namedMults", "dxcc"],
+        "OUTSIDE": ["namedMults"],
+        "DX":      ["namedMults"]
+      }
+    },
+    "finalScore": "SUM(points) * SUM(multipliers)"
+  },
+  "dupeChecking": {
+    "type": "perBandAndMode",
+    "description": "A station may be worked once per CW, once per SSB, and once per Digital on each band. New England mobiles that change counties are considered new stations and may be re-worked for both QSO and multiplier credit. County-line QSOs should be logged as two separate QSOs. CW contacts must not be made in the phone band segments. Cross-mode, cross-band, and repeater QSOs are not permitted."
+  },
+  "logging": {
+    "requiredFields": ["date", "time", "frequency", "mode", "callsign", "rstSent", "rstReceived", "exchSent", "exchReceived"],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "NEQP",
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {rst_sent} {exch_sent} {call} {rst_rcvd} {exch_rcvd}"
+    }
+  },
+  "callHistory": {
+    "fieldsToSave": ["EXCHr"],
+    "description": "Save received exchange (county or state/province) for future lookups"
+  },
+  "validation": {
+    "minimumQSOs": 1,
+    "maxOperatingTime": 20,
+    "offTimesRequired": false,
+    "namedMults": [
+      "CTCAP", "CTGBR", "CTLCR", "CTNAU", "CTNOE", "CTNOW", "CTSOE", "CTSOC", "CTWES",
+
+      "MEAND", "MEARO", "MECUM", "MEFRA", "MEHAN", "MEKEN", "MEKNO", "MELIN",
+      "MEOXF", "MEPEN", "MEPIS", "MESAG", "MESOM", "MEWAL", "MEWAS", "MEYOR",
+
+      "MABAR", "MABER", "MABRI", "MADUK", "MAESS", "MAFRA", "MAHMD", "MAHMP",
+      "MAMID", "MANAN", "MANOR", "MAPLY", "MASUF", "MAWOR",
+
+      "NHBEL", "NHCAR", "NHCHE", "NHCOO", "NHGRA", "NHHIL", "NHMER", "NHROC",
+      "NHSTR", "NHSUL",
+
+      "RIBRI", "RIKEN", "RINEW", "RIPRO", "RIWAS",
+
+      "VTADD", "VTBEN", "VTCAL", "VTCHI", "VTESS", "VTFRA", "VTGRA", "VTLAM",
+      "VTORA", "VTORL", "VTRUT", "VTWAS", "VTWNH", "VTWND",
+
+      "AL", "AK", "AZ", "AR", "CA", "CO", "DE", "FL", "GA", "HI",
+      "ID", "IL", "IN", "IA", "KS", "KY", "LA", "MD",
+      "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NJ", "NM",
+      "NY", "NC", "ND", "OH", "OK", "OR", "PA", "SC", "SD",
+      "TN", "TX", "UT", "VA", "WA", "WV", "WI", "WY",
+
+      "NS", "QC", "ON", "MB", "SK", "AB", "BC", "NT", "NB", "VO1", "VO2", "NU", "YT", "PE"
+    ],
+    "namedMultAliases": {
+      "DC": "MD",
+      "NL": "VO1"
+    },
+    "exchangeValidation": {
+      "type": "multiplier",
+      "description": "Exchange should be a 5-letter <state><county> code for New England stations, a 2-letter US state or Canadian province code for non-NE W/VE, or DX. DC counts as MD; NL maps to VO1 (Newfoundland) for stations not following the VO1/VO2 split convention."
+    },
+    "receivedExchangeFilter": {
+      "promptId": "stationType",
+      "rules": {
+        "OUTSIDE": "inStateMults",
+        "DX":      "inStateMults"
+      }
+    },
+    "inStateMults": [
+      "CTCAP", "CTGBR", "CTLCR", "CTNAU", "CTNOE", "CTNOW", "CTSOE", "CTSOC", "CTWES",
+
+      "MEAND", "MEARO", "MECUM", "MEFRA", "MEHAN", "MEKEN", "MEKNO", "MELIN",
+      "MEOXF", "MEPEN", "MEPIS", "MESAG", "MESOM", "MEWAL", "MEWAS", "MEYOR",
+
+      "MABAR", "MABER", "MABRI", "MADUK", "MAESS", "MAFRA", "MAHMD", "MAHMP",
+      "MAMID", "MANAN", "MANOR", "MAPLY", "MASUF", "MAWOR",
+
+      "NHBEL", "NHCAR", "NHCHE", "NHCOO", "NHGRA", "NHHIL", "NHMER", "NHROC",
+      "NHSTR", "NHSUL",
+
+      "RIBRI", "RIKEN", "RINEW", "RIPRO", "RIWAS",
+
+      "VTADD", "VTBEN", "VTCAL", "VTCHI", "VTESS", "VTFRA", "VTGRA", "VTLAM",
+      "VTORA", "VTORL", "VTRUT", "VTWAS", "VTWNH", "VTWND"
+    ]
+  },
+  "ui": {
+    "showMultiplierPanel": true,
+    "logColumns": ["DATE", "TIME", "CALL", "FREQ", "MODE", "RSTs", "RSTr", "EXCHs", "EXCHr", "POINTS", "M", "COMMENT"],
+    "entryFields": ["CALL", "RSTr", "EXCHr"],
+    "fieldNavigation": {
+      "keys": "tab"
+    },
+    "bandMap": {
+      "enabled": true,
+      "bands": ["80m", "40m", "20m", "15m", "10m"]
+    },
+    "multiplierDisplay": {
+      "showCounties": true,
+      "showStates": true,
+      "showProvinces": true,
+      "showDXCC": true
+    }
+  }
+}
