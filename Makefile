@@ -9,7 +9,8 @@
 #   make test-logs-headless - Run automated contest log tests in headless mode (no display required)
 #   make test-logs-headless WORKERS=8 - Run with 8 parallel workers
 #   make clean        - Clean build artifacts
-#   make version      - Update version number
+#   make version      - Update version number (prompts interactively)
+#   make version 0.8.1 - Update version number to 0.8.1 (no prompt)
 #   make reset        - Reset application settings
 #   make appimage     - Build portable AppImage via Docker (output: dist/)
 #   make macos        - Build macOS app bundle (requires macOS)
@@ -72,10 +73,26 @@ test-logs-headless: clx
 	@echo "Running automated contest log tests in headless mode..."
 	@QT_QPA_PLATFORM=offscreen python3 -u scripts/run_log_tests.py --workers $(WORKERS)
 
+# Allow `make version X.Y.Z` (positional form). When the first goal is
+# `version`, capture the next word as VERSION_ARG and stub it out as a
+# do-nothing target so Make doesn't try to build it.
+ifeq (version,$(firstword $(MAKECMDGOALS)))
+  VERSION_ARG := $(wordlist 2,2,$(MAKECMDGOALS))
+  ifneq ($(VERSION_ARG),)
+    $(eval $(VERSION_ARG):;@:)
+  endif
+endif
+
 # Update version number across all files
 version:
-	@echo "Current version: $$(grep 'project(ContestLogX VERSION' CMakeLists.txt | sed 's/.*VERSION \([0-9.]*\).*/\1/')"
-	@read -p "Enter new version number: " NEW_VERSION; \
+	@CURRENT=$$(grep 'project(ContestLogX VERSION' CMakeLists.txt | sed 's/.*VERSION \([0-9.]*\).*/\1/'); \
+	echo "Current version: $$CURRENT"; \
+	NEW_VERSION="$(VERSION_ARG)"; \
+	if [ -z "$$NEW_VERSION" ]; then \
+		read -p "Enter new version number: " NEW_VERSION; \
+	else \
+		echo "New version:     $$NEW_VERSION"; \
+	fi; \
 	if [ -z "$$NEW_VERSION" ]; then \
 		echo "Error: Version number cannot be empty"; \
 		exit 1; \
