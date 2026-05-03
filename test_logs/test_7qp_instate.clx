@@ -13,8 +13,7 @@
         "year": 2026
     },
     "created": "2026-05-03T10:19:05",
-    "exchange_fields": [
-    ],
+    "exchange_fields": [],
     "format": "ContestLogX",
     "format_version": "1.0",
     "modified": "2026-05-03T10:19:05",
@@ -2532,7 +2531,7 @@
         }
     ],
     "station": {
-        "callsign": "N9OH",
+        "callsign": "K7ARZ",
         "equipment": {
             "power": 100
         },
