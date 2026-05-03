@@ -434,7 +434,8 @@ import Layout from '../layouts/Layout.astro';
             <tbody>
               <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">namedMults</td><td>Values from <code>validation.namedMults</code> list (states, provinces, counties, etc.)</td></tr>
               <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">dxcc</td><td>DXCC entities from the DXCC database</td></tr>
-              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">namedCallPrefixes</td><td>Call sign prefixes from <code>validation.namedCallPrefixes</code> (e.g., YB DX)</td></tr>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">namedCallPrefixes</td><td>Call sign prefixes from a static <code>validation.namedCallPrefixes</code> list (e.g., YB DX)</td></tr>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">wpxPrefix</td><td>CQ WPX prefix extracted dynamically per call (portable designators, <code>/&lt;digit&gt;</code> call-area changes, license-class suffix stripping)</td></tr>
               <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">gridSquares</td><td>Maidenhead grid squares (ARRL VHF)</td></tr>
               <tr><td class="py-2 pr-4 font-mono">objectiveMultipliers</td><td>User-selected objective checkboxes (Winter Field Day)</td></tr>
             </tbody>
@@ -446,6 +447,7 @@ import Layout from '../layouts/Layout.astro';
 "finalScore": "SUM(points) * SUM(multipliers)"
 "finalScore": "SUM(points) * (namedMults + dxccMultipliers)"
 "finalScore": "SUM(points) * (namedCallPrefixes + dxccMultipliers)"
+"finalScore": "SUM(points) * wpxPrefixes"   // CQ WPX
 "finalScore": "SUM(points) * SUM(gridSquareMultipliers)"
 
 // No multipliers:

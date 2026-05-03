@@ -934,7 +934,8 @@ F8  N9OH`}</pre>
             <li><code>namedMults</code> — exchange field values validated against a list (e.g., US states, ARRL sections)</li>
             <li><code>dxccMultipliers</code> — DXCC entities, scored once per contest or once per band</li>
             <li><code>ituRegions</code> — ITU regions per band</li>
-            <li><code>namedCallPrefixes</code> — specific callsign prefixes (e.g., YB0–YB9)</li>
+            <li><code>namedCallPrefixes</code> — specific callsign prefixes from a static list (e.g., YB0–YB9 in the YB DX Contest)</li>
+            <li><code>wpxPrefix</code> — CQ WPX-style prefix multipliers extracted dynamically from each callsign per the official WPX rules (handles portable designators, /<code>digit</code> call-area changes, and zero-padding for callsigns without numbers)</li>
             <li><code>gridSquareMultipliers</code> — Maidenhead grid squares per band (used in VHF contests)</li>
           </ul>
 
