@@ -1,0 +1,268 @@
+{
+  "contest": {
+    "name": "Arkansas QSO Party",
+    "abbreviation": "ARQP",
+    "version": "1.0.0",
+    "sponsor": "Arkansas QSO Party",
+    "description": "Arkansas QSO Party — third Saturday in May, 12-hour contest. Arkansas stations work everyone; non-Arkansas stations work only Arkansas stations. Exchange is RST + 3-letter Arkansas county abbreviation for AR stations, or RST + 2-letter state/province (or DX) for everyone else. CW + SSB + Digital. Mobile, Portable, and Rover stations earn 2 points per QSO; all other categories earn 1 point. WR5P is the bonus station, worth 200 points per band/mode QSO.",
+    "startDate": "Third Saturday in May (2026: May 16-17)",
+    "duration": 12,
+    "offTimeGapMinutes": 0,
+    "modes": ["CW", "SSB", "DIGITAL"],
+    "bands": ["160m", "80m", "40m", "20m", "15m", "10m", "6m", "2m"],
+    "url": "https://arkqp.com",
+    "categories": {
+      "stations": ["SINGLE_OP", "MULTI_OP", "MOBILE", "PORTABLE", "ROVER", "DX"],
+      "power": ["LOW_POWER", "QRP", "HIGH_POWER"],
+      "modes": ["MIXED", "CW", "SSB", "DIGITAL"]
+    }
+  },
+  "contestOnlineScore": {
+    "contestId": "ARQP",
+    "mult1Name": "Counties / States / Prov. / DX",
+    "mult1Attribute": "exchange"
+  },
+  "frequencies": {
+    "160m": {
+      "start": 1800, "end": 2000,
+      "cw":    {"start": 1800, "end": 1900},
+      "phone": {"start": 1830, "end": 2000},
+      "digital": {"start": 1800, "end": 1900}
+    },
+    "80m": {
+      "start": 3500, "end": 4000,
+      "cw":    {"start": 3500, "end": 3600},
+      "phone": {"start": 3600, "end": 4000},
+      "digital": {"start": 3500, "end": 3600}
+    },
+    "40m": {
+      "start": 7000, "end": 7300,
+      "cw":    {"start": 7000, "end": 7125},
+      "phone": {"start": 7125, "end": 7300},
+      "digital": {"start": 7000, "end": 7125}
+    },
+    "20m": {
+      "start": 14000, "end": 14350,
+      "cw":    {"start": 14000, "end": 14150},
+      "phone": {"start": 14150, "end": 14350},
+      "digital": {"start": 14000, "end": 14150}
+    },
+    "15m": {
+      "start": 21000, "end": 21450,
+      "cw":    {"start": 21000, "end": 21200},
+      "phone": {"start": 21200, "end": 21450},
+      "digital": {"start": 21000, "end": 21200}
+    },
+    "10m": {
+      "start": 28000, "end": 29700,
+      "cw":    {"start": 28000, "end": 28300},
+      "phone": {"start": 28300, "end": 29700},
+      "digital": {"start": 28000, "end": 28300}
+    },
+    "6m": {
+      "start": 50000, "end": 54000,
+      "cw":    {"start": 50000, "end": 50100},
+      "phone": {"start": 50100, "end": 54000},
+      "digital": {"start": 50100, "end": 50500}
+    },
+    "2m": {
+      "start": 144000, "end": 148000,
+      "cw":    {"start": 144000, "end": 144100},
+      "phone": {"start": 144100, "end": 148000},
+      "digital": {"start": 144100, "end": 144500}
+    }
+  },
+  "stationClasses": {
+    "enabled": false
+  },
+  "userPrompts": [
+    {
+      "id": "stationType",
+      "question": "Select your station location",
+      "type": "select",
+      "options": [
+        {"value": "AR",      "label": "Inside Arkansas"},
+        {"value": "OUTSIDE", "label": "Outside Arkansas (W/VE)"},
+        {"value": "DX",      "label": "DX (outside USA)"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "AR stations work everyone; non-AR stations work only AR. Contacts between two outside-AR stations do not count."
+    },
+    {
+      "id": "operatingClass",
+      "question": "Select your entry category",
+      "type": "select",
+      "options": [
+        {"value": "SO_HP_MIXED",  "label": "Single Op Mixed Modes - High Power (>150 W)"},
+        {"value": "SO_LP_MIXED",  "label": "Single Op Mixed Modes - Low Power (≤150 W)"},
+        {"value": "SO_HP_CW",     "label": "Single Op CW - High Power"},
+        {"value": "SO_LP_CW",     "label": "Single Op CW - Low Power"},
+        {"value": "SO_HP_SSB",    "label": "Single Op SSB - High Power"},
+        {"value": "SO_LP_SSB",    "label": "Single Op SSB - Low Power"},
+        {"value": "SO_QRP",       "label": "Single Op QRP Mixed Modes (≤5 W)"},
+        {"value": "DIGITAL",      "label": "Digital - Any power, any number of ops"},
+        {"value": "MULTI",        "label": "Multi-Operator (non-mobile/portable)"},
+        {"value": "PORTABLE_IN",  "label": "Portable Inside Arkansas (Field Day-style)"},
+        {"value": "PORTABLE_OUT", "label": "Portable Outside Arkansas (Field Day-style)"},
+        {"value": "ROVER",        "label": "Rover (AR only — activates ≥2 counties)"},
+        {"value": "MOBILE_IN",    "label": "Mobile Inside Arkansas"},
+        {"value": "MOBILE_OUT",   "label": "Mobile Outside Arkansas"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "Mobile, Portable, and Rover categories earn 2 points per QSO. All other categories earn 1 point per QSO."
+    },
+    {
+      "id": "myExchange",
+      "question": "Enter your exchange. AR stations: 3-letter county abbreviation (e.g., BEN for Benton, PUL for Pulaski). Non-AR W/VE: 2-letter state/province. DX: DX.",
+      "type": "text",
+      "required": true,
+      "forceUppercase": true,
+      "storeInMeta": true,
+      "description": "3-letter Arkansas county code for AR stations; 2-letter state/province for non-AR W/VE; DX otherwise. Rovers must change this when crossing into a new county.",
+      "exchangeFieldMapping": {
+        "myExchange": "EXCHs"
+      }
+    }
+  ],
+  "exchangeFields": {
+    "sent": [
+      {"name": "RSTs",  "type": "rst",    "required": true,  "description": "Signal report sent (default 599 CW / 59 Phone)"},
+      {"name": "EXCHs", "type": "string", "required": true,  "description": "3-letter AR county for AR stations; 2-letter state/province for non-AR W/VE; DX otherwise"}
+    ],
+    "received": [
+      {"name": "RSTr",  "type": "rst",    "required": true,  "description": "Signal report received"},
+      {"name": "EXCHr", "type": "string", "required": true,  "description": "3-letter AR county from AR stations; 2-letter state/province from W/VE; DX otherwise"}
+    ]
+  },
+  "qsoFields": [
+    {"name": "Date",      "column": "DATE",  "type": "date", "format": "yyyy-MM-dd", "required": true},
+    {"name": "Time",      "column": "TIME",  "type": "time", "format": "HH:mm:ss",   "required": true},
+    {"name": "Callsign",  "column": "CALL",  "type": "string", "required": true, "uppercase": true},
+    {"name": "Frequency", "column": "FREQ",  "type": "number", "unit": "kHz", "required": true},
+    {"name": "Mode",      "column": "MODE",  "type": "enum", "values": ["CW", "SSB", "DIGITAL"], "required": true},
+    {"name": "RST Sent",     "column": "RSTs", "type": "rst", "required": true, "description": "Signal report sent"},
+    {"name": "RST Received", "column": "RSTr", "type": "rst", "required": true, "description": "Signal report received"},
+    {"name": "Exchange Sent",     "column": "EXCHs", "type": "string", "required": true, "description": "Exchange sent"},
+    {"name": "Exchange Received", "column": "EXCHr", "type": "string", "required": true, "description": "Exchange received"},
+    {"name": "Points",     "column": "POINTS", "type": "number", "calculated": true},
+    {"name": "Multiplier", "column": "M",      "type": "string", "calculated": true}
+  ],
+  "scoring": {
+    "points": {
+      "cw":      1,
+      "phone":   1,
+      "digital": 1,
+      "byPrompt": {
+        "operatingClass": {
+          "MOBILE_IN":    {"CW": 2, "SSB": 2, "DIGITAL": 2},
+          "MOBILE_OUT":   {"CW": 2, "SSB": 2, "DIGITAL": 2},
+          "PORTABLE_IN":  {"CW": 2, "SSB": 2, "DIGITAL": 2},
+          "PORTABLE_OUT": {"CW": 2, "SSB": 2, "DIGITAL": 2},
+          "ROVER":        {"CW": 2, "SSB": 2, "DIGITAL": 2}
+        }
+      }
+    },
+    "multipliers": {
+      "type": "multsOnce",
+      "description": "Multipliers count once for the contest. Non-AR stations multiply by AR counties only (max 75). AR stations multiply by AR counties + 49 US states (excluding AR) + 13 Canadian provinces + 1 DX entry (single mult regardless of how many DX QSOs are made — DX QSOs all collapse to one DX multiplier per the rules). DC counts as MD via namedMultAliases.",
+      "categories": ["namedMults"],
+      "alaskaAndHawaiiCountDxcc": false,
+      "usAndCanadaCountDxcc": false
+    },
+    "finalScore": "SUM(points) * SUM(multipliers)"
+  },
+  "dupeChecking": {
+    "type": "perBandAndMode",
+    "description": "A station may be worked once per band per mode. Mobile, Rover, and Portable stations changing counties count as new stations and may be re-worked for additional points and mult credit. Logs must clearly show county changes."
+  },
+  "bonusStations": [
+    {
+      "name": "WR5P Arkansas QSO Party Bonus Station",
+      "pointsEach": 200,
+      "type": "bonusPerBandAndMode",
+      "stations": ["WR5P"],
+      "note": "All stations claim 200 points for each valid QSO with bonus station WR5P (per band, per mode)."
+    }
+  ],
+  "logging": {
+    "requiredFields": ["date", "time", "frequency", "mode", "callsign", "rstSent", "rstReceived", "exchSent", "exchReceived"],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "ARQP",
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {rst_sent} {exch_sent} {call} {rst_rcvd} {exch_rcvd}"
+    }
+  },
+  "callHistory": {
+    "fieldsToSave": ["EXCHr"],
+    "description": "Save received exchange (county or state/province) for future lookups"
+  },
+  "validation": {
+    "minimumQSOs": 1,
+    "maxOperatingTime": 12,
+    "offTimesRequired": false,
+    "namedMults": [
+      "ARK", "ASH", "BAX", "BEN", "BOO", "BRA", "CAL", "CAR", "CHI", "CLK",
+      "CLA", "CLE", "CLV", "COL", "CON", "CRG", "CRA", "CRI", "CRO", "DAL",
+      "DES", "DRE", "FAU", "FRA", "FUL", "GAR", "GNT", "GRE", "HEM", "HSP",
+      "HOW", "IND", "IZA", "JAK", "JEF", "JON", "LAF", "LAW", "LEE", "LIN",
+      "LRV", "LOG", "LON", "MAD", "MRN", "MIL", "MIS", "MON", "MGY", "NEV",
+      "NEW", "OUA", "PER", "PHI", "PIK", "POI", "PLK", "POP", "PRA", "PUL",
+      "RAN", "SFR", "SAL", "SCO", "SCY", "SEB", "SVR", "SHA", "STO", "UNI",
+      "VBN", "WAS", "WHI", "WOO", "YEL",
+
+      "AL", "AK", "AZ", "CA", "CO", "CT", "DE", "FL", "GA",
+      "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD",
+      "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ",
+      "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC",
+      "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY",
+
+      "AB", "BC", "MB", "NB", "NL", "NT", "NS", "NU", "ON", "PE", "QC", "SK", "YT",
+
+      "DX"
+    ],
+    "namedMultAliases": {
+      "DC": "MD"
+    },
+    "exchangeValidation": {
+      "type": "multiplier",
+      "description": "Exchange should be a 3-letter Arkansas county code for AR stations, a 2-letter US state or Canadian province code for non-AR W/VE, or DX for everyone outside USA/Canada. DC counts as MD via the namedMultAliases unconditional remap."
+    },
+    "receivedExchangeFilter": {
+      "promptId": "stationType",
+      "rules": {
+        "OUTSIDE": "inStateMults",
+        "DX":      "inStateMults"
+      }
+    },
+    "inStateMults": [
+      "ARK", "ASH", "BAX", "BEN", "BOO", "BRA", "CAL", "CAR", "CHI", "CLK",
+      "CLA", "CLE", "CLV", "COL", "CON", "CRG", "CRA", "CRI", "CRO", "DAL",
+      "DES", "DRE", "FAU", "FRA", "FUL", "GAR", "GNT", "GRE", "HEM", "HSP",
+      "HOW", "IND", "IZA", "JAK", "JEF", "JON", "LAF", "LAW", "LEE", "LIN",
+      "LRV", "LOG", "LON", "MAD", "MRN", "MIL", "MIS", "MON", "MGY", "NEV",
+      "NEW", "OUA", "PER", "PHI", "PIK", "POI", "PLK", "POP", "PRA", "PUL",
+      "RAN", "SFR", "SAL", "SCO", "SCY", "SEB", "SVR", "SHA", "STO", "UNI",
+      "VBN", "WAS", "WHI", "WOO", "YEL"
+    ]
+  },
+  "ui": {
+    "showMultiplierPanel": true,
+    "logColumns": ["DATE", "TIME", "CALL", "FREQ", "MODE", "RSTs", "RSTr", "EXCHs", "EXCHr", "POINTS", "M", "COMMENT"],
+    "entryFields": ["CALL", "RSTr", "EXCHr"],
+    "fieldNavigation": {
+      "keys": "tab"
+    },
+    "bandMap": {
+      "enabled": true,
+      "bands": ["160m", "80m", "40m", "20m", "15m", "10m", "6m", "2m"]
+    },
+    "multiplierDisplay": {
+      "showCounties": true,
+      "showStates": true,
+      "showProvinces": true,
+      "showDXCC": false
+    }
+  }
+}

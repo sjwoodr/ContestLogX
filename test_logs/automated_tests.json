@@ -274,6 +274,16 @@
       "name": "K1USN SST (12 QSOs, multsOnce, 6 states + 1 province + 3 DXCC = 10 mults — matches the rules example exactly)",
       "log_file": "test_sst_example.clx",
       "expected_score": 120
+    },
+    {
+      "name": "ARQP In-State AR (115 QSOs incl 3 dupes, multsOnce, counties + states + provinces + DX-as-single-mult, 8 bands incl 6m/2m)",
+      "log_file": "test_arqp_inar.clx",
+      "expected_score": 7504
+    },
+    {
+      "name": "ARQP Out-of-State MA (115 QSOs incl 3 dupes, multsOnce, AR counties only, 8 bands)",
+      "log_file": "test_arqp_outar.clx",
+      "expected_score": 6832
     }
   ]
 }

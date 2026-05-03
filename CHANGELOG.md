@@ -7,6 +7,7 @@ All notable changes to ContestLogX are documented in this file.
 ### Contest Updates
 - Added the Canadian Prairies QSO Party (CPQP) — second weekend of May. CW/SSB only, 40–10m. Cabrillo CONTEST tag: `CPQP`
 - Added the K1USN Slow Speed Test (SST) — every Monday 0000-0100 UTC and every Friday 2000-2100 UTC. CW only, 20 WPM upper limit, 160–10m. Cabrillo CONTEST tag: `K1USN-SST`
+- Added the Arkansas QSO Party (ARQP) — third Saturday in May. CW/SSB/Digital, 160–2m. Cabrillo CONTEST tag: `ARQP`
 
 ### Contest Engine Changes
 - Extended `multAliases` with a new `sourceValues` field — an inline array of exact-match values that lets one alias rule target a specific subset of values without requiring a named list. Used by CPQP to map each prairie province's Federal Electoral District codes to its 2-letter province code in three rules (one per province). Backward-compatible — every existing contest definition still works unchanged
