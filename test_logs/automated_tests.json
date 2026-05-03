@@ -281,9 +281,9 @@
       "expected_score": 7504
     },
     {
-      "name": "ARQP Out-of-State MA (115 QSOs incl 3 dupes, multsOnce, AR counties only, 8 bands)",
+      "name": "ARQP Out-of-State MA (116 QSOs incl 3 dupes + 1 WR5P bonus QSO, multsOnce, AR counties only, 8 bands, +200 WR5P bonus)",
       "log_file": "test_arqp_outar.clx",
-      "expected_score": 6832
+      "expected_score": 7093
     }
   ]
 }
