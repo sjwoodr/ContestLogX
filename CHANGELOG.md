@@ -6,6 +6,7 @@ All notable changes to ContestLogX are documented in this file.
 
 ### Contest Updates
 - Added the Kentucky QSO Party (KYQP) — first Saturday in June, 12-hour event (1300Z–0100Z). CW/SSB only, 80–10m plus 6m and 2m. Kentucky stations work everyone; non-Kentucky stations work Kentucky stations only. Phone QSO = 1 point, CW QSO = 2 points; multipliers (120 KY counties, US states + DC, Canadian provinces) count once each, DX is points-only. Final score is multiplied by power level — High Power ×1, Low Power ×2, QRP ×3. The K4KCG bonus is added by the KYQP committee after log submission, so it is not tracked in the app. Cabrillo CONTEST tag: `KYQP`
+- Added the West Virginia QSO Party (WVQP) — Saturday on or before June 20 (statehood day), 12-hour event (1600Z–0400Z). CW/SSB/Digital, 80–10m, no WARC bands. West Virginia stations work everyone; out-of-state stations work WV stations only. Phone QSO = 1 point, CW and Digital QSO = 2 points; multipliers (55 WV counties, US states, Canadian provinces, and — for WV stations — DXCC entities) count once each. Bonus station W8WVA is worth 100 points per band/mode QSO. The WV-mobile bonus (100 points per county activated) is a self-activation bonus that is not auto-tracked. Cabrillo CONTEST tag: `WVQP`
 
 ## [0.8.1]
 

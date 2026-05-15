@@ -81,6 +81,7 @@ Most contest loggers are Windows-only, closed-source, or locked to a fixed set o
 | Russian DX Contest | `rdxc.json` |
 | SP DX Contest | `spdx.json` |
 | Virginia QSO Party | `vaqp.json` |
+| West Virginia QSO Party | `wvqp.json` |
 | Winter Field Day | `winter_field_day.json` |
 | YB DX Contest | `ybdx.json` |
 

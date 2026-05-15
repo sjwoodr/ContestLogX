@@ -296,6 +296,16 @@
       "expected_score": 2738
     },
     {
+      "name": "WVQP In-State WV (51 QSOs incl 3 dupes, multsOnce, counties + states + provinces + DXCC, CW/SSB/Digital, +100 W8WVA bonus)",
+      "log_file": "test_wvqp_instate.clx",
+      "expected_score": 4330
+    },
+    {
+      "name": "WVQP Out-of-State OH (53 QSOs incl 3 dupes, multsOnce, WV counties only, re-worked counties on new bands add points but no mult, +100 W8WVA bonus)",
+      "log_file": "test_wvqp_outofstate.clx",
+      "expected_score": 3884
+    },
+    {
       "name": "King of Spain CW - EA op Madrid (115 QSOs, 30% EA at 2pts + 70% DX at 1pt, multsPerBand provinces+EADX-100 with EA excluded)",
       "log_file": "test_kos_ea.clx",
       "expected_score": 12533

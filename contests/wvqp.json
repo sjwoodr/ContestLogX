@@ -1,0 +1,241 @@
+{
+  "contest": {
+    "name": "West Virginia QSO Party",
+    "abbreviation": "WVQP",
+    "version": "1.0.0",
+    "sponsor": "West Virginia State Amateur Radio Council",
+    "description": "West Virginia QSO Party — held on the Saturday on or before June 20 (West Virginia statehood day), noon to midnight Eastern (1600Z Sat to 0400Z Sun). West Virginia stations work everyone; out-of-state stations work West Virginia stations only. Exchange is RST + 3-letter West Virginia county abbreviation for WV stations, or RST + state / province / DXCC country for everyone else. CW, SSB, and Digital (non-CW) — no WARC bands. Phone QSO = 1 point, CW and Digital QSO = 2 points. Out-of-state stations multiply by WV counties; WV stations multiply by WV counties + US states + Canadian provinces + DXCC entities (USA, Alaska, Hawaii, and Canada do not count as DXCC entities). Multipliers count once for the contest. Final score is QSO points x multipliers plus bonus points. Bonus station W8WVA is worth 100 points per band/mode QSO; WV mobiles additionally claim 100 points per WV county activated (a self-activation bonus that is not auto-tracked — add it manually to the claimed score).",
+    "startDate": "Saturday on or before June 20 (2026: June 20, 1600Z Sat to 0400Z Sun)",
+    "duration": 12,
+    "offTimeGapMinutes": 0,
+    "modes": ["CW", "SSB", "DIGITAL"],
+    "bands": ["80m", "40m", "20m", "15m", "10m"],
+    "url": "https://www.qsl.net/wvqp/",
+    "categories": {
+      "stations": ["SINGLE_OP", "MULTI_OP", "MOBILE", "QRP"],
+      "power": ["HIGH_POWER", "LOW_POWER", "QRP"],
+      "modes": ["MIXED", "CW", "SSB", "DIGITAL"]
+    }
+  },
+  "contestOnlineScore": {
+    "contestId": "WVQP",
+    "mult1Name": "Counties / States / Prov. / DXCC",
+    "mult1Attribute": "exchange"
+  },
+  "frequencies": {
+    "80m": {
+      "start": 3500, "end": 4000,
+      "cw":      {"start": 3500, "end": 3600},
+      "digital": {"start": 3560, "end": 3600},
+      "phone":   {"start": 3600, "end": 4000}
+    },
+    "40m": {
+      "start": 7000, "end": 7300,
+      "cw":      {"start": 7000, "end": 7125},
+      "digital": {"start": 7060, "end": 7125},
+      "phone":   {"start": 7125, "end": 7300}
+    },
+    "20m": {
+      "start": 14000, "end": 14350,
+      "cw":      {"start": 14000, "end": 14150},
+      "digital": {"start": 14060, "end": 14150},
+      "phone":   {"start": 14150, "end": 14350}
+    },
+    "15m": {
+      "start": 21000, "end": 21450,
+      "cw":      {"start": 21000, "end": 21200},
+      "digital": {"start": 21060, "end": 21200},
+      "phone":   {"start": 21200, "end": 21450}
+    },
+    "10m": {
+      "start": 28000, "end": 29700,
+      "cw":      {"start": 28000, "end": 28300},
+      "digital": {"start": 28060, "end": 28300},
+      "phone":   {"start": 28300, "end": 29700}
+    }
+  },
+  "stationClasses": {
+    "enabled": false
+  },
+  "userPrompts": [
+    {
+      "id": "stationType",
+      "question": "Select your station location",
+      "type": "select",
+      "options": [
+        {"value": "WV",      "label": "West Virginia (in-state)"},
+        {"value": "OUTSIDE", "label": "Outside West Virginia (USA non-WV / Canada)"},
+        {"value": "DX",      "label": "DX (outside USA / Canada)"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "West Virginia stations work everyone; out-of-state stations work West Virginia stations only."
+    },
+    {
+      "id": "operatingClass",
+      "question": "Select your entry category",
+      "type": "select",
+      "options": [
+        {"value": "SINGLE_OP", "label": "Single Operator (Fixed) — one signal, one operator"},
+        {"value": "MULTI",     "label": "Multi/Multi (Fixed) — unlimited signals and operators, one QTH"},
+        {"value": "QRP",       "label": "QRP (Fixed or Mobile) — one signal, one operator, 10 W Voice / 5 W CW max"},
+        {"value": "MOBILE",    "label": "Mobile — capable of operation while in motion"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "Submit an entry for only one category. Mobiles changing counties may be re-worked; a mobile on a non-wet county line counts as a QSO and a multiplier from each county. Remote operating and spotting nets are permitted."
+    },
+    {
+      "id": "powerCategory",
+      "question": "Select your power level",
+      "type": "select",
+      "options": [
+        {"value": "HP",  "label": "High Power — 101 W and above"},
+        {"value": "LP",  "label": "Low Power — 100 W or less"},
+        {"value": "QRP", "label": "QRP — 10 W Voice / 5 W CW or less"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "Power level is used for award classification only — WVQP has no power-based score multiplier."
+    },
+    {
+      "id": "myExchange",
+      "question": "Enter your exchange. WV stations: 3-letter county abbreviation (e.g., KAN for Kanawha, MON for Monongalia). Non-WV USA: 2-letter state (DC counts as MD). Canada: 2-letter province. DX: DX.",
+      "type": "text",
+      "required": true,
+      "forceUppercase": true,
+      "storeInMeta": true,
+      "description": "3-letter West Virginia county code for WV stations; 2-letter US state (DC counts as MD) or Canadian province for non-WV W/VE; DX otherwise. WV Mobiles must change this when crossing into a new county.",
+      "exchangeFieldMapping": {
+        "myExchange": "EXCHs"
+      }
+    }
+  ],
+  "exchangeFields": {
+    "sent": [
+      {"name": "RSTs",  "type": "rst",    "required": true,  "description": "Signal report sent (default 599 CW/Digital / 59 Phone)"},
+      {"name": "EXCHs", "type": "string", "required": true,  "description": "3-letter WV county for WV stations; 2-letter state/province for non-WV W/VE; DX otherwise"}
+    ],
+    "received": [
+      {"name": "RSTr",  "type": "rst",    "required": true,  "description": "Signal report received"},
+      {"name": "EXCHr", "type": "string", "required": true,  "description": "3-letter WV county from WV stations; 2-letter state/province from W/VE; DX otherwise"}
+    ]
+  },
+  "qsoFields": [
+    {"name": "Date",      "column": "DATE",  "type": "date", "format": "yyyy-MM-dd", "required": true},
+    {"name": "Time",      "column": "TIME",  "type": "time", "format": "HH:mm:ss",   "required": true},
+    {"name": "Callsign",  "column": "CALL",  "type": "string", "required": true, "uppercase": true},
+    {"name": "Frequency", "column": "FREQ",  "type": "number", "unit": "kHz", "required": true},
+    {"name": "Mode",      "column": "MODE",  "type": "enum", "values": ["CW", "SSB", "DIGITAL"], "required": true},
+    {"name": "RST Sent",     "column": "RSTs", "type": "rst", "required": true, "description": "Signal report sent"},
+    {"name": "RST Received", "column": "RSTr", "type": "rst", "required": true, "description": "Signal report received"},
+    {"name": "Exchange Sent",     "column": "EXCHs", "type": "string", "required": true, "description": "Exchange sent"},
+    {"name": "Exchange Received", "column": "EXCHr", "type": "string", "required": true, "description": "Exchange received"},
+    {"name": "Points",     "column": "POINTS", "type": "number", "calculated": true},
+    {"name": "Multiplier", "column": "M",      "type": "string", "calculated": true}
+  ],
+  "scoring": {
+    "points": {
+      "cw":      2,
+      "phone":   1,
+      "digital": 2
+    },
+    "multipliers": {
+      "type": "multsOnce",
+      "description": "Multipliers count once for the contest. Out-of-state stations multiply by WV counties only (max 55). WV stations multiply by WV counties (55) + US states (50, WV included; DC counts as MD via namedMultAliases) + 13 Canadian provinces + DXCC entities. USA, Alaska, Hawaii, and Canada are NOT counted as DXCC entities (alaskaAndHawaiiCountDxcc / usAndCanadaCountDxcc are false).",
+      "categories": ["namedMults", "dxcc"],
+      "alaskaAndHawaiiCountDxcc": false,
+      "usAndCanadaCountDxcc": false,
+      "stationClassMultipliers": {
+        "WV":      ["namedMults", "dxcc"],
+        "OUTSIDE": ["namedMults"],
+        "DX":      ["namedMults"]
+      }
+    },
+    "finalScore": "SUM(points) * SUM(multipliers)"
+  },
+  "bonusStations": [
+    {
+      "name": "W8WVA West Virginia QSO Party Bonus Station",
+      "pointsEach": 100,
+      "type": "bonusPerBandAndMode",
+      "stations": ["W8WVA"],
+      "note": "Work W8WVA once per band per mode for 100 bonus points per QSO, added to the final score. WV mobiles additionally claim 100 points per WV county activated — that self-activation bonus is not auto-tracked and must be added manually to the claimed score."
+    }
+  ],
+  "dupeChecking": {
+    "type": "perBandAndMode",
+    "description": "Work a station once per band per mode. CW, SSB, and Digital count as separate modes — e.g. W1AW may be worked on 80m CW, 80m Digital, and 80m SSB for three contacts. All digital (non-CW) modes are equivalent: a station worked on 80m RTTY cannot be worked again on 80m PSK31. WV Mobiles changing counties count as a new station and may be re-worked; a mobile on a (non-wet) county line is logged as a separate QSO per county for both QSO and multiplier credit."
+  },
+  "logging": {
+    "requiredFields": ["date", "time", "frequency", "mode", "callsign", "rstSent", "rstReceived", "exchSent", "exchReceived"],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "WVQP",
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {rst_sent} {exch_sent} {call} {rst_rcvd} {exch_rcvd}"
+    }
+  },
+  "callHistory": {
+    "fieldsToSave": ["EXCHr"],
+    "description": "Save received exchange (county or state/province) for future lookups"
+  },
+  "validation": {
+    "minimumQSOs": 1,
+    "maxOperatingTime": 12,
+    "offTimesRequired": false,
+    "namedMults": [
+      "BAR", "BER", "BOO", "BRA", "BRO", "CAB", "CAL", "CLA", "DOD", "FAY", "GIL",
+      "GRA", "GRE", "HAM", "HAN", "HDY", "HAR", "JAC", "JEF", "KAN", "LEW", "LIN",
+      "LOG", "MRN", "MAR", "MAS", "MCD", "MER", "MIN", "MGO", "MON", "MRO", "MOR",
+      "NIC", "OHI", "PEN", "PLE", "POC", "PRE", "PUT", "RAL", "RAN", "RIT", "ROA",
+      "SUM", "TAY", "TUC", "TYL", "UPS", "WAY", "WEB", "WET", "WIR", "WOO", "WYO",
+
+      "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA",
+      "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD",
+      "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ",
+      "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC",
+      "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY",
+
+      "AB", "BC", "MB", "NB", "NL", "NS", "NT", "NU", "ON", "PE", "QC", "SK", "YT"
+    ],
+    "namedMultAliases": {
+      "DC": "MD"
+    },
+    "exchangeValidation": {
+      "type": "multiplier",
+      "description": "Exchange should be a 3-letter West Virginia county code for WV stations, a 2-letter US state code (DC counts as MD) or Canadian province code for non-WV W/VE, or DX for everyone outside USA/Canada. DXCC entity multipliers for WV operators are derived from the worked callsign, not the exchange string."
+    },
+    "receivedExchangeFilter": {
+      "promptId": "stationType",
+      "rules": {
+        "OUTSIDE": "inStateMults",
+        "DX":      "inStateMults"
+      }
+    },
+    "inStateMults": [
+      "BAR", "BER", "BOO", "BRA", "BRO", "CAB", "CAL", "CLA", "DOD", "FAY", "GIL",
+      "GRA", "GRE", "HAM", "HAN", "HDY", "HAR", "JAC", "JEF", "KAN", "LEW", "LIN",
+      "LOG", "MRN", "MAR", "MAS", "MCD", "MER", "MIN", "MGO", "MON", "MRO", "MOR",
+      "NIC", "OHI", "PEN", "PLE", "POC", "PRE", "PUT", "RAL", "RAN", "RIT", "ROA",
+      "SUM", "TAY", "TUC", "TYL", "UPS", "WAY", "WEB", "WET", "WIR", "WOO", "WYO"
+    ]
+  },
+  "ui": {
+    "showMultiplierPanel": true,
+    "logColumns": ["DATE", "TIME", "CALL", "FREQ", "MODE", "RSTs", "RSTr", "EXCHs", "EXCHr", "POINTS", "M", "COMMENT"],
+    "entryFields": ["CALL", "RSTr", "EXCHr"],
+    "fieldNavigation": {
+      "keys": "tab"
+    },
+    "bandMap": {
+      "enabled": true,
+      "bands": ["80m", "40m", "20m", "15m", "10m"]
+    },
+    "multiplierDisplay": {
+      "showCounties": true,
+      "showStates": true,
+      "showProvinces": true,
+      "showDXCC": true
+    }
+  }
+}
