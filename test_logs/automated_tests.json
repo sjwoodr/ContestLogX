@@ -286,6 +286,16 @@
       "expected_score": 7093
     },
     {
+      "name": "KYQP In-State KY (55 QSOs incl 3 dupes, multsOnce, counties + states + provinces, DX as points-only, LP power x2)",
+      "log_file": "test_kyqp_instate.clx",
+      "expected_score": 7912
+    },
+    {
+      "name": "KYQP Out-of-State MA (46 QSOs incl 3 dupes, multsOnce, KY counties only, re-worked counties on new bands add points but no mult, HP power x1)",
+      "log_file": "test_kyqp_outofstate.clx",
+      "expected_score": 2738
+    },
+    {
       "name": "King of Spain CW - EA op Madrid (115 QSOs, 30% EA at 2pts + 70% DX at 1pt, multsPerBand provinces+EADX-100 with EA excluded)",
       "log_file": "test_kos_ea.clx",
       "expected_score": 12533

@@ -1,0 +1,256 @@
+{
+  "contest": {
+    "name": "Kentucky QSO Party",
+    "abbreviation": "KYQP",
+    "version": "1.0.0",
+    "sponsor": "Kentucky QSO Party",
+    "description": "Kentucky QSO Party — first Saturday in June, 12-hour contest. Kentucky stations work everyone; non-Kentucky stations work only Kentucky stations (QSOs between two non-KY stations do not count). Exchange is RS(T) + 3-letter Kentucky county abbreviation for KY stations, RS(T) + 2-letter state for non-KY USA stations (including DC), RS(T) + 2-letter province for Canada, or RS(T) + DX for everyone else. CW and Phone (SSB/FM) only — no digital, no repeaters. Phone QSO = 1 point, CW QSO = 2 points. Final score is QSO points x multipliers x power multiplier (High >100W ×1, Low ≤100W ×2, QRP ≤5W ×3). K4KCG is the bonus station — work it normally; the KYQP committee adds the 100-points-per-band/mode bonus automatically after the Cabrillo log is submitted, so ContestLogX does not track bonus points.",
+    "startDate": "First Saturday in June (2026: June 6, 1300Z Sat to 0100Z Sun)",
+    "duration": 12,
+    "offTimeGapMinutes": 0,
+    "modes": ["CW", "SSB"],
+    "bands": ["80m", "40m", "20m", "15m", "10m", "6m", "2m"],
+    "url": "https://kyqsoparty.org",
+    "categories": {
+      "stations": ["SINGLE_OP", "MULTI_OP", "MOBILE", "EXPEDITION"],
+      "power": ["HIGH_POWER", "LOW_POWER", "QRP"],
+      "modes": ["MIXED", "CW", "PHONE"]
+    }
+  },
+  "contestOnlineScore": {
+    "contestId": "KYQP",
+    "mult1Name": "Counties / States / Prov.",
+    "mult1Attribute": "exchange"
+  },
+  "frequencies": {
+    "80m": {
+      "start": 3500, "end": 4000,
+      "cw":    {"start": 3500, "end": 3600},
+      "phone": {"start": 3600, "end": 4000}
+    },
+    "40m": {
+      "start": 7000, "end": 7300,
+      "cw":    {"start": 7000, "end": 7125},
+      "phone": {"start": 7125, "end": 7300}
+    },
+    "20m": {
+      "start": 14000, "end": 14350,
+      "cw":    {"start": 14000, "end": 14150},
+      "phone": {"start": 14150, "end": 14350}
+    },
+    "15m": {
+      "start": 21000, "end": 21450,
+      "cw":    {"start": 21000, "end": 21200},
+      "phone": {"start": 21200, "end": 21450}
+    },
+    "10m": {
+      "start": 28000, "end": 29700,
+      "cw":    {"start": 28000, "end": 28300},
+      "phone": {"start": 28300, "end": 29700}
+    },
+    "6m": {
+      "start": 50000, "end": 54000,
+      "cw":    {"start": 50000, "end": 50100},
+      "phone": {"start": 50100, "end": 54000}
+    },
+    "2m": {
+      "start": 144000, "end": 148000,
+      "cw":    {"start": 144000, "end": 144100},
+      "phone": {"start": 144100, "end": 148000}
+    }
+  },
+  "stationClasses": {
+    "enabled": false
+  },
+  "userPrompts": [
+    {
+      "id": "stationType",
+      "question": "Select your station location",
+      "type": "select",
+      "options": [
+        {"value": "KY",      "label": "Kentucky (in-state)"},
+        {"value": "OUTSIDE", "label": "Outside Kentucky (USA non-KY / Canada)"},
+        {"value": "DX",      "label": "DX (outside USA / Canada)"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "Kentucky stations work everyone; non-Kentucky stations work only Kentucky stations. QSOs between two non-KY stations do not count for credit."
+    },
+    {
+      "id": "operatingClass",
+      "question": "Select your entry category",
+      "type": "select",
+      "options": [
+        {"value": "KY_FIXED_SO_CW",    "label": "KY Fixed: Single Op CW"},
+        {"value": "KY_FIXED_SO_PH",    "label": "KY Fixed: Single Op Phone"},
+        {"value": "KY_FIXED_SO_MIXED", "label": "KY Fixed: Single Op Mixed"},
+        {"value": "KY_FIXED_QRP",      "label": "KY Fixed: QRP (any/all modes)"},
+        {"value": "KY_FIXED_MULTI",    "label": "KY Fixed: Multi-Op"},
+        {"value": "KY_MOB_SO_UNASST",  "label": "KY Mobile: Single-Op Unassisted (operator also drives)"},
+        {"value": "KY_MOB_SO_ASST",    "label": "KY Mobile: Single-Op Assisted (has a driver)"},
+        {"value": "KY_MOB_MULTI",      "label": "KY Mobile: Multi-Op"},
+        {"value": "KY_EXP_SO_SC",      "label": "KY Expedition: Single-Op, Single-County"},
+        {"value": "KY_EXP_SO_MC",      "label": "KY Expedition: Single-Op, Multi-County"},
+        {"value": "KY_EXP_MO_SC",      "label": "KY Expedition: Multi-Op, Single-County"},
+        {"value": "KY_EXP_MO_MC",      "label": "KY Expedition: Multi-Op, Multi-County"},
+        {"value": "NON_KY_SO",         "label": "Non-KY (USA / Canada / DX): Single-Op"},
+        {"value": "NON_KY_MO",         "label": "Non-KY (USA / Canada / DX): Multi-Op"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "Power level is selected separately below. KY Fixed Single-Op categories are split by mode (CW / Phone / Mixed) for awards. Mobiles operate antennas usable in motion; Expeditions use larger fixed antennas in one or more KY counties. Spotting assistance is allowed in every category."
+    },
+    {
+      "id": "powerCategory",
+      "question": "Select your power level (applies a final-score multiplier per KYQP rules)",
+      "type": "select",
+      "options": [
+        {"value": "HP",  "label": "High Power — more than 100 W — final score × 1"},
+        {"value": "LP",  "label": "Low Power — 100 W or less — final score × 2"},
+        {"value": "QRP", "label": "QRP — 5 W or less — final score × 3"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "Power Multiplier: High Power ×1, Low Power ×2, QRP ×3. Logs without an indicated power level are scored as High Power (×1)."
+    },
+    {
+      "id": "myExchange",
+      "question": "Enter your exchange. KY stations: 3-letter county abbreviation (e.g., FAY for Fayette, JEF for Jefferson). Non-KY USA: 2-letter state (DC allowed). Canada: 2-letter province. DX: DX.",
+      "type": "text",
+      "required": true,
+      "forceUppercase": true,
+      "storeInMeta": true,
+      "description": "3-letter Kentucky county code for KY stations; 2-letter US state (including DC) or Canadian province for non-KY W/VE; DX otherwise. KY Mobiles and Expeditions must change this when crossing into a new county.",
+      "exchangeFieldMapping": {
+        "myExchange": "EXCHs"
+      }
+    }
+  ],
+  "exchangeFields": {
+    "sent": [
+      {"name": "RSTs",  "type": "rst",    "required": true,  "description": "Signal report sent (default 599 CW / 59 Phone)"},
+      {"name": "EXCHs", "type": "string", "required": true,  "description": "3-letter KY county for KY stations; 2-letter state/province for non-KY W/VE; DX otherwise"}
+    ],
+    "received": [
+      {"name": "RSTr",  "type": "rst",    "required": true,  "description": "Signal report received"},
+      {"name": "EXCHr", "type": "string", "required": true,  "description": "3-letter KY county from KY stations; 2-letter state/province from W/VE; DX otherwise"}
+    ]
+  },
+  "qsoFields": [
+    {"name": "Date",      "column": "DATE",  "type": "date", "format": "yyyy-MM-dd", "required": true},
+    {"name": "Time",      "column": "TIME",  "type": "time", "format": "HH:mm:ss",   "required": true},
+    {"name": "Callsign",  "column": "CALL",  "type": "string", "required": true, "uppercase": true},
+    {"name": "Frequency", "column": "FREQ",  "type": "number", "unit": "kHz", "required": true},
+    {"name": "Mode",      "column": "MODE",  "type": "enum", "values": ["CW", "SSB"], "required": true},
+    {"name": "RST Sent",     "column": "RSTs", "type": "rst", "required": true, "description": "Signal report sent"},
+    {"name": "RST Received", "column": "RSTr", "type": "rst", "required": true, "description": "Signal report received"},
+    {"name": "Exchange Sent",     "column": "EXCHs", "type": "string", "required": true, "description": "Exchange sent"},
+    {"name": "Exchange Received", "column": "EXCHr", "type": "string", "required": true, "description": "Exchange received"},
+    {"name": "Points",     "column": "POINTS", "type": "number", "calculated": true},
+    {"name": "Multiplier", "column": "M",      "type": "string", "calculated": true}
+  ],
+  "scoring": {
+    "points": {
+      "cw":    2,
+      "phone": 1
+    },
+    "scoreMultiplier": {
+      "promptId": "powerCategory",
+      "values": {
+        "HP":  1,
+        "LP":  2,
+        "QRP": 3
+      }
+    },
+    "multipliers": {
+      "type": "multsOnce",
+      "description": "Multipliers count once for the contest (not per band, not per mode). Non-KY stations multiply by KY counties only (max 120). KY stations multiply by KY counties (120) + 49 other US states + DC + 13 Canadian provinces. DX QSOs earn QSO points only — DX is not a multiplier for anyone.",
+      "categories": ["namedMults"],
+      "alaskaAndHawaiiCountDxcc": false,
+      "usAndCanadaCountDxcc": false
+    },
+    "finalScore": "SUM(points) * powerMultiplier * SUM(multipliers)"
+  },
+  "dupeChecking": {
+    "type": "perBandAndMode",
+    "description": "Work a station once per band, per mode, per county. KY Mobiles and Expeditions that move to a new county count as a new station and may be re-worked for additional QSO point and county multiplier credit. County-line operations: a KY Mobile/Expedition straddling a county line (e.g. exchange SCO/FAY) must be logged twice — once per county — as separate QSOs; the per-band-and-mode dupe check keyed by exchange allows this naturally. KY Fixed stations on a county line must pick a single county for the contest."
+  },
+  "logging": {
+    "requiredFields": ["date", "time", "frequency", "mode", "callsign", "rstSent", "rstReceived", "exchSent", "exchReceived"],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "KYQP",
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {rst_sent} {exch_sent} {call} {rst_rcvd} {exch_rcvd}"
+    }
+  },
+  "callHistory": {
+    "fieldsToSave": ["EXCHr"],
+    "description": "Save received exchange (county or state/province) for future lookups"
+  },
+  "validation": {
+    "minimumQSOs": 1,
+    "maxOperatingTime": 12,
+    "offTimesRequired": false,
+    "namedMults": [
+      "ADA", "ALL", "AND", "BAL", "BAR", "BAT", "BEL", "BOO", "BOU", "BOY", "BOL", "BRA",
+      "BRE", "BRK", "BUL", "BUT", "CAL", "CAW", "CAM", "CAE", "CRL", "CTR", "CAS", "CHR",
+      "CLA", "CLY", "CLI", "CRI", "CUM", "DAV", "EDM", "ELL", "EST", "FAY", "FLE", "FLO",
+      "FRA", "FUL", "GAL", "GAR", "GRT", "GRV", "GRY", "GRE", "GRP", "HAN", "HAR", "HRL",
+      "HSN", "HRT", "HEN", "HNY", "HIC", "HOP", "JAC", "JEF", "JES", "JOH", "KEN", "KNT",
+      "KNX", "LAR", "LAU", "LAW", "LEE", "LES", "LET", "LEW", "LIN", "LIV", "LOG", "LYO",
+      "MCC", "MCY", "MCL", "MAD", "MAG", "MAR", "MSL", "MAT", "MAS", "MEA", "MEN", "MER",
+      "MET", "MON", "MOT", "MOR", "MUH", "NEL", "NIC", "OHI", "OLD", "OWE", "OWS", "PEN",
+      "PER", "PIK", "POW", "PUL", "ROB", "ROC", "ROW", "RUS", "SCO", "SHE", "SIM", "SPE",
+      "TAY", "TOD", "TRI", "TRM", "UNI", "WAR", "WAS", "WAY", "WEB", "WHI", "WOL", "WOO",
+
+      "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL", "GA",
+      "HI", "ID", "IL", "IN", "IA", "KS", "LA", "ME", "MD", "MA",
+      "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM",
+      "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD",
+      "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY",
+
+      "AB", "BC", "MB", "NB", "NL", "NS", "NT", "NU", "ON", "PE", "QC", "SK", "YT"
+    ],
+    "exchangeValidation": {
+      "type": "multiplier",
+      "description": "Exchange should be a 3-letter Kentucky county code for KY stations, a 2-letter US state code (DC allowed) or Canadian province code for non-KY W/VE, or DX for everyone outside USA/Canada. Kentucky itself is not a multiplier — KY-to-KY QSOs credit the county, not the state."
+    },
+    "receivedExchangeFilter": {
+      "promptId": "stationType",
+      "rules": {
+        "OUTSIDE": "inStateMults",
+        "DX":      "inStateMults"
+      }
+    },
+    "inStateMults": [
+      "ADA", "ALL", "AND", "BAL", "BAR", "BAT", "BEL", "BOO", "BOU", "BOY", "BOL", "BRA",
+      "BRE", "BRK", "BUL", "BUT", "CAL", "CAW", "CAM", "CAE", "CRL", "CTR", "CAS", "CHR",
+      "CLA", "CLY", "CLI", "CRI", "CUM", "DAV", "EDM", "ELL", "EST", "FAY", "FLE", "FLO",
+      "FRA", "FUL", "GAL", "GAR", "GRT", "GRV", "GRY", "GRE", "GRP", "HAN", "HAR", "HRL",
+      "HSN", "HRT", "HEN", "HNY", "HIC", "HOP", "JAC", "JEF", "JES", "JOH", "KEN", "KNT",
+      "KNX", "LAR", "LAU", "LAW", "LEE", "LES", "LET", "LEW", "LIN", "LIV", "LOG", "LYO",
+      "MCC", "MCY", "MCL", "MAD", "MAG", "MAR", "MSL", "MAT", "MAS", "MEA", "MEN", "MER",
+      "MET", "MON", "MOT", "MOR", "MUH", "NEL", "NIC", "OHI", "OLD", "OWE", "OWS", "PEN",
+      "PER", "PIK", "POW", "PUL", "ROB", "ROC", "ROW", "RUS", "SCO", "SHE", "SIM", "SPE",
+      "TAY", "TOD", "TRI", "TRM", "UNI", "WAR", "WAS", "WAY", "WEB", "WHI", "WOL", "WOO"
+    ]
+  },
+  "ui": {
+    "showMultiplierPanel": true,
+    "logColumns": ["DATE", "TIME", "CALL", "FREQ", "MODE", "RSTs", "RSTr", "EXCHs", "EXCHr", "POINTS", "M", "COMMENT"],
+    "entryFields": ["CALL", "RSTr", "EXCHr"],
+    "fieldNavigation": {
+      "keys": "tab"
+    },
+    "bandMap": {
+      "enabled": true,
+      "bands": ["80m", "40m", "20m", "15m", "10m", "6m", "2m"]
+    },
+    "multiplierDisplay": {
+      "showCounties": true,
+      "showStates": true,
+      "showProvinces": true,
+      "showDXCC": false
+    }
+  }
+}
