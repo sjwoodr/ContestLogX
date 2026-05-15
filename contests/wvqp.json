@@ -142,7 +142,7 @@
     },
     "multipliers": {
       "type": "multsOnce",
-      "description": "Multipliers count once for the contest. Out-of-state stations multiply by WV counties only (max 55). WV stations multiply by WV counties (55) + US states (50, WV included; DC counts as MD via namedMultAliases) + 13 Canadian provinces + DXCC entities. USA, Alaska, Hawaii, and Canada are NOT counted as DXCC entities (alaskaAndHawaiiCountDxcc / usAndCanadaCountDxcc are false).",
+      "description": "Multipliers count once for the contest. Out-of-state stations multiply by WV counties only (max 55). WV stations multiply by WV counties (55) + US states (50 max — the 49 other worked states plus WV itself, credited via automaticMultipliers once the WV operator works any WV station, since WV stations send their county rather than 'WV'; DC counts as MD via namedMultAliases) + 13 Canadian provinces + DXCC entities. USA, Alaska, Hawaii, and Canada are NOT counted as DXCC entities (alaskaAndHawaiiCountDxcc / usAndCanadaCountDxcc are false).",
       "categories": ["namedMults", "dxcc"],
       "alaskaAndHawaiiCountDxcc": false,
       "usAndCanadaCountDxcc": false,
@@ -150,6 +150,13 @@
         "WV":      ["namedMults", "dxcc"],
         "OUTSIDE": ["namedMults"],
         "DX":      ["namedMults"]
+      },
+      "automaticMultipliers": {
+        "promptId": "stationType",
+        "rules": {
+          "WV": ["WV"]
+        },
+        "requiresWorkedFrom": "inStateMults"
       }
     },
     "finalScore": "SUM(points) * SUM(multipliers)"

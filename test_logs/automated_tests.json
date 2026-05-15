@@ -296,9 +296,14 @@
       "expected_score": 2738
     },
     {
-      "name": "WVQP In-State WV (51 QSOs incl 3 dupes, multsOnce, counties + states + provinces + DXCC, CW/SSB/Digital, +100 W8WVA bonus)",
+      "name": "WVQP In-State WV (51 QSOs incl 3 dupes, multsOnce, counties + states + provinces + DXCC, CW/SSB/Digital, +1 automatic WV state mult, +100 W8WVA bonus)",
       "log_file": "test_wvqp_instate.clx",
-      "expected_score": 4330
+      "expected_score": 4420
+    },
+    {
+      "name": "WVQP In-State WV gate test (8 QSOs, WV op works only out-of-state stations, no WV county worked so the automatic WV multiplier is withheld)",
+      "log_file": "test_wvqp_instate_nowv.clx",
+      "expected_score": 128
     },
     {
       "name": "WVQP Out-of-State OH (53 QSOs incl 3 dupes, multsOnce, WV counties only, re-worked counties on new bands add points but no mult, +100 W8WVA bonus)",

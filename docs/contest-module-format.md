@@ -364,6 +364,39 @@ An ordered array of point rule names. The engine evaluates each rule in order an
 | `gridSquares` | Maidenhead grid squares (ARRL VHF) |
 | `objectiveMultipliers` | User-selected objective checkboxes (Winter Field Day) |
 
+#### automaticMultipliers
+
+An optional object inside `multipliers` that credits a named multiplier the
+operator earns **without an explicit exchange**. The motivating case is the
+West Virginia QSO Party: a WV station's own state, `WV`, is one of its 50
+state multipliers, but a WV station always sends a *county* — it never
+receives `WV` in an exchange — so the mult could never be tallied from QSO
+data alone.
+
+```json
+"multipliers": {
+  "type": "multsOnce",
+  "categories": ["namedMults", "dxcc"],
+  "automaticMultipliers": {
+    "promptId": "stationType",
+    "rules": { "WV": ["WV"] },
+    "requiresWorkedFrom": "inStateMults"
+  }
+}
+```
+
+| field | Description |
+|-------|-------------|
+| `promptId` | The `userPrompts` id whose answer selects a rule |
+| `rules` | Map of prompt-answer → array of named-mult values to credit |
+| `requiresWorkedFrom` | *(optional)* Gate — credit only after the operator has worked a multiplier from this list (`inStateMults` or `namedMults`). Omit for an unconditional credit. |
+
+With `requiresWorkedFrom: "inStateMults"`, `WV` is credited only once the WV
+operator has worked at least one WV county — i.e. it is *earned* by working a
+WV station, not handed out free. Supported with `multsOnce`. The credited
+values should also appear in `validation.namedMults` so the multiplier panel
+can display them.
+
 ### finalScore
 
 A formula string controlling how the final score is computed:

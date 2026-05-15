@@ -1,0 +1,229 @@
+{
+    "contest": {
+        "categories": {
+            "userPrompt_stationType": "WV",
+            "userPrompt_operatingClass": "SINGLE_OP",
+            "userPrompt_powerCategory": "HP",
+            "userPrompt_myExchange": "KAN"
+        },
+        "contest_file": "wvqp.json",
+        "mode": "",
+        "name": "West Virginia QSO Party",
+        "type": "West Virginia QSO Party",
+        "version": "1.0.0",
+        "year": 2026
+    },
+    "created": "2026-06-20T16:00:00",
+    "exchange_fields": [],
+    "format": "ContestLogX",
+    "format_version": "1.0",
+    "modified": "2026-06-21T04:00:00",
+    "qsos": [
+        {
+            "band": "20m",
+            "callsign": "W3OH",
+            "duplicate": false,
+            "dxcc_count": 0,
+            "exchange_fields": {
+                "CALL": "W3OH",
+                "EXCHr": "AL",
+                "EXCHs": "KAN",
+                "RSTr": "599",
+                "RSTs": "599",
+                "SNs": "1"
+            },
+            "frequency": 14045,
+            "grid_square_count": 0,
+            "id": 1,
+            "mode": "CW",
+            "multiplier_count": 0,
+            "points": 0,
+            "rst_received": "599",
+            "rst_sent": "599",
+            "serial": 1,
+            "timestamp": "2026-06-20T16:00:00Z"
+        },
+        {
+            "band": "20m",
+            "callsign": "W5MI",
+            "duplicate": false,
+            "dxcc_count": 0,
+            "exchange_fields": {
+                "CALL": "W5MI",
+                "EXCHr": "AZ",
+                "EXCHs": "KAN",
+                "RSTr": "599",
+                "RSTs": "599",
+                "SNs": "2"
+            },
+            "frequency": 14045,
+            "grid_square_count": 0,
+            "id": 2,
+            "mode": "CW",
+            "multiplier_count": 0,
+            "points": 0,
+            "rst_received": "599",
+            "rst_sent": "599",
+            "serial": 2,
+            "timestamp": "2026-06-20T16:02:00Z"
+        },
+        {
+            "band": "20m",
+            "callsign": "K6N",
+            "duplicate": false,
+            "dxcc_count": 0,
+            "exchange_fields": {
+                "CALL": "K6N",
+                "EXCHr": "CA",
+                "EXCHs": "KAN",
+                "RSTr": "599",
+                "RSTs": "599",
+                "SNs": "3"
+            },
+            "frequency": 14045,
+            "grid_square_count": 0,
+            "id": 3,
+            "mode": "CW",
+            "multiplier_count": 0,
+            "points": 0,
+            "rst_received": "599",
+            "rst_sent": "599",
+            "serial": 3,
+            "timestamp": "2026-06-20T16:04:00Z"
+        },
+        {
+            "band": "20m",
+            "callsign": "AJ6PQ",
+            "duplicate": false,
+            "dxcc_count": 0,
+            "exchange_fields": {
+                "CALL": "AJ6PQ",
+                "EXCHr": "CO",
+                "EXCHs": "KAN",
+                "RSTr": "599",
+                "RSTs": "599",
+                "SNs": "4"
+            },
+            "frequency": 14045,
+            "grid_square_count": 0,
+            "id": 4,
+            "mode": "CW",
+            "multiplier_count": 0,
+            "points": 0,
+            "rst_received": "599",
+            "rst_sent": "599",
+            "serial": 4,
+            "timestamp": "2026-06-20T16:06:00Z"
+        },
+        {
+            "band": "20m",
+            "callsign": "W3EPI",
+            "duplicate": false,
+            "dxcc_count": 0,
+            "exchange_fields": {
+                "CALL": "W3EPI",
+                "EXCHr": "FL",
+                "EXCHs": "KAN",
+                "RSTr": "599",
+                "RSTs": "599",
+                "SNs": "5"
+            },
+            "frequency": 14045,
+            "grid_square_count": 0,
+            "id": 5,
+            "mode": "CW",
+            "multiplier_count": 0,
+            "points": 0,
+            "rst_received": "599",
+            "rst_sent": "599",
+            "serial": 5,
+            "timestamp": "2026-06-20T16:08:00Z"
+        },
+        {
+            "band": "20m",
+            "callsign": "AJ9E",
+            "duplicate": false,
+            "dxcc_count": 0,
+            "exchange_fields": {
+                "CALL": "AJ9E",
+                "EXCHr": "GA",
+                "EXCHs": "KAN",
+                "RSTr": "599",
+                "RSTs": "599",
+                "SNs": "6"
+            },
+            "frequency": 14045,
+            "grid_square_count": 0,
+            "id": 6,
+            "mode": "CW",
+            "multiplier_count": 0,
+            "points": 0,
+            "rst_received": "599",
+            "rst_sent": "599",
+            "serial": 6,
+            "timestamp": "2026-06-20T16:10:00Z"
+        },
+        {
+            "band": "20m",
+            "callsign": "N7LJ",
+            "duplicate": false,
+            "dxcc_count": 0,
+            "exchange_fields": {
+                "CALL": "N7LJ",
+                "EXCHr": "IL",
+                "EXCHs": "KAN",
+                "RSTr": "599",
+                "RSTs": "599",
+                "SNs": "7"
+            },
+            "frequency": 14045,
+            "grid_square_count": 0,
+            "id": 7,
+            "mode": "CW",
+            "multiplier_count": 0,
+            "points": 0,
+            "rst_received": "599",
+            "rst_sent": "599",
+            "serial": 7,
+            "timestamp": "2026-06-20T16:12:00Z"
+        },
+        {
+            "band": "20m",
+            "callsign": "K0BCY",
+            "duplicate": false,
+            "dxcc_count": 0,
+            "exchange_fields": {
+                "CALL": "K0BCY",
+                "EXCHr": "IN",
+                "EXCHs": "KAN",
+                "RSTr": "599",
+                "RSTs": "599",
+                "SNs": "8"
+            },
+            "frequency": 14045,
+            "grid_square_count": 0,
+            "id": 8,
+            "mode": "CW",
+            "multiplier_count": 0,
+            "points": 0,
+            "rst_received": "599",
+            "rst_sent": "599",
+            "serial": 8,
+            "timestamp": "2026-06-20T16:14:00Z"
+        }
+    ],
+    "statistics": {
+        "score": 0,
+        "total_points": 0,
+        "total_qsos": 8
+    },
+    "station": {
+        "callsign": "AI7AEIV",
+        "operator": "Steve",
+        "location": {
+            "state": "WV",
+            "cq_zone": 5,
+            "itu_zone": 8
+        }
+    }
+}

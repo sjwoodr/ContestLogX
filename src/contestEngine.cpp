@@ -1472,6 +1472,63 @@ QStringList ContestEngine::getMultiplierCategories() const
     return m_cachedMultCategories;
 }
 
+QStringList ContestEngine::getAutomaticMultipliers() const
+{
+    // Named multipliers the operator earns without an explicit exchange —
+    // e.g. WVQP credits "WV" to a West Virginia station as its own state
+    // multiplier (a WV station never receives "WV" in an exchange, since WV
+    // stations send their county). Shape under scoring.multipliers:
+    //   "automaticMultipliers": {
+    //     "promptId": "stationType",
+    //     "rules": { "WV": ["WV"] },
+    //     "requiresWorkedFrom": "inStateMults"   // optional gate
+    //   }
+    // The rule whose key matches the operator's answer to <promptId> supplies
+    // the named-mult values. When "requiresWorkedFrom" is set, the credit is
+    // withheld until the operator has worked at least one named multiplier
+    // from that list — so "WV" is earned by working a WV station (which sends
+    // a WV county, i.e. an inStateMult), not handed out unconditionally.
+    QStringList result;
+    if (!m_contestDef.contains("scoring"))
+        return result;
+    QJsonObject mults = m_contestDef["scoring"].toObject()["multipliers"].toObject();
+    if (!mults.contains("automaticMultipliers"))
+        return result;
+    QJsonObject spec = mults["automaticMultipliers"].toObject();
+    const QString promptId = spec["promptId"].toString();
+    if (promptId.isEmpty())
+        return result;
+    const QString promptValue = getUserPromptValue(promptId);
+    QJsonObject rules = spec["rules"].toObject();
+    if (!rules.contains(promptValue))
+        return result;
+
+    // Optional gate — only credit once the operator has worked a multiplier
+    // from the named source list. Evaluated against the worked-mult sets, so
+    // this is only meaningful after updateRunningScore's QSO pass has run.
+    const QString reqList = spec["requiresWorkedFrom"].toString();
+    if (!reqList.isEmpty()) {
+        bool gateMet = false;
+        if (reqList == "inStateMults") {
+            for (const QString& worked : m_workedNamedMults) {
+                if (m_inStateMults.contains(worked)) { gateMet = true; break; }
+            }
+        } else if (reqList == "namedMults") {
+            gateMet = !m_workedNamedMults.isEmpty();
+        }
+        if (!gateMet)
+            return result;
+    }
+
+    const QJsonArray values = rules[promptValue].toArray();
+    for (const QJsonValue& v : values) {
+        const QString s = v.toString().trimmed().toUpper();
+        if (!s.isEmpty() && !result.contains(s))
+            result.append(s);
+    }
+    return result;
+}
+
 QString ContestEngine::getNamedMultsLabel() const
 {
     if (m_contestDef.contains("scoring")) {
@@ -2821,6 +2878,32 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
                 .arg(m_runningScore.gridSquareMultCount));
     }
     
+    // Automatic multipliers — freebie named multipliers credited to the
+    // operator regardless of QSOs (e.g. WVQP credits "WV" to West Virginia
+    // stations as a state multiplier). Applied once for the whole contest,
+    // on top of QSO-earned named multipliers. Supported with multsOnce,
+    // whose final score is the simple points × (named + dxcc + …) sum.
+    const QStringList autoMults = getAutomaticMultipliers();
+    if (!autoMults.isEmpty()) {
+        if (multType == "multsOnce") {
+            for (const QString& am : autoMults) {
+                if (m_workedNamedMults.contains(am))
+                    continue;  // already earned via a QSO — do not double-count
+                m_workedNamedMults.insert(am);
+                m_runningScore.namedMultCount++;
+                m_runningScore.multipliers++;
+                if (verbose) {
+                    DebugLogger::instance().log("ContestEngine",
+                        QString("  Automatic multiplier credited: %1").arg(am));
+                }
+            }
+        } else {
+            DebugLogger::instance().log("ContestEngine",
+                QString("WARNING: automaticMultipliers is only supported with "
+                        "multsOnce — ignored for multiplier type '%1'").arg(multType));
+        }
+    }
+
     // Set DXCC count (for informational purposes)
     m_runningScore.dxccCount = uniqueDxccEntities.size();
     

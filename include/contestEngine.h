@@ -74,6 +74,15 @@ public:
     void rescoreAll(QList<QsoRecord>& qsos, const QString& myCallsign);
     QString getMultiplierType() const;
     QStringList getMultiplierCategories() const;
+    // Named multipliers the operator earns without an explicit exchange,
+    // resolved against the current userPrompt values — e.g. WVQP credits "WV"
+    // to a West Virginia station as its own state multiplier. With the
+    // optional "requiresWorkedFrom" gate the credit is withheld until the
+    // operator has worked a multiplier from that list (so "WV" is earned by
+    // working a WV station, not handed out free). Depends on the worked-mult
+    // sets, so it is only meaningful after updateRunningScore's QSO pass.
+    // Supported with multsOnce.
+    QStringList getAutomaticMultipliers() const;
     QString getNamedMultsLabel() const;
     bool getAlaskaHawaiiCountDxcc() const;
     bool getUsAndCanadaCountDxcc() const;

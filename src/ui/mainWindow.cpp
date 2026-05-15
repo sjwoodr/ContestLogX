@@ -8335,6 +8335,15 @@ QString MainWindow::generateSummaryString()
                 }
             }
 
+            // Automatic multipliers (e.g. WVQP credits "WV" to WV stations)
+            // are earned without a QSO — include them in the named-mult list
+            // so the detail count matches the scoring summary.
+            if (category == "named" || category == "namedMults") {
+                const QStringList autoMults = m_contestEngine->getAutomaticMultipliers();
+                for (const QString& am : autoMults)
+                    workedMults.insert(am);
+            }
+
             if (!workedMults.isEmpty()) {
                 QString categoryDisplay = (category == "named" || category == "namedMults") ? m_contestEngine->getNamedMultsLabel() : (category == "dxcc") ? "DXCC Entities" : (category == "eadx100") ? "EADX-100 Entities" : (category == "namedCallPrefixes" || category == "wpxPrefix") ? "Call Prefixes" : (category == "gridSquares") ? "Grid Squares" : category;
                 out << categoryDisplay << " (Worked: " << workedMults.size() << ")\n";

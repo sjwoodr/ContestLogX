@@ -166,7 +166,10 @@ def build_instate():
     E   4 US states (new)  20m DIG    4 x 2 =  8 pts,  4 state  mults
     F   1 W8WVA QSO        80m CW     1 x 2 =  2 pts,  0 new mult, +100 bonus
     G   3 dupes (Phase A)  20m CW     0 pts,           0 mults
-    Total: 51 QSOs, 90 points, 47 mults, +100 bonus -> 90 * 47 + 100 = 4330
+    Plus "WV" — the operator's own state, automatically credited as a
+    multiplier once a WV county has been worked (Phase A satisfies this).
+    Total: 51 QSOs, 90 points, 48 mults (47 worked + WV), +100 bonus
+           -> 90 * 48 + 100 = 4420
     """
     us = make_us(620, 39)
     ca = make_canada(621, 6)
@@ -206,7 +209,39 @@ def build_instate():
         },
         qsos=qsos,
     )
-    return 90 * 47 + 100
+    return 90 * 48 + 100
+
+
+def build_instate_nowv():
+    """WV station that works only out-of-state stations — never a WV county.
+
+    Gate regression test: the "WV" automatic multiplier must be withheld
+    because the operator has not worked any inStateMult (WV county). A pure
+    freebie would wrongly add it.
+
+    A  8 US states  20m CW  8 x 2 = 16 pts, 8 state mults, NO "WV" credited
+    Total: 8 QSOs, 16 points, 8 mults -> 16 * 8 = 128
+    """
+    us = make_us(624, 9)
+    qsos, t, idx = [], START, 1
+    for i, (call, st) in enumerate(zip(us[:8], US_STATES[:8]), start=1):
+        qsos.append(qso(idx, t, call, "20m", "CW", "599", "KAN", st))
+        t += timedelta(minutes=2)
+        idx += 1
+
+    write_log(
+        TEST_LOGS / "test_wvqp_instate_nowv.clx",
+        station=us[8],
+        location={"state": "WV", "cq_zone": 5, "itu_zone": 8},
+        categories={
+            "userPrompt_stationType": "WV",
+            "userPrompt_operatingClass": "SINGLE_OP",
+            "userPrompt_powerCategory": "HP",
+            "userPrompt_myExchange": "KAN",
+        },
+        qsos=qsos,
+    )
+    return 16 * 8
 
 
 def build_outofstate():
@@ -260,6 +295,8 @@ def build_outofstate():
 
 if __name__ == "__main__":
     s_in = build_instate()
+    s_nowv = build_instate_nowv()
     s_out = build_outofstate()
-    print(f"expected in-state score:     {s_in}")
-    print(f"expected out-of-state score: {s_out}")
+    print(f"expected in-state score:        {s_in}")
+    print(f"expected in-state (no-WV) score: {s_nowv}")
+    print(f"expected out-of-state score:    {s_out}")

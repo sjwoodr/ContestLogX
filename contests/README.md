@@ -314,6 +314,17 @@ The `categories` field specifies what types of multipliers are counted:
 - `dxcc`: DXCC country entities (automatically looked up from callsign)
 - `ituRegions`: ITU regions (automatically looked up from callsign)
 
+**Automatic Multipliers:**
+An optional `automaticMultipliers` object inside `multipliers` credits a named multiplier the operator earns without an explicit exchange. The West Virginia QSO Party uses it for the rule that a WV station counts `WV` as one of its own state multipliers — a WV station always sends a county, so `WV` would otherwise never appear in a received exchange. The optional `requiresWorkedFrom` gate withholds the credit until the operator has worked a multiplier from the named list, so `WV` is earned by working a WV station rather than handed out unconditionally. Supported with `multsOnce`.
+
+```json
+"automaticMultipliers": {
+  "promptId": "stationType",
+  "rules": { "WV": ["WV"] },
+  "requiresWorkedFrom": "inStateMults"
+}
+```
+
 Example with call prefixes (YBDX contest):
 ```json
 "multipliers": {
