@@ -1,0 +1,158 @@
+{
+  "contest": {
+    "name": "ARRL Field Day",
+    "abbreviation": "FD",
+    "version": "1.0.0",
+    "sponsor": "ARRL",
+    "description": "ARRL Field Day — the fourth full weekend of June, an emergency-preparedness operating exercise. Work as many stations as possible on 160-10m HF (no WARC bands) and all bands 50 MHz and above. Exchange is operating class + ARRL/RAC section (e.g. '3A CT'); DX stations send class + 'DX'. Phone QSO = 1 point, CW and Digital QSO = 2 points. Final score is QSO points x the power multiplier (x5 for 5 W or less on natural power, x2 for 100 W or less, x1 for more than 100 W) plus bonus points. The Rule 7.3 bonus points (emergency power, media publicity, GOTA, satellite QSO, W1AW bulletin, youth participation, etc.) are proof-based claims submitted on the official ARRL Field Day entry and are NOT auto-computed here — ContestLogX scores the QSO-points x power-multiplier portion. A GOTA station operates under its own callsign and is logged separately; satellite QSOs are logged as normal QSOs.",
+    "startDate": "Fourth full weekend of June (2026: June 27-28, 1800Z Sat to 2059Z Sun)",
+    "duration": 27,
+    "offTimeGapMinutes": 0,
+    "modes": ["CW", "SSB", "FM", "DIGITAL"],
+    "bands": ["160m", "80m", "40m", "20m", "15m", "10m", "6m", "2m", "1.25m", "70cm", "33cm", "23cm", "13cm", "9cm", "6cm", "3cm", "1.25cm", "6mm"],
+    "url": "https://www.arrl.org/field-day",
+    "categories": {
+      "transmitters": ["1", "2", "3", "5", "10", "20+"],
+      "class": ["A", "A-BATTERY", "B", "B-BATTERY", "C", "D", "E", "F"],
+      "power": ["QRP", "LOW", "HIGH"]
+    }
+  },
+  "frequencies": {
+    "160m":   {"start": 1800,     "end": 2000},
+    "80m":    {"start": 3500,     "end": 4000},
+    "40m":    {"start": 7000,     "end": 7300},
+    "20m":    {"start": 14000,    "end": 14350},
+    "15m":    {"start": 21000,    "end": 21450},
+    "10m":    {"start": 28000,    "end": 29700},
+    "6m":     {"start": 50000,    "end": 54000},
+    "2m":     {"start": 144000,   "end": 148000},
+    "1.25m":  {"start": 222000,   "end": 225000},
+    "70cm":   {"start": 420000,   "end": 450000},
+    "33cm":   {"start": 902000,   "end": 928000},
+    "23cm":   {"start": 1240000,  "end": 1300000},
+    "13cm":   {"start": 2300000,  "end": 2450000},
+    "9cm":    {"start": 3300000,  "end": 3500000},
+    "6cm":    {"start": 5650000,  "end": 5925000},
+    "3cm":    {"start": 10000000, "end": 10500000},
+    "1.25cm": {"start": 24000000, "end": 24250000},
+    "6mm":    {"start": 47000000, "end": 47200000}
+  },
+  "stationClasses": {
+    "enabled": false
+  },
+  "userPrompts": [
+    {
+      "id": "stationClass",
+      "question": "Enter your Field Day class: number of transmitters + class letter (e.g., 3A, 1D, 2F, 1B).",
+      "type": "text",
+      "required": true,
+      "forceUppercase": true,
+      "storeInMeta": true,
+      "description": "Operating class sent in the exchange. Letter: A (club/group portable), B (1-2 person portable), C (mobile), D (home), E (home, emergency power), F (EOC). A-Battery/B-Battery send A/B.",
+      "exchangeFieldMapping": {
+        "stationClass": "CLASSs"
+      }
+    },
+    {
+      "id": "section",
+      "question": "Enter your ARRL/RAC section (e.g., CT, EMA, ONS) or DX if outside the ARRL/RAC field organization.",
+      "type": "text",
+      "required": true,
+      "forceUppercase": true,
+      "storeInMeta": true,
+      "description": "ARRL/RAC section sent in the exchange; DX stations send DX.",
+      "exchangeFieldMapping": {
+        "section": "SECTs"
+      }
+    },
+    {
+      "id": "powerCategory",
+      "question": "Select your power level (determines the Field Day power multiplier).",
+      "type": "select",
+      "options": [
+        {"value": "QRP_NATURAL", "label": "5 W or less, natural power (battery / solar / wind / water — not mains or generator) — power multiplier x5"},
+        {"value": "LOW",         "label": "100 W or less (or 5 W or less from mains / generator) — power multiplier x2"},
+        {"value": "HIGH",        "label": "More than 100 W — power multiplier x1"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "Per Rule 7.2 the multiplier is set by the highest output power used by any transmitter during the event. Classes A/B/C are capped at 500 W PEP; D/E/F at 100 W PEP."
+    }
+  ],
+  "exchangeFields": {
+    "sent": [
+      {"name": "CLASSs", "type": "string", "required": true, "description": "Operating class sent (e.g., 3A)"},
+      {"name": "SECTs",  "type": "string", "required": true, "description": "ARRL/RAC section sent (e.g., CT), or DX"}
+    ],
+    "received": [
+      {"name": "CLASSr", "type": "string", "required": true, "description": "Operating class received (e.g., 1D)"},
+      {"name": "SECTr",  "type": "string", "required": true, "description": "ARRL/RAC section received (e.g., EMA), or DX"}
+    ]
+  },
+  "qsoFields": [
+    {"name": "Date",      "column": "DATE",  "type": "date", "format": "yyyy-MM-dd", "required": true},
+    {"name": "Time",      "column": "TIME",  "type": "time", "format": "HH:mm:ss",   "required": true},
+    {"name": "Callsign",  "column": "CALL",  "type": "string", "required": true, "uppercase": true},
+    {"name": "Frequency", "column": "FREQ",  "type": "number", "unit": "kHz", "required": true},
+    {"name": "Mode",      "column": "MODE",  "type": "enum", "values": ["CW", "SSB", "FM", "DIGITAL"], "required": true},
+    {"name": "Class Sent",     "column": "CLASSs", "type": "string", "required": true, "description": "Operating class sent"},
+    {"name": "Section Sent",   "column": "SECTs",  "type": "string", "required": true, "description": "ARRL/RAC section sent"},
+    {"name": "Class Received", "column": "CLASSr", "type": "string", "required": true, "description": "Operating class received"},
+    {"name": "Section Received","column": "SECTr", "type": "string", "required": true, "description": "ARRL/RAC section received"},
+    {"name": "Points",    "column": "POINTS", "type": "number", "calculated": true, "description": "Points by mode (Phone 1, CW/Digital 2)"}
+  ],
+  "scoring": {
+    "points": {
+      "phone": 1,
+      "cw": 2,
+      "digital": 2
+    },
+    "scoreMultiplier": {
+      "promptId": "powerCategory",
+      "values": {
+        "QRP_NATURAL": 5,
+        "LOW": 2,
+        "HIGH": 1
+      }
+    },
+    "finalScore": "SUM(points) * powerMultiplier",
+    "description": "Field Day has no QSO multipliers. Score = QSO points x power multiplier. Rule 7.3 bonus points are claimed on the ARRL summary sheet and added there; they are not computed by ContestLogX."
+  },
+  "dupeChecking": {
+    "type": "perBandAndMode",
+    "description": "A station may be worked once per band per mode — Phone, CW, and Digital count separately, so the same station is workable up to three times on a band (Rule 6.3). All voice modes (SSB/FM/AM) count as one Phone mode; all non-CW digital modes count as one Digital mode."
+  },
+  "callHistory": {
+    "fieldsToSave": ["CLASSr", "SECTr"],
+    "description": "Save received class and section for future lookups"
+  },
+  "logging": {
+    "requiredFields": ["date", "time", "callsign", "frequency", "mode", "classSent", "sectionSent", "classReceived", "sectionReceived"],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "ARRL-FIELD-DAY",
+      "notes": "Cabrillo is accepted in lieu of a dupe sheet but does not by itself constitute an entry — the ARRL summary sheet / web app is required. HF frequencies in kHz; VHF and above logged by band.",
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {exch_sent} {call} {exch_rcvd}"
+    }
+  },
+  "validation": {
+    "minimumQSOs": 1,
+    "maxOperatingTime": 27,
+    "offTimesRequired": false,
+    "exchangeValidation": {
+      "type": "freeForm",
+      "description": "Class and section are collected but not validated against a fixed list — the operator is responsible for correct entry. Section may be any ARRL/RAC section or DX."
+    }
+  },
+  "ui": {
+    "logColumns": ["DATE", "TIME", "CALL", "FREQ", "MODE", "CLASSs", "SECTs", "CLASSr", "SECTr", "POINTS", "COMMENT"],
+    "entryFields": ["CALL", "CLASSr", "SECTr"],
+    "fieldNavigation": {
+      "keys": "tab"
+    },
+    "bandMap": {
+      "enabled": true,
+      "bands": ["160m", "80m", "40m", "20m", "15m", "10m", "6m", "2m", "1.25m", "70cm", "33cm", "23cm", "13cm", "9cm", "6cm", "3cm", "1.25cm", "6mm"]
+    }
+  }
+}

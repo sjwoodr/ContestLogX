@@ -51,6 +51,16 @@
       "expected_score": 658
     },
     {
+      "name": "ARRL Field Day 3A (53 QSOs incl 3 dupes, no multipliers, Phone/CW/Digital point values, LOW power x2)",
+      "log_file": "test_fd_3a.clx",
+      "expected_score": 160
+    },
+    {
+      "name": "ARRL Field Day 1B QRP (26 QSOs incl 2 dupes, no multipliers, QRP natural power x5)",
+      "log_file": "test_fd_qrp.clx",
+      "expected_score": 200
+    },
+    {
       "name": "MNQP In-State (MN station)",
       "log_file": "test_mnqp_instate.clx",
       "expected_score": 10296

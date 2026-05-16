@@ -61,6 +61,7 @@ Most contest loggers are Windows-only, closed-source, or locked to a fixed set o
 |---------|------|
 | ARRL 10 Meter | `arrl_10m.json` |
 | ARRL DX | `arrl_dx.json` |
+| ARRL Field Day | `field_day.json` |
 | ARRL VHF | `arrl_vhf.json` |
 | CWops Mini-CWT | `cwops_cwt.json` |
 | EU DX Contest | `eudx.json` |
