@@ -1,6 +1,16 @@
 {
   "tests": [
     {
+      "name": "ALQP In-State AL op JEFF (46 QSOs incl 3 dupes, multsPerMode counties+states+prov+DXCC, namedMultAliases DC->MDC and MD->MDC, same county worked on CW and SSB counts as two mults, +2 automatic AL state mults credited per mode where an AL station was worked)",
+      "log_file": "test_alqp_instate.clx",
+      "expected_score": 3784
+    },
+    {
+      "name": "ALQP Out-of-State TN op (75 QSOs incl 5 dupes, multsPerMode AL counties only, same AL county worked on CW and SSB counts twice)",
+      "log_file": "test_alqp_outofstate.clx",
+      "expected_score": 9800
+    },
+    {
       "name": "ACQP Out-of-Region OH (20 QSOs, all CW, 4 unique counties/divisions per band x 5 bands, multsPerBand county/division only, no bonus)",
       "log_file": "test_acqp_outofregion.clx",
       "expected_score": 400

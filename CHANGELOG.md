@@ -4,6 +4,15 @@ All notable changes to ContestLogX are documented in this file.
 
 ## [0.8.4]
 
+### Contest Updates
+- Added the Alabama QSO Party (ALQP)
+
+### Contest Engine Changes
+- Extended `automaticMultipliers` to work under `multsPerMode`, not just `multsOnce` and `multsPerBand`. Per-mode semantics: each automatic multiplier is credited on every mode where the operator worked a `requiresWorkedFrom` entry. Used by the Alabama QSO Party so an AL station counts its own state, `AL`, as a state multiplier on each mode where they work any AL station. The summary sheet's per-band and per-mode multiplier breakdown now also surfaces automatic-credit entries so the printed multiplier list matches the scoring summary count
+
+### Other Changes and Bugfixes
+- Fixed window position and size not being restored on launch under X11
+
 ## [0.8.3]
 
 ### Contest Updates

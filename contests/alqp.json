@@ -1,0 +1,355 @@
+{
+  "contest": {
+    "name": "Alabama QSO Party",
+    "abbreviation": "AQP",
+    "version": "1.0.0",
+    "sponsor": "Alabama Contest Group",
+    "description": "Annual Alabama QSO Party. Alabama stations work everyone for counties, states, provinces, and DXCC. Non-AL stations work AL stations only for 67 Alabama counties. CW and SSB only, 80-10m, no WARC bands.",
+    "startDate": "Saturday following the third Friday in July (2026: July 25, 1500Z - July 26, 0300Z)",
+    "duration": 12,
+    "offTimeGapMinutes": 0,
+    "modes": ["CW", "SSB"],
+    "bands": ["80m", "40m", "20m", "15m", "10m"],
+    "url": "https://www.alabamacontestgroup.org/",
+    "categories": {
+      "stations": ["SINGLE_OP", "MULTI_SINGLE", "MULTI_MULTI", "MOBILE"],
+      "power": ["QRP", "LOW", "HIGH"],
+      "modes": ["MIXED", "PHONE", "CW"]
+    }
+  },
+  "contestOnlineScore": {
+    "contestId": "AL-QSO-PARTY",
+    "mult1Name": "County/DXCC/St./Prov.",
+    "mult1Attribute": "exchange"
+  },
+  "frequencies": {
+    "80m": {
+      "start": 3500, "end": 4000,
+      "cw":    {"start": 3500, "end": 3600},
+      "phone": {"start": 3600, "end": 4000}
+    },
+    "40m": {
+      "start": 7000, "end": 7300,
+      "cw":    {"start": 7000, "end": 7125},
+      "phone": {"start": 7125, "end": 7300}
+    },
+    "20m": {
+      "start": 14000, "end": 14350,
+      "cw":    {"start": 14000, "end": 14150},
+      "phone": {"start": 14150, "end": 14350}
+    },
+    "15m": {
+      "start": 21000, "end": 21450,
+      "cw":    {"start": 21000, "end": 21200},
+      "phone": {"start": 21200, "end": 21450}
+    },
+    "10m": {
+      "start": 28000, "end": 29700,
+      "cw":    {"start": 28000, "end": 28300},
+      "phone": {"start": 28300, "end": 29700}
+    }
+  },
+
+  "stationClasses": {
+    "enabled": false
+  },
+
+  "userPrompts": [
+    {
+      "id": "stationType",
+      "question": "Select your station location",
+      "type": "select",
+      "options": [
+        {"value": "AL",  "label": "Alabama (in-state) - send AL county abbreviation"},
+        {"value": "WVE", "label": "W/VE (US or Canada outside AL, including KH6/KL7) - send state or province"},
+        {"value": "DX",  "label": "DX (outside US/Canada, including KP2/KP4) - send DXCC entity prefix"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "AL stations work everyone. Non-AL stations work only AL stations. DC counts as Maryland (MDC) for AL operators."
+    },
+    {
+      "id": "operatingClass",
+      "question": "Select your operating class",
+      "type": "select",
+      "options": [
+        {"value": "AL_SO",            "label": "AL: Single Operator"},
+        {"value": "AL_MS",            "label": "AL: Multi-Operator Single Transmitter"},
+        {"value": "AL_MM",            "label": "AL: Multi-Operator Multi Transmitter"},
+        {"value": "AL_MOB_SO",        "label": "AL: Mobile - Single Op (operator also drives)"},
+        {"value": "AL_MOB_SO_DRIVER", "label": "AL: Mobile - Single Op with Driver"},
+        {"value": "AL_MOB_MULTI",     "label": "AL: Mobile - Multi Op"},
+        {"value": "OUT_SO",           "label": "Non-AL: Single Operator"},
+        {"value": "OUT_MS",           "label": "Non-AL: Multi-Operator Single Transmitter"},
+        {"value": "OUT_MM",           "label": "Non-AL: Multi-Operator Multi Transmitter"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "Mobiles must be self-contained (radio, antenna, power source capable of motion). No county-line sitting. AL Mobiles changing counties are treated as a new station and may be worked again for QSO points and multiplier credit."
+    },
+    {
+      "id": "powerCategory",
+      "question": "Select your power level",
+      "type": "select",
+      "options": [
+        {"value": "HIGH", "label": "High Power - more than 150 watts output"},
+        {"value": "LOW",  "label": "Low Power - 150 watts or less"},
+        {"value": "QRP",  "label": "QRP - 5 watts or less"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "Logs that do not show a power category will be classified as High Power."
+    },
+    {
+      "id": "modeCategory",
+      "question": "Select your mode category",
+      "type": "select",
+      "options": [
+        {"value": "MIXED", "label": "Mixed Mode (Phone and CW)"},
+        {"value": "PHONE", "label": "Phone Only"},
+        {"value": "CW",    "label": "CW Only"}
+      ],
+      "required": true,
+      "storeInMeta": true
+    },
+    {
+      "id": "myExchange",
+      "question": "Enter your exchange (AL county abbrev e.g. JEFF, state e.g. TN, province e.g. ON, or DXCC prefix e.g. DL)",
+      "type": "text",
+      "required": true,
+      "forceUppercase": true,
+      "storeInMeta": true,
+      "description": "4-letter AL county abbreviation for AL stations; 2-letter state or province for W/VE; DXCC entity prefix for DX. AL stations should NOT log AL as the exchange when working other AL stations - log the actual county.",
+      "exchangeFieldMapping": {
+        "myExchange": "EXCHs"
+      }
+    }
+  ],
+
+  "exchangeFields": {
+    "sent": [
+      {
+        "name": "RSTs",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report sent (RST on CW, RS on phone)"
+      },
+      {
+        "name": "EXCHs",
+        "type": "string",
+        "required": true,
+        "description": "AL county (AL stations), state/province (W/VE), or DXCC prefix (DX)"
+      }
+    ],
+    "received": [
+      {
+        "name": "RSTr",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report received"
+      },
+      {
+        "name": "EXCHr",
+        "type": "string",
+        "required": true,
+        "description": "AL county (from AL stations), state/province (from W/VE), or DXCC prefix (from DX). DC counts as MDC."
+      }
+    ]
+  },
+
+  "qsoFields": [
+    {"name": "Date",      "column": "DATE",   "type": "date",   "format": "yyyy-MM-dd", "required": true},
+    {"name": "Time",      "column": "TIME",   "type": "time",   "format": "HH:mm:ss",   "required": true},
+    {"name": "Callsign",  "column": "CALL",   "type": "string", "required": true, "uppercase": true},
+    {"name": "Frequency", "column": "FREQ",   "type": "number", "unit": "kHz",    "required": true},
+    {"name": "Mode",      "column": "MODE",   "type": "enum",   "values": ["CW", "SSB"], "required": true},
+    {"name": "RST Sent",  "column": "RSTs",   "type": "string", "required": true, "default": "599"},
+    {"name": "RST Rcvd",  "column": "RSTr",   "type": "string", "required": true},
+    {"name": "Exch Sent", "column": "EXCHs",  "type": "string", "required": true},
+    {"name": "Exch Rcvd", "column": "EXCHr",  "type": "string", "required": true},
+    {"name": "Points",    "column": "POINTS", "type": "number", "calculated": true},
+    {"name": "Mult",      "column": "M",      "type": "string", "calculated": true}
+  ],
+
+  "scoring": {
+    "points": {
+      "cw":    2,
+      "phone": 2
+    },
+    "multipliers": {
+      "type": "multsPerMode",
+      "description": "Multipliers counted once per mode (CW / Phone). Non-AL stations: 67 AL counties only (max 134 mixed). AL stations: 67 AL counties + 49 other US states + MDC (Maryland-DC) + 13 Canadian provinces + DXCC entities, plus AL itself credited via automaticMultipliers on each mode where an AL station has been worked (AL ops always send a county, so AL is never received as an exchange). USA, AK, HI, Canada are NOT counted as DXCC (alaskaAndHawaiiCountDxcc / usAndCanadaCountDxcc are false).",
+      "categories": ["namedMults", "dxcc"],
+      "alaskaAndHawaiiCountDxcc": false,
+      "usAndCanadaCountDxcc": false,
+      "stationClassMultipliers": {
+        "AL":  ["namedMults", "dxcc"],
+        "WVE": ["namedMults"],
+        "DX":  ["namedMults"]
+      },
+      "automaticMultipliers": {
+        "promptId": "stationType",
+        "rules": {
+          "AL": ["AL"]
+        },
+        "requiresWorkedFrom": "inStateMults"
+      }
+    },
+    "finalScore": "SUM(points) * SUM(multipliers)"
+  },
+
+  "dupeChecking": {
+    "type": "perBandAndMode",
+    "description": "Work a station once per band, per mode. AL Mobiles changing counties count as a new station and may be re-worked on any band/mode for QSO and multiplier credit. CW QSOs in CW segments only; phone QSOs in phone segments only - no cross-mode contacts."
+  },
+
+  "logging": {
+    "requiredFields": ["date", "time", "frequency", "mode", "callsign", "rstSent", "rstReceived", "exchSent", "exchReceived"],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "AL-QSO-PARTY",
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {rst_sent} {exch_sent} {call} {rst_rcvd} {exch_rcvd}",
+      "requiredHeaders": ["CONTEST", "CALLSIGN", "LOCATION", "CATEGORY-OPERATOR", "CATEGORY-POWER", "CATEGORY-MODE", "CATEGORY-STATION", "CLAIMED-SCORE", "CREATED-BY", "NAME", "EMAIL"]
+    }
+  },
+
+  "callHistory": {
+    "fieldsToSave": ["EXCHr"],
+    "description": "Save received exchange (county / state / province / DXCC prefix) for future autofill"
+  },
+
+  "validation": {
+    "minimumQSOs": 1,
+    "maxOperatingTime": 12,
+    "offTimesRequired": false,
+    "namedMults": [
+      "AUTA", "BALD", "BARB", "BIBB", "BLOU", "BULL", "BUTL", "CHOU", "CHMB", "CKEE",
+      "CHIL", "CHOC", "CLRK", "CLAY", "CLEB", "COFF", "COLB", "CONE", "COOS", "COVI",
+      "CREN", "CULM", "DALE", "DLLS", "DKLB", "ELMO", "ESCA", "ETOW", "FAYE", "FRNK",
+      "GENE", "GREE", "HALE", "HNRY", "HOUS", "JKSN", "JEFF", "LAMA", "LAUD", "LAWR",
+      "LEE",  "LIME", "LOWN", "MACO", "MDSN", "MRGO", "MARI", "MRSH", "MOBI", "MNRO",
+      "MGMY", "MORG", "PERR", "PICK", "PIKE", "RAND", "RSSL", "SCLR", "SHEL", "SUMT",
+      "TDEG", "TPOO", "TUSC", "WLKR", "WASH", "WLCX", "WINS",
+      "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL",
+      "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME",
+      "MDC", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH",
+      "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI",
+      "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY",
+      "AB", "BC", "MB", "NB", "NL", "NS", "NT", "NU", "ON", "PE", "QC", "SK", "YT"
+    ],
+    "namedMultAliases": {
+      "DC": "MDC",
+      "MD": "MDC"
+    },
+    "inStateMults": [
+      "AUTA", "BALD", "BARB", "BIBB", "BLOU", "BULL", "BUTL", "CHOU", "CHMB", "CKEE",
+      "CHIL", "CHOC", "CLRK", "CLAY", "CLEB", "COFF", "COLB", "CONE", "COOS", "COVI",
+      "CREN", "CULM", "DALE", "DLLS", "DKLB", "ELMO", "ESCA", "ETOW", "FAYE", "FRNK",
+      "GENE", "GREE", "HALE", "HNRY", "HOUS", "JKSN", "JEFF", "LAMA", "LAUD", "LAWR",
+      "LEE",  "LIME", "LOWN", "MACO", "MDSN", "MRGO", "MARI", "MRSH", "MOBI", "MNRO",
+      "MGMY", "MORG", "PERR", "PICK", "PIKE", "RAND", "RSSL", "SCLR", "SHEL", "SUMT",
+      "TDEG", "TPOO", "TUSC", "WLKR", "WASH", "WLCX", "WINS"
+    ],
+    "exchangeValidation": {
+      "type": "namedMultOrDxcc",
+      "description": "AL county (4-letter abbrev), US state (2-letter, DC and MD both map to MDC), Canadian province (2-letter), or DXCC entity prefix. Non-AL stations: received exchange must be a valid AL county abbreviation."
+    },
+    "receivedExchangeFilter": {
+      "promptId": "stationType",
+      "rules": {
+        "WVE": "inStateMults",
+        "DX":  "inStateMults"
+      }
+    }
+  },
+
+  "countyAbbreviations": {
+    "description": "Alabama County abbreviations (67 counties) per AQP rules",
+    "AUTA": "Autauga",
+    "BALD": "Baldwin",
+    "BARB": "Barbour",
+    "BIBB": "Bibb",
+    "BLOU": "Blount",
+    "BULL": "Bullock",
+    "BUTL": "Butler",
+    "CHOU": "Calhoun",
+    "CHMB": "Chambers",
+    "CKEE": "Cherokee",
+    "CHIL": "Chilton",
+    "CHOC": "Choctaw",
+    "CLRK": "Clarke",
+    "CLAY": "Clay",
+    "CLEB": "Cleburne",
+    "COFF": "Coffee",
+    "COLB": "Colbert",
+    "CONE": "Conecuh",
+    "COOS": "Coosa",
+    "COVI": "Covington",
+    "CREN": "Crenshaw",
+    "CULM": "Cullman",
+    "DALE": "Dale",
+    "DLLS": "Dallas",
+    "DKLB": "Dekalb",
+    "ELMO": "Elmore",
+    "ESCA": "Escambia",
+    "ETOW": "Etowah",
+    "FAYE": "Fayette",
+    "FRNK": "Franklin",
+    "GENE": "Geneva",
+    "GREE": "Greene",
+    "HALE": "Hale",
+    "HNRY": "Henry",
+    "HOUS": "Houston",
+    "JKSN": "Jackson",
+    "JEFF": "Jefferson",
+    "LAMA": "Lamar",
+    "LAUD": "Lauderdale",
+    "LAWR": "Lawrence",
+    "LEE":  "Lee",
+    "LIME": "Limestone",
+    "LOWN": "Lowndes",
+    "MACO": "Macon",
+    "MDSN": "Madison",
+    "MRGO": "Marengo",
+    "MARI": "Marion",
+    "MRSH": "Marshall",
+    "MOBI": "Mobile",
+    "MNRO": "Monroe",
+    "MGMY": "Montgomery",
+    "MORG": "Morgan",
+    "PERR": "Perry",
+    "PICK": "Pickens",
+    "PIKE": "Pike",
+    "RAND": "Randolph",
+    "RSSL": "Russell",
+    "SCLR": "St. Clair",
+    "SHEL": "Shelby",
+    "SUMT": "Sumter",
+    "TDEG": "Talladega",
+    "TPOO": "Tallapoosa",
+    "TUSC": "Tuscaloosa",
+    "WLKR": "Walker",
+    "WASH": "Washington",
+    "WLCX": "Wilcox",
+    "WINS": "Winston"
+  },
+
+  "ui": {
+    "showMultiplierPanel": true,
+    "logColumns": ["DATE", "TIME", "CALL", "FREQ", "MODE", "RSTs", "RSTr", "EXCHs", "EXCHr", "POINTS", "M", "COMMENT"],
+    "entryFields": ["CALL", "RSTr", "EXCHr"],
+    "fieldNavigation": {
+      "keys": "tab"
+    },
+    "bandMap": {
+      "enabled": true,
+      "bands": ["80m", "40m", "20m", "15m", "10m"]
+    },
+    "multiplierDisplay": {
+      "showCounties":  true,
+      "showStates":    true,
+      "showProvinces": true,
+      "showDXCC":      true
+    }
+  }
+}

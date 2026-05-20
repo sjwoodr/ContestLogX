@@ -421,9 +421,15 @@ MainWindow::MainWindow(QWidget *parent)
         QTimer::singleShot(500, this, &MainWindow::checkDataFileStaleness);
     }
 
-    // Restore window geometry in showEvent (after window is visible)
-    // restoreWindowGeometry() will be called in showEvent() on first show
-    // DON'T restore panel state here - it will be restored AFTER window geometry in showEvent()
+    // Restore window geometry BEFORE the window is shown so X11 window managers
+    // treat the saved rect as the initial geometry hint. Restoring after show()
+    // races with the WM's placement policy: on X11 the WM maps the window after
+    // showEvent fires and overrides any move() we issued from a queued timer,
+    // shoving us to its default spot (typically (0, top-of-workspace)) and that
+    // wrong position is what gets saved on next close. Panel/dock state restore
+    // still happens in showEvent — it requires the widgets to exist and the
+    // window to be mapped.
+    restoreWindowGeometry();
 
     // Load saved CW WPM
     int savedWpm = settings.getCwWpm();
@@ -443,30 +449,17 @@ void MainWindow::showEvent(QShowEvent *event)
 {
     QMainWindow::showEvent(event);
 
-    // On first show, restore window geometry after window is visible
-    // This is necessary because many Linux window managers ignore position
-    // requests until the window is actually shown
     if (m_firstShow) {
         m_firstShow = false;
 
-        // Use a small delay to ensure window manager has processed the show event
-        QTimer::singleShot(0, this, [this]() {
-            // Restore window geometry FIRST
-            restoreWindowGeometry();
-            DebugLogger::instance().log("MainWindow",
-                QString("Window geometry restored in showEvent, current pos=(%1,%2)")
-                .arg(pos().x()).arg(pos().y()));
-
-            // Then restore panel/dock state AFTER window geometry
-            // This is critical - if dock state is restored before window geometry,
-            // the window resize will override the restored dock sizes
-            QTimer::singleShot(100, this, [this]() {
-                restorePanelState();
-                DebugLogger::instance().log("MainWindow", "Panel state restored after window geometry");
-            });
+        // Geometry was restored in the constructor before show(). Restore
+        // panel/dock state here, after the window is mapped, so dock sizes
+        // aren't clobbered by the initial resize.
+        QTimer::singleShot(100, this, [this]() {
+            restorePanelState();
+            DebugLogger::instance().log("MainWindow", "Panel state restored after window mapped");
         });
 
-        // Log position after a longer delay to see if window manager moves it
         QTimer::singleShot(500, this, [this]() {
             DebugLogger::instance().log("MainWindow",
                 QString("Window position 500ms after show: pos=(%1,%2)")
@@ -6092,12 +6085,7 @@ void MainWindow::restoreWindowGeometry()
         DebugLogger::instance().log("MainWindow",
             QString("No saved geometry state, using 50%% safe fallback: pos=(%1,%2) size=(%3x%4)")
             .arg(safe.x()).arg(safe.y()).arg(safe.width()).arg(safe.height()));
-        resize(safe.width(), safe.height());
-
-        // Delay move to after window is shown
-        QTimer::singleShot(100, this, [this, safe]() {
-            move(safe.topLeft());
-        });
+        setGeometry(safe);
     }
 
     if (settings.getWindowMaximized()) {
@@ -8379,6 +8367,27 @@ QString MainWindow::generateSummaryString()
                 }
             }
 
+            // Automatic multipliers (e.g. ACQP credits each AC operator's own
+            // province per band where they worked any AC station) are credited
+            // by the engine into m_workedNamedMultsPerBand without an
+            // originating QSO. Surface them in the named-mult per-band display
+            // so the printed list matches the scoring summary's count.
+            if (category == "named" || category == "namedMults") {
+                const QStringList autoMults = m_contestEngine->getAutomaticMultipliers();
+                if (!autoMults.isEmpty()) {
+                    QSet<QString> autoSet(autoMults.begin(), autoMults.end());
+                    const QSet<QString> workedPerBand = m_contestEngine->getWorkedNamedMultsPerBand();
+                    for (const QString& key : workedPerBand) {
+                        int idx = key.indexOf('_');
+                        if (idx < 0) continue;
+                        QString mult = key.left(idx);
+                        QString band = key.mid(idx + 1);
+                        if (autoSet.contains(mult))
+                            multsPerBand[band].insert(mult);
+                    }
+                }
+            }
+
             for (const auto& band : multsPerBand.keys()) {
                 QString categoryDisplay = (category == "named" || category == "namedMults") ? m_contestEngine->getNamedMultsLabel() : (category == "dxcc") ? "DXCC Entities" : (category == "eadx100") ? "EADX-100 Entities" : (category == "namedCallPrefixes" || category == "wpxPrefix") ? "Call Prefixes" : (category == "gridSquares") ? "Grid Squares" : category;
                 out << categoryDisplay << " - " << band << " (Worked: " << multsPerBand[band].size() << ")\n";
@@ -8427,6 +8436,27 @@ QString MainWindow::generateSummaryString()
                 for (const ContestEngine::MultiplierInfo& mult : mults) {
                     if (mult.category == category)
                         multsPerMode[mode].insert(mult.value);
+                }
+            }
+
+            // Automatic multipliers (e.g. ALQP credits "AL" to Alabama
+            // operators per mode where they worked any AL station) are
+            // credited by the engine into m_workedNamedMultsPerMode without
+            // an originating QSO. Surface them in the named-mult per-mode
+            // display so the printed list matches the scoring summary count.
+            if (category == "named" || category == "namedMults") {
+                const QStringList autoMults = m_contestEngine->getAutomaticMultipliers();
+                if (!autoMults.isEmpty()) {
+                    QSet<QString> autoSet(autoMults.begin(), autoMults.end());
+                    const QSet<QString> workedPerMode = m_contestEngine->getWorkedNamedMultsPerMode();
+                    for (const QString& key : workedPerMode) {
+                        int idx = key.indexOf('_');
+                        if (idx < 0) continue;
+                        QString mult = key.left(idx);
+                        QString mode = key.mid(idx + 1);
+                        if (autoSet.contains(mult))
+                            multsPerMode[mode].insert(mult);
+                    }
                 }
             }
 

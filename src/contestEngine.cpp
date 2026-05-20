@@ -2939,9 +2939,11 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
     // Automatic multipliers — freebie named multipliers credited to the
     // operator regardless of QSOs (e.g. WVQP credits "WV" to West Virginia
     // stations as a state multiplier; ACQP credits each AC operator's own
-    // province per band where they worked any AC station). Applied on top
-    // of QSO-earned named multipliers. Supported with multsOnce and
-    // multsPerBand — both have a final score formula of points × total mults.
+    // province per band where they worked any AC station; ALQP credits "AL"
+    // to Alabama stations as a state mult on each mode where they worked
+    // any AL station). Applied on top of QSO-earned named multipliers.
+    // Supported with multsOnce, multsPerBand, and multsPerMode — all have a
+    // final-score formula of points × total mults.
     const QStringList autoMults = getAutomaticMultipliers();
     if (!autoMults.isEmpty()) {
         if (multType == "multsOnce") {
@@ -2994,11 +2996,56 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
             // credited mults.
             m_runningScore.namedMultCount = namedMultsPerBand.size();
             m_runningScore.multipliers = multPerBand.size();
+        } else if (multType == "multsPerMode") {
+            // Credit each automatic mult on every mode where the operator
+            // has worked an inStateMult. Per ALQP: an AL operator gets credit
+            // for their own state mult on each mode where they worked any AL
+            // station (the gate inside getAutomaticMultipliers() already
+            // confirmed at least one inStateMult was worked overall).
+            // Multsmust be added to cwMultipliers / ssbMultipliers /
+            // digitalMultipliers because the multsPerMode final-score path
+            // sums those sets directly, not m_runningScore.multipliers.
+            QSet<QString> qualifyingModes;
+            for (const QString& wk : m_workedNamedMultsPerMode) {
+                // wk is "mult_mode" — inStateMult values contain no underscores
+                int idx = wk.indexOf('_');
+                if (idx < 0) continue;
+                QString mult = wk.left(idx);
+                QString mode = wk.mid(idx + 1);
+                if (m_inStateMults.contains(mult)) {
+                    qualifyingModes.insert(mode);
+                }
+            }
+            for (const QString& mode : qualifyingModes) {
+                for (const QString& am : autoMults) {
+                    QString oldKey = am + "_" + mode;
+                    QString catKey = QString("named:") + am + "_" + mode;
+                    QString catMult = QString("named:") + am;
+                    if (m_workedNamedMultsPerMode.contains(oldKey))
+                        continue;  // already earned via a QSO on this mode
+                    m_workedNamedMultsPerMode.insert(oldKey);
+                    namedMultsPerMode.insert(oldKey);
+                    multPerMode.insert(catKey);
+                    if (mode == "CW") {
+                        cwMultipliers.insert(catMult);
+                    } else if (mode == "SSB") {
+                        ssbMultipliers.insert(catMult);
+                    } else if (mode == "DIGITAL") {
+                        digitalMultipliers.insert(catMult);
+                    }
+                    if (verbose) {
+                        DebugLogger::instance().log("ContestEngine",
+                            QString("  Automatic multiplier credited: %1 on %2").arg(am, mode));
+                    }
+                }
+            }
+            m_runningScore.namedMultCount = namedMultsPerMode.size();
+            m_runningScore.multipliers = multPerMode.size();
         } else {
             DebugLogger::instance().log("ContestEngine",
                 QString("WARNING: automaticMultipliers is only supported with "
-                        "multsOnce / multsPerBand — ignored for multiplier "
-                        "type '%1'").arg(multType));
+                        "multsOnce / multsPerBand / multsPerMode — ignored for "
+                        "multiplier type '%1'").arg(multType));
         }
     }
 
