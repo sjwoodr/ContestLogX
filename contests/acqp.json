@@ -1,0 +1,317 @@
+{
+  "contest": {
+    "name": "Atlantic Canada QSO Party",
+    "abbreviation": "ACQP",
+    "version": "1.0.0",
+    "sponsor": "Atlantic Canada QSO Party Committee",
+    "description": "Atlantic Canada QSO Party — first Sunday of June, 11-hour event (1400Z Sunday to 0100Z Monday). Atlantic Canada stations (Nova Scotia, New Brunswick, Prince Edward Island, Newfoundland & Labrador) work everyone; out-of-region stations work Atlantic Canada stations only. Exchange is RST + 5-letter province+county/division code for AC stations (e.g. NSANP, NBKGS, NLASJ), RST + 2-letter state/province for out-of-region W/VE, or RST + DX for DX stations. SSB and CW only — no digital modes. Phone QSO = 1 point, CW QSO = 1 point. Multipliers per band: out-of-region stations multiply by AC counties/divisions (47 max — NS-18, NB-15, PE-3, NL-11); AC stations multiply by US states (50, DC=MD) + 13 Canadian provinces/territories (63 max). DX stations do not count as multipliers. Bonus stations: VE1RAC, VE9RAC, VY2RAC, VO1RAC, VO2RAC, VEOCNM, VE0MMA, VO1ACQ, VE9ACQ, VA1ACQ are each worth 5 bonus points per band/mode. Final score is (QSO points × multipliers) + bonus points. Cabrillo CONTEST tag: AC-QSO-PARTY",
+    "startDate": "First Sunday of June (2026: June 7, 1400Z Sun to 0100Z Mon)",
+    "duration": 11,
+    "offTimeGapMinutes": 0,
+    "modes": ["CW", "SSB"],
+    "bands": ["80m", "40m", "20m", "15m", "10m"],
+    "url": "https://www.acqp.ca/",
+    "categories": {
+      "stations": ["SINGLE_OP", "MULTI_OP", "MOBILE", "PORTABLE"],
+      "power": ["HIGH_POWER", "LOW_POWER", "QRP"],
+      "modes": ["MIXED", "CW", "SSB"]
+    }
+  },
+  "contestOnlineScore": {
+    "contestId": "AC-QSO-PARTY",
+    "mult1Name": "Counties / States / Prov.",
+    "mult1Attribute": "exchange"
+  },
+  "frequencies": {
+    "80m": {
+      "start": 3500, "end": 4000,
+      "cw":    {"start": 3500, "end": 3600},
+      "phone": {"start": 3600, "end": 4000}
+    },
+    "40m": {
+      "start": 7000, "end": 7300,
+      "cw":    {"start": 7000, "end": 7125},
+      "phone": {"start": 7125, "end": 7300}
+    },
+    "20m": {
+      "start": 14000, "end": 14350,
+      "cw":    {"start": 14000, "end": 14150},
+      "phone": {"start": 14150, "end": 14350}
+    },
+    "15m": {
+      "start": 21000, "end": 21450,
+      "cw":    {"start": 21000, "end": 21200},
+      "phone": {"start": 21200, "end": 21450}
+    },
+    "10m": {
+      "start": 28000, "end": 29700,
+      "cw":    {"start": 28000, "end": 28300},
+      "phone": {"start": 28300, "end": 29700}
+    }
+  },
+  "stationClasses": {
+    "enabled": false
+  },
+  "userPrompts": [
+    {
+      "id": "stationType",
+      "question": "Select your station location",
+      "type": "select",
+      "options": [
+        {"value": "NS",      "label": "Nova Scotia (NS) — in-region"},
+        {"value": "NB",      "label": "New Brunswick (NB) — in-region"},
+        {"value": "PE",      "label": "Prince Edward Island (PE) — in-region"},
+        {"value": "NL",      "label": "Newfoundland & Labrador (NL) — in-region"},
+        {"value": "OUTSIDE", "label": "Outside Atlantic Canada (W / VE other)"},
+        {"value": "DX",      "label": "DX (outside W / VE)"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "Atlantic Canada stations work everyone; non-AC stations work AC stations only. Your specific AC province is conveyed by the 5-letter province+county/division code you send (e.g. NSANP identifies you as a Nova Scotia Annapolis station)."
+    },
+    {
+      "id": "operatingClass",
+      "question": "Select your operating class",
+      "type": "select",
+      "options": [
+        {"value": "SO_HP",       "label": "Single Operator — High Power (> 100 W)"},
+        {"value": "SO_LP",       "label": "Single Operator — Low Power (≤ 100 W)"},
+        {"value": "SO_QRP",      "label": "Single Operator — QRP (≤ 5 W)"},
+        {"value": "MOBILE",      "label": "Mobile (in-region only) — antennas usable while in motion"},
+        {"value": "PORTABLE",    "label": "Portable (in-region only) — deployed antennas, any power source"},
+        {"value": "MULTI_CLUB",  "label": "Multi-Club (in-region only)"},
+        {"value": "MULTI_OP",    "label": "Multi-Operator — any power, multiple operators"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "Spotting assistance and self-spotting are permitted in all categories. Mobile/Portable classes apply to in-region stations only. Mobile and Portable may be split into Single- and Multi-Op subcategories by the committee if entries warrant."
+    },
+    {
+      "id": "myExchange",
+      "question": "Enter your exchange. AC stations: 5-letter province+county/division (e.g. NSANP, NBKGS, PEKGS, NLASJ). Non-AC W/VE: 2-letter state/province. DX: DX.",
+      "type": "text",
+      "required": true,
+      "forceUppercase": true,
+      "storeInMeta": true,
+      "description": "5-letter province+county/division code for AC stations; 2-letter state/province for non-AC W/VE; DX otherwise. AC Mobile/Portable stations must update this when crossing into a new county/division.",
+      "exchangeFieldMapping": {
+        "myExchange": "EXCHs"
+      }
+    }
+  ],
+  "exchangeFields": {
+    "sent": [
+      {
+        "name": "RSTs",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report sent (default 599 CW / 59 Phone)"
+      },
+      {
+        "name": "EXCHs",
+        "type": "string",
+        "required": true,
+        "description": "5-letter province+county/division for AC stations; 2-letter state/province for non-AC W/VE; DX otherwise"
+      }
+    ],
+    "received": [
+      {
+        "name": "RSTr",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report received"
+      },
+      {
+        "name": "EXCHr",
+        "type": "string",
+        "required": true,
+        "description": "5-letter province+county/division from AC stations; 2-letter state/province from non-AC W/VE; DX from DX stations"
+      }
+    ]
+  },
+  "qsoFields": [
+    {"name": "Date",      "column": "DATE",  "type": "date", "format": "yyyy-MM-dd", "required": true},
+    {"name": "Time",      "column": "TIME",  "type": "time", "format": "HH:mm:ss",   "required": true},
+    {"name": "Callsign",  "column": "CALL",  "type": "string", "required": true, "uppercase": true},
+    {"name": "Frequency", "column": "FREQ",  "type": "number", "unit": "kHz", "required": true},
+    {"name": "Mode",      "column": "MODE",  "type": "enum", "values": ["CW", "SSB"], "required": true},
+    {"name": "RST Sent",     "column": "RSTs", "type": "rst", "required": true, "description": "Signal report sent"},
+    {"name": "RST Received", "column": "RSTr", "type": "rst", "required": true, "description": "Signal report received"},
+    {"name": "Exchange Sent",     "column": "EXCHs", "type": "string", "required": true, "description": "Exchange sent"},
+    {"name": "Exchange Received", "column": "EXCHr", "type": "string", "required": true, "description": "Exchange received"},
+    {"name": "Points",     "column": "POINTS", "type": "number", "calculated": true},
+    {"name": "Multiplier", "column": "M",      "type": "string", "calculated": true}
+  ],
+  "scoring": {
+    "points": {
+      "cw":    1,
+      "phone": 1
+    },
+    "multipliers": {
+      "type": "multsPerBand",
+      "description": "Multipliers count per band. Out-of-region stations multiply by AC counties/divisions only (max 47 per band). AC stations multiply by US states (50, DC=MD) + 13 Canadian provinces/territories (max 63 per band) — the 5-letter codes received from other AC stations are reduced to the 2-letter province code via multAliases so they count as a single province multiplier per band per the rules ('first VA/VE1, VE9, VO1/2, or VY2 station worked on each band and mode, including their own province'). An AC operator who works another own-province station earns their own province multiplier via the alias path — no separate auto-credit is applied. DX is not a multiplier in either direction.",
+      "categories": ["namedMults"],
+      "alaskaAndHawaiiCountDxcc": false,
+      "usAndCanadaCountDxcc": false
+    },
+    "finalScore": "SUM(points) * SUM(multipliers) + SUM(bonus)"
+  },
+  "bonusStations": [
+    {
+      "name": "Atlantic Canada QSO Party Bonus Stations",
+      "pointsEach": 5,
+      "type": "bonusPerBandAndMode",
+      "stations": [
+        "VE1RAC", "VE9RAC", "VY2RAC", "VO1RAC", "VO2RAC",
+        "VEOCNM", "VE0MMA", "VO1ACQ", "VE9ACQ", "VA1ACQ"
+      ],
+      "note": "Each RAC/club bonus station is worth 5 bonus points per band per mode. Best efforts are made to confirm planned operations via the ACQP website before the event; specific operations are not guaranteed."
+    }
+  ],
+  "dupeChecking": {
+    "type": "perBandAndMode",
+    "description": "Work each station once per band per mode (CW and SSB are separate). AC Mobiles/Portables that change counties/divisions are considered new stations and may be re-worked. County/division line operations: a separate QSO and complete exchange must be logged for each county/division. CW contacts must not be made in phone band segments. Cross-mode, cross-band, and repeater QSOs are not permitted. No digital modes."
+  },
+  "logging": {
+    "requiredFields": ["date", "time", "frequency", "mode", "callsign", "rstSent", "rstReceived", "exchSent", "exchReceived"],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "AC-QSO-PARTY",
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {rst_sent} {exch_sent} {call} {rst_rcvd} {exch_rcvd}"
+    }
+  },
+  "callHistory": {
+    "fieldsToSave": ["EXCHr"],
+    "description": "Save received exchange (county/division or state/province) for future lookups"
+  },
+  "multAliases": [
+    {
+      "promptId": "stationType",
+      "promptValueIn": ["NS", "NB", "PE", "NL"],
+      "sourceList": "inStateMults",
+      "mapByPrefix": 2,
+      "comment": "When the operator is in Atlantic Canada, received 5-letter province+county/division codes (NSANP, NBKGS, PEKGS, NLASJ, etc.) are reduced to their 2-letter province prefix so they count as a single province multiplier per band per the ACQP rules ('They will receive a provincial multiplier for the first VA/VE1, VE9, VO1/2, or VY2 station worked on each band and mode, including their own province'). Out-of-region operators (OUTSIDE / DX) don't trigger this rule and instead see each county/division as a separate multiplier per band (per the receivedExchangeFilter)."
+    }
+  ],
+  "validation": {
+    "minimumQSOs": 1,
+    "maxOperatingTime": 11,
+    "offTimesRequired": false,
+    "namedMults": [
+      "NSANP", "NSATG", "NSCBR", "NSCOL", "NSCMB", "NSDIG", "NSGUY", "NSHRM",
+      "NSHNT", "NSINV", "NSKGS", "NSLUN", "NSPIC", "NSQNS", "NSRIC", "NSSHL",
+      "NSVIC", "NSYAR",
+
+      "NBALB", "NBCAR", "NBCHA", "NBGLO", "NBKEN", "NBKGS", "NBMAD", "NBNOR",
+      "NBQNS", "NBRES", "NBSJC", "NBSUN", "NBVIC", "NBWES", "NBYOR",
+
+      "PEKGS", "PEQNS", "PEPRN",
+
+      "NLASJ", "NLBMT", "NLSCB", "NLSGS", "NLHCB", "NLGFW", "NLBTC", "NLNDL",
+      "NLNSA", "NLLGB", "NLLNN",
+
+      "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA",
+      "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD",
+      "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ",
+      "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC",
+      "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY",
+
+      "AB", "BC", "MB", "NB", "NL", "NS", "NT", "NU", "ON", "PE", "QC", "SK", "YT"
+    ],
+    "namedMultAliases": {
+      "DC": "MD"
+    },
+    "exchangeValidation": {
+      "type": "multiplier",
+      "description": "Exchange should be a 5-letter province+county/division code for AC stations, a 2-letter US state or Canadian province code for non-AC W/VE (DC counts as MD), or DX for DX stations. AC operators may receive DX from DX stations — DX is not a multiplier but is a valid received exchange."
+    },
+    "receivedExchangeFilter": {
+      "promptId": "stationType",
+      "rules": {
+        "OUTSIDE": "inStateMults",
+        "DX":      "inStateMults"
+      }
+    },
+    "inStateMults": [
+      "NSANP", "NSATG", "NSCBR", "NSCOL", "NSCMB", "NSDIG", "NSGUY", "NSHRM",
+      "NSHNT", "NSINV", "NSKGS", "NSLUN", "NSPIC", "NSQNS", "NSRIC", "NSSHL",
+      "NSVIC", "NSYAR",
+
+      "NBALB", "NBCAR", "NBCHA", "NBGLO", "NBKEN", "NBKGS", "NBMAD", "NBNOR",
+      "NBQNS", "NBRES", "NBSJC", "NBSUN", "NBVIC", "NBWES", "NBYOR",
+
+      "PEKGS", "PEQNS", "PEPRN",
+
+      "NLASJ", "NLBMT", "NLSCB", "NLSGS", "NLHCB", "NLGFW", "NLBTC", "NLNDL",
+      "NLNSA", "NLLGB", "NLLNN"
+    ]
+  },
+  "countyDivisionAbbreviations": {
+    "description": "Atlantic Canada province+county/division abbreviations (47 total: NS-18, NB-15, PE-3, NL-11)",
+    "NSANP": "Nova Scotia — Annapolis",
+    "NSATG": "Nova Scotia — Antigonish",
+    "NSCBR": "Nova Scotia — Cape Breton",
+    "NSCOL": "Nova Scotia — Colchester",
+    "NSCMB": "Nova Scotia — Cumberland",
+    "NSDIG": "Nova Scotia — Digby",
+    "NSGUY": "Nova Scotia — Guysborough",
+    "NSHRM": "Nova Scotia — Halifax",
+    "NSHNT": "Nova Scotia — Hants",
+    "NSINV": "Nova Scotia — Inverness",
+    "NSKGS": "Nova Scotia — Kings",
+    "NSLUN": "Nova Scotia — Lunenburg",
+    "NSPIC": "Nova Scotia — Pictou",
+    "NSQNS": "Nova Scotia — Queens",
+    "NSRIC": "Nova Scotia — Richmond",
+    "NSSHL": "Nova Scotia — Shelburne",
+    "NSVIC": "Nova Scotia — Victoria",
+    "NSYAR": "Nova Scotia — Yarmouth",
+    "NBALB": "New Brunswick — Albert",
+    "NBCAR": "New Brunswick — Carleton",
+    "NBCHA": "New Brunswick — Charlotte",
+    "NBGLO": "New Brunswick — Gloucester",
+    "NBKEN": "New Brunswick — Kent",
+    "NBKGS": "New Brunswick — Kings",
+    "NBMAD": "New Brunswick — Madawaska",
+    "NBNOR": "New Brunswick — Northumberland",
+    "NBQNS": "New Brunswick — Queens",
+    "NBRES": "New Brunswick — Restigouche",
+    "NBSJC": "New Brunswick — Saint John",
+    "NBSUN": "New Brunswick — Sunbury",
+    "NBVIC": "New Brunswick — Victoria",
+    "NBWES": "New Brunswick — Westmorland",
+    "NBYOR": "New Brunswick — York",
+    "PEKGS": "Prince Edward Island — Kings",
+    "PEQNS": "Prince Edward Island — Queens",
+    "PEPRN": "Prince Edward Island — Prince",
+    "NLASJ": "Newfoundland & Labrador — Div 1: Avalon Peninsula / St. John's",
+    "NLBMT": "Newfoundland & Labrador — Div 2: Burin Peninsula / Marystown",
+    "NLSCB": "Newfoundland & Labrador — Div 3: South Coast / Channel-Port aux Basques",
+    "NLSGS": "Newfoundland & Labrador — Div 4: St. George's / Stephenville",
+    "NLHCB": "Newfoundland & Labrador — Div 5: Humber District / Corner Brook",
+    "NLGFW": "Newfoundland & Labrador — Div 6: Central Newfoundland / Grand Falls-Windsor",
+    "NLBTC": "Newfoundland & Labrador — Div 7: Bonavista / Trinity-Clarenville",
+    "NLNDL": "Newfoundland & Labrador — Div 8: Notre Dame Bay / Lewisporte",
+    "NLNSA": "Newfoundland & Labrador — Div 9: Northern Peninsula / St. Anthony",
+    "NLLGB": "Newfoundland & Labrador — Div 10: Labrador / Happy Valley-Goose Bay",
+    "NLLNN": "Newfoundland & Labrador — Div 11: Nunatsiavut / Nain"
+  },
+  "ui": {
+    "showMultiplierPanel": true,
+    "logColumns": ["DATE", "TIME", "CALL", "FREQ", "MODE", "RSTs", "RSTr", "EXCHs", "EXCHr", "POINTS", "M", "COMMENT"],
+    "entryFields": ["CALL", "RSTr", "EXCHr"],
+    "fieldNavigation": {
+      "keys": "tab"
+    },
+    "bandMap": {
+      "enabled": true,
+      "bands": ["80m", "40m", "20m", "15m", "10m"]
+    },
+    "multiplierDisplay": {
+      "showCounties":  true,
+      "showStates":    true,
+      "showProvinces": true,
+      "showDXCC":      false
+    }
+  }
+}

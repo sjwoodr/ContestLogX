@@ -1506,15 +1506,42 @@ QStringList ContestEngine::getAutomaticMultipliers() const
     // Optional gate — only credit once the operator has worked a multiplier
     // from the named source list. Evaluated against the worked-mult sets, so
     // this is only meaningful after updateRunningScore's QSO pass has run.
+    // The per-band / per-mode / per-band-and-mode sets are keyed as
+    // "<mult>_<band>" / "<mult>_<mode>" / "<mult>_<band>_<mode>" — to test
+    // whether a recorded entry is an inStateMult we strip after the first
+    // underscore. The contest-wide "once" set is checked first so multsOnce
+    // contests don't pay for the parse loop.
     const QString reqList = spec["requiresWorkedFrom"].toString();
     if (!reqList.isEmpty()) {
+        auto stripBandModeSuffix = [](const QString& key) -> QString {
+            int idx = key.indexOf('_');
+            return idx < 0 ? key : key.left(idx);
+        };
         bool gateMet = false;
         if (reqList == "inStateMults") {
             for (const QString& worked : m_workedNamedMults) {
                 if (m_inStateMults.contains(worked)) { gateMet = true; break; }
             }
+            if (!gateMet) {
+                for (const QString& worked : m_workedNamedMultsPerBand) {
+                    if (m_inStateMults.contains(stripBandModeSuffix(worked))) { gateMet = true; break; }
+                }
+            }
+            if (!gateMet) {
+                for (const QString& worked : m_workedNamedMultsPerMode) {
+                    if (m_inStateMults.contains(stripBandModeSuffix(worked))) { gateMet = true; break; }
+                }
+            }
+            if (!gateMet) {
+                for (const QString& worked : m_workedNamedMultsPerBandAndMode) {
+                    if (m_inStateMults.contains(stripBandModeSuffix(worked))) { gateMet = true; break; }
+                }
+            }
         } else if (reqList == "namedMults") {
-            gateMet = !m_workedNamedMults.isEmpty();
+            gateMet = !m_workedNamedMults.isEmpty()
+                   || !m_workedNamedMultsPerBand.isEmpty()
+                   || !m_workedNamedMultsPerMode.isEmpty()
+                   || !m_workedNamedMultsPerBandAndMode.isEmpty();
         }
         if (!gateMet)
             return result;
@@ -2880,9 +2907,10 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
     
     // Automatic multipliers — freebie named multipliers credited to the
     // operator regardless of QSOs (e.g. WVQP credits "WV" to West Virginia
-    // stations as a state multiplier). Applied once for the whole contest,
-    // on top of QSO-earned named multipliers. Supported with multsOnce,
-    // whose final score is the simple points × (named + dxcc + …) sum.
+    // stations as a state multiplier; ACQP credits each AC operator's own
+    // province per band where they worked any AC station). Applied on top
+    // of QSO-earned named multipliers. Supported with multsOnce and
+    // multsPerBand — both have a final score formula of points × total mults.
     const QStringList autoMults = getAutomaticMultipliers();
     if (!autoMults.isEmpty()) {
         if (multType == "multsOnce") {
@@ -2897,10 +2925,49 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
                         QString("  Automatic multiplier credited: %1").arg(am));
                 }
             }
+        } else if (multType == "multsPerBand") {
+            // Credit each automatic mult on every band where the operator
+            // has worked an inStateMult. Per ACQP: an AC operator gets credit
+            // for their own province on each band where they worked any AC
+            // station (the gate inside getAutomaticMultipliers() already
+            // confirmed at least one inStateMult was worked overall).
+            QSet<QString> qualifyingBands;
+            for (const QString& wk : m_workedNamedMultsPerBand) {
+                // wk is "mult_band" — split on the first underscore since
+                // the inStateMult values (NSANP, NBKGS, NL...) contain no
+                // underscores themselves.
+                int idx = wk.indexOf('_');
+                if (idx < 0) continue;
+                QString mult = wk.left(idx);
+                QString band = wk.mid(idx + 1);
+                if (m_inStateMults.contains(mult)) {
+                    qualifyingBands.insert(band);
+                }
+            }
+            for (const QString& band : qualifyingBands) {
+                for (const QString& am : autoMults) {
+                    QString oldKey = am + "_" + band;
+                    QString catKey = QString("named:") + am + "_" + band;
+                    if (m_workedNamedMultsPerBand.contains(oldKey))
+                        continue;  // already earned via a QSO on this band
+                    m_workedNamedMultsPerBand.insert(oldKey);
+                    namedMultsPerBand.insert(oldKey);
+                    multPerBand.insert(catKey);
+                    if (verbose) {
+                        DebugLogger::instance().log("ContestEngine",
+                            QString("  Automatic multiplier credited: %1 on %2").arg(am, band));
+                    }
+                }
+            }
+            // Refresh the running-score counts so finalScore picks up the
+            // credited mults.
+            m_runningScore.namedMultCount = namedMultsPerBand.size();
+            m_runningScore.multipliers = multPerBand.size();
         } else {
             DebugLogger::instance().log("ContestEngine",
                 QString("WARNING: automaticMultipliers is only supported with "
-                        "multsOnce — ignored for multiplier type '%1'").arg(multType));
+                        "multsOnce / multsPerBand — ignored for multiplier "
+                        "type '%1'").arg(multType));
         }
     }
 
