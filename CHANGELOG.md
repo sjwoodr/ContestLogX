@@ -5,10 +5,7 @@ All notable changes to ContestLogX are documented in this file.
 ## [0.8.3]
 
 ### Contest Updates
-- Added the Atlantic Canada QSO Party (ACQP) — first Sunday in June, 11-hour event (1400Z Sun to 0100Z Mon). CW/SSB only, 80–10m, no digital modes. Atlantic Canada stations (NS / NB / PE / NL) work everyone; out-of-region stations work AC stations only. Exchange is RST + 5-letter province+county/division code for AC stations (e.g. NSANP, NBKGS, NLASJ) or RST + 2-letter state/province for non-AC W/VE; DX otherwise. 1 point per QSO. Multipliers per band: out-of-region stations multiply by AC counties/divisions (47 max — NS-18, NB-15, PE-3, NL-11); AC stations multiply by US states (50, DC=MD) + 13 Canadian provinces (63 max) — 5-letter codes received from other AC stations collapse to the 2-letter province via `multAliases` `mapByPrefix: 2` so they count as a single province multiplier per band per the rules. DX is not a multiplier in either direction. Each of the ten RAC/club bonus stations (VE1RAC, VE9RAC, VY2RAC, VO1RAC, VO2RAC, VEOCNM, VE0MMA, VO1ACQ, VE9ACQ, VA1ACQ) is worth 5 bonus points per band/mode. Cabrillo CONTEST tag: `AC-QSO-PARTY`
-
-### Contest Engine Changes
-- Extended `automaticMultipliers` to also fire under the `multsPerBand` multiplier type — previously it only worked with `multsOnce`. Per-band semantics: each automatic multiplier is credited on every band where the operator worked at least one `requiresWorkedFrom` source-list entry. The gate check in `getAutomaticMultipliers()` now scans all four worked-mult tracking sets (`m_workedNamedMults`, plus the per-band, per-mode, and per-band-and-mode variants) so it doesn't matter which set a contest's multiplier type populates. Backward-compatible — every existing contest definition keeps its current behavior. ACQP is structured to not need it (the alias path handles own-province credit when an AC op works another own-province station), so this is a forward-looking change in the engine rather than a behavior change for any shipped contest
+- Added the Atlantic Canada QSO Party (ACQP) — first Sunday in June, 11-hour event. CW/SSB only, 80–10m. Cabrillo CONTEST tag: `AC-QSO-PARTY`
 
 ## [0.8.2]
 
