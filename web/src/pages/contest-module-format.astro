@@ -400,6 +400,20 @@ import Layout from '../layouts/Layout.astro';
   "differentContinent"
 ]`}</pre>
 
+          <p class="opacity-80 mb-2">
+            <strong>Custom rules.</strong> A rule name in <code>precedence</code> that isn't a
+            built-in relationship (<code>sameDxccEntity</code>, <code>differentDxccEntity</code>,
+            <code>sameContinent</code>, <code>differentContinent</code>, <code>bothIn&lt;XX&gt;</code>)
+            fires when the worked station matches either:
+          </p>
+          <ul class="opacity-80 mb-2 pl-6" style="list-style-type: disc;">
+            <li><code>"&lt;ruleName&gt;Prefixes": [...]</code> — the worked station's DXCC primary prefix is in the array. Used to match a whole DXCC entity (e.g. <code>canadianStationPrefixes: ["VE"]</code> for every Canadian station).</li>
+            <li><code>"&lt;ruleName&gt;Callsigns": [...]</code> — the worked station's full callsign is in the array. Used to score a fixed list of specific call signs (e.g. the RAC Canada Day Contest's 15 RAC official stations get 20 pts/QSO via <code>racStationCallsigns: ["VE1RAC", "VE3RHQ", ...]</code>).</li>
+          </ul>
+          <p class="opacity-80 mb-4">
+            Both arrays can be set on the same rule; the callsign list is checked only if the prefix list doesn't match.
+          </p>
+
           <h3 class="text-lg font-semibold mb-2 mt-4">multipliers</h3>
           <pre class="rounded p-4 text-sm overflow-x-auto mb-4" style="background-color: #0d1117; color: #e6edf3;">{`"multipliers": {
   "type":                    "multsPerBand",

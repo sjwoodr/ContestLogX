@@ -327,6 +327,13 @@ An ordered array of point rule names. The engine evaluates each rule in order an
 ]
 ```
 
+**Custom rules.** A rule name in `precedence` that isn't a built-in relationship (`sameDxccEntity`, `differentDxccEntity`, `sameContinent`, `differentContinent`, `bothIn<XX>`) fires when the worked station matches either:
+
+- `"<ruleName>Prefixes": ["..."]` — the worked station's DXCC primary prefix is in the array. Used to match a whole DXCC entity (e.g. `canadianStationPrefixes: ["VE"]` for every Canadian station).
+- `"<ruleName>Callsigns": ["..."]` — the worked station's full callsign is in the array. Used to score a fixed list of specific call signs (e.g. the RAC Canada Day Contest's 15 RAC official stations get 20 pts/QSO via `racStationCallsigns: ["VE1RAC", "VE3RHQ", ...]`).
+
+Both arrays can be set on the same rule; the callsign list is checked only if the prefix list doesn't match.
+
 ### multipliers
 
 ```json

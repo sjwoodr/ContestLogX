@@ -6,6 +6,16 @@
       "expected_score": 400
     },
     {
+      "name": "RAC Canada Day - Canadian ON op (10 QSOs incl 1 dupe, multsPerBandAndMode 13 prov/terr, racStationCallsigns 20-pt rule, canadianStationPrefixes VE 10-pt rule, default 2-pt fallback for DX/US)",
+      "log_file": "test_rac_canadaday_canadian.clx",
+      "expected_score": 390
+    },
+    {
+      "name": "RAC Canada Day - DX OH op (6 QSOs, multsPerBandAndMode, RAC station 20-pt + Canadian 10-pt rules trigger on the partner DXCC/callsign rather than the op's location, US-US contacts fall to 2-pt default)",
+      "log_file": "test_rac_canadaday_dx.clx",
+      "expected_score": 310
+    },
+    {
       "name": "ACQP In-Region NS op NSANP (16 QSOs incl 1 dupe + 1 DX, multsPerBand states+provinces, multAliases prefix-collapses 5-letter codes to 2-letter province for AC ops, DX earns 1 QSO pt but no mult, +5 VE1RAC bonus on 20m SSB)",
       "log_file": "test_acqp_inregion.clx",
       "expected_score": 215

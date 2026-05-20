@@ -986,6 +986,24 @@ int ContestEngine::calculatePoints(const QsoRecord& qso, const QString& myCallsi
                             }
                         }
                     }
+                    // Generic callsign-match rule: check for a "<ruleName>Callsigns" array.
+                    // Used by RAC Canada Day to identify the 15 RAC official stations
+                    // (VA2RAC, VE1RAC, ...) by full callsign rather than DXCC prefix —
+                    // these score 20 pts/QSO instead of the 10 pts a generic Canadian
+                    // station earns. Wins over prefix-match when both are configured.
+                    if (!ruleApplies) {
+                        QString callsignKey = rule + "Callsigns";
+                        if (scoring.contains(callsignKey)) {
+                            QJsonArray callsignList = scoring[callsignKey].toArray();
+                            const QString call = qso.getCall().toUpper();
+                            for (const auto& v : callsignList) {
+                                if (v.toString().toUpper() == call) {
+                                    ruleApplies = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
                 }
 
                 // Check if a condition restricts this rule to specific station types

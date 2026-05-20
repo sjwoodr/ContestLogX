@@ -1,0 +1,248 @@
+{
+  "contest": {
+    "name": "RAC Canada Day Contest",
+    "abbreviation": "RAC-CD",
+    "version": "1.0.0",
+    "sponsor": "Radio Amateurs of Canada",
+    "description": "RAC Canada Day Contest — held on Canada Day (July 1), 0000Z–2359Z (24 hours). CW and phone on 160/80/40/20/15/10/6/2 meters — no digital, no repeater QSOs. Canadian stations send RST + 2-letter province/territory abbreviation; VE0 maritime mobile and non-Canadian stations send RST + serial number. Work each station once per band per mode. QSO points: 20 per QSO with a RAC official station (VA2RAC, VA3RAC, VE1RAC, VE3RHQ, VE4RAC, VE5RAC, VE6RAC, VE7RAC, VE8RAC, VE9RAC, VO1RAC, VO2RAC, VY0RAC, VY1RAC, VY2RAC); 10 per QSO with a Canadian (or VE0) station; 2 per QSO with a non-Canadian station. Multipliers are Canada's 10 provinces and 3 territories (13 total), each counted once per band per mode. Final score = (sum of QSO points across all bands) × (sum of multipliers across all bands). Note: The rule grants a phantom multiplier of 1 to operators who fail to work any Canadian station — this app does not auto-apply that fallback (the score will simply be zero in that edge case). Cabrillo CONTEST tag: RAC-CANADA-DAY",
+    "startDate": "Canada Day, July 1 (2026: Wed July 1, 0000Z–2359Z)",
+    "duration": 24,
+    "offTimeGapMinutes": 0,
+    "modes": ["CW", "SSB"],
+    "bands": ["160m", "80m", "40m", "20m", "15m", "10m", "6m", "2m"],
+    "url": "https://www.rac.ca/contesting-results/",
+    "categories": {
+      "stations": ["SINGLE_OP", "SINGLE_OP_ASSISTED", "MULTI_OP_SINGLE_TX", "MULTI_OP_MULTI_TX"],
+      "power": ["HIGH_POWER", "LOW_POWER", "QRP"],
+      "modes": ["MIXED", "CW", "SSB"]
+    }
+  },
+  "contestOnlineScore": {
+    "contestId": "RAC-CANADA-DAY",
+    "mult1Name": "Provinces / Territories",
+    "mult1Attribute": "exchange"
+  },
+  "frequencies": {
+    "160m": {
+      "start": 1800, "end": 2000,
+      "cw":    {"start": 1800, "end": 1840},
+      "phone": {"start": 1840, "end": 2000}
+    },
+    "80m": {
+      "start": 3500, "end": 4000,
+      "cw":    {"start": 3500, "end": 3600},
+      "phone": {"start": 3600, "end": 4000}
+    },
+    "40m": {
+      "start": 7000, "end": 7300,
+      "cw":    {"start": 7000, "end": 7125},
+      "phone": {"start": 7125, "end": 7300}
+    },
+    "20m": {
+      "start": 14000, "end": 14350,
+      "cw":    {"start": 14000, "end": 14150},
+      "phone": {"start": 14150, "end": 14350}
+    },
+    "15m": {
+      "start": 21000, "end": 21450,
+      "cw":    {"start": 21000, "end": 21200},
+      "phone": {"start": 21200, "end": 21450}
+    },
+    "10m": {
+      "start": 28000, "end": 29700,
+      "cw":    {"start": 28000, "end": 28300},
+      "phone": {"start": 28300, "end": 29700}
+    },
+    "6m": {
+      "start": 50000, "end": 54000,
+      "cw":    {"start": 50000, "end": 50100},
+      "phone": {"start": 50100, "end": 54000}
+    },
+    "2m": {
+      "start": 144000, "end": 148000,
+      "cw":    {"start": 144000, "end": 144100},
+      "phone": {"start": 144100, "end": 148000}
+    }
+  },
+  "stationClasses": {
+    "enabled": false
+  },
+  "userPrompts": [
+    {
+      "id": "stationType",
+      "question": "Select your station location",
+      "type": "select",
+      "options": [
+        {"value": "CANADA", "label": "Canada (in-country) — send RST + province/territory abbreviation"},
+        {"value": "VE0",    "label": "VE0 (Canadian maritime mobile) — send RST + serial number"},
+        {"value": "DX",     "label": "Outside Canada — send RST + serial number"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "Canadian provinces/territories are multipliers (13 max per band/mode). VE0 stations and non-Canadian stations send serial numbers; they are not multipliers."
+    },
+    {
+      "id": "operatingClass",
+      "question": "Select your operating class",
+      "type": "select",
+      "options": [
+        {"value": "SOABHP",     "label": "Single Operator All Bands High Power (>100 W)"},
+        {"value": "SOABLP",     "label": "Single Operator All Bands Low Power (≤100 W)"},
+        {"value": "SOABQRP",    "label": "Single Operator All Bands QRP (≤5 W)"},
+        {"value": "SOABCW",     "label": "Single Operator All Bands CW Only"},
+        {"value": "SOABPH",     "label": "Single Operator All Bands Phone Only"},
+        {"value": "SOSB",       "label": "Single Operator Single Band"},
+        {"value": "SOAHP",      "label": "Single Operator Assisted High Power"},
+        {"value": "SOALP",      "label": "Single Operator Assisted Low Power"},
+        {"value": "MOSTHP",     "label": "Multi-Op Single-Transmitter High Power"},
+        {"value": "MOSTLP",     "label": "Multi-Op Single-Transmitter Low Power"},
+        {"value": "MOMT",       "label": "Multi-Op Multi-Transmitter"},
+        {"value": "CHECKLOG",   "label": "Checklog"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "Single-Op all-bands categories require at least one QSO in both CW and SSB to distinguish them from the single-mode CW-Only / Phone-Only categories."
+    },
+    {
+      "id": "myExchange",
+      "question": "Enter your exchange. Canadian stations: 2-letter province/territory (e.g. ON, BC, NS). VE0 and non-Canadian: leave blank (CLX will send a serial number).",
+      "type": "text",
+      "required": false,
+      "forceUppercase": true,
+      "storeInMeta": true,
+      "description": "Province/territory abbreviation (NS, QC, ON, MB, SK, AB, BC, NT, NB, NL, NU, YT, PE) for Canadian stations. VE0 maritime mobile and non-Canadian stations send a serial number — leave this field blank.",
+      "exchangeFieldMapping": {
+        "myExchange": "EXCHs"
+      }
+    }
+  ],
+  "exchangeFields": {
+    "sent": [
+      {
+        "name": "RSTs",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report sent (default 599 CW / 59 Phone)"
+      },
+      {
+        "name": "EXCHs",
+        "type": "string",
+        "required": true,
+        "description": "Province/territory for Canadian stations; serial number for VE0 and non-Canadian stations"
+      }
+    ],
+    "received": [
+      {
+        "name": "RSTr",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report received"
+      },
+      {
+        "name": "EXCHr",
+        "type": "string",
+        "required": true,
+        "description": "Province/territory from Canadian stations; serial number from VE0 and non-Canadian stations"
+      }
+    ]
+  },
+  "qsoFields": [
+    {"name": "Date",      "column": "DATE",  "type": "date", "format": "yyyy-MM-dd", "required": true},
+    {"name": "Time",      "column": "TIME",  "type": "time", "format": "HH:mm:ss",   "required": true},
+    {"name": "Callsign",  "column": "CALL",  "type": "string", "required": true, "uppercase": true},
+    {"name": "Frequency", "column": "FREQ",  "type": "number", "unit": "kHz", "required": true},
+    {"name": "Mode",      "column": "MODE",  "type": "enum", "values": ["CW", "SSB"], "required": true},
+    {"name": "RST Sent",     "column": "RSTs", "type": "rst", "required": true, "description": "Signal report sent"},
+    {"name": "RST Received", "column": "RSTr", "type": "rst", "required": true, "description": "Signal report received"},
+    {"name": "Exchange Sent",     "column": "EXCHs", "type": "string", "required": true, "description": "Exchange sent"},
+    {"name": "Exchange Received", "column": "EXCHr", "type": "string", "required": true, "description": "Exchange received"},
+    {"name": "Points",     "column": "POINTS", "type": "number", "calculated": true},
+    {"name": "Multiplier", "column": "M",      "type": "string", "calculated": true}
+  ],
+  "scoring": {
+    "points": {
+      "cw":    2,
+      "phone": 2,
+      "racStation":      {"CW": 20, "SSB": 20},
+      "canadianStation": {"CW": 10, "SSB": 10}
+    },
+    "precedence": ["racStation", "canadianStation"],
+    "racStationCallsigns": [
+      "VA2RAC", "VA3RAC", "VE1RAC", "VE3RHQ", "VE4RAC", "VE5RAC",
+      "VE6RAC", "VE7RAC", "VE8RAC", "VE9RAC", "VO1RAC", "VO2RAC",
+      "VY0RAC", "VY1RAC", "VY2RAC"
+    ],
+    "canadianStationPrefixes": ["VE"],
+    "multipliers": {
+      "type": "multsPerBandAndMode",
+      "description": "13 Canadian provinces/territories, each counted once per band per mode. Maximum 13 × 8 bands × 2 modes = 208 multiplier credits if every province is worked on every band/mode combination. Non-Canadian and VE0 contacts are points-only — they are not multipliers.",
+      "categories": ["namedMults"],
+      "alaskaAndHawaiiCountDxcc": false,
+      "usAndCanadaCountDxcc": false
+    },
+    "finalScore": "SUM(points) * SUM(multipliers)"
+  },
+  "dupeChecking": {
+    "type": "perBandAndMode",
+    "description": "Work each station once per band per mode. CW and SSB count separately on each of the 8 bands. CW contacts must not be made in the conventional phone sub-bands and vice versa. No repeater QSOs."
+  },
+  "logging": {
+    "requiredFields": ["date", "time", "frequency", "mode", "callsign", "rstSent", "rstReceived", "exchSent", "exchReceived"],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "RAC-CANADA-DAY",
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {rst_sent} {exch_sent} {call} {rst_rcvd} {exch_rcvd}"
+    }
+  },
+  "callHistory": {
+    "fieldsToSave": ["EXCHr"],
+    "description": "Save received exchange (province/territory or serial) for future lookups"
+  },
+  "validation": {
+    "minimumQSOs": 1,
+    "maxOperatingTime": 24,
+    "offTimesRequired": false,
+    "namedMults": [
+      "NS", "QC", "ON", "MB", "SK", "AB", "BC", "NT", "NB", "NL", "NU", "YT", "PE"
+    ],
+    "exchangeValidation": {
+      "type": "namedMultOrSerial",
+      "description": "Exchange should be a 2-letter Canadian province/territory abbreviation (NS, QC, ON, MB, SK, AB, BC, NT, NB, NL, NU, YT, PE) from Canadian stations, or a serial number from VE0/non-Canadian stations.",
+      "serialNumberFormat": "^[0-9]+$"
+    }
+  },
+  "provinceAbbreviations": {
+    "description": "RAC Canada Day Contest province/territory multipliers (13 total) with associated callsign prefixes",
+    "NS": "Nova Scotia (VE1, VA1, CY9, CY0)",
+    "QC": "Quebec (VE2, VA2)",
+    "ON": "Ontario (VE3, VA3)",
+    "MB": "Manitoba (VE4, VA4)",
+    "SK": "Saskatchewan (VE5, VA5)",
+    "AB": "Alberta (VE6, VA6)",
+    "BC": "British Columbia (VE7, VA7)",
+    "NT": "Northwest Territories (VE8)",
+    "NB": "New Brunswick (VE9)",
+    "NL": "Newfoundland and Labrador (VO1, VO2)",
+    "NU": "Nunavut (VY0)",
+    "YT": "Yukon (VY1)",
+    "PE": "Prince Edward Island (VY2)"
+  },
+  "ui": {
+    "showMultiplierPanel": true,
+    "logColumns": ["DATE", "TIME", "CALL", "FREQ", "MODE", "RSTs", "RSTr", "EXCHs", "EXCHr", "POINTS", "M", "COMMENT"],
+    "entryFields": ["CALL", "RSTr", "EXCHr"],
+    "fieldNavigation": {
+      "keys": "tab"
+    },
+    "bandMap": {
+      "enabled": true,
+      "bands": ["160m", "80m", "40m", "20m", "15m", "10m", "6m", "2m"]
+    },
+    "multiplierDisplay": {
+      "showCounties":  false,
+      "showStates":    false,
+      "showProvinces": true,
+      "showDXCC":      false
+    }
+  }
+}
