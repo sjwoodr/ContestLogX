@@ -912,7 +912,7 @@ int ContestEngine::calculatePoints(const QsoRecord& qso, const QString& myCallsi
             }
             
             QString mode = qso.getMode().toUpper();
-            
+
             // Normalize mode names
             if (mode == "SSB" || mode == "USB" || mode == "LSB" || mode == "FM") {
                 mode = "SSB";
@@ -920,7 +920,20 @@ int ContestEngine::calculatePoints(const QsoRecord& qso, const QString& myCallsi
                        mode == "DIGI" || mode == "DIGITAL" || mode == "USB-D" || mode == "LSB-D") {
                 mode = "DIGITAL";
             }
-            
+
+            // Look up a mode-keyed point value, accepting either case ("CW"/"cw")
+            // and "phone" as an alias for "SSB" so per-rule points blocks can use
+            // the same key style as the top-level fallback (which uses
+            // "cw"/"phone"/"digital"). Returns -1 when no key matches.
+            auto modeIntFromObj = [&mode](const QJsonObject& obj) -> int {
+                if (obj.contains(mode))           return obj[mode].toInt();
+                const QString lower = mode.toLower();
+                if (obj.contains(lower))          return obj[lower].toInt();
+                if (mode == "SSB" && obj.contains("phone")) return obj["phone"].toInt();
+                if (mode == "SSB" && obj.contains("PHONE")) return obj["PHONE"].toInt();
+                return -1;
+            };
+
             // Determine relationship
             bool sameDxccEntity = (myDxcc == theirDxcc && myDxcc != 0);
             bool sameContinent = (myContinent == theirContinent && !myContinent.isEmpty());
@@ -1037,8 +1050,8 @@ int ContestEngine::calculatePoints(const QsoRecord& qso, const QString& myCallsi
                         QJsonObject byBand = rulePoints["byBand"].toObject();
                         if (byBand.contains(band)) {
                             QJsonObject bandPoints = byBand[band].toObject();
-                            if (bandPoints.contains(mode)) {
-                                int pts = bandPoints[mode].toInt();
+                            int pts = modeIntFromObj(bandPoints);
+                            if (pts >= 0) {
                                 DebugLogger::instance().log("ContestEngine",
                                     QString("  Points: %1 (%2, byBand %3)").arg(pts).arg(rule, band));
                                 return pts;
@@ -1054,8 +1067,8 @@ int ContestEngine::calculatePoints(const QsoRecord& qso, const QString& myCallsi
                             QJsonObject promptVals = byPrompt[promptId].toObject();
                             if (promptVals.contains(actual)) {
                                 QJsonObject overridePoints = promptVals[actual].toObject();
-                                if (overridePoints.contains(mode)) {
-                                    int pts = overridePoints[mode].toInt();
+                                int pts = modeIntFromObj(overridePoints);
+                                if (pts >= 0) {
                                     DebugLogger::instance().log("ContestEngine",
                                         QString("  Points: %1 (%2, byPrompt %3=%4)").arg(pts).arg(rule, promptId, actual));
                                     return pts;
@@ -1064,8 +1077,8 @@ int ContestEngine::calculatePoints(const QsoRecord& qso, const QString& myCallsi
                         }
                     }
 
-                    if (rulePoints.contains(mode)) {
-                        int pts = rulePoints[mode].toInt();
+                    int pts = modeIntFromObj(rulePoints);
+                    if (pts >= 0) {
                         DebugLogger::instance().log("ContestEngine",
                             QString("  Points: %1 (%2)").arg(pts).arg(rule));
                         return pts;

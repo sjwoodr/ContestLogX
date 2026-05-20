@@ -163,8 +163,8 @@
     "points": {
       "cw":    2,
       "phone": 2,
-      "racStation":      {"CW": 20, "SSB": 20},
-      "canadianStation": {"CW": 10, "SSB": 10}
+      "racStation":      {"cw": 20, "phone": 20},
+      "canadianStation": {"cw": 10, "phone": 10}
     },
     "precedence": ["racStation", "canadianStation"],
     "racStationCallsigns": [

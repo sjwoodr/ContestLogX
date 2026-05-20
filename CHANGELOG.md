@@ -11,6 +11,7 @@ All notable changes to ContestLogX are documented in this file.
 ### Contest Engine Changes
 - Extended `automaticMultipliers` to work under `multsPerBand`, not just `multsOnce`. Per-band semantics: each automatic multiplier is credited on every band where the operator worked a `requiresWorkedFrom` entry. No shipped contest uses this yet — available for custom contest modules. Documented in `docs/contest-module-format.md`
 - Extended scoring-rule matchers with `<ruleName>Callsigns` arrays. Mirrors the existing `<ruleName>Prefixes` mechanism but matches on the worked station's full callsign instead of its DXCC prefix. Used by the RAC Canada Day Contest to give the 15 RAC official stations (VE1RAC, VE3RHQ, etc.) the 20-pt-per-QSO score that the rules call for. Documented in `docs/contest-module-format.md`
+- Per-rule point lookups in `scoring.points` now accept mode keys in either case (`"cw"` / `"CW"`, `"phone"` / `"SSB"`), with `"phone"` recognized as an alias for `"SSB"` to match the convention used by the top-level `scoring.points` fallback. Existing contests that use `"CW"`/`"SSB"` (CQ WPX, etc.) continue to work unchanged
 
 ## [0.8.2]
 
