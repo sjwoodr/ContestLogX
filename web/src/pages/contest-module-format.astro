@@ -441,6 +441,43 @@ import Layout from '../layouts/Layout.astro';
             </tbody>
           </table>
 
+          <h3 class="text-lg font-semibold mb-2 mt-4">automaticMultipliers</h3>
+          <p class="opacity-80 mb-2">
+            An optional object inside <code>multipliers</code> that credits a named multiplier the
+            operator earns <strong>without an explicit exchange</strong>. The motivating case is the
+            West Virginia QSO Party: a WV station's own state, <code>WV</code>, is one of its 50 state
+            multipliers, but a WV station always sends a <em>county</em> — it never receives <code>WV</code> in
+            an exchange — so the mult could never be tallied from QSO data alone.
+          </p>
+          <pre class="rounded p-4 text-sm overflow-x-auto mb-4" style="background-color: #0d1117; color: #e6edf3;">{`"multipliers": {
+  "type": "multsOnce",
+  "categories": ["namedMults", "dxcc"],
+  "automaticMultipliers": {
+    "promptId": "stationType",
+    "rules": { "WV": ["WV"] },
+    "requiresWorkedFrom": "inStateMults"
+  }
+}`}</pre>
+          <table class="w-full text-sm opacity-80 mb-4">
+            <thead><tr class="text-left border-b" style="border-color: #30363d;">
+              <th class="pb-2 pr-4">field</th><th class="pb-2">Description</th>
+            </tr></thead>
+            <tbody>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">promptId</td><td>The <code>userPrompts</code> id whose answer selects a rule</td></tr>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">rules</td><td>Map of prompt-answer → array of named-mult values to credit</td></tr>
+              <tr><td class="py-2 pr-4 font-mono">requiresWorkedFrom</td><td><em>(optional)</em> Gate — credit only after the operator has worked a multiplier from this list (<code>inStateMults</code> or <code>namedMults</code>). Omit for an unconditional credit.</td></tr>
+            </tbody>
+          </table>
+          <p class="opacity-80 mb-4">
+            With <code>requiresWorkedFrom: "inStateMults"</code>, <code>WV</code> is credited only once the
+            WV operator has worked at least one WV county — i.e. it is <em>earned</em> by working a
+            WV station, not handed out free. Supported with <code>multsOnce</code> and <code>multsPerBand</code>.
+            Under <code>multsPerBand</code>, each automatic multiplier is credited on every band where
+            the operator has worked at least one <code>requiresWorkedFrom</code> entry (per-band
+            semantics). The credited values should also appear in <code>validation.namedMults</code> so
+            the multiplier panel can display them.
+          </p>
+
           <h3 class="text-lg font-semibold mb-2 mt-4">finalScore</h3>
           <p class="opacity-80 mb-2">A formula string controlling how the final score is computed. Available tokens:</p>
           <pre class="rounded p-4 text-sm overflow-x-auto" style="background-color: #0d1117; color: #e6edf3;">{`// Most contests:

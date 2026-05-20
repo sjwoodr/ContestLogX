@@ -7,6 +7,9 @@ All notable changes to ContestLogX are documented in this file.
 ### Contest Updates
 - Added the Atlantic Canada QSO Party (ACQP) — first Sunday in June, 11-hour event. CW/SSB only, 80–10m. Cabrillo CONTEST tag: `AC-QSO-PARTY`
 
+### Contest Engine Changes
+- Extended `automaticMultipliers` to work under `multsPerBand`, not just `multsOnce`. Per-band semantics: each automatic multiplier is credited on every band where the operator worked a `requiresWorkedFrom` entry. No shipped contest uses this yet — available for custom contest modules. Documented in `docs/contest-module-format.md`
+
 ## [0.8.2]
 
 ### Contest Updates

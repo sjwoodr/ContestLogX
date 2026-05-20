@@ -393,9 +393,12 @@ data alone.
 
 With `requiresWorkedFrom: "inStateMults"`, `WV` is credited only once the WV
 operator has worked at least one WV county — i.e. it is *earned* by working a
-WV station, not handed out free. Supported with `multsOnce`. The credited
-values should also appear in `validation.namedMults` so the multiplier panel
-can display them.
+WV station, not handed out free. Supported with `multsOnce` and
+`multsPerBand`. Under `multsPerBand`, each automatic multiplier is credited
+on every band where the operator has worked at least one
+`requiresWorkedFrom` entry (per-band semantics). The credited values should
+also appear in `validation.namedMults` so the multiplier panel can display
+them.
 
 ### finalScore
 
