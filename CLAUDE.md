@@ -67,6 +67,12 @@ Core scoring engine - loads contest definitions from JSON, validates QSO exchang
 - **ituRegions** - ITU regions (per band)
 - **namedCallPrefixes** - call sign prefixes (e.g., YB0-YB9 in YBDX)
 - **gridSquareMultipliers** - Maidenhead grid squares per band (ARRL VHF)
+- **automaticMultipliers** - *side-channel* credit, not a mult-scope type. Credits a named mult without an originating QSO, gated by `requiresWorkedFrom`. Works under `multsOnce`, `multsPerBand`, `multsPerMode` (as of 0.8.4). Used by WVQP (state-own credit), ACQP (per-band province), ALQP (per-mode state)
+
+#### Mult tracking internals
+- **Tracking key format:** `"<mult>_<band>"` / `"<mult>_<mode>"` / `"<mult>_<band>_<mode>"` depending on `multType`. Built by `buildMultTrackingKey()`. Mult values never contain underscores, so splitting on the first underscore to recover band/mode is safe. Used by `m_workedNamedMultsPerBand` / `PerMode` / `PerBandAndMode`.
+- **`multsPerMode` final score sums `cwMultipliers + ssbMultipliers + digitalMultipliers` directly,** *not* `m_runningScore.multipliers`. When adding any side-channel credit (auto mults, bonus mults, anything not tied to a QSO), push the new mult into those three category-sized sets per credited mode — otherwise the count is right but the score is wrong.
+- **Summary-sheet per-band/per-mode mult display reads from two sources** in `mainWindow.cpp`: QSO iteration via `getMultipliersWithCategory(qso)` for QSO-earned mults, plus `getWorkedNamedMults{PerBand,PerMode}()` filtered against `getAutomaticMultipliers()` to surface entries with no originating QSO. New auto-credit mechanisms must wire through the second source too or the displayed worked-list undercounts the scored count.
 
 ### DxccDatabase (`src/database/dxccdatabase.cpp`)
 DXCC entity and prefix lookup. Handles slash notation: `PJ2/N9OH` resolves to PJ2 prefix. Portable suffix: `YB1AR/2` resolves to YB2 for namedCallPrefixes. Maps 346 DXCC entities with 7058 prefixes.
@@ -113,6 +119,8 @@ JSON files defining contest rules. Key sections:
 - **dupeChecking** - overall, perBand, perMode, perBandAndMode, perBandAndGridSquare
 - **userPrompts** - optional inputs collected during contest setup (saved to CLX file)
 
+**`CHANGELOG.md` is the authoritative engine evolution log.** Every contest-definition format extension (`automaticMultipliers`, `stationClassMultipliers`, `multAliases` / `namedMultAliases`, `wpxPrefix`, `eadx100`, `byBand`, `bothInXX`, `<ruleName>Callsigns`, etc.) is described under "Contest Engine Changes" in the release that introduced it. When trying to understand why a config field exists or what scopes it supports, search CHANGELOG before reading the engine.
+
 ## Multiplier Extraction Logic
 
 1. Check if callsign itself is multiplier (`type == 'callsign'`) - if yes, return callsign
@@ -150,6 +158,7 @@ qsos:       array of QSO records
 
 - **Call slash notation:** `PJ2/N9OH` = prefix first when operating from another DXCC. `YB1AR/2` portable → counts as YB2
 - **Multiplier per-band vs once:** Check `contest.multipliers[].type` field
+- **`namedMultAliases` vs `multAliases` are distinct mechanisms.** `namedMultAliases` (under `validation`) is an unconditional 1:1 map applied to every received exchange (e.g. `"DC" → "MDC"` in ALQP/WVQP). `multAliases` (at contest root) is conditional on a `userPrompt` answer and supports `sourceValues` (inline list), `sourceList` (named list reference), `mapsTo` (fixed target), and `mapByPrefix` (take first N chars). Pick `namedMultAliases` when the alias should always fire, `multAliases` when it should only fire for certain station types or only against a subset of values
 - **Mode tracking:** SSB/AM/FM all counted as PHONE in score widget (`ssbQsos` variable)
 - **Summary sheet multiplier handlers:** All multiplier type handlers (multsPerMode, multsOnce, multsPerBandAndMode) must be present in summary sheet generation - a past commit accidentally removed these causing empty MULTIPLIER DETAILS
 - **CW Decoder thread affinity:** `AudioCapture` must be `moveToThread`-ed on the **source** thread (in `CwDecoderWidget::beginDecoding`, where it was constructed) BEFORE `invokeMethod` queues `startCapture` to the worker. Calling `moveToThread` from inside the worker (the destination) is forbidden by Qt and silently breaks Qt's WASAPI plugin on Windows — only ~20–30 ms of audio gets through then `readyRead` stops firing entirely. The failure looks like "decoder is broken" with no error. There's a `Q_ASSERT_X` in `CwDecoderWorker::startCapture` to catch regressions
