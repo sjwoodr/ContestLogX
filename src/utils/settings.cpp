@@ -731,6 +731,56 @@ void Settings::setCwDecoderSquelchAuto(bool right, bool enabled)
 
 // ---------- end CW Decoder settings ----------
 
+// --- CW keyer (WinKeyer) per-radio settings: cwKeyer.left / cwKeyer.right ---
+
+QString Settings::getCwKeyerSource(bool right) const
+{
+    const QJsonObject keyer = m_settings["cwKeyer"].toObject();
+    return keyer[right ? "right" : "left"].toObject().value("source").toString("rig");
+}
+
+void Settings::setCwKeyerSource(bool right, const QString& source)
+{
+    QJsonObject keyer = m_settings["cwKeyer"].toObject();
+    QJsonObject side = keyer[right ? "right" : "left"].toObject();
+    side["source"] = source;
+    keyer[right ? "right" : "left"] = side;
+    m_settings["cwKeyer"] = keyer;
+    save();
+}
+
+QString Settings::getCwKeyerPort(bool right) const
+{
+    const QJsonObject keyer = m_settings["cwKeyer"].toObject();
+    return keyer[right ? "right" : "left"].toObject().value("port").toString();
+}
+
+void Settings::setCwKeyerPort(bool right, const QString& port)
+{
+    QJsonObject keyer = m_settings["cwKeyer"].toObject();
+    QJsonObject side = keyer[right ? "right" : "left"].toObject();
+    side["port"] = port;
+    keyer[right ? "right" : "left"] = side;
+    m_settings["cwKeyer"] = keyer;
+    save();
+}
+
+bool Settings::getCwKeyerAutoConnect(bool right) const
+{
+    const QJsonObject keyer = m_settings["cwKeyer"].toObject();
+    return keyer[right ? "right" : "left"].toObject().value("autoConnect").toBool(false);
+}
+
+void Settings::setCwKeyerAutoConnect(bool right, bool enabled)
+{
+    QJsonObject keyer = m_settings["cwKeyer"].toObject();
+    QJsonObject side = keyer[right ? "right" : "left"].toObject();
+    side["autoConnect"] = enabled;
+    keyer[right ? "right" : "left"] = side;
+    m_settings["cwKeyer"] = keyer;
+    save();
+}
+
 int Settings::getCwWpm() const
 {
     return m_settings["cw"].toObject()["wpm"].toInt(28);

@@ -1047,6 +1047,12 @@ void MainWindow::setupDocks(QSplitter* mainSplitter)
     m_cwConsoleDock->setObjectName("cwConsoleDock");  // Required for saveState/restoreState
     m_cwConsole = new CWWindow(m_rigClient, m_cwConsoleDock);
     m_cwConsole->setMinimumHeight(160);
+    // Set up any configured CW keyer(s) (e.g. WinKeyer) and route the console.
+    // Deferred so a serial open/handshake doesn't block window construction.
+    QTimer::singleShot(300, this, [this]() {
+        setupCwKeyers();
+        updateCwConsoleRouting();
+    });
     m_cwConsoleDock->setWidget(m_cwConsole);
     m_cwConsoleDock->setAllowedAreas(Qt::AllDockWidgetAreas);
     m_cwConsoleDock->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable | QDockWidget::DockWidgetClosable);
@@ -4321,6 +4327,10 @@ void MainWindow::onRigControl()
     connect(&dialog, &RigControlDialog::so2rChanged, this, &MainWindow::onToggleSo2r);
     connect(&dialog, &RigControlDialog::audioConfigChanged,
             this, &MainWindow::onAudioConfigChanged);
+    connect(&dialog, &RigControlDialog::cwKeyerConfigChanged, this, [this]() {
+        setupCwKeyers();
+        updateCwConsoleRouting();
+    });
 
     dialog.exec();
 
@@ -4370,8 +4380,9 @@ void MainWindow::onRigBackendChanged(const QString& backend)
     connect(m_rigClient, SIGNAL(connected()), this, SLOT(onRigConnected()));
     connect(m_rigClient, SIGNAL(disconnected()), this, SLOT(onRigDisconnected()));
 
-    // Update CW window and TTS manager with new client
-    m_cwConsole->setRigClient(m_rigClient);
+    // Update CW window and TTS manager with new client (keyer routing follows
+    // the active rig unless a WinKeyer is configured for this radio).
+    updateCwConsoleRouting();
     m_ttsManager->setRigClient(m_rigClient);
 
     // Update rig status label (Radio R may still be connected)
@@ -8949,6 +8960,60 @@ RigInterface* MainWindow::activeRigClient() const
     return m_rigClient;
 }
 
+CwKeyerInterface* MainWindow::activeKeyer() const
+{
+    const bool right = (m_so2rEnabled && m_activeRadio == ActiveRadio::Right);
+    WinKeyerClient* wk = right ? m_winKeyerR : m_winKeyerL;
+    if (wk && wk->isConnected())
+        return wk;
+    return activeRigClient();
+}
+
+void MainWindow::setupCwKeyers()
+{
+    Settings& settings = Settings::instance();
+
+    auto setup = [&](WinKeyerClient*& keyer, bool right) {
+        // Tear down any existing keyer for this radio first.
+        if (keyer) {
+            disconnect(keyer, nullptr, this, nullptr);
+            keyer->closePort();
+            keyer->deleteLater();
+            keyer = nullptr;
+        }
+        if (settings.getCwKeyerSource(right) != "winkeyer")
+            return;
+        const QString port = settings.getCwKeyerPort(right);
+        if (port.isEmpty())
+            return;
+
+        keyer = new WinKeyerClient(this);
+        if (settings.getCwKeyerAutoConnect(right)) {
+            if (keyer->openPort(port)) {
+                DebugLogger::instance().log("MainWindow",
+                    QString("WinKeyer (%1) connected on %2, rev 0x%3")
+                        .arg(right ? "R" : "L").arg(port)
+                        .arg(keyer->revision(), 2, 16, QChar('0')));
+            } else {
+                DebugLogger::instance().log("MainWindow",
+                    QString("WinKeyer (%1) failed to open %2").arg(right ? "R" : "L").arg(port));
+            }
+        }
+    };
+
+    setup(m_winKeyerL, false);
+    setup(m_winKeyerR, true);
+}
+
+void MainWindow::updateCwConsoleRouting()
+{
+    if (!m_cwConsole) return;
+    // Rig client identifies the active radio (for decoder muting); the keyer
+    // (WinKeyer if configured and connected, else the rig) does the sending.
+    m_cwConsole->setRigClient(activeRigClient());
+    m_cwConsole->setKeyer(activeKeyer());
+}
+
 double MainWindow::activeFrequency() const
 {
     return (m_so2rEnabled && m_activeRadio == ActiveRadio::Right) ? m_lastFrequencyR : m_lastFrequency;
@@ -9004,8 +9069,7 @@ void MainWindow::switchActiveRadio()
     m_activeRadio = (m_activeRadio == ActiveRadio::Left) ? ActiveRadio::Right : ActiveRadio::Left;
 
     // Route CW/TTS to the active radio
-    if (m_cwConsole)
-        m_cwConsole->setRigClient(activeRigClient());
+    updateCwConsoleRouting();
     if (m_ttsManager)
         m_ttsManager->setRigClient(activeRigClient());
 

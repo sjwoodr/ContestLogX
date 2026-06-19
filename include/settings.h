@@ -207,6 +207,15 @@ public:
     bool getCwDecoderSquelchAuto(bool right) const;
     void setCwDecoderSquelchAuto(bool right, bool enabled);
 
+    // CW keyer (WinKeyer) per-radio settings: cwKeyer.left / cwKeyer.right.
+    // source is "rig" (key via the rig backend, default) or "winkeyer".
+    QString getCwKeyerSource(bool right) const;
+    void setCwKeyerSource(bool right, const QString& source);
+    QString getCwKeyerPort(bool right) const;
+    void setCwKeyerPort(bool right, const QString& port);
+    bool getCwKeyerAutoConnect(bool right) const;
+    void setCwKeyerAutoConnect(bool right, bool enabled);
+
     // WSJT-X integration
     bool getWsjtxEnabled() const;
     void setWsjtxEnabled(bool enabled);

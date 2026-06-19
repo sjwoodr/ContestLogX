@@ -11,6 +11,7 @@ All notable changes to ContestLogX are documented in this file.
 - Extended `automaticMultipliers` to work under `multsPerMode`, not just `multsOnce` and `multsPerBand`. Per-mode semantics: each automatic multiplier is credited on every mode where the operator worked a `requiresWorkedFrom` entry. Used by the Alabama QSO Party so an AL station counts its own state, `AL`, as a state multiplier on each mode where they work any AL station. The summary sheet's per-band and per-mode multiplier breakdown now also surfaces automatic-credit entries so the printed multiplier list matches the scoring summary count
 
 ### Other Changes and Bugfixes
+- Added CW keying via K1EL WinKeyer (and WinKey-compatible) keyers over a serial port, set per radio in Rig Control with a "Detect keyer" button to confirm the connection. The keyer runs on its own serial link, independent of the flrig/hamlib CAT backend, for lower-latency CW than keying through flrig
 - Fixed window position and size not being restored on launch under X11
 
 ## [0.8.3]

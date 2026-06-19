@@ -29,6 +29,7 @@
 #include "flrigClient.h"
 #include "hamlibClient.h"
 #include "mockedRigClient.h"
+#include "winKeyerClient.h"
 #include "bandMapWidget.h"
 #include "qsoEditDialog.h"
 #include "qrzcqApi.h"
@@ -227,6 +228,15 @@ private:
     void switchActiveRadio();
     void updateActiveRadioIndicator();
     RigInterface* activeRigClient() const;
+    // Resolves the CW keyer for the active radio: its WinKeyer if configured
+    // and connected, otherwise the active rig client.
+    CwKeyerInterface* activeKeyer() const;
+    // (Re)create per-radio WinKeyer clients from settings; auto-connect those
+    // marked for it. Safe to call repeatedly (tears down existing first).
+    void setupCwKeyers();
+    // Point the CW console at the active rig (for identity/decoder mute) and
+    // the active keyer (for sending).
+    void updateCwConsoleRouting();
     double activeFrequency() const;
     QString activeMode() const;
     int activeWpm() const;
@@ -401,6 +411,11 @@ private:
     double m_lastFrequencyR = 0.0;
     QString m_lastModeR;
     int m_lastWpmR = 0;
+
+    // CW keyer (WinKeyer) — per radio, independent of the CAT backend. Null
+    // unless that radio's cwKeyer.source is "winkeyer".
+    WinKeyerClient *m_winKeyerL = nullptr;
+    WinKeyerClient *m_winKeyerR = nullptr;
 
     // SO2R state
     enum class ActiveRadio { Left, Right };

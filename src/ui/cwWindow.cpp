@@ -133,10 +133,13 @@ void CWWindow::sendCWText(const QString& text)
 {
     if (text.isEmpty()) return;
 
-    // Hamlib/rigctld CW keying depends on rig support — most rigs don't have it
-    if (Settings::instance().getRigBackend() == "hamlib") {
+    // Hamlib/rigctld CW keying depends on rig support — most rigs don't have
+    // it. Only warn when we're actually keying via the rig; a WinKeyer keys
+    // independently of the CAT backend.
+    const bool keyingViaRig = (m_keyer == static_cast<CwKeyerInterface*>(rigClient));
+    if (keyingViaRig && Settings::instance().getRigBackend() == "hamlib") {
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss");
-        historyText->append(QString("<span style='color: orange;'>[%1] CW keying is not available via Hamlib for most rigs. Use flrig for CW keying.</span>").arg(timestamp));
+        historyText->append(QString("<span style='color: orange;'>[%1] CW keying is not available via Hamlib for most rigs. Use flrig or a WinKeyer for CW keying.</span>").arg(timestamp));
         return;
     }
 

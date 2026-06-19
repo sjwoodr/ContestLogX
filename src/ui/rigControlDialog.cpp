@@ -10,6 +10,8 @@
 #include "flrigClient.h"
 #include "hamlibClient.h"
 #include "mockedRigClient.h"
+#include "winKeyerClient.h"
+#include <QSerialPortInfo>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QFormLayout>
@@ -20,6 +22,7 @@
 #include <QMessageBox>
 #include <QMediaDevices>
 #include <QAudioDevice>
+#include <QApplication>
 
 RigControlDialog::RigControlDialog(RigInterface* clientL, RigInterface* clientR,
                                    bool so2rEnabled, QWidget *parent)
@@ -263,6 +266,37 @@ QWidget* RigControlDialog::createRadioPage(RadioWidgets& w)
 
     layout->addWidget(audioGroup);
 
+    // --- CW Keyer (WinKeyer) — independent of the rig backend ---
+    QGroupBox* keyerGroup = new QGroupBox("CW Keyer", page);
+    QFormLayout* keyerForm = new QFormLayout(keyerGroup);
+
+    w.keyerSourceCombo = new QComboBox(keyerGroup);
+    w.keyerSourceCombo->addItem("Rig backend (flrig/hamlib)", "rig");
+    w.keyerSourceCombo->addItem("WinKeyer (serial)", "winkeyer");
+    keyerForm->addRow("CW keying via:", w.keyerSourceCombo);
+
+    QHBoxLayout* keyerPortRow = new QHBoxLayout();
+    w.keyerPortCombo = new QComboBox(keyerGroup);
+    w.keyerPortCombo->setEditable(true);  // allow a by-id path the list can't enumerate
+    w.keyerPortCombo->setMinimumWidth(220);
+    w.keyerRefreshButton = new QPushButton("Refresh", keyerGroup);
+    keyerPortRow->addWidget(w.keyerPortCombo, 1);
+    keyerPortRow->addWidget(w.keyerRefreshButton);
+    keyerForm->addRow("Serial port:", keyerPortRow);
+
+    w.keyerAutoConnectCheck = new QCheckBox("Connect automatically on startup", keyerGroup);
+    keyerForm->addRow("", w.keyerAutoConnectCheck);
+
+    QHBoxLayout* keyerDetectRow = new QHBoxLayout();
+    w.keyerDetectButton = new QPushButton("Detect keyer", keyerGroup);
+    w.keyerStatusLabel = new QLabel(QString(), keyerGroup);
+    keyerDetectRow->addWidget(w.keyerDetectButton);
+    keyerDetectRow->addWidget(w.keyerStatusLabel, 1);
+    keyerForm->addRow("", keyerDetectRow);
+
+    populateKeyerPorts(w);
+    layout->addWidget(keyerGroup);
+
     // Attribution label
     w.attributionLabel = new QLabel(page);
     w.attributionLabel->setTextFormat(Qt::RichText);
@@ -280,6 +314,12 @@ QWidget* RigControlDialog::createRadioPage(RadioWidgets& w)
             this, [this, &w]() { onDisconnectClicked(w); });
     connect(w.testButton, &QPushButton::clicked,
             this, [this, &w]() { onTestClicked(w); });
+    connect(w.keyerSourceCombo, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, [this, &w](int) { onKeyerSourceChanged(w); });
+    connect(w.keyerRefreshButton, &QPushButton::clicked,
+            this, [this, &w]() { populateKeyerPorts(w); });
+    connect(w.keyerDetectButton, &QPushButton::clicked,
+            this, [this, &w]() { onKeyerDetectClicked(w); });
 
     return page;
 }
@@ -401,6 +441,22 @@ void RigControlDialog::loadSettings(RadioWidgets& w)
                        : settings.getRadioLDecoderPttGraceMs());
     }
 
+    // CW keyer (WinKeyer) — per radio
+    if (w.keyerSourceCombo) {
+        const QString src = settings.getCwKeyerSource(w.isRadioR);
+        int si = w.keyerSourceCombo->findData(src);
+        w.keyerSourceCombo->setCurrentIndex(si >= 0 ? si : 0);
+    }
+    if (w.keyerPortCombo) {
+        const QString port = settings.getCwKeyerPort(w.isRadioR);
+        int pi = w.keyerPortCombo->findData(port);
+        if (pi >= 0) w.keyerPortCombo->setCurrentIndex(pi);
+        else if (!port.isEmpty()) w.keyerPortCombo->setEditText(port);
+    }
+    if (w.keyerAutoConnectCheck)
+        w.keyerAutoConnectCheck->setChecked(settings.getCwKeyerAutoConnect(w.isRadioR));
+    onKeyerSourceChanged(w);  // enable/disable the WinKeyer rows for current source
+
     // Trigger UI update for current backend
     onBackendChanged(w, w.backendCombo->currentIndex());
 }
@@ -465,6 +521,84 @@ void RigControlDialog::saveSettings(RadioWidgets& w)
     if (oldAudioDevice != newAudioDevice || oldMuteOnPtt != newMuteOnPtt || oldGrace != newGrace) {
         emit audioConfigChanged(w.isRadioR);
     }
+
+    // CW keyer (WinKeyer) — per radio. Detect change so MainWindow can
+    // (re)create the WinKeyer client(s).
+    if (w.keyerSourceCombo && w.keyerPortCombo && w.keyerAutoConnectCheck) {
+        const QString newSource = w.keyerSourceCombo->currentData().toString();
+        QString newPort = w.keyerPortCombo->currentData().toString();
+        if (newPort.isEmpty()) newPort = w.keyerPortCombo->currentText().trimmed();
+        const bool newAuto = w.keyerAutoConnectCheck->isChecked();
+
+        const bool keyerChanged =
+            settings.getCwKeyerSource(w.isRadioR) != newSource ||
+            settings.getCwKeyerPort(w.isRadioR) != newPort ||
+            settings.getCwKeyerAutoConnect(w.isRadioR) != newAuto;
+
+        settings.setCwKeyerSource(w.isRadioR, newSource);
+        settings.setCwKeyerPort(w.isRadioR, newPort);
+        settings.setCwKeyerAutoConnect(w.isRadioR, newAuto);
+
+        if (keyerChanged)
+            emit cwKeyerConfigChanged();
+    }
+}
+
+void RigControlDialog::populateKeyerPorts(RadioWidgets& w)
+{
+    if (!w.keyerPortCombo) return;
+    const QString current = w.keyerPortCombo->currentText();
+    w.keyerPortCombo->clear();
+    for (const QSerialPortInfo& info : QSerialPortInfo::availablePorts()) {
+        const QString label = info.description().isEmpty()
+            ? info.portName()
+            : QString("%1 — %2").arg(info.portName(), info.description());
+        w.keyerPortCombo->addItem(label, info.systemLocation());
+    }
+    if (!current.isEmpty()) {
+        int idx = w.keyerPortCombo->findData(current);
+        if (idx >= 0) w.keyerPortCombo->setCurrentIndex(idx);
+        else w.keyerPortCombo->setEditText(current);
+    }
+}
+
+void RigControlDialog::onKeyerSourceChanged(RadioWidgets& w)
+{
+    if (!w.keyerSourceCombo) return;
+    const bool winkeyer = (w.keyerSourceCombo->currentData().toString() == "winkeyer");
+    if (w.keyerPortCombo)        w.keyerPortCombo->setEnabled(winkeyer);
+    if (w.keyerRefreshButton)    w.keyerRefreshButton->setEnabled(winkeyer);
+    if (w.keyerAutoConnectCheck) w.keyerAutoConnectCheck->setEnabled(winkeyer);
+    if (w.keyerDetectButton)     w.keyerDetectButton->setEnabled(winkeyer);
+    if (!winkeyer && w.keyerStatusLabel) w.keyerStatusLabel->clear();
+}
+
+void RigControlDialog::onKeyerDetectClicked(RadioWidgets& w)
+{
+    if (!w.keyerPortCombo || !w.keyerStatusLabel) return;
+    QString port = w.keyerPortCombo->currentData().toString();
+    if (port.isEmpty()) port = w.keyerPortCombo->currentText().trimmed();
+    if (port.isEmpty()) {
+        w.keyerStatusLabel->setText("<span style='color:orange;'>Select a serial port first</span>");
+        return;
+    }
+
+    w.keyerStatusLabel->setText("Detecting…");
+    w.keyerDetectButton->setEnabled(false);
+    QApplication::processEvents();
+
+    WinKeyerClient probe;
+    if (probe.openPort(port)) {
+        const int rev = probe.revision();
+        w.keyerStatusLabel->setText(
+            QString("<span style='color:green;'>WinKey detected, rev 0x%1 ✓</span>")
+                .arg(rev, 2, 16, QChar('0')));
+        probe.closePort();
+    } else {
+        w.keyerStatusLabel->setText(
+            "<span style='color:red;'>No WinKeyer response (check port)</span>");
+    }
+    w.keyerDetectButton->setEnabled(true);
 }
 
 QString RigControlDialog::selectedBackend(const RadioWidgets& w) const

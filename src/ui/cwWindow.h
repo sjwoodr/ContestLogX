@@ -37,6 +37,10 @@ public:
     // both complete types.
     void setRigClient(RigInterface* client);
 
+    // Overrides the CW-keying channel (e.g. a WinKeyer) without changing the
+    // rig pointer used for radio identification. Call after setRigClient().
+    void setKeyer(CwKeyerInterface* keyer) { m_keyer = keyer; }
+
 public:
     void sendCWText(const QString& text);
 
