@@ -47,6 +47,8 @@ public:
     bool isWsjtxDebugEnabled() const;
     void setCwDecoderDebugEnabled(bool enabled);
     bool isCwDecoderDebugEnabled() const;
+    void setWinKeyerDebugEnabled(bool enabled);
+    bool isWinKeyerDebugEnabled() const;
     void setStdoutEnabled(bool enabled);
 
 private:
@@ -63,6 +65,7 @@ private:
     bool m_callsignLookupDebugEnabled = false;
     bool m_wsjtxDebugEnabled = false;
     bool m_cwDecoderDebugEnabled = false;
+    bool m_winKeyerDebugEnabled = false;
     bool m_stdoutEnabled = false;
     bool m_flushEnabled = false;  // true = flush after every write (--flush flag)
 

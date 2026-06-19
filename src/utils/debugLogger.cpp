@@ -76,6 +76,7 @@ void DebugLogger::loadSettings()
     m_multiplierWidgetDebugEnabled = settings.value("Debug/MultiplierWidgetDebug", false).toBool();
     m_callsignLookupDebugEnabled = settings.value("Debug/CallsignLookupDebug", false).toBool();
     m_cwDecoderDebugEnabled = settings.value("Debug/CwDecoderDebug", false).toBool();
+    m_winKeyerDebugEnabled = settings.value("Debug/WinKeyerDebug", false).toBool();
 }
 
 void DebugLogger::setFlushEnabled(bool enabled)
@@ -215,6 +216,17 @@ bool DebugLogger::isCwDecoderDebugEnabled() const
     return m_cwDecoderDebugEnabled;
 }
 
+void DebugLogger::setWinKeyerDebugEnabled(bool enabled)
+{
+    m_winKeyerDebugEnabled = enabled;
+    log("INFO", enabled ? "WinKeyer debug logging enabled" : "WinKeyer debug logging disabled");
+}
+
+bool DebugLogger::isWinKeyerDebugEnabled() const
+{
+    return m_winKeyerDebugEnabled;
+}
+
 void DebugLogger::setStdoutEnabled(bool enabled)
 {
     m_stdoutEnabled = enabled;
@@ -264,6 +276,7 @@ void DebugLogger::log(const QString& component, const QString& message)
     if (!m_multiplierWidgetDebugEnabled && component == "MultiplierWidget") return;
     if (!m_callsignLookupDebugEnabled && component == "CallsignLookup") return;
     if (!m_wsjtxDebugEnabled && component == "WsjtxListener") return;
+    if (!m_winKeyerDebugEnabled && component == "WinKeyer") return;
 
     QMutexLocker locker(&g_logMutex);
 

@@ -213,8 +213,6 @@ public:
     void setCwKeyerSource(bool right, const QString& source);
     QString getCwKeyerPort(bool right) const;
     void setCwKeyerPort(bool right, const QString& port);
-    bool getCwKeyerAutoConnect(bool right) const;
-    void setCwKeyerAutoConnect(bool right, bool enabled);
 
     // WSJT-X integration
     bool getWsjtxEnabled() const;
@@ -312,6 +310,8 @@ public:
 
     bool getCwDecoderDebugEnabled() const;
     void setCwDecoderDebugEnabled(bool enabled);
+    bool getWinKeyerDebugEnabled() const;
+    void setWinKeyerDebugEnabled(bool enabled);
 
     // Splitter states (as byte arrays)
     QByteArray getMainSplitterState() const;

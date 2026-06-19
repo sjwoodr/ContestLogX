@@ -362,6 +362,7 @@ private:
     QAction *m_callsignLookupDebugAction;
     QAction *m_wsjtxDebugAction;
     QAction *m_cwDecoderDebugAction = nullptr;
+    QAction *m_winKeyerDebugAction = nullptr;
     QAction *m_viewDebugLogAction = nullptr;
     class DebugLogViewer *m_debugLogViewer = nullptr;
 

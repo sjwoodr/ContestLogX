@@ -1584,6 +1584,16 @@ void MainWindow::setupMenus()
         Settings::instance().setCwDecoderDebugEnabled(checked);
     });
 
+    m_winKeyerDebugAction = debugMenu->addAction("Enable Win&Keyer Debug Logging");
+    m_winKeyerDebugAction->setCheckable(true);
+    bool winKeyerDebugEnabled = Settings::instance().getWinKeyerDebugEnabled();
+    m_winKeyerDebugAction->setChecked(winKeyerDebugEnabled);
+    DebugLogger::instance().setWinKeyerDebugEnabled(winKeyerDebugEnabled);
+    connect(m_winKeyerDebugAction, &QAction::triggered, this, [this](bool checked) {
+        DebugLogger::instance().setWinKeyerDebugEnabled(checked);
+        Settings::instance().setWinKeyerDebugEnabled(checked);
+    });
+
     debugMenu->addSeparator();
     m_viewDebugLogAction = debugMenu->addAction(tr("&View Debug Log"));
     connect(m_viewDebugLogAction, &QAction::triggered, this, &MainWindow::onShowDebugLogViewer);

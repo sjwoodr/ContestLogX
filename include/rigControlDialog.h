@@ -44,9 +44,6 @@ signals:
     // for a specific radio. MainWindow responds by spawning or destroying the
     // corresponding CwDecoderWidget (SPEC-005 FR-001..FR-006).
     void audioConfigChanged(bool isRightRadio);
-    // Emitted on Apply/OK when a radio's CW keyer (source/port/auto-connect)
-    // changes. MainWindow responds by (re)creating WinKeyer clients.
-    void cwKeyerConfigChanged();
 
 private slots:
     void onAccepted();
@@ -84,7 +81,6 @@ private:
         QComboBox* keyerSourceCombo = nullptr;       // "rig" | "winkeyer"
         QComboBox* keyerPortCombo = nullptr;         // editable; QSerialPortInfo list
         QPushButton* keyerRefreshButton = nullptr;
-        QCheckBox* keyerAutoConnectCheck = nullptr;
         QPushButton* keyerDetectButton = nullptr;
         QLabel* keyerStatusLabel = nullptr;
     };

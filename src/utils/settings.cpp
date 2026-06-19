@@ -765,22 +765,6 @@ void Settings::setCwKeyerPort(bool right, const QString& port)
     save();
 }
 
-bool Settings::getCwKeyerAutoConnect(bool right) const
-{
-    const QJsonObject keyer = m_settings["cwKeyer"].toObject();
-    return keyer[right ? "right" : "left"].toObject().value("autoConnect").toBool(false);
-}
-
-void Settings::setCwKeyerAutoConnect(bool right, bool enabled)
-{
-    QJsonObject keyer = m_settings["cwKeyer"].toObject();
-    QJsonObject side = keyer[right ? "right" : "left"].toObject();
-    side["autoConnect"] = enabled;
-    keyer[right ? "right" : "left"] = side;
-    m_settings["cwKeyer"] = keyer;
-    save();
-}
-
 int Settings::getCwWpm() const
 {
     return m_settings["cw"].toObject()["wpm"].toInt(28);
@@ -1293,6 +1277,19 @@ void Settings::setCwDecoderDebugEnabled(bool enabled)
 {
     QJsonObject debug = m_settings["debug"].toObject();
     debug["cwDecoderDebugEnabled"] = enabled;
+    m_settings["debug"] = debug;
+    save();
+}
+
+bool Settings::getWinKeyerDebugEnabled() const
+{
+    return m_settings["debug"].toObject()["winKeyerDebugEnabled"].toBool(false);
+}
+
+void Settings::setWinKeyerDebugEnabled(bool enabled)
+{
+    QJsonObject debug = m_settings["debug"].toObject();
+    debug["winKeyerDebugEnabled"] = enabled;
     m_settings["debug"] = debug;
     save();
 }

@@ -284,9 +284,6 @@ QWidget* RigControlDialog::createRadioPage(RadioWidgets& w)
     keyerPortRow->addWidget(w.keyerRefreshButton);
     keyerForm->addRow("Serial port:", keyerPortRow);
 
-    w.keyerAutoConnectCheck = new QCheckBox("Connect automatically on startup", keyerGroup);
-    keyerForm->addRow("", w.keyerAutoConnectCheck);
-
     QHBoxLayout* keyerDetectRow = new QHBoxLayout();
     w.keyerDetectButton = new QPushButton("Detect keyer", keyerGroup);
     w.keyerStatusLabel = new QLabel(QString(), keyerGroup);
@@ -453,8 +450,6 @@ void RigControlDialog::loadSettings(RadioWidgets& w)
         if (pi >= 0) w.keyerPortCombo->setCurrentIndex(pi);
         else if (!port.isEmpty()) w.keyerPortCombo->setEditText(port);
     }
-    if (w.keyerAutoConnectCheck)
-        w.keyerAutoConnectCheck->setChecked(settings.getCwKeyerAutoConnect(w.isRadioR));
     onKeyerSourceChanged(w);  // enable/disable the WinKeyer rows for current source
 
     // Trigger UI update for current backend
@@ -522,25 +517,14 @@ void RigControlDialog::saveSettings(RadioWidgets& w)
         emit audioConfigChanged(w.isRadioR);
     }
 
-    // CW keyer (WinKeyer) — per radio. Detect change so MainWindow can
-    // (re)create the WinKeyer client(s).
-    if (w.keyerSourceCombo && w.keyerPortCombo && w.keyerAutoConnectCheck) {
+    // CW keyer (WinKeyer) — per radio. MainWindow reconnects from these
+    // settings after the dialog closes.
+    if (w.keyerSourceCombo && w.keyerPortCombo) {
         const QString newSource = w.keyerSourceCombo->currentData().toString();
         QString newPort = w.keyerPortCombo->currentData().toString();
         if (newPort.isEmpty()) newPort = w.keyerPortCombo->currentText().trimmed();
-        const bool newAuto = w.keyerAutoConnectCheck->isChecked();
-
-        const bool keyerChanged =
-            settings.getCwKeyerSource(w.isRadioR) != newSource ||
-            settings.getCwKeyerPort(w.isRadioR) != newPort ||
-            settings.getCwKeyerAutoConnect(w.isRadioR) != newAuto;
-
         settings.setCwKeyerSource(w.isRadioR, newSource);
         settings.setCwKeyerPort(w.isRadioR, newPort);
-        settings.setCwKeyerAutoConnect(w.isRadioR, newAuto);
-
-        if (keyerChanged)
-            emit cwKeyerConfigChanged();
     }
 }
 
@@ -568,7 +552,6 @@ void RigControlDialog::onKeyerSourceChanged(RadioWidgets& w)
     const bool winkeyer = (w.keyerSourceCombo->currentData().toString() == "winkeyer");
     if (w.keyerPortCombo)        w.keyerPortCombo->setEnabled(winkeyer);
     if (w.keyerRefreshButton)    w.keyerRefreshButton->setEnabled(winkeyer);
-    if (w.keyerAutoConnectCheck) w.keyerAutoConnectCheck->setEnabled(winkeyer);
     if (w.keyerDetectButton)     w.keyerDetectButton->setEnabled(winkeyer);
     if (!winkeyer && w.keyerStatusLabel) w.keyerStatusLabel->clear();
 }
