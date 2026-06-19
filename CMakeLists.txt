@@ -15,6 +15,7 @@ find_package(Qt6 REQUIRED COMPONENTS
     Network
     Xml
     Multimedia
+    SerialPort
 )
 
 # Include directories
@@ -68,6 +69,7 @@ set(SOURCES
     src/rig/flrigClient.cpp
     src/rig/hamlibClient.cpp
     src/rig/mockedRigClient.cpp
+    src/rig/winKeyerClient.cpp
     src/utils/settings.cpp
     src/utils/debugLogger.cpp
     src/utils/bandPlan.cpp
@@ -138,6 +140,8 @@ set(HEADERS
      include/flrigClient.h
      include/hamlibClient.h
      include/mockedRigClient.h
+     include/winKeyerClient.h
+     include/cwKeyerInterface.h
      include/settings.h
      include/callHistory.h
      include/superCheckPartial.h
@@ -201,6 +205,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     Qt6::Network
     Qt6::Xml
     Qt6::Multimedia
+    Qt6::SerialPort
 )
 
 # Installation
