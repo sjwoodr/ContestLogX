@@ -4327,10 +4327,11 @@ void MainWindow::onRigControl()
     connect(&dialog, &RigControlDialog::so2rChanged, this, &MainWindow::onToggleSo2r);
     connect(&dialog, &RigControlDialog::audioConfigChanged,
             this, &MainWindow::onAudioConfigChanged);
-    connect(&dialog, &RigControlDialog::cwKeyerConfigChanged, this, [this]() {
-        setupCwKeyers();
-        updateCwConsoleRouting();
-    });
+    // Release any live keyer serial port(s) while the dialog is open so its
+    // "Detect keyer" probe can access them (serial ports are exclusive). We
+    // reconnect from current settings after the dialog closes.
+    if (m_winKeyerL) m_winKeyerL->closePort();
+    if (m_winKeyerR) m_winKeyerR->closePort();
 
     dialog.exec();
 
@@ -4347,6 +4348,11 @@ void MainWindow::onRigControl()
             onRigDisconnectedR();
         }
     }
+
+    // Apply CW keyer configuration and reconnect (covers OK and Cancel alike,
+    // and re-opens the port we released above).
+    setupCwKeyers();
+    updateCwConsoleRouting();
 }
 
 void MainWindow::onRigBackendChanged(const QString& backend)
@@ -8981,24 +8987,29 @@ void MainWindow::setupCwKeyers()
             keyer->deleteLater();
             keyer = nullptr;
         }
-        if (settings.getCwKeyerSource(right) != "winkeyer")
-            return;
+        const QString source = settings.getCwKeyerSource(right);
         const QString port = settings.getCwKeyerPort(right);
-        if (port.isEmpty())
+        DebugLogger::instance().log("MainWindow",
+            QString("setupCwKeyers %1: source=%2 port=%3")
+                .arg(right ? "R" : "L").arg(source, port));
+        if (source != "winkeyer" || port.isEmpty())
             return;
 
+        // A configured WinKeyer is meant to be used, so connect it. Connect
+        // asynchronously so the boot-wait/handshake never freezes the UI;
+        // re-route the console once it actually connects.
         keyer = new WinKeyerClient(this);
-        if (settings.getCwKeyerAutoConnect(right)) {
-            if (keyer->openPort(port)) {
-                DebugLogger::instance().log("MainWindow",
-                    QString("WinKeyer (%1) connected on %2, rev 0x%3")
-                        .arg(right ? "R" : "L").arg(port)
-                        .arg(keyer->revision(), 2, 16, QChar('0')));
-            } else {
-                DebugLogger::instance().log("MainWindow",
-                    QString("WinKeyer (%1) failed to open %2").arg(right ? "R" : "L").arg(port));
-            }
-        }
+        const QString side = right ? "R" : "L";
+        connect(keyer, &WinKeyerClient::connected, this, [this, side]() {
+            DebugLogger::instance().log("MainWindow",
+                QString("WinKeyer (%1) connected").arg(side));
+            updateCwConsoleRouting();
+        });
+        connect(keyer, &WinKeyerClient::error, this, [side](const QString& e) {
+            DebugLogger::instance().log("MainWindow",
+                QString("WinKeyer (%1) error: %2").arg(side, e));
+        });
+        keyer->connectAsync(port);
     };
 
     setup(m_winKeyerL, false);
@@ -9011,7 +9022,14 @@ void MainWindow::updateCwConsoleRouting()
     // Rig client identifies the active radio (for decoder muting); the keyer
     // (WinKeyer if configured and connected, else the rig) does the sending.
     m_cwConsole->setRigClient(activeRigClient());
-    m_cwConsole->setKeyer(activeKeyer());
+    CwKeyerInterface* k = activeKeyer();
+    m_cwConsole->setKeyer(k);
+    const bool viaWinKeyer = (k != static_cast<CwKeyerInterface*>(activeRigClient()));
+    DebugLogger::instance().log("MainWindow",
+        QString("CW routing -> %1 (winKeyerL=%2 connected=%3)")
+            .arg(viaWinKeyer ? "WinKeyer" : "rig")
+            .arg(m_winKeyerL != nullptr)
+            .arg(m_winKeyerL && m_winKeyerL->isConnected()));
 }
 
 double MainWindow::activeFrequency() const

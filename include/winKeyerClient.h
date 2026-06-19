@@ -39,8 +39,13 @@ public:
     ~WinKeyerClient();
 
     // Open the serial port and run the WinKey host-open handshake. Returns true
-    // only if the keyer answered with a revision byte. Blocking.
+    // only if the keyer answered with a revision byte. Blocking — use for a
+    // deliberate user action (e.g. the Detect button), not on the UI path.
     bool openPort(const QString& portName);
+    // Non-blocking open: returns immediately; emits connected() or error() when
+    // the handshake completes on the worker thread. Use for startup/config so
+    // the UI never freezes on the boot-wait.
+    void connectAsync(const QString& portName);
     void closePort();
 
     // CwKeyerInterface

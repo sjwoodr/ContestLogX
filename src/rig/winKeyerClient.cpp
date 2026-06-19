@@ -130,12 +130,19 @@ void WinKeyerWorker::doClose()
 
 void WinKeyerWorker::doSendCW(const QString& text)
 {
-    if (!m_connected || !m_serial)
+    if (!m_connected || !m_serial) {
+        DebugLogger::instance().log("WinKeyer",
+            QString("doSendCW SKIPPED (connected=%1 serial=%2): %3")
+                .arg(m_connected).arg(m_serial != nullptr).arg(text));
         return;
+    }
     // Printable ASCII is keyed as Morse; uppercase to match contest convention.
     QByteArray bytes = text.toUpper().toLatin1();
-    m_serial->write(bytes);
-    m_serial->flush();
+    const qint64 n = m_serial->write(bytes);
+    const bool flushed = m_serial->flush();
+    DebugLogger::instance().log("WinKeyer",
+        QString("doSendCW wrote %1/%2 bytes (flush=%3): %4")
+            .arg(n).arg(bytes.size()).arg(flushed).arg(QString::fromLatin1(bytes)));
 }
 
 void WinKeyerWorker::doStopCW()
@@ -189,6 +196,17 @@ WinKeyerClient::WinKeyerClient(QObject *parent)
     m_worker->moveToThread(&m_workerThread);
     connect(&m_workerThread, &QThread::finished, m_worker, &QObject::deleteLater);
 
+    // Async open completion (connectAsync path): update state and notify.
+    connect(m_worker, &WinKeyerWorker::openResult, this, [this](bool ok, int rev) {
+        {
+            QMutexLocker lock(&m_mutex);
+            m_connected = ok;
+            m_revision = rev;
+            if (!ok) m_portName.clear();
+        }
+        if (ok) emit connected();
+    });
+
     connect(m_worker, &WinKeyerWorker::closed, this, [this]() {
         m_connected = false;
         emit disconnected();
@@ -228,6 +246,19 @@ bool WinKeyerClient::openPort(const QString& portName)
     if (m_connected)
         emit connected();
     return m_connected;
+}
+
+void WinKeyerClient::connectAsync(const QString& portName)
+{
+    {
+        QMutexLocker lock(&m_mutex);
+        m_portName = portName;
+    }
+    DebugLogger::instance().log("WinKeyer", QString("Opening keyer (async) on %1").arg(portName));
+    // Non-blocking: doOpen (incl. the boot-wait) runs on the worker thread;
+    // state + connected() are delivered via the openResult handler.
+    QMetaObject::invokeMethod(m_worker, "doOpen", Qt::QueuedConnection,
+                              Q_ARG(QString, portName));
 }
 
 void WinKeyerClient::closePort()
