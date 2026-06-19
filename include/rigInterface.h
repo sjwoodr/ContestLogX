@@ -11,13 +11,19 @@
 #include <QObject>
 #include <QString>
 
+#include "cwKeyerInterface.h"
+
 /**
  * @brief Abstract base class for rig control interfaces
  *
  * Provides a common interface for different rig control backends
  * (flrig XML-RPC, Hamlib rigctld, etc.)
+ *
+ * Derives from CwKeyerInterface: every rig backend is also a CW keyer (it keys
+ * via cwio / send_morse). The CW-keying methods (isConnected, sendCW, stopCW,
+ * get/setCWSpeed, supportsCW) are declared there.
  */
-class RigInterface : public QObject
+class RigInterface : public QObject, public CwKeyerInterface
 {
     Q_OBJECT
 
@@ -27,7 +33,7 @@ public:
 
     virtual bool connectToRig(const QString& host, int port) = 0;
     virtual void disconnectFromRig() = 0;
-    virtual bool isConnected() const = 0;
+    // isConnected() is inherited from CwKeyerInterface.
 
     // Frequency and mode
     virtual double getFrequency() = 0;
@@ -35,11 +41,8 @@ public:
     virtual QString getMode() = 0;
     virtual bool setMode(const QString& mode) = 0;
 
-    // CW keying
-    virtual bool sendCW(const QString& text) = 0;
-    virtual bool stopCW() = 0;
-    virtual int getCWSpeed() = 0;
-    virtual bool setCWSpeed(int wpm) = 0;
+    // CW keying (sendCW/stopCW/get+setCWSpeed) and supportsCW() are inherited
+    // from CwKeyerInterface.
 
     // PTT
     virtual bool getPTT() = 0;
@@ -60,13 +63,7 @@ public:
     // Rig info
     virtual QString getRigName() = 0;
 
-    /**
-     * @brief Whether this backend supports CW keying
-     *
-     * flrig supports full CW keying via cwio; Hamlib rigctld supports
-     * send_morse but with limited speed control.
-     */
-    virtual bool supportsCW() const { return true; }
+    // supportsCW() is inherited from CwKeyerInterface.
 
     /**
      * @brief Whether this backend supports PTT control

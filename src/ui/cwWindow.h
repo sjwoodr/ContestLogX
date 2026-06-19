@@ -19,6 +19,7 @@
 #include "cwMemory.h"
 
 class RigInterface;
+class CwKeyerInterface;
 
 class CWWindow : public QWidget
 {
@@ -31,7 +32,10 @@ public:
     int getCurrentWPM() const { return wpmSpinBox->value(); }
     void setMemories(const QList<CwMemory>& memories);
     void setMemoriesFont(const QFont& font);
-    void setRigClient(RigInterface* client) { rigClient = client; }
+    // Sets the rig client and points the CW-keying channel at it. Defined
+    // out-of-line because the RigInterface* -> CwKeyerInterface* upcast needs
+    // both complete types.
+    void setRigClient(RigInterface* client);
 
 public:
     void sendCWText(const QString& text);
@@ -67,6 +71,10 @@ private:
     QSpinBox* wpmSpinBox;
     QPushButton* memoryButtons[8];  // F1-F8
     RigInterface* rigClient;
+    // CW-keying channel. Defaults to the rig client (RigInterface is a
+    // CwKeyerInterface); a future WinKeyer backend can replace this without
+    // disturbing the rig pointer used for radio identification.
+    CwKeyerInterface* m_keyer;
     QList<CwMemory> memories;
 };
 

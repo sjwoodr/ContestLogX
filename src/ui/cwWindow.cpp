@@ -7,6 +7,7 @@
 
 #include "cwWindow.h"
 #include "rigInterface.h"
+#include "cwKeyerInterface.h"
 #include "debugLogger.h"
 #include "settings.h"
 #include <QVBoxLayout>
@@ -17,7 +18,7 @@
 #include <QKeyEvent>
 
 CWWindow::CWWindow(RigInterface* rigClient, QWidget *parent)
-    : QWidget(parent), rigClient(rigClient)
+    : QWidget(parent), rigClient(rigClient), m_keyer(rigClient)
 {
     DebugLogger::instance().log("CWWindow", "========== CW Window Constructor Started ==========");
     DebugLogger::instance().log("CWWindow", QString("RigClient pointer: %1").arg(rigClient ? "VALID" : "NULL"));
@@ -103,12 +104,12 @@ CWWindow::CWWindow(RigInterface* rigClient, QWidget *parent)
         .arg(connResult3 ? "SUCCESS" : "FAILED")
         .arg(connResult4 ? "SUCCESS" : "FAILED"));
     
-    // Get initial WPM from rig if connected and clear any pending CW buffer
-    if (rigClient && rigClient->isConnected()) {
-        rigClient->stopCW();
+    // Get initial WPM from keyer if connected and clear any pending CW buffer
+    if (m_keyer && m_keyer->isConnected()) {
+        m_keyer->stopCW();
         DebugLogger::instance().log("CWWindow", "Cleared CW buffer on window open");
-        
-        int currentWpm = rigClient->getCWSpeed();
+
+        int currentWpm = m_keyer->getCWSpeed();
         if (currentWpm > 0) {
             wpmSpinBox->setValue(currentWpm);
         }
@@ -119,6 +120,13 @@ CWWindow::CWWindow(RigInterface* rigClient, QWidget *parent)
 
 CWWindow::~CWWindow()
 {
+}
+
+void CWWindow::setRigClient(RigInterface* client)
+{
+    rigClient = client;
+    // RigInterface is a CwKeyerInterface, so by default we key via the rig.
+    m_keyer = client;
 }
 
 void CWWindow::sendCWText(const QString& text)
@@ -132,24 +140,26 @@ void CWWindow::sendCWText(const QString& text)
         return;
     }
 
-    if (!rigClient) {
-        DebugLogger::instance().log("CWWindow", QString("Cannot send CW - rigClient is NULL: %1").arg(text));
+    if (!m_keyer) {
+        DebugLogger::instance().log("CWWindow", QString("Cannot send CW - keyer is NULL: %1").arg(text));
         return;
     }
-    if (!rigClient->isConnected()) {
-        DebugLogger::instance().log("CWWindow", QString("Cannot send CW - rig not connected: %1").arg(text));
+    if (!m_keyer->isConnected()) {
+        DebugLogger::instance().log("CWWindow", QString("Cannot send CW - keyer not connected: %1").arg(text));
         return;
     }
 
     int currentWpm = wpmSpinBox->value();
-    rigClient->setCWSpeed(currentWpm);
+    m_keyer->setCWSpeed(currentWpm);
 
     // Notify CW decoder (via MainWindow) before the send so it can mute its
     // bins for the owning radio — prevents self-decode of ContestLogX's own
-    // keying bleeding back through the audio input (SPEC-005 FR-019c).
+    // keying bleeding back through the audio input (SPEC-005 FR-019c). The
+    // rigClient pointer identifies the owning radio; muting is about that
+    // radio's audio even when the keyer is a separate device.
     emit aboutToSendCw(rigClient, text, currentWpm);
 
-    bool success = rigClient->sendCW(text);
+    bool success = m_keyer->sendCW(text);
 
     if (success) {
         QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss");
@@ -178,8 +188,8 @@ void CWWindow::onClear()
 void CWWindow::onHalt()
 {
     // Stop CW by clearing the buffer
-    if (rigClient && rigClient->isConnected()) {
-        rigClient->stopCW();
+    if (m_keyer && m_keyer->isConnected()) {
+        m_keyer->stopCW();
         DebugLogger::instance().log("CWWindow", "Halt CW requested - buffer cleared");
     }
     inputLine->clear();
@@ -194,8 +204,8 @@ void CWWindow::onWpmChanged(int wpm)
     // Emit signal so main window can update its display
     emit wpmChanged(wpm);
     
-    if (rigClient && rigClient->isConnected()) {
-        rigClient->setCWSpeed(wpm);
+    if (m_keyer && m_keyer->isConnected()) {
+        m_keyer->setCWSpeed(wpm);
         DebugLogger::instance().log("CWWindow", QString("WPM changed to %1").arg(wpm));
     }
 }
