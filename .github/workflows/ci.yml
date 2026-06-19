@@ -22,7 +22,7 @@ jobs:
           host: 'linux'
           target: 'desktop'
           arch: 'gcc_64'
-          modules: 'qtnetworkauth qtmultimedia'
+          modules: 'qtnetworkauth qtmultimedia qtserialport'
           cache: true
 
       - name: Install additional dependencies
@@ -120,7 +120,7 @@ jobs:
           version: '6.5.*'
           host: 'mac'
           target: 'desktop'
-          modules: 'qtnetworkauth qtmultimedia'
+          modules: 'qtnetworkauth qtmultimedia qtserialport'
           cache: true
 
       - name: Build macOS app bundle
@@ -168,7 +168,7 @@ jobs:
           host: 'windows'
           target: 'desktop'
           arch: 'win64_msvc2019_64'
-          modules: 'qtnetworkauth qtmultimedia'
+          modules: 'qtnetworkauth qtmultimedia qtserialport'
           cache: true
 
       - name: Build Windows distribution

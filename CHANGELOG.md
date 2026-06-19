@@ -4,6 +4,9 @@ All notable changes to ContestLogX are documented in this file.
 
 ## [0.9.0]
 
+### Other Changes and Bugfixes
+- Fixed the CI build, which broke after WinKeyer support added a required Qt SerialPort dependency
+
 ## [0.8.4]
 
 ### Contest Updates
