@@ -2,6 +2,11 @@
 
 All notable changes to ContestLogX are documented in this file.
 
+## [0.9.1]
+
+### Other Changes and Bugfixes
+- Fixed the Windows CI build, which broke when the build runner upgraded to a newer compiler incompatible with the bundled Qt version
+
 ## [0.9.0]
 
 ### Other Changes and Bugfixes

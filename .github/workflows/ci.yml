@@ -145,7 +145,11 @@ jobs:
           retention-days: 1  # Intermediate — attached to Release by create-release job
 
   build-windows:
-    runs-on: windows-latest
+    # Pin to windows-2022 (VS 2022 / MSVC v143). windows-latest rolled to
+    # VS 2026 / MSVC 19.51, whose STL removed stdext::checked_array_iterator,
+    # which Qt 6.5.3's qvarlengtharray.h still references -> Qt headers fail
+    # to compile. This matches the win64_msvc2019_64 Qt build we install.
+    runs-on: windows-2022
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: build-and-test
 
