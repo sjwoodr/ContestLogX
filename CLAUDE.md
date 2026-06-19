@@ -99,6 +99,12 @@ Three rig backends behind a common `RigInterface` abstract base class:
 - **MockedRigClient** (`src/rig/mockedRigClient.cpp`) — Simulated rig for testing and SO2R practice. Accepts all commands, returns last-set values. Defaults to 14.200 MHz USB.
 - Backend selected in Settings (`rig.backend`: `"flrig"`, `"hamlib"`, or `"mocked"`), each with independent host/port/autoConnect.
 
+#### CW keying & WinKeyer
+- **`CwKeyerInterface`** (`include/cwKeyerInterface.h`) is the CW-keying subset (`sendCW`/`stopCW`/`get`+`setCWSpeed`/`supportsCW`/`isConnected`), pulled out of `RigInterface` so keying can be decoupled from CAT. `RigInterface` derives from it (pure-abstract, non-`QObject` so it mixes into the already-`QObject` `RigInterface`), so every rig backend is also a keyer and "key via the rig" stays the default.
+- **WinKeyerClient** (`src/rig/winKeyerClient.cpp`) — K1EL WinKey-protocol keyer over `QSerialPort` (1200 8N1, requires `Qt6::SerialPort`). Mirrors the Hamlib threading model: a `WinKeyerWorker` owns the port on a background `QThread`; `connectAsync()` is non-blocking (used at startup so the boot-wait never freezes the UI), `openPort()` is blocking (used by the dialog's Detect probe). Status bytes surface via `busyChanged()`. Element timing is on the keyer hardware, off the CAT channel — the reason it beats flrig `cwio` for contest CW.
+- **Per-radio keyer routing**: settings `cwKeyer.left`/`cwKeyer.right = { source: "rig"|"winkeyer", port }` (mirrors `cwDecoder.left/right`). MainWindow holds `m_winKeyerL`/`m_winKeyerR`; `activeKeyer()` returns the active radio's WinKeyer (if connected) else `activeRigClient()`; `updateCwConsoleRouting()` re-points the single `CWWindow` console on radio switch / backend change / dialog close — same single-console-pointer-swap pattern as the rig client. SO2R: each radio keys its own WinKeyer. No OTRSP yet (single shared keyer can't route to two radios without it — roadmapped).
+- A configured WinKeyer always connects (there is no manual connect control); the keyer's serial port is exclusive, so MainWindow releases it while the Rig Control dialog is open (for the Detect probe) and reconnects on close. Verbose `WinKeyer`-component logging is gated behind the **Debug → WinKeyer Debug Logging** flag.
+
 ## Naming Conventions
 
 - **Exchange fields:** 3-letter codes with `s` (sent) or `r` (received) suffix: RSTs, RSTr, SNs, SNr, EXCHs, EXCHr, GRIDs, GRIDr, NAMEs, NAMEr

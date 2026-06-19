@@ -156,6 +156,28 @@ import Layout from '../layouts/Layout.astro';
             <li>Default state: 14.200 MHz USB, 25 WPM, 100W. All commands (frequency, mode, CW, PTT) are accepted and return the last-set values.</li>
           </ol>
 
+          <!-- CW Keyer (WinKeyer) -->
+          <h3 class="text-lg font-semibold mb-2 mt-6">CW Keyer (WinKeyer)</h3>
+          <p class="opacity-80 mb-3">
+            By default, CW is keyed through your rig backend (flrig <code>cwio</code>, or Hamlib
+            <code>send_morse</code> where the rig supports it). For lower latency and rock-solid
+            element timing you can instead key through a dedicated
+            <a href="https://hamcrafters2.com/" class="underline" style="color: #58a6ff;">K1EL WinKeyer</a>
+            (or any WinKey-protocol-compatible keyer) on its own serial port, independent of the CAT backend.
+          </p>
+          <ol class="list-decimal list-inside space-y-2 opacity-80 mb-3">
+            <li>Connect your WinKeyer, then go to <strong>Rig &rarr; Rig Connection</strong>.</li>
+            <li>In the <strong>CW Keyer</strong> group, set <strong>CW keying via</strong> to <strong>WinKeyer (serial)</strong>.</li>
+            <li>Choose the keyer's <strong>Serial port</strong> from the list (or paste a stable <code>/dev/serial/by-id/&hellip;</code> path on Linux); use <strong>Refresh</strong> if you just plugged it in.</li>
+            <li>Click <strong>Detect keyer</strong> to confirm &mdash; it runs the WinKey host-open handshake and reports the firmware revision.</li>
+            <li>Click <strong>OK</strong>. The keyer connects and all CW sending &mdash; F-key memories, typed text, speed changes, and Halt &mdash; now flows through it.</li>
+          </ol>
+          <p class="opacity-80 mb-6">
+            The keyer is configured <strong>per radio</strong>, so in SO2R each radio can drive its own
+            WinKeyer and keying follows the active radio automatically. Set <strong>CW keying via</strong>
+            back to <strong>Rig backend</strong> to return to keying through flrig/Hamlib.
+          </p>
+
           <!-- QSY Back -->
           <h3 class="text-lg font-semibold mb-2 mt-6">QSY Back</h3>
           <p class="opacity-80 mb-4">
@@ -178,6 +200,7 @@ import Layout from '../layouts/Layout.astro';
               <pre class="rounded p-3 text-sm overflow-x-auto mt-2" style="background-color: #0d1117; color: #e6edf3;">echo "f" | nc localhost 4532</pre>
             </li>
             <li><strong>Debug mode:</strong> Run <code>./clx --debug</code> and enable <strong>Rig Debug Logging</strong> from the Debug menu to see command/response traffic.</li>
+            <li><strong>WinKeyer not keying:</strong> A serial port is exclusive &mdash; make sure no other program (another logger, a terminal) has the keyer open. Use <strong>Detect keyer</strong> to verify the port, and enable <strong>WinKeyer Debug Logging</strong> from the Debug menu to see what is sent.</li>
           </ul>
         </section>
 
@@ -387,8 +410,9 @@ F8  N9OH`}</pre>
 
           <h3 class="text-lg font-semibold mb-2 mt-4">Connecting Two Rigs</h3>
           <p class="opacity-80 mb-3">
-            Each radio can use a different rig backend (flrig, Hamlib, or Mocked) with independent host and port settings.
-            The <strong>Mocked</strong> backend is ideal for SO2R practice when you only have one physical radio.
+            Each radio can use a different rig backend (flrig, Hamlib, or Mocked) with independent host and port settings,
+            and its own CW keyer &mdash; including a separate WinKeyer per radio. The <strong>Mocked</strong> backend is
+            ideal for SO2R practice when you only have one physical radio.
           </p>
           <ol class="list-decimal list-inside space-y-2 opacity-80 mb-4">
             <li>Go to <strong>Rig &rarr; Rig Connection</strong>. The dialog shows <strong>Radio L</strong> and <strong>Radio R</strong> tabs.</li>
