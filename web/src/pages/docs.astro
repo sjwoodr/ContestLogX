@@ -28,6 +28,7 @@ import Layout from '../layouts/Layout.astro';
           <li><a href="#band-map" class="hover:underline" style="color: #58a6ff;">Band Map</a></li>
           <li><a href="#cw-decoder" class="hover:underline" style="color: #58a6ff;">CW Decoder</a></li>
           <li><a href="#remote-dashboard" class="hover:underline" style="color: #58a6ff;">Remote Dashboard</a></li>
+          <li><a href="#cloud-storage" class="hover:underline" style="color: #58a6ff;">Cloud Storage (Backup)</a></li>
           <li><a href="#import-export" class="hover:underline" style="color: #58a6ff;">Importing &amp; Exporting Logs</a></li>
           <li><a href="#custom-contests" class="hover:underline" style="color: #58a6ff;">Creating Custom Contest Modules</a></li>
           <li><a href="#clx-format" class="hover:underline" style="color: #58a6ff;">CLX File Format</a></li>
@@ -886,6 +887,64 @@ F8  N9OH`}</pre>
             <li><strong>Port already in use.</strong> Change the port in Preferences. Common
               conflicts: 8080 is used by many dev servers; 8000 is a common fallback.</li>
           </ul>
+        </section>
+
+        <!-- Cloud Storage -->
+        <section id="cloud-storage" class="rounded-lg border p-6" style="background-color: #161b22; border-color: #30363d;">
+          <h2 class="text-2xl font-semibold mb-4">Cloud Storage (Backup)</h2>
+          <p class="opacity-80 mb-4">
+            ContestLogX can automatically back up your logs to S3-compatible cloud storage. Your
+            logs always live locally &mdash; the local file is the primary copy. When a cloud
+            provider is configured, every save is also mirrored to the cloud in the background, so
+            the cloud acts as an off-machine backup rather than the primary store. If no provider is
+            configured, opening and saving behave exactly as before.
+          </p>
+
+          <h3 class="text-lg font-semibold mb-2">Supported Providers</h3>
+          <ul class="list-disc list-inside space-y-1 opacity-80 mb-4">
+            <li><strong>FileLu</strong> &mdash; via its S3-compatible &ldquo;S5&rdquo; object storage
+              (endpoint <code>https://s5lu.com</code>). Generate Access and Secret keys in your FileLu
+              account.</li>
+            <li><strong>Amazon S3</strong> &mdash; standard AWS S3 buckets (regional endpoint, e.g.
+              <code>https://s3.us-east-1.amazonaws.com</code>).</li>
+            <li><strong>Dropbox, Google Drive, iCloud Drive</strong> &mdash; shown in settings but
+              marked &ldquo;Not implemented yet.&rdquo;</li>
+          </ul>
+
+          <h3 class="text-lg font-semibold mb-2 mt-4">Setup</h3>
+          <p class="opacity-80 mb-2">
+            Open <strong>Preferences &rarr; Cloud Storage</strong> and configure a provider:
+          </p>
+          <ul class="list-disc list-inside space-y-1 opacity-80 mb-4">
+            <li>Check <strong>Enable</strong> for the provider you want.</li>
+            <li>Enter the <strong>endpoint</strong>, <strong>region</strong>, and your
+              <strong>access</strong>/<strong>secret keys</strong>.</li>
+            <li>Set the <strong>bucket</strong>, optionally with a folder path
+              (e.g. <code>mybucket/clx_logs</code>) to keep logs in a subfolder.</li>
+            <li>Click <strong>Test connection</strong> to confirm the credentials and bucket.</li>
+          </ul>
+          <p class="opacity-80 mb-4">
+            All endpoints use HTTPS. Credentials are stored obfuscated in your settings file and are
+            never sent in plaintext or written to logs.
+          </p>
+
+          <h3 class="text-lg font-semibold mb-2 mt-4">Saving &amp; Opening</h3>
+          <ul class="list-disc list-inside space-y-1 opacity-80 mb-4">
+            <li><strong>Save</strong> always writes to your chosen local file, then mirrors it to the
+              configured provider(s) in the background. The status bar shows the sync progress and
+              result (e.g. &ldquo;Synced to FileLu&rdquo;).</li>
+            <li><strong>Open</strong> lets you choose the source &mdash; local filesystem or a cloud
+              provider. Opening from the cloud lists your remote logs; pick one and you&apos;ll be
+              prompted for where to save the local copy, which is then opened.</li>
+          </ul>
+
+          <h3 class="text-lg font-semibold mb-2 mt-4">Troubleshooting</h3>
+          <p class="opacity-80">
+            Enable <strong>Debug &rarr; Enable Cloud Storage Debug Logging</strong> to record every
+            cloud operation (configuration, test, list, upload, download) in the debug log, tagged by
+            backend (<code>[filelu]</code> / <code>[aws]</code>). Keys and authorization headers are
+            never logged.
+          </p>
         </section>
 
         <!-- Import/Export -->
