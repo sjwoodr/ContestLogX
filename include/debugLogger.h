@@ -49,6 +49,8 @@ public:
     bool isCwDecoderDebugEnabled() const;
     void setWinKeyerDebugEnabled(bool enabled);
     bool isWinKeyerDebugEnabled() const;
+    void setCloudStorageDebugEnabled(bool enabled);
+    bool isCloudStorageDebugEnabled() const;
     void setStdoutEnabled(bool enabled);
 
 private:
@@ -66,6 +68,7 @@ private:
     bool m_wsjtxDebugEnabled = false;
     bool m_cwDecoderDebugEnabled = false;
     bool m_winKeyerDebugEnabled = false;
+    bool m_cloudStorageDebugEnabled = false;
     bool m_stdoutEnabled = false;
     bool m_flushEnabled = false;  // true = flush after every write (--flush flag)
 

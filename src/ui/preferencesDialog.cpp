@@ -13,6 +13,8 @@
 #include "onlineScoreClient.h"
 #include "dxccDatabase.h"
 #include "qrCodeWidget.h"
+#include "debugLogger.h"
+#include "net/s3StorageProvider.h"
 #include <QStandardPaths>
 #include <QFile>
 #include <QVBoxLayout>
@@ -22,6 +24,7 @@
 #include <QStyle>
 #include <QTabWidget>
 #include <QGroupBox>
+#include <QScrollArea>
 #include <QLabel>
 #include <QMessageBox>
 #include <QApplication>
@@ -59,7 +62,8 @@ PreferencesDialog::~PreferencesDialog()
 void PreferencesDialog::setupUi()
 {
     setWindowTitle("Preferences");
-    setMinimumSize(700, 450);
+    // Wide enough that the tab bar shows every tab without overflow arrows.
+    setMinimumSize(880, 460);
 
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
 
@@ -366,6 +370,46 @@ void PreferencesDialog::setupUi()
 
     tabWidget->addTab(osTab, "Scoring");
 
+    // ── Cloud Storage tab ───────────────────────────────────────────────────
+    QWidget *cloudTab = new QWidget;
+    QVBoxLayout *cloudVLayout = new QVBoxLayout(cloudTab);
+
+    QLabel *cloudIntro = new QLabel(
+        "Save and open contest logs to cloud storage in addition to the local "
+        "filesystem. Configure a provider below; the local filesystem is always "
+        "available and is used by default when nothing is configured.");
+    cloudIntro->setWordWrap(true);
+    cloudIntro->setStyleSheet("color: gray;");
+    cloudVLayout->addWidget(cloudIntro);
+
+    // Functional providers
+    buildCloudProviderGroup(cloudVLayout, CloudProviderType::FileLu,
+                            "https://s5lu.com", "global");
+    buildCloudProviderGroup(cloudVLayout, CloudProviderType::AwsS3,
+                            "https://s3.us-east-1.amazonaws.com", "us-east-1");
+
+    // Stub providers — present but disabled and clearly marked
+    for (CloudProviderType stub : { CloudProviderType::Dropbox,
+                                    CloudProviderType::GoogleDrive,
+                                    CloudProviderType::ICloudDrive }) {
+        QGroupBox *grp = new QGroupBox(CloudProvider::displayName(stub) + "  (Not implemented yet)");
+        grp->setEnabled(false);
+        QFormLayout *gl = new QFormLayout(grp);
+        QLabel *note = new QLabel("Support for this provider is planned but not available yet.");
+        note->setWordWrap(true);
+        gl->addRow(note);
+        cloudVLayout->addWidget(grp);
+    }
+
+    cloudVLayout->addStretch();
+    // Wrap in a scroll area so the stacked provider groups don't force the whole
+    // dialog taller than the other tabs.
+    QScrollArea *cloudScroll = new QScrollArea;
+    cloudScroll->setWidgetResizable(true);
+    cloudScroll->setFrameShape(QFrame::NoFrame);
+    cloudScroll->setWidget(cloudTab);
+    tabWidget->addTab(cloudScroll, "Cloud Storage");
+
     // ── Remote Dashboard tab ────────────────────────────────────────────────
     QWidget *rcTab = new QWidget;
     QFormLayout *rcLayout = new QFormLayout(rcTab);
@@ -484,6 +528,18 @@ void PreferencesDialog::setupUi()
     connect(buttonBox, &QDialogButtonBox::accepted, this, &PreferencesDialog::onAccept);
     connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
     mainLayout->addWidget(buttonBox);
+
+    // Open at a sensible size: wide enough for all tabs, but never taller than
+    // the main window. Tall tabs (e.g. Cloud Storage) scroll instead of growing.
+    int defaultW = 880;
+    int defaultH = 560;
+    if (parentWidget() && parentWidget()->height() > 200) {
+        const int parentH = parentWidget()->height();
+        setMaximumHeight(parentH);
+        if (defaultH > parentH)
+            defaultH = parentH;
+    }
+    resize(defaultW, defaultH);
 }
 
 void PreferencesDialog::onAccept()
@@ -604,6 +660,34 @@ void PreferencesDialog::saveSettings()
                                          m_osPasswordEdit->text());
     settings.setOnlineScoringInterval(m_osIntervalCombo->currentData().toInt());
     settings.setOnlineScoringPerQso(m_osPerQsoCheck->isChecked());
+
+    // Cloud storage — persist each functional provider's config. Warn (and
+    // disable) if an enabled provider has a non-https endpoint (FR-019).
+    for (const CloudProviderRow& row : m_cloudRows) {
+        CloudProviderConfig cfg;
+        cfg.type = row.type;
+        cfg.enabled = row.enabled->isChecked();
+        cfg.s3.endpoint  = row.endpoint->text().trimmed();
+        cfg.s3.region    = row.region->text().trimmed();
+        cfg.s3.bucket    = row.bucket->text().trimmed();
+        cfg.s3.accessKey = row.accessKey->text().trimmed();
+        cfg.s3.secretKey = row.secretKey->text();
+        cfg.s3.pathStyle = true;
+
+        if (cfg.enabled && !cfg.s3.endpoint.startsWith("https://", Qt::CaseInsensitive)) {
+            QMessageBox::warning(this, "Cloud Storage",
+                CloudProvider::displayName(row.type) +
+                " endpoint must use https:// — this provider was left disabled.");
+            cfg.enabled = false;
+            row.enabled->setChecked(false);
+        }
+        settings.setCloudProviderConfig(cfg);
+        DebugLogger::instance().log("CloudStorage",
+            QString("[%1] Config saved: enabled=%2 endpoint=%3 bucket=%4")
+                .arg(CloudProvider::logTag(row.type),
+                     cfg.enabled ? QStringLiteral("yes") : QStringLiteral("no"),
+                     cfg.s3.endpoint, cfg.s3.bucket));
+    }
 
     // Remote Control — save config and emit a signal that MainWindow
     // can hook to restart the HTTP server with new settings. The server's
@@ -891,4 +975,133 @@ void PreferencesDialog::onTestOnlineScoring()
     }, Qt::SingleShotConnection);
 
     m_osTestClient->postScore(data);
+}
+
+// ── Cloud Storage tab helpers ───────────────────────────────────────────────
+
+void PreferencesDialog::buildCloudProviderGroup(QVBoxLayout* parent, CloudProviderType type,
+                                                const QString& endpointDefault,
+                                                const QString& regionDefault)
+{
+    CloudProviderConfig cfg = Settings::instance().getCloudProviderConfig(type);
+
+    QGroupBox *grp = new QGroupBox(CloudProvider::displayName(type));
+    QFormLayout *gl = new QFormLayout(grp);
+
+    CloudProviderRow row;
+    row.type = type;
+
+    row.enabled = new QCheckBox("Enable " + CloudProvider::displayName(type));
+    row.enabled->setChecked(cfg.enabled);
+    gl->addRow(row.enabled);
+
+    QLabel *signup = new QLabel(QStringLiteral("<a href=\"%1\">Sign up / get access keys</a>")
+                                   .arg(CloudProvider::signupUrl(type)));
+    signup->setOpenExternalLinks(true);
+    gl->addRow("Account:", signup);
+
+    row.endpoint = new QLineEdit(cfg.s3.endpoint.isEmpty() ? endpointDefault : cfg.s3.endpoint);
+    gl->addRow("Endpoint:", row.endpoint);
+
+    row.region = new QLineEdit(cfg.s3.region.isEmpty() ? regionDefault : cfg.s3.region);
+    gl->addRow("Region:", row.region);
+
+    row.bucket = new QLineEdit(cfg.s3.bucket);
+    row.bucket->setPlaceholderText("mybucket  or  mybucket/clx_logs");
+    row.bucket->setToolTip("Bucket name, optionally followed by a folder path "
+                           "(e.g. mybucket/clx_logs) to store logs in a subfolder.");
+    gl->addRow("Bucket / path:", row.bucket);
+
+    row.accessKey = new QLineEdit(cfg.s3.accessKey);
+    row.accessKey->setPlaceholderText("Access key ID");
+    gl->addRow("Access key:", row.accessKey);
+
+    row.secretKey = new QLineEdit(cfg.s3.secretKey);
+    row.secretKey->setEchoMode(QLineEdit::Password);   // mask secret (FR-004)
+    row.secretKey->setPlaceholderText("Secret access key");
+    gl->addRow("Secret key:", row.secretKey);
+
+    row.testButton = new QPushButton("Test connection");
+    row.testStatus = new QLabel("");
+    QHBoxLayout *testRow = new QHBoxLayout;
+    testRow->addWidget(row.testButton);
+    testRow->addWidget(row.testStatus);
+    testRow->addStretch();
+    gl->addRow("", testRow);
+
+    const int rowIndex = m_cloudRows.size();
+    connect(row.testButton, &QPushButton::clicked, this, [this, rowIndex]() {
+        onTestCloudConnection(rowIndex);
+    });
+
+    // Enable/disable the input fields with the checkbox.
+    auto updateEnabled = [row](bool on) {
+        row.endpoint->setEnabled(on);
+        row.region->setEnabled(on);
+        row.bucket->setEnabled(on);
+        row.accessKey->setEnabled(on);
+        row.secretKey->setEnabled(on);
+        row.testButton->setEnabled(on);
+    };
+    connect(row.enabled, &QCheckBox::toggled, this, updateEnabled);
+    updateEnabled(row.enabled->isChecked());
+
+    m_cloudRows.append(row);
+    parent->addWidget(grp);
+}
+
+void PreferencesDialog::onTestCloudConnection(int rowIndex)
+{
+    if (rowIndex < 0 || rowIndex >= m_cloudRows.size())
+        return;
+    const CloudProviderRow& row = m_cloudRows[rowIndex];
+
+    S3Config s3;
+    s3.endpoint  = row.endpoint->text().trimmed();
+    s3.region    = row.region->text().trimmed();
+    s3.bucket    = row.bucket->text().trimmed();
+    s3.accessKey = row.accessKey->text().trimmed();
+    s3.secretKey = row.secretKey->text();
+    s3.pathStyle = true;
+
+    if (!s3.isComplete()) {
+        row.testStatus->setText("Fill in all fields first");
+        row.testStatus->setStyleSheet("color: red;");
+        return;
+    }
+    if (!s3.endpoint.startsWith("https://", Qt::CaseInsensitive)) {
+        row.testStatus->setText("Endpoint must use https://");
+        row.testStatus->setStyleSheet("color: red;");
+        return;
+    }
+
+    DebugLogger::instance().log("CloudStorage",
+        QString("[%1] Test connection requested (endpoint=%2 bucket=%3)")
+            .arg(CloudProvider::logTag(row.type), s3.endpoint, s3.bucket));
+
+    row.testButton->setEnabled(false);
+    row.testStatus->setText("Testing...");
+    row.testStatus->setStyleSheet("");
+
+    // Throw-away provider for this test; cleaned up when its result arrives.
+    if (m_cloudTestProvider) {
+        m_cloudTestProvider->deleteLater();
+        m_cloudTestProvider = nullptr;
+    }
+    auto* provider = new S3StorageProvider(row.type, s3, this);
+    m_cloudTestProvider = provider;
+
+    QLabel* status = row.testStatus;
+    QPushButton* button = row.testButton;
+    connect(provider, &CloudStorageProvider::testResult, this,
+            [this, status, button, provider](bool ok, const QString& message) {
+        status->setText(message);
+        status->setStyleSheet(ok ? "color: green;" : "color: red;");
+        button->setEnabled(true);
+        if (m_cloudTestProvider == provider)
+            m_cloudTestProvider = nullptr;
+        provider->deleteLater();
+    }, Qt::SingleShotConnection);
+
+    provider->testConnection();
 }

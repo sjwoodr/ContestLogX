@@ -74,14 +74,11 @@ void ContestSelectDialog::onItemDoubleClicked(QListWidgetItem *item)
 
 void ContestSelectDialog::onOpenExistingClicked()
 {
-    QString fileName = QFileDialog::getOpenFileName(this,
-        tr("Open Existing Log"), "", tr("ContestLogX Files (*.clx)"));
-    
-    if (!fileName.isEmpty()) {
-        m_selectedFile = fileName;
-        m_openingExisting = true;
-        accept();
-    }
+    // Defer the actual file choice to MainWindow's unified open flow so the
+    // operator can pick a local file OR a configured cloud source. We just
+    // signal intent here; MainWindow runs the chooser/open dialog.
+    m_openingExisting = true;
+    accept();
 }
 
 void ContestSelectDialog::loadContestList()

@@ -36,6 +36,10 @@ add_clx_test(test_callsignutils test_callsignutils.cpp
 add_clx_test(test_bandplan test_bandplan.cpp
     ${CMAKE_SOURCE_DIR}/src/utils/bandPlan.cpp)
 
+# S3 SigV4 signer tests (validates against AWS published test vectors)
+add_clx_test(test_s3signer test_s3signer.cpp
+    ${CMAKE_SOURCE_DIR}/src/net/s3Signer.cpp)
+
 # Dupe Checking tests
 add_clx_test(test_dupecheck test_dupecheck.cpp
     ${CMAKE_SOURCE_DIR}/src/core/qsoRecord.cpp)

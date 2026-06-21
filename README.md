@@ -56,6 +56,14 @@ Most contest loggers are Windows-only, closed-source, or locked to a fixed set o
 - Cabrillo export for contest submissions
 - CSV export
 
+### Cloud Storage (backup)
+- Automatic background backup of your logs to S3-compatible cloud storage
+- Supported providers: **FileLu** and **Amazon S3** (Dropbox, Google Drive, and iCloud Drive are listed but not implemented yet)
+- Logs always live locally — the local file is the primary copy; every save is mirrored to the cloud in the background, with sync status shown in the status bar
+- Open lets you pull a log down from the cloud, choosing where the local copy is saved
+- Configured under Preferences -> Cloud Storage (endpoint, region, bucket or `bucket/folder`, access/secret keys, with a Test connection button)
+- Built on Qt with AWS Signature V4 signing — no third-party SDK; credentials are stored obfuscated and never sent in plaintext or written to logs
+
 ### Supported Contests
 | Contest | File |
 |---------|------|
@@ -160,4 +168,4 @@ See the [LICENSE](LICENSE) file for the full license text.
 
 ---
 
-**[contestlogx.com](https://contestlogx.com)** | **ContestLogX v0.9.1** | *Copyright (c) 2025-2026 Steve Woodruff, N9OH*
+**[contestlogx.com](https://contestlogx.com)** | **ContestLogX v0.9.2** | *Copyright (c) 2025-2026 Steve Woodruff, N9OH*

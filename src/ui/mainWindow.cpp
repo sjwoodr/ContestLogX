@@ -1594,6 +1594,16 @@ void MainWindow::setupMenus()
         Settings::instance().setWinKeyerDebugEnabled(checked);
     });
 
+    m_cloudStorageDebugAction = debugMenu->addAction("Enable Clou&d Storage Debug Logging");
+    m_cloudStorageDebugAction->setCheckable(true);
+    bool cloudStorageDebugEnabled = Settings::instance().getCloudStorageDebugEnabled();
+    m_cloudStorageDebugAction->setChecked(cloudStorageDebugEnabled);
+    DebugLogger::instance().setCloudStorageDebugEnabled(cloudStorageDebugEnabled);
+    connect(m_cloudStorageDebugAction, &QAction::triggered, this, [this](bool checked) {
+        DebugLogger::instance().setCloudStorageDebugEnabled(checked);
+        Settings::instance().setCloudStorageDebugEnabled(checked);
+    });
+
     debugMenu->addSeparator();
     m_viewDebugLogAction = debugMenu->addAction(tr("&View Debug Log"));
     connect(m_viewDebugLogAction, &QAction::triggered, this, &MainWindow::onShowDebugLogViewer);
@@ -1867,131 +1877,17 @@ void MainWindow::onNewLog()
     // Show contest selection dialog
     ContestSelectDialog dialog(this);
     if (dialog.exec() == QDialog::Accepted) {
+        if (dialog.isOpeningExisting()) {
+            // Route through the unified open flow so the operator can choose a
+            // local file OR a configured cloud source (same as File -> Open),
+            // instead of going straight to a local-only file dialog.
+            onOpenLog();
+            return;
+        }
+
         QString selectedFile = dialog.selectedContestFile();
         if (!selectedFile.isEmpty()) {
-            if (dialog.isOpeningExisting()) {
-                // User selected "Open Existing" - load the .clx file using threaded approach
-                // Create progress dialog
-                QProgressDialog *progressDialog = new QProgressDialog("Loading file...", QString(), 0, 0, this);
-                progressDialog->setWindowTitle("Loading Log");
-                progressDialog->setWindowModality(Qt::WindowModal);
-                progressDialog->setAutoClose(false);
-                progressDialog->setAutoReset(false);
-                progressDialog->show();
-                QApplication::processEvents();
-                
-                // Create worker and thread
-                QThread *loadThread = new QThread(this);
-                LoadingWorker *worker = new LoadingWorker(selectedFile, nullptr);
-                worker->moveToThread(loadThread);
-                
-                // Connect signals
-                connect(loadThread, &QThread::started, worker, &LoadingWorker::doLoad);
-                
-                connect(worker, &LoadingWorker::loadingComplete, this, [this, selectedFile, progressDialog, loadThread, worker](QList<QsoRecord> loadedQsos, bool success, QString errorMessage) {
-                    loadThread->quit();
-                    loadThread->wait();
-                    worker->deleteLater();
-                    loadThread->deleteLater();
-                    
-                    if (!success) {
-                        progressDialog->close();
-                        progressDialog->deleteLater();
-                        QMessageBox::warning(this, "Load Failed", 
-                            "Failed to load file:\n\n" + errorMessage);
-                        return;
-                    }
-                    
-                    // Extract contest file and station class from the loaded QSOs
-                    QString contestFile;
-                    QString stationClass;
-                    QString loadedContestVersion;
-                    QString stationClassExchangeName;
-                    QString stationClassExchangeId;
-                    FileHandler fileHandler;
-                    
-                    // We need to parse the file to get contest info - for now we'll load it separately
-                    QList<QsoRecord> temp;
-                    fileHandler.loadClxWithContest(selectedFile, temp, contestFile, stationClass, loadedContestVersion, stationClassExchangeName, stationClassExchangeId);
-
-                    // Load contest-specific memories from the file
-                    ClxFile clxFileForMem;
-                    if (clxFileForMem.load(selectedFile)) {
-                        if (clxFileForMem.useContestMemories()) {
-                            m_useContestMemories = true;
-                            m_contestCwMemories = clxFileForMem.cwMemories();
-                            m_contestSsbMemories = clxFileForMem.ssbMemories();
-                        } else {
-                            m_useContestMemories = false;
-                            m_contestCwMemories.clear();
-                            m_contestSsbMemories.clear();
-                        }
-                        loadCWMemories();
-                        loadSsbMemories();
-                    }
-
-                    // Load the contest definition if specified
-                    if (!contestFile.isEmpty()) {
-                        QString contestPath = Settings::getContestsPath() + "/" + contestFile;
-                        if (QFile::exists(contestPath)) {
-                            // Set station class and exchange data BEFORE loading contest definition
-                            if (!stationClass.isEmpty()) {
-                                m_contestEngine->setStationClass(stationClass);
-                                DebugLogger::instance().log("MainWindow", QString("(onNewLog) Set station class: %1").arg(stationClass));
-                            }
-                            if (!stationClassExchangeName.isEmpty() || !stationClassExchangeId.isEmpty()) {
-                                m_contestEngine->setStationClassExchangeName(stationClassExchangeName);
-                                m_contestEngine->setStationClassExchangeId(stationClassExchangeId);
-                                DebugLogger::instance().log("MainWindow", QString("(onNewLog) Set station class exchange - Name: %1, ID: %2").arg(stationClassExchangeName, stationClassExchangeId));
-                            }
-                            
-                            loadContestDefinition(contestPath);
-                            
-                            // Check if contest version has changed
-                            if (!loadedContestVersion.isEmpty() && !m_contestDefinition.isEmpty()) {
-                                QString currentVersion = m_contestDefinition["contest"].toObject()["version"].toString();
-                                DebugLogger::instance().log("MainWindow", 
-                                    QString("Contest version check: Log file v%1, Current definition v%2").arg(loadedContestVersion, currentVersion));
-                                if (!currentVersion.isEmpty() && !isSemanticVersionEqual(currentVersion, loadedContestVersion)) {
-                                    DebugLogger::instance().log("MainWindow", "Version mismatch detected - showing user warning");
-                                    progressDialog->close();
-                                    QMessageBox::StandardButton reply = QMessageBox::warning(this, "Contest Version Mismatch",
-                                        "The log file was created with contest version " + loadedContestVersion + 
-                                        " but the current definition is version " + currentVersion + ".\n\n" +
-                                        "Loading with a different version may cause scoring issues.\n\n" +
-                                        "Do you want to continue?",
-                                        QMessageBox::Yes | QMessageBox::No);
-                                    if (reply == QMessageBox::No) {
-                                        progressDialog->deleteLater();
-                                        return;
-                                    }
-                                    progressDialog->show();
-                                    QApplication::processEvents();
-                                }
-                            }
-                        }
-                    }
-                    
-                    // Batch-insert all QSOs in one model reset (avoids N individual signals/repaints)
-                    loadQsosIntoModel(loadedQsos, progressDialog);
-                    
-                    m_currentFile = selectedFile;
-                    m_isModified = false;
-                    updateWindowTitle();
-                    updateQsoEntryFields();
-                    
-                    progressDialog->close();
-                    progressDialog->deleteLater();
-                    
-                    // Auto-recalculate score to validate and mark dupes/out-of-band
-                    onRecalculateScore();
-                    checkForCrashBackups();
-
-                    m_statusLabel->setText(QString("Loaded %1 QSOs").arg(loadedQsos.size()));
-                });
-                
-                loadThread->start();
-            } else {
+            {
                 // User selected a contest definition - create new log
                 // Clear the QSO model first so old data isn't visible
                 m_qsoModel->clear();
@@ -2432,18 +2328,38 @@ void MainWindow::onOpenLog()
     if (!maybeSave())
         return;
     resetBackupState();
-    
+
+    // If any functional cloud provider is configured, let the user choose the
+    // source. With none configured, behave exactly as before (FR-008).
+    const QVector<CloudProviderConfig> providers =
+        Settings::instance().getConfiguredCloudProviders();
+    if (!providers.isEmpty()) {
+        bool useLocal = false;
+        CloudProviderType chosen = CloudProviderType::FileLu;
+        if (!chooseOpenSource(providers, useLocal, chosen))
+            return;  // cancelled
+        if (!useLocal) {
+            openLogFromCloud(chosen);  // prompts for a local destination, then loads it
+            return;
+        }
+    }
+
     QString fileName = QFileDialog::getOpenFileName(this,
-        "Open Log File", "", 
+        "Open Log File", "",
         "All Supported (*.clx *.csv *.adi *.adif);;"
         "ContestLogX 2.0 Format (*.clx);;"
         "ADIF Files (*.adi *.adif);;"
         "CSV Files (*.csv);;"
         "All Files (*)");
-    
+
     if (fileName.isEmpty())
         return;
-    
+
+    loadLogFromPath(fileName);
+}
+
+void MainWindow::loadLogFromPath(const QString& fileName)
+{
     // Create progress dialog
     QProgressDialog *progressDialog = new QProgressDialog("Loading file...", QString(), 0, 0, this);
     progressDialog->setWindowTitle("Loading Log");
@@ -3065,41 +2981,48 @@ void MainWindow::loadLogFile(const QString& filename)
     loadThread->start();
 }
 
+// Serialize the current log to a local path using the contest-aware .clx writer
+// (or the plain writer for other formats). Returns success; errorOut gets the
+// FileHandler error on failure. Shared by local save and cloud upload.
+bool MainWindow::writeCurrentLogToFile(const QString& path, QString& errorOut)
+{
+    FileHandler fileHandler;
+    bool success = false;
+
+    if (path.endsWith(".clx", Qt::CaseInsensitive) && !m_contestDefinition.isEmpty()) {
+        QString stationClass = m_contestEngine ? m_contestEngine->getStationClass() : QString();
+        QString stationClassExchangeName = m_contestEngine ? m_contestEngine->getStationClassExchangeName() : QString();
+        QString stationClassExchangeId = m_contestEngine ? m_contestEngine->getStationClassExchangeId() : QString();
+        QMap<QString, QString> userPromptValues = m_contestEngine ? m_contestEngine->getUserPromptValues() : QMap<QString, QString>();
+
+        fileHandler.setUseContestMemories(m_useContestMemories);
+        fileHandler.setContestCwMemories(m_contestCwMemories);
+        fileHandler.setContestSsbMemories(m_contestSsbMemories);
+
+        if (m_contestEngine) {
+            const ContestEngine::ContestScore& cs = m_contestEngine->getRunningScore();
+            fileHandler.setComputedScore(cs.contactScore, cs.contestScore);
+        }
+
+        success = fileHandler.saveClxWithContest(path, m_qsoModel->getQsos(), m_contestFile, m_contestDefinition, stationClass, stationClassExchangeName, stationClassExchangeId, userPromptValues, *m_sessionStationInfo);
+    } else {
+        success = fileHandler.save(path, m_qsoModel->getQsos());
+    }
+
+    if (!success)
+        errorOut = fileHandler.lastError();
+    return success;
+}
+
 void MainWindow::onSaveLog()
 {
     if (m_currentFile.isEmpty()) {
         onSaveLogAs();
         return;
     }
-    
-    // Save file
-    FileHandler fileHandler;
-    bool success = false;
 
-    // Use contest-aware save for .clx files
-    if (m_currentFile.endsWith(".clx", Qt::CaseInsensitive) && !m_contestDefinition.isEmpty()) {
-        QString stationClass = m_contestEngine ? m_contestEngine->getStationClass() : QString();
-        QString stationClassExchangeName = m_contestEngine ? m_contestEngine->getStationClassExchangeName() : QString();
-        QString stationClassExchangeId = m_contestEngine ? m_contestEngine->getStationClassExchangeId() : QString();
-        QMap<QString, QString> userPromptValues = m_contestEngine ? m_contestEngine->getUserPromptValues() : QMap<QString, QString>();
-
-        // Pass contest-specific memories to FileHandler
-        fileHandler.setUseContestMemories(m_useContestMemories);
-        fileHandler.setContestCwMemories(m_contestCwMemories);
-        fileHandler.setContestSsbMemories(m_contestSsbMemories);
-
-        // Pass the computed score so the statistics block is accurate
-        if (m_contestEngine) {
-            const ContestEngine::ContestScore& cs = m_contestEngine->getRunningScore();
-            fileHandler.setComputedScore(cs.contactScore, cs.contestScore);
-        }
-
-        success = fileHandler.saveClxWithContest(m_currentFile, m_qsoModel->getQsos(), m_contestFile, m_contestDefinition, stationClass, stationClassExchangeName, stationClassExchangeId, userPromptValues, *m_sessionStationInfo);
-    } else {
-        success = fileHandler.save(m_currentFile, m_qsoModel->getQsos());
-    }
-    
-    if (success) {
+    QString error;
+    if (writeCurrentLogToFile(m_currentFile, error)) {
         removeBackup();
         m_isModified = false;
         updateWindowTitle();
@@ -3111,14 +3034,20 @@ void MainWindow::onSaveLog()
 
         m_statusLabel->setText("File saved: " + m_currentFile + " (" +
             QString::number(m_qsoModel->count()) + " QSOs)");
+
+        // Back up to any configured cloud providers in the background (cloud is a
+        // mirror of the local primary file; this is a no-op when none configured).
+        syncToCloudProviders(m_currentFile);
     } else {
         QMessageBox::warning(this, "Save Failed",
-            "Failed to save file:\n\n" + fileHandler.lastError());
+            "Failed to save file:\n\n" + error);
     }
 }
 
 void MainWindow::onSaveLogAs()
 {
+    // Always save to a user-chosen local location. Cloud backup (if enabled) is
+    // handled automatically by onSaveLog after the local write succeeds.
     QString fileName = QFileDialog::getSaveFileName(this,
         "Save Log File", "",
         "ContestLogX 2.0 Format (*.clx)");
@@ -3130,7 +3059,7 @@ void MainWindow::onSaveLogAs()
     if (!fileName.endsWith(".clx", Qt::CaseInsensitive)) {
         fileName += ".clx";
     }
-    
+
     m_currentFile = fileName;
     onSaveLog();
 }
@@ -5569,7 +5498,7 @@ void MainWindow::onAbout()
     msgBox.setTextFormat(Qt::RichText);
     msgBox.setTextInteractionFlags(Qt::TextBrowserInteraction);
     msgBox.setText(
-        "<b>ContestLogX - Version 0.9.1 (Beta)</b><br><br>"
+        "<b>ContestLogX - Version 0.9.2 (Beta)</b><br><br>"
         "Cross-platform amateur radio contest logging software<br><br>"
         "Copyright &copy; 2025-2026, by Steve Woodruff, N9OH<br><br>"
         "<a href=\"https://contestlogx.com\">https://contestlogx.com</a><br><br>"
@@ -5960,7 +5889,7 @@ QString MainWindow::getDupeQsoDetails(const QString& callsign, const QList<QsoRe
 void MainWindow::updateWindowTitle()
 {
     QString title = QString("ContestLogX v%1").arg(QApplication::applicationVersion());
-    
+
     if (!m_currentFile.isEmpty()) {
         title += " - " + QFileInfo(m_currentFile).fileName();
     } else {

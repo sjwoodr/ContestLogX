@@ -2,6 +2,12 @@
 
 All notable changes to ContestLogX are documented in this file.
 
+## [0.9.2]
+
+### Other Changes and Bugfixes
+- Added cloud backup for contest logs via FileLu or Amazon S3. Logs are always stored locally; when a provider is configured, every save is also mirrored to the cloud in the background (with status shown in the bottom bar). Configure providers under Preferences -> Cloud Storage (endpoint, region, bucket or bucket/folder, access/secret keys, with a Test connection button). Open lets you pull a log from the cloud (you choose where to save the local copy).
+- ContestLogX users can get a free FileLu account via our affiliate link: https://filelu.com/ref495255525748.html 
+
 ## [0.9.1]
 
 ### Other Changes and Bugfixes

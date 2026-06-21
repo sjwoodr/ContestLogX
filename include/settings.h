@@ -17,6 +17,7 @@
 #include <QFont>
 #include "cwMemory.h"
 #include "ssbMemory.h"
+#include "net/cloudStorageTypes.h"
 
 /**
  * @brief Application settings manager
@@ -312,6 +313,8 @@ public:
     void setCwDecoderDebugEnabled(bool enabled);
     bool getWinKeyerDebugEnabled() const;
     void setWinKeyerDebugEnabled(bool enabled);
+    bool getCloudStorageDebugEnabled() const;
+    void setCloudStorageDebugEnabled(bool enabled);
 
     // Splitter states (as byte arrays)
     QByteArray getMainSplitterState() const;
@@ -385,6 +388,13 @@ public:
     void setOnlineScoringInterval(int minutes);
     bool getOnlineScoringPerQso() const;
     void setOnlineScoringPerQso(bool perQso);
+
+    // Cloud storage (see specs/005-cloud-storage). Stored under "cloudStorage".
+    // accessKey/secretKey are obfuscated with the same XOR helper as other credentials.
+    CloudProviderConfig getCloudProviderConfig(CloudProviderType type) const;
+    void setCloudProviderConfig(const CloudProviderConfig& config);
+    // Functional providers (FileLu, AWS S3) that are enabled AND fully configured.
+    QVector<CloudProviderConfig> getConfiguredCloudProviders() const;
 
     // Theme
     QString getTheme() const;
