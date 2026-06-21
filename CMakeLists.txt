@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(ContestLogX VERSION 0.9.1 LANGUAGES CXX)
+project(ContestLogX VERSION 0.9.2 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -28,6 +28,7 @@ include_directories(
 set(SOURCES
     src/main.cpp
     src/ui/mainWindow.cpp
+    src/ui/mainWindowCloud.cpp
     src/ui/rigControlDialog.cpp
     src/ui/freqModeDialog.cpp
     src/ui/cwWindow.cpp
@@ -84,6 +85,9 @@ set(SOURCES
     src/net/wsjtxListener.cpp
     src/net/clxSnapshot.cpp
     src/net/httpServer.cpp
+    src/net/s3Signer.cpp
+    src/net/s3StorageWorker.cpp
+    src/net/s3StorageProvider.cpp
     src/ui/qrCodeWidget.cpp
     third_party/qrcodegen/qrcodegen.cpp
     src/audio/binChannel.cpp
@@ -159,6 +163,11 @@ set(HEADERS
      include/wsjtxListener.h
      include/net/clxSnapshot.h
      include/net/httpServer.h
+     include/net/cloudStorageTypes.h
+     include/net/cloudStorageProvider.h
+     include/net/s3Signer.h
+     include/net/s3StorageWorker.h
+     include/net/s3StorageProvider.h
      include/qrCodeWidget.h
      third_party/qrcodegen/qrcodegen.hpp
      include/audio/audioTypes.h

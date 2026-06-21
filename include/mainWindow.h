@@ -40,11 +40,14 @@
 #include "memoryRole.h"
 #include "rateWidget.h"
 #include "wsjtxListener.h"
+#include "net/cloudStorageTypes.h"
 
 namespace clx::net {
 class ClxSnapshot;
 class HttpServer;
 }
+
+class CloudStorageProvider;
 
 struct EntryPanelWidgets {
     QPushButton *freqModeButton = nullptr;
@@ -213,6 +216,19 @@ private:
     void installRedockOnMinimize(QDockWidget* dock);
     ContactStatus resolveSpotStatus(const QString &callsign);
     void loadQsosIntoModel(const QList<QsoRecord>& qsos, QProgressDialog* progressDialog);
+
+    // Cloud storage (specs/005-cloud-storage). Implemented in mainWindowCloud.cpp.
+    // The local file is always the primary store; cloud is a background BACKUP that
+    // mirrors every local save to the configured provider(s).
+    void loadLogFromPath(const QString& fileName);  // shared load path
+    bool writeCurrentLogToFile(const QString& path, QString& errorOut);
+    // Open-source chooser: local vs a configured cloud provider. False if cancelled.
+    bool chooseOpenSource(const QVector<CloudProviderConfig>& providers,
+                          bool& useLocalOut, CloudProviderType& chosenOut);
+    void openLogFromCloud(CloudProviderType type);        // prompts for a local destination
+    void syncToCloudProviders(const QString& localPath);  // background backup after a local save
+    CloudStorageProvider* makeCloudProvider(CloudProviderType type);
+
     void applyRestrictedModeFromUserPrompts();
     void promptForMissingUserPrompts();
     bool isFieldVisible(const QString& columnName) const;
@@ -363,6 +379,7 @@ private:
     QAction *m_wsjtxDebugAction;
     QAction *m_cwDecoderDebugAction = nullptr;
     QAction *m_winKeyerDebugAction = nullptr;
+    QAction *m_cloudStorageDebugAction = nullptr;
     QAction *m_viewDebugLogAction = nullptr;
     class DebugLogViewer *m_debugLogViewer = nullptr;
 

@@ -77,6 +77,7 @@ void DebugLogger::loadSettings()
     m_callsignLookupDebugEnabled = settings.value("Debug/CallsignLookupDebug", false).toBool();
     m_cwDecoderDebugEnabled = settings.value("Debug/CwDecoderDebug", false).toBool();
     m_winKeyerDebugEnabled = settings.value("Debug/WinKeyerDebug", false).toBool();
+    m_cloudStorageDebugEnabled = settings.value("Debug/CloudStorageDebug", false).toBool();
 }
 
 void DebugLogger::setFlushEnabled(bool enabled)
@@ -227,6 +228,17 @@ bool DebugLogger::isWinKeyerDebugEnabled() const
     return m_winKeyerDebugEnabled;
 }
 
+void DebugLogger::setCloudStorageDebugEnabled(bool enabled)
+{
+    m_cloudStorageDebugEnabled = enabled;
+    log("INFO", enabled ? "Cloud Storage debug logging enabled" : "Cloud Storage debug logging disabled");
+}
+
+bool DebugLogger::isCloudStorageDebugEnabled() const
+{
+    return m_cloudStorageDebugEnabled;
+}
+
 void DebugLogger::setStdoutEnabled(bool enabled)
 {
     m_stdoutEnabled = enabled;
@@ -277,6 +289,7 @@ void DebugLogger::log(const QString& component, const QString& message)
     if (!m_callsignLookupDebugEnabled && component == "CallsignLookup") return;
     if (!m_wsjtxDebugEnabled && component == "WsjtxListener") return;
     if (!m_winKeyerDebugEnabled && component == "WinKeyer") return;
+    if (!m_cloudStorageDebugEnabled && component == "CloudStorage") return;
 
     QMutexLocker locker(&g_logMutex);
 

@@ -1294,6 +1294,19 @@ void Settings::setWinKeyerDebugEnabled(bool enabled)
     save();
 }
 
+bool Settings::getCloudStorageDebugEnabled() const
+{
+    return m_settings["debug"].toObject()["cloudStorageDebugEnabled"].toBool(false);
+}
+
+void Settings::setCloudStorageDebugEnabled(bool enabled)
+{
+    QJsonObject debug = m_settings["debug"].toObject();
+    debug["cloudStorageDebugEnabled"] = enabled;
+    m_settings["debug"] = debug;
+    save();
+}
+
 bool Settings::getDxClusterDebugEnabled() const
 {
     return m_settings["debug"].toObject()["dxClusterDebugEnabled"].toBool(false);
@@ -1809,6 +1822,80 @@ void Settings::setOnlineScoringPerQso(bool perQso)
     os["perQso"] = perQso;
     m_settings["onlineScoring"] = os;
     m_modified = true;
+}
+
+// ---------------------------------------------------------------------------
+// Cloud storage (specs/005-cloud-storage). accessKey/secretKey use the same XOR
+// obfuscation as the other stored credentials above.
+// ---------------------------------------------------------------------------
+
+namespace {
+QString clxObfuscate(const QString& value) {
+    if (value.isEmpty()) return "";
+    const char key[] = "ContestLogX";
+    QByteArray bytes = value.toLatin1();
+    QByteArray enc;
+    for (int i = 0; i < bytes.length(); ++i)
+        enc.append(bytes[i] ^ key[i % strlen(key)]);
+    return QString::fromLatin1(enc.toBase64());
+}
+QString clxDeobfuscate(const QString& stored) {
+    if (stored.isEmpty()) return "";
+    const char key[] = "ContestLogX";
+    QByteArray dec = QByteArray::fromBase64(stored.toLatin1());
+    QByteArray res;
+    for (int i = 0; i < dec.length(); ++i)
+        res.append(dec[i] ^ key[i % strlen(key)]);
+    return QString::fromLatin1(res);
+}
+} // namespace
+
+CloudProviderConfig Settings::getCloudProviderConfig(CloudProviderType type) const
+{
+    CloudProviderConfig cfg;
+    cfg.type = type;
+    const QString key = CloudProvider::settingsKey(type);
+    if (key.isEmpty()) return cfg;  // stub providers are not persisted
+
+    QJsonObject section = m_settings["cloudStorage"].toObject()[key].toObject();
+    cfg.enabled        = section["enabled"].toBool(false);
+    cfg.s3.endpoint    = section["endpoint"].toString();
+    cfg.s3.region      = section["region"].toString();
+    cfg.s3.bucket      = section["bucket"].toString();
+    cfg.s3.accessKey   = clxDeobfuscate(section["accessKey"].toString());
+    cfg.s3.secretKey   = clxDeobfuscate(section["secretKey"].toString());
+    cfg.s3.pathStyle   = section["pathStyle"].toBool(true);
+    return cfg;
+}
+
+void Settings::setCloudProviderConfig(const CloudProviderConfig& config)
+{
+    const QString key = CloudProvider::settingsKey(config.type);
+    if (key.isEmpty()) return;  // never persist stub providers (FR-023)
+
+    QJsonObject cloud = m_settings["cloudStorage"].toObject();
+    QJsonObject section;
+    section["enabled"]   = config.enabled;
+    section["endpoint"]  = config.s3.endpoint;
+    section["region"]    = config.s3.region;
+    section["bucket"]    = config.s3.bucket;
+    section["accessKey"] = clxObfuscate(config.s3.accessKey);
+    section["secretKey"] = clxObfuscate(config.s3.secretKey);
+    section["pathStyle"] = config.s3.pathStyle;
+    cloud[key] = section;
+    m_settings["cloudStorage"] = cloud;
+    m_modified = true;
+}
+
+QVector<CloudProviderConfig> Settings::getConfiguredCloudProviders() const
+{
+    QVector<CloudProviderConfig> out;
+    for (CloudProviderType t : { CloudProviderType::FileLu, CloudProviderType::AwsS3 }) {
+        CloudProviderConfig cfg = getCloudProviderConfig(t);
+        if (cfg.isUsable())
+            out.append(cfg);
+    }
+    return out;
 }
 
 QString Settings::getContestUserPrompt(const QString& contestFile, const QString& promptId) const

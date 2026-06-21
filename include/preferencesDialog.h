@@ -22,9 +22,12 @@
 #include <QList>
 #include <QListWidget>
 
+#include "net/cloudStorageTypes.h"
+
 class QrzcqApi;
 class QrzApi;
 class ShortcutsWidget;
+class CloudStorageProvider;
 
 class PreferencesDialog : public QDialog
 {
@@ -132,6 +135,24 @@ private:
     QPushButton *m_osTestButton;
     QLabel *m_osTestStatusLabel;
     class OnlineScoreClient *m_osTestClient;
+
+    // Cloud Storage tab — one row per functional provider (FileLu, AWS S3)
+    struct CloudProviderRow {
+        CloudProviderType type;
+        QCheckBox*  enabled = nullptr;
+        QLineEdit*  endpoint = nullptr;
+        QLineEdit*  region = nullptr;
+        QLineEdit*  bucket = nullptr;
+        QLineEdit*  accessKey = nullptr;
+        QLineEdit*  secretKey = nullptr;
+        QPushButton* testButton = nullptr;
+        QLabel*     testStatus = nullptr;
+    };
+    QList<CloudProviderRow> m_cloudRows;
+    CloudStorageProvider* m_cloudTestProvider = nullptr;
+    void buildCloudProviderGroup(class QVBoxLayout* parent, CloudProviderType type,
+                                 const QString& endpointDefault, const QString& regionDefault);
+    void onTestCloudConnection(int rowIndex);
 
     // Remote Control tab
     QCheckBox  *m_rcEnabledCheck  = nullptr;
