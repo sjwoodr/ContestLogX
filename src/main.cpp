@@ -27,7 +27,7 @@
 #include <QStandardPaths>
 
 // Application version
-static const char* APP_VERSION = "0.9.3";
+static const char* APP_VERSION = "0.9.4";
 
 // Bump this to force the terms dialog to re-appear for all users.
 // History: 1 = original terms, 2 = MIT license change

@@ -1,0 +1,626 @@
+{
+  "contest": {
+    "name": "IARU HF World Championship",
+    "abbreviation": "IARU-HF",
+    "version": "1.0.0",
+    "sponsor": "International Amateur Radio Union (administered by ARRL)",
+    "description": "Worldwide HF contest. Stations exchange RST + ITU zone; IARU member-society HQ stations and IARU officials send their society/official abbreviation instead. Multipliers are ITU zones plus HQ/official stations, counted per band.",
+    "startDate": "Second full weekend in July (1200 UTC Sat - 1159 UTC Sun)",
+    "duration": 24,
+    "offTimeGapMinutes": 0,
+    "modes": [
+      "CW",
+      "SSB"
+    ],
+    "bands": [
+      "160m",
+      "80m",
+      "40m",
+      "20m",
+      "15m",
+      "10m"
+    ],
+    "url": "https://www.arrl.org/iaru-hf-world-championship",
+    "categories": {
+      "stations": [
+        "SINGLE_OP",
+        "SINGLE_OP_UNLIMITED",
+        "MULTI_SINGLE",
+        "MULTI_TWO"
+      ],
+      "power": [
+        "HIGH",
+        "LOW",
+        "QRP"
+      ],
+      "modes": [
+        "CW",
+        "SSB",
+        "MIXED"
+      ]
+    }
+  },
+  "frequencies": {
+    "160m": {
+      "start": 1800,
+      "end": 2000,
+      "cw": {
+        "start": 1800,
+        "end": 1850
+      },
+      "phone": {
+        "start": 1850,
+        "end": 2000
+      }
+    },
+    "80m": {
+      "start": 3500,
+      "end": 4000,
+      "cw": {
+        "start": 3500,
+        "end": 3600
+      },
+      "phone": {
+        "start": 3600,
+        "end": 4000
+      }
+    },
+    "40m": {
+      "start": 7000,
+      "end": 7300,
+      "cw": {
+        "start": 7000,
+        "end": 7125
+      },
+      "phone": {
+        "start": 7125,
+        "end": 7300
+      }
+    },
+    "20m": {
+      "start": 14000,
+      "end": 14350,
+      "cw": {
+        "start": 14000,
+        "end": 14150
+      },
+      "phone": {
+        "start": 14150,
+        "end": 14350
+      }
+    },
+    "15m": {
+      "start": 21000,
+      "end": 21450,
+      "cw": {
+        "start": 21000,
+        "end": 21200
+      },
+      "phone": {
+        "start": 21200,
+        "end": 21450
+      }
+    },
+    "10m": {
+      "start": 28000,
+      "end": 29700,
+      "cw": {
+        "start": 28000,
+        "end": 28300
+      },
+      "phone": {
+        "start": 28300,
+        "end": 29700
+      }
+    }
+  },
+  "stationClasses": {
+    "enabled": false
+  },
+  "userPrompts": [
+    {
+      "id": "stationType",
+      "question": "What kind of station are you?",
+      "type": "select",
+      "options": [
+        {
+          "value": "REGULAR",
+          "label": "Regular station - send RST + your ITU zone"
+        },
+        {
+          "value": "HQ",
+          "label": "IARU HQ / Official station - send RST + your society/official abbreviation"
+        }
+      ],
+      "required": true,
+      "storeInMeta": true
+    },
+    {
+      "id": "myZone",
+      "question": "Enter your ITU zone (e.g. 8). HQ/official stations: enter the zone you operate from.",
+      "type": "text",
+      "required": true,
+      "storeInMeta": true,
+      "exchangeFieldMapping": {
+        "myZone": "EXCHs"
+      }
+    },
+    {
+      "id": "mySociety",
+      "question": "Enter your IARU society or official abbreviation (e.g. ARRL, DARC, R2, IARU)",
+      "type": "text",
+      "required": true,
+      "storeInMeta": true,
+      "visibleWhen": {
+        "promptId": "stationType",
+        "values": [
+          "HQ"
+        ]
+      },
+      "exchangeFieldMapping": {
+        "mySociety": "EXCHs"
+      }
+    },
+    {
+      "id": "operatingCategory",
+      "question": "Select your operating category",
+      "type": "select",
+      "options": [
+        {
+          "value": "SO",
+          "label": "Single Operator"
+        },
+        {
+          "value": "SOU",
+          "label": "Single Operator Unlimited (assisted)"
+        },
+        {
+          "value": "MS",
+          "label": "Multioperator Single Transmitter"
+        },
+        {
+          "value": "M2",
+          "label": "Multioperator Two Transmitter"
+        },
+        {
+          "value": "CHECKLOG",
+          "label": "Checklog"
+        }
+      ],
+      "required": false,
+      "storeInMeta": true
+    },
+    {
+      "id": "powerCategory",
+      "question": "Select your power category",
+      "type": "select",
+      "options": [
+        {
+          "value": "HP",
+          "label": "High Power"
+        },
+        {
+          "value": "LP",
+          "label": "Low Power (100 W)"
+        },
+        {
+          "value": "QRP",
+          "label": "QRP (5 W)"
+        }
+      ],
+      "required": false,
+      "storeInMeta": true
+    }
+  ],
+  "exchangeFields": {
+    "sent": [
+      {
+        "name": "RST",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report sent"
+      },
+      {
+        "name": "EXCHs",
+        "type": "string",
+        "required": true,
+        "description": "ITU zone (regular) or society/official abbreviation (HQ) - filled from setup"
+      }
+    ],
+    "received": [
+      {
+        "name": "RST",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report received"
+      },
+      {
+        "name": "EXCHr",
+        "type": "string",
+        "required": true,
+        "description": "ITU zone, or HQ society / IARU official abbreviation"
+      }
+    ]
+  },
+  "qsoFields": [
+    {
+      "name": "Date",
+      "column": "DATE",
+      "type": "date",
+      "format": "yyyy-MM-dd",
+      "required": true
+    },
+    {
+      "name": "Time",
+      "column": "TIME",
+      "type": "time",
+      "format": "HH:mm:ss",
+      "required": true
+    },
+    {
+      "name": "Callsign",
+      "column": "CALL",
+      "type": "string",
+      "required": true,
+      "uppercase": true
+    },
+    {
+      "name": "Frequency",
+      "column": "FREQ",
+      "type": "number",
+      "unit": "kHz",
+      "required": true
+    },
+    {
+      "name": "Mode",
+      "column": "MODE",
+      "type": "enum",
+      "values": [
+        "CW",
+        "SSB"
+      ],
+      "required": true
+    },
+    {
+      "name": "RST Sent",
+      "column": "RSTs",
+      "type": "string",
+      "required": true,
+      "default": "599"
+    },
+    {
+      "name": "RST Rcvd",
+      "column": "RSTr",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "Exch Sent",
+      "column": "EXCHs",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "Exch Rcvd",
+      "column": "EXCHr",
+      "type": "string",
+      "required": true,
+      "uppercase": true,
+      "description": "ITU zone or HQ/official abbreviation"
+    },
+    {
+      "name": "Points",
+      "column": "POINTS",
+      "type": "number",
+      "calculated": true
+    },
+    {
+      "name": "Mult",
+      "column": "M",
+      "type": "string",
+      "calculated": true
+    }
+  ],
+  "scoring": {
+    "points": {
+      "iaruHqOrOfficial": {
+        "CW": 1,
+        "SSB": 1
+      },
+      "sameItuZone": {
+        "CW": 1,
+        "SSB": 1
+      },
+      "sameContinent": {
+        "CW": 3,
+        "SSB": 3
+      },
+      "differentContinent": {
+        "CW": 5,
+        "SSB": 5
+      }
+    },
+    "exchangeRules": {
+      "iaruHqOrOfficial": {
+        "exchangeIsAlpha": true
+      },
+      "sameItuZone": {
+        "matchesPrompt": "myZone"
+      }
+    },
+    "precedence": [
+      "iaruHqOrOfficial",
+      "sameItuZone",
+      "sameContinent",
+      "differentContinent"
+    ],
+    "multipliers": {
+      "type": "multsPerBand",
+      "description": "ITU zones plus IARU HQ/official stations, counted once per band (not per mode)",
+      "categories": [
+        "namedMults"
+      ],
+      "namedMultSource": "exchange"
+    },
+    "finalScore": "SUM(points) * namedMults"
+  },
+  "dupeChecking": {
+    "type": "perBandAndMode",
+    "description": "Station may be worked once per band per mode (CW and SSB count separately)"
+  },
+  "logging": {
+    "requiredFields": [
+      "date",
+      "time",
+      "frequency",
+      "mode",
+      "callsign",
+      "rstSent",
+      "rstReceived",
+      "exchSent",
+      "exchReceived"
+    ],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "IARU-HF",
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {rst_sent} {exch_sent} {call} {rst_rcvd} {exch_rcvd}",
+      "requiredHeaders": [
+        "CONTEST",
+        "CALLSIGN",
+        "CATEGORY-OPERATOR",
+        "CATEGORY-BAND",
+        "CATEGORY-POWER",
+        "CATEGORY-MODE",
+        "CATEGORY-TRANSMITTER",
+        "CATEGORY-ASSISTED",
+        "CLAIMED-SCORE",
+        "CLUB",
+        "NAME",
+        "ADDRESS",
+        "OPERATORS"
+      ]
+    }
+  },
+  "callHistory": {
+    "fieldsToSave": [
+      "EXCHr"
+    ],
+    "description": "Save received ITU zone / HQ abbreviation for future lookups"
+  },
+  "validation": {
+    "minimumQSOs": 1,
+    "maxOperatingTime": 24,
+    "offTimesRequired": false,
+    "namedMults": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9",
+      "10",
+      "11",
+      "12",
+      "13",
+      "14",
+      "15",
+      "16",
+      "17",
+      "18",
+      "19",
+      "20",
+      "21",
+      "22",
+      "23",
+      "24",
+      "25",
+      "26",
+      "27",
+      "28",
+      "29",
+      "30",
+      "31",
+      "32",
+      "33",
+      "34",
+      "35",
+      "36",
+      "37",
+      "38",
+      "39",
+      "40",
+      "41",
+      "42",
+      "43",
+      "44",
+      "45",
+      "46",
+      "47",
+      "48",
+      "49",
+      "50",
+      "51",
+      "52",
+      "53",
+      "54",
+      "55",
+      "56",
+      "57",
+      "58",
+      "59",
+      "60",
+      "61",
+      "62",
+      "63",
+      "64",
+      "65",
+      "66",
+      "67",
+      "68",
+      "69",
+      "70",
+      "71",
+      "72",
+      "73",
+      "74",
+      "75",
+      "76",
+      "77",
+      "78",
+      "79",
+      "80",
+      "81",
+      "82",
+      "83",
+      "84",
+      "85",
+      "86",
+      "87",
+      "88",
+      "89",
+      "90",
+      "AC",
+      "R1",
+      "R2",
+      "R3",
+      "IARU",
+      "OEVSV",
+      "UBA",
+      "BFRA",
+      "HRS",
+      "CRK",
+      "EDR",
+      "ERAU",
+      "SRAL",
+      "REF",
+      "DARC",
+      "RAAG",
+      "MRASZ",
+      "IRTS",
+      "ARI",
+      "LRAL",
+      "LRMD",
+      "MARL",
+      "VERON",
+      "NRRL",
+      "PZK",
+      "ARLA",
+      "REP",
+      "FRR",
+      "SRR",
+      "RSGB",
+      "ZRS",
+      "SZR",
+      "URE",
+      "SSA",
+      "USKA",
+      "UARL",
+      "EARS",
+      "SARL",
+      "ARSSM",
+      "NARL",
+      "CARS",
+      "ARRL",
+      "RAC",
+      "LABRE",
+      "RCA",
+      "FMRE",
+      "RCV",
+      "RCP",
+      "CRA",
+      "LARC",
+      "CRAG",
+      "REF2",
+      "WIA",
+      "NZART",
+      "JARL",
+      "KARL",
+      "CRSA",
+      "CTARL",
+      "RAST",
+      "ORARI",
+      "MARTS",
+      "PARA",
+      "ARSI",
+      "NIAR",
+      "SARTS",
+      "HARTS",
+      "BARL",
+      "MRS",
+      "RSSL"
+    ],
+    "namedMultAliases": {
+      "01": 1,
+      "02": 2,
+      "03": 3,
+      "04": 4,
+      "05": 5,
+      "06": 6,
+      "07": 7,
+      "08": 8,
+      "09": 9
+    }
+  },
+  "ui": {
+    "showMultiplierPanel": true,
+    "logColumns": [
+      "DATE",
+      "TIME",
+      "CALL",
+      "FREQ",
+      "MODE",
+      "RSTs",
+      "RSTr",
+      "EXCHs",
+      "EXCHr",
+      "POINTS",
+      "M"
+    ],
+    "entryFields": [
+      "CALL",
+      "RSTr",
+      "EXCHr"
+    ],
+    "fieldNavigation": {
+      "keys": "tab"
+    },
+    "bandMap": {
+      "enabled": true,
+      "bands": [
+        "160m",
+        "80m",
+        "40m",
+        "20m",
+        "15m",
+        "10m"
+      ]
+    },
+    "multiplierDisplay": {
+      "showZones": true,
+      "showHQ": true
+    }
+  }
+}

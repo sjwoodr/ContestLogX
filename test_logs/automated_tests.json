@@ -1,6 +1,11 @@
 {
   "tests": [
     {
+      "name": "IARU HF regular US op N9OH zone 8 (8 QSOs, multsPerBand ITU zones + HQ stations from exchange, scoring: own/same zone=1pt, HQ/official alpha exchange=1pt, same continent diff zone=3pt, diff continent=5pt; zone 7 worked on 20m CW and SSB counts as one per-band mult)",
+      "log_file": "test_iaru_hf_regular.clx",
+      "expected_score": 154
+    },
+    {
       "name": "ALQP In-State AL op JEFF (46 QSOs incl 3 dupes, multsPerMode counties+states+prov+DXCC, namedMultAliases DC->MDC and MD->MDC, same county worked on CW and SSB counts as two mults, +2 automatic AL state mults credited per mode where an AL station was worked)",
       "log_file": "test_alqp_instate.clx",
       "expected_score": 3784

@@ -391,6 +391,23 @@ Example: DXCC-only scoring (ignores continent rules even if defined):
 "precedence": ["sameDxccEntity", "differentDxccEntity"]
 ```
 
+**Exchange-based scoring rules (`scoring.exchangeRules`):**
+A scoring rule can fire based on the *received exchange* (`EXCHr`) instead of the worked station's DXCC/continent. List the rule in `precedence` and describe how it matches under `scoring.exchangeRules`:
+- `"matchesPrompt": "<promptId>"` — applies when the received exchange equals the operator's own answer to that `userPrompts` entry (numbers compared numerically, so `08` matches `8`).
+- `"exchangeIsAlpha": true` — applies when the received exchange contains any letter.
+
+```json
+"scoring": {
+  "exchangeRules": {
+    "iaruHqOrOfficial": { "exchangeIsAlpha": true },
+    "sameItuZone":      { "matchesPrompt": "myZone" }
+  },
+  "precedence": ["iaruHqOrOfficial", "sameItuZone", "sameContinent", "differentContinent"]
+}
+```
+
+The IARU HF World Championship uses this so a same-ITU-zone contact and an HQ/official contact (whose exchange is a letter abbreviation like `ARRL`/`R2` rather than a numeric zone) each score 1 point, ahead of the continent rules.
+
 ### Dupe Checking Section
 
 Defines when a contact is considered a duplicate:

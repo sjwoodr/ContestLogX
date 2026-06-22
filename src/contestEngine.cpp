@@ -1019,6 +1019,49 @@ int ContestEngine::calculatePoints(const QsoRecord& qso, const QString& myCallsi
                     }
                 }
 
+                // Exchange-based rule matchers (IARU HF Championship: same ITU zone,
+                // HQ/official station). scoring.exchangeRules[rule] may contain:
+                //   "matchesPrompt": "<promptId>"  — applies when the received exchange
+                //       (EXCHr) equals the operator's own value for that userPrompt
+                //       (e.g. sameItuZone: received ITU zone == my zone). Numbers are
+                //       compared numerically so "08" matches "8".
+                //   "exchangeIsAlpha": true         — applies when the received exchange
+                //       contains any letter (e.g. IARU HQ/official stations send a
+                //       society/official abbreviation like "ARRL"/"R2" instead of a
+                //       numeric zone). Zones are all-digit, so this cleanly separates them.
+                if (!ruleApplies && scoring.contains("exchangeRules")) {
+                    QJsonObject exchangeRules = scoring["exchangeRules"].toObject();
+                    if (exchangeRules.contains(rule)) {
+                        QJsonObject er = exchangeRules[rule].toObject();
+                        const QString rxExch = qso.getExchangeReceived().trimmed().toUpper();
+
+                        if (er.contains("matchesPrompt")) {
+                            const QString promptId = er["matchesPrompt"].toString();
+                            const QString myVal = m_userPromptValues.value(promptId).trimmed().toUpper();
+                            if (!myVal.isEmpty() && !rxExch.isEmpty()) {
+                                bool okRx = false, okMy = false;
+                                const int rxNum = rxExch.toInt(&okRx);
+                                const int myNum = myVal.toInt(&okMy);
+                                if (okRx && okMy) {
+                                    ruleApplies = (rxNum == myNum);
+                                } else {
+                                    ruleApplies = (rxExch == myVal);
+                                }
+                            }
+                        }
+
+                        if (!ruleApplies && er.value("exchangeIsAlpha").toBool(false)) {
+                            ruleApplies = rxExch.contains(QRegularExpression("[A-Z]"));
+                        }
+
+                        if (ruleApplies) {
+                            DebugLogger::instance().log("ContestEngine",
+                                QString("  Rule '%1' applies via exchangeRules (EXCHr='%2')")
+                                    .arg(rule, rxExch));
+                        }
+                    }
+                }
+
                 // Check if a condition restricts this rule to specific station types
                 if (ruleApplies && scoring.contains("scoringRuleConditions")) {
                     QJsonObject conditions = scoring["scoringRuleConditions"].toObject();

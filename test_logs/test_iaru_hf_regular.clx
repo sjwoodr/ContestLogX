@@ -1,0 +1,223 @@
+{
+    "contest": {
+        "categories": {
+            "userPrompt_stationType": "REGULAR",
+            "userPrompt_myZone": "8",
+            "userPrompt_operatingCategory": "SO",
+            "userPrompt_powerCategory": "HP"
+        },
+        "contest_file": "iaru_hf.json",
+        "mode": "",
+        "name": "IARU HF World Championship",
+        "type": "IARU HF World Championship",
+        "version": "1.0.0",
+        "year": 2026
+    },
+    "created": "2026-07-11T12:00:00",
+    "exchange_fields": [],
+    "format": "ContestLogX",
+    "format_version": "1.0",
+    "modified": "2026-07-11T13:00:00",
+    "qsos": [
+        {
+            "band": "20m",
+            "callsign": "K1ABC",
+            "duplicate": false,
+            "dxcc_count": 0,
+            "exchange_fields": {
+                "CALL": "K1ABC",
+                "EXCHr": "8",
+                "EXCHs": "8",
+                "RSTr": "599",
+                "RSTs": "599"
+            },
+            "frequency": 14035,
+            "grid_square_count": 0,
+            "id": 1,
+            "mode": "CW",
+            "multiplier_count": 0,
+            "points": 1,
+            "rst_received": "599",
+            "rst_sent": "599",
+            "serial": 1,
+            "timestamp": "2026-07-11T12:01:00Z"
+        },
+        {
+            "band": "20m",
+            "callsign": "K7XX",
+            "duplicate": false,
+            "dxcc_count": 0,
+            "exchange_fields": {
+                "CALL": "K7XX",
+                "EXCHr": "7",
+                "EXCHs": "8",
+                "RSTr": "599",
+                "RSTs": "599"
+            },
+            "frequency": 14036,
+            "grid_square_count": 0,
+            "id": 2,
+            "mode": "CW",
+            "multiplier_count": 0,
+            "points": 3,
+            "rst_received": "599",
+            "rst_sent": "599",
+            "serial": 2,
+            "timestamp": "2026-07-11T12:02:00Z"
+        },
+        {
+            "band": "20m",
+            "callsign": "DL1ABC",
+            "duplicate": false,
+            "dxcc_count": 0,
+            "exchange_fields": {
+                "CALL": "DL1ABC",
+                "EXCHr": "28",
+                "EXCHs": "8",
+                "RSTr": "599",
+                "RSTs": "599"
+            },
+            "frequency": 14037,
+            "grid_square_count": 0,
+            "id": 3,
+            "mode": "CW",
+            "multiplier_count": 0,
+            "points": 5,
+            "rst_received": "599",
+            "rst_sent": "599",
+            "serial": 3,
+            "timestamp": "2026-07-11T12:03:00Z"
+        },
+        {
+            "band": "20m",
+            "callsign": "DA0HQ",
+            "duplicate": false,
+            "dxcc_count": 0,
+            "exchange_fields": {
+                "CALL": "DA0HQ",
+                "EXCHr": "DARC",
+                "EXCHs": "8",
+                "RSTr": "599",
+                "RSTs": "599"
+            },
+            "frequency": 14038,
+            "grid_square_count": 0,
+            "id": 4,
+            "mode": "CW",
+            "multiplier_count": 0,
+            "points": 1,
+            "rst_received": "599",
+            "rst_sent": "599",
+            "serial": 4,
+            "timestamp": "2026-07-11T12:04:00Z"
+        },
+        {
+            "band": "40m",
+            "callsign": "VE3XYZ",
+            "duplicate": false,
+            "dxcc_count": 0,
+            "exchange_fields": {
+                "CALL": "VE3XYZ",
+                "EXCHr": "4",
+                "EXCHs": "8",
+                "RSTr": "599",
+                "RSTs": "599"
+            },
+            "frequency": 7025,
+            "grid_square_count": 0,
+            "id": 5,
+            "mode": "CW",
+            "multiplier_count": 0,
+            "points": 3,
+            "rst_received": "599",
+            "rst_sent": "599",
+            "serial": 5,
+            "timestamp": "2026-07-11T12:10:00Z"
+        },
+        {
+            "band": "40m",
+            "callsign": "JA1XYZ",
+            "duplicate": false,
+            "dxcc_count": 0,
+            "exchange_fields": {
+                "CALL": "JA1XYZ",
+                "EXCHr": "45",
+                "EXCHs": "8",
+                "RSTr": "599",
+                "RSTs": "599"
+            },
+            "frequency": 7026,
+            "grid_square_count": 0,
+            "id": 6,
+            "mode": "CW",
+            "multiplier_count": 0,
+            "points": 5,
+            "rst_received": "599",
+            "rst_sent": "599",
+            "serial": 6,
+            "timestamp": "2026-07-11T12:11:00Z"
+        },
+        {
+            "band": "40m",
+            "callsign": "W1AW",
+            "duplicate": false,
+            "dxcc_count": 0,
+            "exchange_fields": {
+                "CALL": "W1AW",
+                "EXCHr": "ARRL",
+                "EXCHs": "8",
+                "RSTr": "599",
+                "RSTs": "599"
+            },
+            "frequency": 7027,
+            "grid_square_count": 0,
+            "id": 7,
+            "mode": "CW",
+            "multiplier_count": 0,
+            "points": 1,
+            "rst_received": "599",
+            "rst_sent": "599",
+            "serial": 7,
+            "timestamp": "2026-07-11T12:12:00Z"
+        },
+        {
+            "band": "20m",
+            "callsign": "K7XX",
+            "duplicate": false,
+            "dxcc_count": 0,
+            "exchange_fields": {
+                "CALL": "K7XX",
+                "EXCHr": "7",
+                "EXCHs": "8",
+                "RSTr": "599",
+                "RSTs": "599"
+            },
+            "frequency": 14250,
+            "grid_square_count": 0,
+            "id": 8,
+            "mode": "SSB",
+            "multiplier_count": 0,
+            "points": 3,
+            "rst_received": "599",
+            "rst_sent": "599",
+            "serial": 8,
+            "timestamp": "2026-07-11T12:20:00Z"
+        }
+    ],
+    "station": {
+        "callsign": "N9OH",
+        "equipment": {
+            "power": 1000
+        },
+        "location": {
+            "grid": "EN70",
+            "state": "IN"
+        },
+        "operator": "Test Operator IARU"
+    },
+    "statistics": {
+        "score": 0,
+        "total_points": 0,
+        "total_qsos": 8
+    }
+}

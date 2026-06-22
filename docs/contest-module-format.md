@@ -334,6 +334,23 @@ An ordered array of point rule names. The engine evaluates each rule in order an
 
 Both arrays can be set on the same rule; the callsign list is checked only if the prefix list doesn't match.
 
+**Exchange-based rules (`scoring.exchangeRules`).** A rule can also fire based on the *received exchange* (`EXCHr`) rather than the worked station's DXCC/callsign. Add a `scoring.exchangeRules` object keyed by rule name; each entry may contain:
+
+- `"matchesPrompt": "<promptId>"` — the rule applies when the received exchange equals the operator's own answer to that `userPrompts` entry. Numbers are compared numerically, so `08` matches `8`.
+- `"exchangeIsAlpha": true` — the rule applies when the received exchange contains any letter (useful for distinguishing a numeric code from an alphabetic abbreviation).
+
+```json
+"scoring": {
+  "exchangeRules": {
+    "iaruHqOrOfficial": { "exchangeIsAlpha": true },
+    "sameItuZone":      { "matchesPrompt": "myZone" }
+  },
+  "precedence": ["iaruHqOrOfficial", "sameItuZone", "sameContinent", "differentContinent"]
+}
+```
+
+The IARU HF World Championship uses this: `sameItuZone` (received ITU zone equals the operator's own zone) scores 1 point, and `iaruHqOrOfficial` (HQ/official stations send a letter abbreviation like `ARRL`/`R2` instead of a numeric zone) scores 1 point — both ahead of the continent-based rules in `precedence`.
+
 ### multipliers
 
 ```json

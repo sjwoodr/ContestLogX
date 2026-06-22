@@ -2,6 +2,14 @@
 
 All notable changes to ContestLogX are documented in this file.
 
+## [0.9.4]
+
+### Contest Updates
+- Added the IARU HF World Championship contest definition
+
+### Contest Engine Changes
+- Added an optional `scoring.exchangeRules` block that lets a scoring rule match on the received exchange itself. A rule can apply when the received exchange equals one of the operator's own `userPrompts` answers (`matchesPrompt`, compared numerically so `08` matches `8`) or when the received exchange contains letters (`exchangeIsAlpha`). The IARU HF World Championship uses both, `matchesPrompt` to detect a same-ITU-zone contact, and `exchangeIsAlpha` to detect HQ/official stations (which send a letter abbreviation rather than a numeric zone). Documented in `docs/contest-module-format.md` and `contests/README.md`
+
 ## [0.9.3]
 
 ### Other Changes and Bugfixes
