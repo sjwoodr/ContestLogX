@@ -2,6 +2,11 @@
 
 All notable changes to ContestLogX are documented in this file.
 
+## [0.9.3]
+
+### Other Changes and Bugfixes
+- Updated FileLu affiliate link in docs
+
 ## [0.9.2]
 
 ### Other Changes and Bugfixes

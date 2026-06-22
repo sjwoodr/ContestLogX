@@ -47,7 +47,7 @@ inline QString displayName(CloudProviderType t) {
 
 inline QString signupUrl(CloudProviderType t) {
     switch (t) {
-    case CloudProviderType::FileLu:      return QStringLiteral("https://filelu.com");
+    case CloudProviderType::FileLu:      return QStringLiteral("https://filelu.com/ref495255525748.html");
     case CloudProviderType::AwsS3:       return QStringLiteral("https://aws.amazon.com/s3/");
     case CloudProviderType::Dropbox:     return QStringLiteral("https://www.dropbox.com");
     case CloudProviderType::GoogleDrive: return QStringLiteral("https://drive.google.com");
