@@ -16,7 +16,7 @@ QString encodeChar(QChar c)
     if (up == QLatin1Char(' ')) return QString();
 
     for (const MorseEntry& e : kMorseTable) {
-        // Skip prosigns (their "text" starts with '<') — they're decode-only.
+        // Skip prosigns (their "text" starts with '<') - they're decode-only.
         if (!e.text.empty() && e.text[0] == '<') continue;
         if (e.text.size() != 1) continue;
         if (QChar(e.text[0]) == up) {

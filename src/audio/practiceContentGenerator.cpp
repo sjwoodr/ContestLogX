@@ -16,7 +16,7 @@ namespace clx::audio {
 
 namespace {
 
-// Canonical US + common DX prefixes. Weighted list — more US entries so
+// Canonical US + common DX prefixes. Weighted list - more US entries so
 // the random mix sounds like a typical North American contest band.
 const char* const kPrefixes[] = {
     "K", "K", "K", "K", "W", "W", "W", "W", "N", "N", "N",
@@ -44,7 +44,7 @@ const char* const kNames[] = {
 };
 constexpr size_t kNameCount = sizeof(kNames) / sizeof(kNames[0]);
 
-// US states + common Canadian provinces — good enough for rag-chew
+// US states + common Canadian provinces - good enough for rag-chew
 // "QTH is XX" fills. Contest mode uses named mults from the engine.
 const char* const kStates[] = {
     "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL",
@@ -75,7 +75,7 @@ constexpr size_t kPwrCount = sizeof(kPowers) / sizeof(kPowers[0]);
 
 // Rag-chew templates. {mycall} is the station calling; other placeholders
 // get filled per-fragment. Keep fragments on the shorter side so the
-// decoder exercises realistically — a CQ + short info blob.
+// decoder exercises realistically - a CQ + short info blob.
 const char* const kRagchewTemplates[] = {
     "CQ CQ CQ DE {mycall} {mycall} K",
     "CQ DX CQ DX DE {mycall} {mycall} K",
@@ -175,7 +175,7 @@ QString PracticeContentGenerator::nextContest()
     // Contest exchanges always send 5NN as RST. The varying part is the
     // multiplier or serial. Produce both CQ fragments (Run side) and
     // reply/exchange fragments (S&P side) so practice covers both.
-    // Roughly 30% CQ calls, 70% exchanges — matches a real band's ratio
+    // Roughly 30% CQ calls, 70% exchanges - matches a real band's ratio
     // of short answers to the occasional CQ.
     const int roll = static_cast<int>(m_rng() % 10);
     if (roll < 3) {
@@ -201,7 +201,7 @@ QString PracticeContentGenerator::randomCall()
     const int digit = static_cast<int>(m_rng() % 10);
 
     // Suffix: 1-3 letters. 2-letter is most common (~60%), 1-letter ~15%,
-    // 3-letter ~25% — matches rough distribution of real callsigns.
+    // 3-letter ~25% - matches rough distribution of real callsigns.
     const int suffLenRoll = static_cast<int>(m_rng() % 100);
     const int suffLen = (suffLenRoll < 15) ? 1 : (suffLenRoll < 75) ? 2 : 3;
     QString suffix;

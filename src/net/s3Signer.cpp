@@ -21,7 +21,7 @@ QString hashSha256Hex(const QByteArray& data)
 
 QString emptyPayloadHash()
 {
-    // SHA-256 of "" — the canonical constant AWS expects for empty bodies.
+    // SHA-256 of "" - the canonical constant AWS expects for empty bodies.
     return QStringLiteral("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855");
 }
 

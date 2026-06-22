@@ -88,7 +88,7 @@ void TestCallsignUtils::testWpxPrefixNoDigitCalls()
     QCOMPARE(CallsignUtils::extractWpxPrefix("XEFTJW"), QStringLiteral("XE0"));
 }
 
-// "/<digit>" is a call-area change — combine base letters with the new digit.
+// "/<digit>" is a call-area change - combine base letters with the new digit.
 void TestCallsignUtils::testWpxPrefixCallAreaChange()
 {
     QCOMPARE(CallsignUtils::extractWpxPrefix("W1AW/4"),  QStringLiteral("W4"));
@@ -138,7 +138,7 @@ void TestCallsignUtils::testWpxPrefixEdgeCases()
 
 // Digit-led prefixes are very common in WPX (3D2 Fiji, 4U1 UN, 9A Croatia,
 // 7Q7 Malawi, 8P9 Barbados, etc.). The extractor MUST handle these correctly
-// — they are real DXCC entities and a contest entry without them would be a
+// - they are real DXCC entities and a contest entry without them would be a
 // significant scoring error.
 void TestCallsignUtils::testWpxPrefixDigitLedPrefixes()
 {
@@ -167,7 +167,7 @@ void TestCallsignUtils::testWpxPrefixThreeCharCountryPrefixes()
     QCOMPARE(CallsignUtils::extractWpxPrefix("T88AB"),   QStringLiteral("T88"));   // Palau
     QCOMPARE(CallsignUtils::extractWpxPrefix("VK0EK"),   QStringLiteral("VK0"));   // Heard Is.
     QCOMPARE(CallsignUtils::extractWpxPrefix("ZL8X"),    QStringLiteral("ZL8"));   // Kermadec
-    // VP2 is the WPX prefix for VP2EAA — even though VP2E (Anguilla),
+    // VP2 is the WPX prefix for VP2EAA - even though VP2E (Anguilla),
     // VP2M (Montserrat) and VP2V (BVI) are different DXCC entities, they
     // all share the same WPX prefix per the rule "letters + leading digit
     // run". WPX is callsign-prefix-based, not DXCC-entity-based.
@@ -204,7 +204,7 @@ void TestCallsignUtils::testWpxPrefixCallAreaChangeWithDigitLedBase()
     QCOMPARE(CallsignUtils::extractWpxPrefix("4X4XYZ/6"), QStringLiteral("4X6"));
 }
 
-// Multi-digit areas — /<digit> replaces the entire trailing-digit run with
+// Multi-digit areas - /<digit> replaces the entire trailing-digit run with
 // the new single digit.
 void TestCallsignUtils::testWpxPrefixCallAreaChangeWithMultiDigitBase()
 {
@@ -214,7 +214,7 @@ void TestCallsignUtils::testWpxPrefixCallAreaChangeWithMultiDigitBase()
 }
 
 // Portable designator that itself starts with a digit (Fiji visiting a
-// foreign call, etc.). Both sides exercised — designator shape detection
+// foreign call, etc.). Both sides exercised - designator shape detection
 // must work regardless of which side it's on.
 void TestCallsignUtils::testWpxPrefixDigitLedPortableDesignator()
 {
@@ -223,7 +223,7 @@ void TestCallsignUtils::testWpxPrefixDigitLedPortableDesignator()
     QCOMPARE(CallsignUtils::extractWpxPrefix("W1AW/9A1"),   QStringLiteral("9A1"));
     QCOMPARE(CallsignUtils::extractWpxPrefix("9A1/W1AW"),   QStringLiteral("9A1"));
     QCOMPARE(CallsignUtils::extractWpxPrefix("DL1ABC/4U1"), QStringLiteral("4U1"));
-    // 4X is Israel's authorized country prefix — it has a digit (the '4')
+    // 4X is Israel's authorized country prefix - it has a digit (the '4')
     // so the WPX 0-padding rule does NOT apply. Designator becomes the
     // prefix verbatim.
     QCOMPARE(CallsignUtils::extractWpxPrefix("4X/G3PQR"),   QStringLiteral("4X"));
@@ -246,7 +246,7 @@ void TestCallsignUtils::testWpxPrefixStackedSuffixes()
 }
 
 // US license-class identifiers (/AE, /AG, /T, /N) and the QRP power-class
-// marker — all must NOT count as prefixes per "or other license class
+// marker - all must NOT count as prefixes per "or other license class
 // identifiers" in the WPX rules.
 void TestCallsignUtils::testWpxPrefixUSLicenseClassIndicators()
 {
@@ -282,7 +282,7 @@ void TestCallsignUtils::testWpxPrefixMixedCaseAndPathological()
     QCOMPARE(CallsignUtils::extractWpxPrefix("K1ABC/"),  QStringLiteral("K1"));   // trailing slash safe
 }
 
-// Real-world callsigns from major DX entities — sanity-check that nothing
+// Real-world callsigns from major DX entities - sanity-check that nothing
 // surprising happens on the calls a competitive entry will actually log.
 void TestCallsignUtils::testWpxPrefixRealWorldCallsigns()
 {

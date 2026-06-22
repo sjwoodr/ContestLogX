@@ -24,22 +24,22 @@ Debug information is written to:
 - Enable specific components only when debugging that area to reduce log noise
 - Debug settings are loaded BEFORE any components initialize, ensuring clean startup logs
 
-## Recent Changes (2026 — 0.7.x)
+## Recent Changes (2026 - 0.7.x)
 
 ### CW Decoder ✅
 
-**Feature branch: `004-cw-decoder`** — dockable multi-channel CW decoder, one per radio that has an audio input device configured. See `specs/004-cw-decoder/` for the full SpecKit artifacts (spec, plan, research, data model, contracts, tasks, checklists).
+**Feature branch: `004-cw-decoder`** - dockable multi-channel CW decoder, one per radio that has an audio input device configured. See `specs/004-cw-decoder/` for the full SpecKit artifacts (spec, plan, research, data model, contracts, tasks, checklists).
 
 **Architecture**:
-- `src/audio/` (new directory) — DSP + capture subsystem. Pure C++ where possible; Qt types only at signal boundaries.
-- `include/audio/audioTypes.h` — shared enums, defaults, `blockSamplesForRate()` helper
-- `include/audio/morseTable.h` — compile-time Morse lookup (~55 entries, letters/digits/common prosigns)
-- `include/audio/spscRingBuffer.h` — lock-free SPSC ring buffer (std::atomic head/tail)
-- `include/audio/binChannel.{h,cpp}` — one Goertzel tone detector + dot/dash classifier + rolling-median WPM estimator + Morse decoder per bin
-- `include/audio/cwDecoder.{h,cpp}` — owns a vector of `BinChannel` and dispatches audio blocks to each
-- `include/audio/audioCapture.{h,cpp}` — `QAudioSource` wrapper; captures at device's native sample rate (no internal resampling — earlier nearest-neighbor decimation aliased above-Nyquist noise into the CW band); accepts int16 / int32 / float / uint8 input, takes channel 0 from stereo
-- `include/audio/cwDecoderWorker.{h,cpp}` — `QObject` on a `QThread`; drains the ring buffer, processes blocks via `CwDecoder`, emits `charDecoded` / `wpmUpdated` / `binLayoutChanged` / `muteStateChanged` over queued connections
-- `include/cwDecoderWidget.h` + `src/ui/cwDecoderWidget.cpp` — `QDockWidget` with stacked scrolling bin rows, operator-click token fill, adaptive visual highlighting for callsign and RST tokens
+- `src/audio/` (new directory) - DSP + capture subsystem. Pure C++ where possible; Qt types only at signal boundaries.
+- `include/audio/audioTypes.h` - shared enums, defaults, `blockSamplesForRate()` helper
+- `include/audio/morseTable.h` - compile-time Morse lookup (~55 entries, letters/digits/common prosigns)
+- `include/audio/spscRingBuffer.h` - lock-free SPSC ring buffer (std::atomic head/tail)
+- `include/audio/binChannel.{h,cpp}` - one Goertzel tone detector + dot/dash classifier + rolling-median WPM estimator + Morse decoder per bin
+- `include/audio/cwDecoder.{h,cpp}` - owns a vector of `BinChannel` and dispatches audio blocks to each
+- `include/audio/audioCapture.{h,cpp}` - `QAudioSource` wrapper; captures at device's native sample rate (no internal resampling - earlier nearest-neighbor decimation aliased above-Nyquist noise into the CW band); accepts int16 / int32 / float / uint8 input, takes channel 0 from stereo
+- `include/audio/cwDecoderWorker.{h,cpp}` - `QObject` on a `QThread`; drains the ring buffer, processes blocks via `CwDecoder`, emits `charDecoded` / `wpmUpdated` / `binLayoutChanged` / `muteStateChanged` over queued connections
+- `include/cwDecoderWidget.h` + `src/ui/cwDecoderWidget.cpp` - `QDockWidget` with stacked scrolling bin rows, operator-click token fill, adaptive visual highlighting for callsign and RST tokens
 
 **DSP pipeline**:
 1. `QAudioSource` → int16 mono at device's native sample rate (typically 44100 or 48000 Hz)
@@ -49,7 +49,7 @@ Debug information is written to:
 5. Clickable token detection per row: callsign regex (standard + slash notation) and RST regex (strict `[1-5][1-9N][1-9N]` whitespace-bounded, with N/T cut-number normalization applied on click)
 6. Stuck-Schmitt safety release: if the detector has been ON for longer than 6× current dot estimate (= 2× a dash), force-close the element and reset the magnitude smoothing window so the next cycle starts cold
 
-**PTT mute** — two independent paths, both gated by a per-radio "Mute decoder on PTT" setting:
+**PTT mute** - two independent paths, both gated by a per-radio "Mute decoder on PTT" setting:
 - Rig-backend path: `RigInterface::pttStateChanged(bool)` signal (added to the base class) → `CwDecoderWorker::setPttMute(bool)`
 - Internal-send path: `MainWindow::notifyInternalCwSend(side, textChars, sendWpm)` fired from the `CWWindow::aboutToSendCw` signal at every `rigClient->sendCW()` invocation → decoder mutes for estimated send duration + grace window (default 250 ms)
 
@@ -69,48 +69,48 @@ Debug information is written to:
 
 ### Remote Dashboard ✅
 
-**TODO roadmap item 3** — embedded HTTP server that serves a read-only dashboard of the current session on the LAN. V1 scope (read-only) shipped in 0.7.25; V2 (minimal rig-control writes) deferred.
+**TODO roadmap item 3** - embedded HTTP server that serves a read-only dashboard of the current session on the LAN. V1 scope (read-only) shipped in 0.7.25; V2 (minimal rig-control writes) deferred.
 
 **Architecture**:
-- `include/net/clxSnapshot.{h,cpp}` — thread-safe point-in-time view (score, recent QSOs, rig L+R, rate, propagation, worked named mults) protected by `QReadWriteLock`. Single writer (`MainWindow`) on score/QSO/rig state changes; multiple readers (HTTP handlers) take a cheap full `Copy` under the read lock and serialize JSON without holding the lock.
-- `include/net/httpServer.{h,cpp}` — minimal HTTP/1.1 server on top of `QTcpServer`. Close-after-response (no keep-alive). Route dispatch via method+path exact match in a `QHash<RouteKey, HttpHandler>`. Per-socket read buffer for fragmented requests.
-- `resources/dashboard.html` — single-file static dashboard served at `/` (and `/dashboard.html`). Vanilla HTML/CSS/JS — no framework. Polls the 7 `/api/*` endpoints every 5 s in parallel via `Promise.all`. Responsive CSS grid: one column on phones, three on desktop, Score hero + Recent QSOs table span full width. Dark theme matching the app.
-- `src/ui/preferencesDialog.cpp` — "Dashboard" tab with enable toggle, port, bind mode (LAN / Localhost / Any), read-only token field with Rotate button, and a read-only "Phone URL" line with Copy-to-Clipboard. Changes apply on OK; MainWindow stops+starts the server.
+- `include/net/clxSnapshot.{h,cpp}` - thread-safe point-in-time view (score, recent QSOs, rig L+R, rate, propagation, worked named mults) protected by `QReadWriteLock`. Single writer (`MainWindow`) on score/QSO/rig state changes; multiple readers (HTTP handlers) take a cheap full `Copy` under the read lock and serialize JSON without holding the lock.
+- `include/net/httpServer.{h,cpp}` - minimal HTTP/1.1 server on top of `QTcpServer`. Close-after-response (no keep-alive). Route dispatch via method+path exact match in a `QHash<RouteKey, HttpHandler>`. Per-socket read buffer for fragmented requests.
+- `resources/dashboard.html` - single-file static dashboard served at `/` (and `/dashboard.html`). Vanilla HTML/CSS/JS - no framework. Polls the 7 `/api/*` endpoints every 5 s in parallel via `Promise.all`. Responsive CSS grid: one column on phones, three on desktop, Score hero + Recent QSOs table span full width. Dark theme matching the app.
+- `src/ui/preferencesDialog.cpp` - "Dashboard" tab with enable toggle, port, bind mode (LAN / Localhost / Any), read-only token field with Rotate button, and a read-only "Phone URL" line with Copy-to-Clipboard. Changes apply on OK; MainWindow stops+starts the server.
 
 **Why not `Qt6::HttpServer`**: the module isn't in Qt 6.2 (the Ubuntu 22.04 / AppImage build base). Keeping the portability floor lets the AppImage run on older distros; rolling a small HTTP server on `QTcpServer` is ~300 LOC of straightforward wire-format handling.
 
-**Auth**: single bearer token, auto-generated (UUID-derived) on first enable. Accepted either as `Authorization: Bearer <token>` or `?token=<token>` query param — query form is what makes the URL bookmarkable on a phone home screen. No rate limiting in V1 (LAN-only scope makes it moot).
+**Auth**: single bearer token, auto-generated (UUID-derived) on first enable. Accepted either as `Authorization: Bearer <token>` or `?token=<token>` query param - query form is what makes the URL bookmarkable on a phone home screen. No rate limiting in V1 (LAN-only scope makes it moot).
 
 **Endpoints (V1, all GET, all token-gated)**:
-- `GET /api/status` — running, contestName/File, so2rEnabled, startedAt, version
-- `GET /api/score` — score snapshot with band/mode breakdown
-- `GET /api/rate` — currentHourlyRate (last 10 min × 6), lastHourRate, sessionAverageRate
-- `GET /api/qsos?limit=N&offset=N` — newest-first paginated; default limit 20, max 200
-- `GET /api/rig` — per-radio freq/mode/band/connected/runSpMode
-- `GET /api/mults` — worked named multipliers
-- `GET /api/propagation` — NOAA SFI/A/K with fetch timestamp
-- `GET /` and `GET /dashboard.html` — static dashboard page from Qt resources
+- `GET /api/status` - running, contestName/File, so2rEnabled, startedAt, version
+- `GET /api/score` - score snapshot with band/mode breakdown
+- `GET /api/rate` - currentHourlyRate (last 10 min × 6), lastHourRate, sessionAverageRate
+- `GET /api/qsos?limit=N&offset=N` - newest-first paginated; default limit 20, max 200
+- `GET /api/rig` - per-radio freq/mode/band/connected/runSpMode
+- `GET /api/mults` - worked named multipliers
+- `GET /api/propagation` - NOAA SFI/A/K with fetch timestamp
+- `GET /` and `GET /dashboard.html` - static dashboard page from Qt resources
 
 **Snapshot update wiring in MainWindow**:
-- `onRecalculateScore` and the three on-load/onLogQso paths each call `updateSnapshotScore()` + `updateSnapshotQsos()` — so the dashboard reflects changes in the same frame the score widget does
+- `onRecalculateScore` and the three on-load/onLogQso paths each call `updateSnapshotScore()` + `updateSnapshotQsos()` - so the dashboard reflects changes in the same frame the score widget does
 - `loadContestDefinition` calls `updateSnapshotStatus()` + `updateSnapshotScore()` + `updateSnapshotQsos()` + `updateSnapshotMults()`
 - NOAA propagation fetch callback pushes into the snapshot on completion
 - A 2-second `QTimer` refreshes rig freq/mode (via `RigInterface::getFrequency()` / `getMode()`) and rate numbers; these don't have obvious push hooks
 
-**Discovery — QR code in Preferences** (shipped in 0.7.25): `QrCodeWidget` + `third_party/qrcodegen/` (nayuki, MIT, single translation unit ~28KB + header) render the full `http://<lan-ip>:<port>/?token=<t>` URL as a QR. Operator scans with phone camera; URL opens with token pre-filled. Chosen over mDNS because a full responder is ~400 LOC of DNS wire-format handling and Bonjour-for-Windows is a real user-install burden. QR works offline, cross-platform, zero-config.
+**Discovery - QR code in Preferences** (shipped in 0.7.25): `QrCodeWidget` + `third_party/qrcodegen/` (nayuki, MIT, single translation unit ~28KB + header) render the full `http://<lan-ip>:<port>/?token=<t>` URL as a QR. Operator scans with phone camera; URL opens with token pre-filled. Chosen over mDNS because a full responder is ~400 LOC of DNS wire-format handling and Bonjour-for-Windows is a real user-install burden. QR works offline, cross-platform, zero-config.
 
 **V2 rig-control writes (shipped 0.7.25)**:
-- `POST /api/rig/qsy {radio, freq_hz, mode}` — set frequency and/or mode on the named radio
-- `POST /api/rig/band {radio, band}` — jump to the low edge of a named band (`160m`..`2m`)
-- `POST /api/rig/run_mode {radio, mode: Run|S&P|Off}` — toggle operating mode
+- `POST /api/rig/qsy {radio, freq_hz, mode}` - set frequency and/or mode on the named radio
+- `POST /api/rig/band {radio, band}` - jump to the low edge of a named band (`160m`..`2m`)
+- `POST /api/rig/run_mode {radio, mode: Run|S&P|Off}` - toggle operating mode
 - Handlers run on the Qt main thread (consistent with UI-driven rig calls); flrig's synchronous XML-RPC can briefly stall the UI on a misbehaving rig but no worse than clicking the same control in-app
-- Run-mode skips the modal "missing memory roles" validation that UI buttons do — a phone request shouldn't pop a dialog on the shack PC. F-key sends just silently no-op if roles aren't assigned, same as other headless invocations
+- Run-mode skips the modal "missing memory roles" validation that UI buttons do - a phone request shouldn't pop a dialog on the shack PC. F-key sends just silently no-op if roles aren't assigned, same as other headless invocations
 
 **Known limitations**:
-- `RigInterface::getFrequency()` on `FlrigClient` is synchronous with a 2-second timeout — if flrig drops, the 2s timer poll could briefly stall the main thread. Not observed in practice; would fix by moving rig polling to a background thread (already the case for `HamlibClient`).
+- `RigInterface::getFrequency()` on `FlrigClient` is synchronous with a 2-second timeout - if flrig drops, the 2s timer poll could briefly stall the main thread. Not observed in practice; would fix by moving rig polling to a background thread (already the case for `HamlibClient`).
 - Dashboard polls; no WebSocket push. Fine for a glance view at 5 s latency; will revisit for Multi-Multi where inter-station push latency matters (TODO item 4).
 
-## Recent Changes (2026 — 0.6.x)
+## Recent Changes (2026 - 0.6.x)
 
 ### Virginia QSO Party (VAQP) ✅
 - Full VAQP contest module added (`contests/vaqp.json`)
@@ -142,7 +142,7 @@ Debug information is written to:
 - Both CW and SSB memory editors now support two sets: **Station Memories** (global) and **Contest-Specific Memories**
 - Active type is shown as a clickable button in the status bar ("Station Memories" / "Contest Memories")
 - **Ctrl+T** keyboard shortcut (configurable) toggles between types instantly
-- Selected type persists in the CLX file — restored on log reload
+- Selected type persists in the CLX file - restored on log reload
 - When contest mode is active, empty contest slots do nothing (no silent fallback to station memories)
 
 ### DX Cluster Band Filter ✅
@@ -152,7 +152,7 @@ Debug information is written to:
 - Band list updates automatically when a new contest is loaded
 
 ### Keyboard Handling from Floating Dock Windows ✅
-- F1–F8 CW/SSB memory keys now work when the QSO Entry dock is floating (undocked)
+- F1-F8 CW/SSB memory keys now work when the QSO Entry dock is floating (undocked)
 - All other keyboard shortcuts (Ctrl+W, Ctrl+S, Ctrl+F, Ctrl+M, Ctrl+T, etc.) also work from floating docks
 - **Root cause fix:** `QWidget::isAncestorOf()` fails across window boundaries; now uses QObject parent-chain walk instead
 - `qApp->installEventFilter(mainWindow)` intercepts key events app-wide; events are routed only when the target is a descendant of MainWindow in the QObject tree
@@ -217,9 +217,9 @@ Debug information is written to:
 **ITU Region Mapping:**
 - ITU Zones (1-75 from cty.dat) are mapped to ITU Regions (1, 2, 3) for contest multipliers
 - Standard mapping:
-  - Region 1: Zones 18–30, 32–45, 48, 49 (Europe, Africa, Middle East)
-  - Region 2: Zones 7–13, 15–17, 31, 46, 47 (North/South America, Greenland, Caribbean)
-  - Region 3: Zones 50–75, zone 34 (Asia-Pacific)
+  - Region 1: Zones 18-30, 32-45, 48, 49 (Europe, Africa, Middle East)
+  - Region 2: Zones 7-13, 15-17, 31, 46, 47 (North/South America, Greenland, Caribbean)
+  - Region 3: Zones 50-75, zone 34 (Asia-Pacific)
 - **Special case overrides** for territories politically assigned to different regions:
   - **U.S. Pacific territories (Region 2):**
     - Alaska (KL): ITU zones 1/2/3 → Region 2

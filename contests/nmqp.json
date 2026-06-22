@@ -67,8 +67,8 @@
       "question": "Are you a New Mexico or non-NM station?",
       "type": "select",
       "options": [
-        {"value": "NM", "label": "New Mexico (In-State) — send RST + NM county"},
-        {"value": "NON_NM", "label": "Non-NM (US/VE/DX) — send RST + state/province/DX"}
+        {"value": "NM", "label": "New Mexico (In-State) - send RST + NM county"},
+        {"value": "NON_NM", "label": "Non-NM (US/VE/DX) - send RST + state/province/DX"}
       ],
       "required": true,
       "storeInMeta": true,
@@ -91,9 +91,9 @@
       "question": "Select your power category",
       "type": "select",
       "options": [
-        {"value": "HP", "label": "High Power (> 150W) — ×1"},
-        {"value": "LP", "label": "Low Power (> 5W - 150W) — ×2"},
-        {"value": "QRP", "label": "QRP (5W or less) — ×5"}
+        {"value": "HP", "label": "High Power (> 150W) - ×1"},
+        {"value": "LP", "label": "Low Power (> 5W - 150W) - ×2"},
+        {"value": "QRP", "label": "QRP (5W or less) - ×5"}
       ],
       "required": true,
       "storeInMeta": true,
@@ -197,7 +197,7 @@
     },
     "multipliers": {
       "type": "multsOnce",
-      "description": "NM counties, US states, Canadian provinces, and DX entities — each counted once (not per band or mode). Non-NM stations count NM counties only.",
+      "description": "NM counties, US states, Canadian provinces, and DX entities - each counted once (not per band or mode). Non-NM stations count NM counties only.",
       "categories": ["namedMults", "dxcc"],
       "alaskaAndHawaiiCountDxcc": false,
       "usAndCanadaCountDxcc": false,

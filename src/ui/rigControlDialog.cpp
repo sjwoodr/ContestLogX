@@ -47,7 +47,7 @@ RigControlDialog::RigControlDialog(RigInterface* clientL, RigInterface* clientR,
 
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
 
-    // Tab widget — always used, Radio R tab shown/hidden by SO2R checkbox
+    // Tab widget - always used, Radio R tab shown/hidden by SO2R checkbox
     m_tabWidget = new QTabWidget(this);
     m_tabWidget->addTab(createRadioPage(m_radioL), "Radio L");
     m_radioRPage = createRadioPage(m_radioR);
@@ -245,7 +245,7 @@ QWidget* RigControlDialog::createRadioPage(RadioWidgets& w)
     layout->addWidget(statusGroup);
 
     // CW Decoder audio input (SPEC-005)
-    QGroupBox* audioGroup = new QGroupBox("CW Decoder — Audio Input", page);
+    QGroupBox* audioGroup = new QGroupBox("CW Decoder - Audio Input", page);
     QFormLayout* audioForm = new QFormLayout(audioGroup);
     w.audioInputCombo = new QComboBox(audioGroup);
     w.audioInputCombo->addItem("(none)", QString());
@@ -266,7 +266,7 @@ QWidget* RigControlDialog::createRadioPage(RadioWidgets& w)
 
     layout->addWidget(audioGroup);
 
-    // --- CW Keyer (WinKeyer) — independent of the rig backend ---
+    // --- CW Keyer (WinKeyer) - independent of the rig backend ---
     QGroupBox* keyerGroup = new QGroupBox("CW Keyer", page);
     QFormLayout* keyerForm = new QFormLayout(keyerGroup);
 
@@ -345,14 +345,14 @@ void RigControlDialog::onBackendChanged(RadioWidgets& w, int index)
             "flrig provides full rig control including CW keying, PTT, power, and bandwidth.");
         w.attributionLabel->setText(
             "Rig control powered by <b>flrig</b>"
-            " — <a href=\"https://www.w1hkj.org/\">https://www.w1hkj.org/</a>");
+            " - <a href=\"https://www.w1hkj.org/\">https://www.w1hkj.org/</a>");
     } else if (index == 1) {
         w.featureNoteLabel->setText(
             "Hamlib provides frequency and mode control. CW keying and other features "
             "depend on rig capabilities. Requires rigctld to be running.");
         w.attributionLabel->setText(
             "Rig control powered by <b>Hamlib</b>"
-            " — <a href=\"https://hamlib.github.io/\">https://hamlib.github.io/</a>");
+            " - <a href=\"https://hamlib.github.io/\">https://hamlib.github.io/</a>");
     } else {
         w.featureNoteLabel->setText(
             "Simulated rig for testing and SO2R practice. No real hardware required. "
@@ -438,7 +438,7 @@ void RigControlDialog::loadSettings(RadioWidgets& w)
                        : settings.getRadioLDecoderPttGraceMs());
     }
 
-    // CW keyer (WinKeyer) — per radio
+    // CW keyer (WinKeyer) - per radio
     if (w.keyerSourceCombo) {
         const QString src = settings.getCwKeyerSource(w.isRadioR);
         int si = w.keyerSourceCombo->findData(src);
@@ -517,7 +517,7 @@ void RigControlDialog::saveSettings(RadioWidgets& w)
         emit audioConfigChanged(w.isRadioR);
     }
 
-    // CW keyer (WinKeyer) — per radio. MainWindow reconnects from these
+    // CW keyer (WinKeyer) - per radio. MainWindow reconnects from these
     // settings after the dialog closes.
     if (w.keyerSourceCombo && w.keyerPortCombo) {
         const QString newSource = w.keyerSourceCombo->currentData().toString();
@@ -536,7 +536,7 @@ void RigControlDialog::populateKeyerPorts(RadioWidgets& w)
     for (const QSerialPortInfo& info : QSerialPortInfo::availablePorts()) {
         const QString label = info.description().isEmpty()
             ? info.portName()
-            : QString("%1 — %2").arg(info.portName(), info.description());
+            : QString("%1 - %2").arg(info.portName(), info.description());
         w.keyerPortCombo->addItem(label, info.systemLocation());
     }
     if (!current.isEmpty()) {
@@ -701,7 +701,7 @@ void RigControlDialog::onAccepted()
         emit so2rChanged(so2rNow);
 
     // Notify about backend changes (only if actually changed)
-    // Clean up temp clients — MainWindow will create its own
+    // Clean up temp clients - MainWindow will create its own
     QString backendL = selectedBackend(m_radioL);
     if (backendL != m_radioL.originalBackend) {
         cleanupTempClient(m_radioL);

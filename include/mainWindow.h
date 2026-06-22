@@ -353,7 +353,7 @@ private:
     QAction *m_bandMapWidgetAction = nullptr;
     QString m_lastBand; // tracks last-known band for change detection
 
-    // CW Decoder widgets (SPEC-005) — one per radio when audio device configured
+    // CW Decoder widgets (SPEC-005) - one per radio when audio device configured
     class CwDecoderWidget *m_cwDecoderLeft = nullptr;
     class CwDecoderWidget *m_cwDecoderRight = nullptr;
     QAction *m_cwDecoderLeftAction = nullptr;
@@ -412,7 +412,7 @@ private:
     class DxccDatabase *m_dxccDatabase;
     class EadxDatabase *m_eadxDatabase = nullptr;
     
-    // Rig control — Radio L
+    // Rig control - Radio L
     RigInterface *m_rigClient;
     QString m_rigBackend;
     QTimer *m_rigPollTimer;
@@ -422,7 +422,7 @@ private:
     QString m_lastMode;
     int m_lastWpm;
 
-    // Rig control — Radio R (SO2R)
+    // Rig control - Radio R (SO2R)
     RigInterface *m_rigClientR = nullptr;
     QString m_rigBackendR;
     QTimer *m_rigPollTimerR = nullptr;
@@ -430,7 +430,7 @@ private:
     QString m_lastModeR;
     int m_lastWpmR = 0;
 
-    // CW keyer (WinKeyer) — per radio, independent of the CAT backend. Null
+    // CW keyer (WinKeyer) - per radio, independent of the CAT backend. Null
     // unless that radio's cwKeyer.source is "winkeyer".
     WinKeyerClient *m_winKeyerL = nullptr;
     WinKeyerClient *m_winKeyerR = nullptr;
@@ -452,7 +452,7 @@ private:
     QLabel *m_onlineScoringSeparator;
     bool m_scorePostInFlight = false;
 
-    // Remote Control — embedded HTTP server + thread-safe snapshot of
+    // Remote Control - embedded HTTP server + thread-safe snapshot of
     // session state (TODO item 3). Snapshot is populated on score /
     // QSO / rig-state changes; HTTP handlers read from it.
     clx::net::ClxSnapshot* m_clxSnapshot = nullptr;
@@ -471,7 +471,7 @@ private:
     QrzcqApi *m_qrzcqApi;
     QrzApi   *m_qrzApi;
 
-    // Most recent successful callsign lookup — cleared when QSO is logged
+    // Most recent successful callsign lookup - cleared when QSO is logged
     QString m_pendingLookupCallsign;
     QMap<QString, QString> m_pendingStationInfo;  // ADIF-keyed station metadata
 
@@ -487,7 +487,7 @@ private:
     RunMode m_runMode = RunMode::Off;       // Radio L
     RunMode m_runModeR = RunMode::Off;      // Radio R
 
-    // QSY Back — index into QSO log for walking back through previous frequencies
+    // QSY Back - index into QSO log for walking back through previous frequencies
     int m_qsyBackIndex = -1;  // -1 = not active, 0+ = index from end of QSO list
     bool m_exchangeSent = false;   // True once Exchange memory has been sent this QSO
     bool m_exchangeSentR = false;  // Radio R

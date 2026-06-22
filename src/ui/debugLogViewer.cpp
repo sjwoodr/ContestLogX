@@ -32,7 +32,7 @@ DebugLogViewer::DebugLogViewer(QWidget* parent)
     : QWidget(parent, Qt::Window)
 {
     setWindowTitle(tr("Debug Log Viewer"));
-    // Independent top-level window — operator can leave this running
+    // Independent top-level window - operator can leave this running
     // in the background while continuing to use CLX. The QWidget +
     // Qt::Window combination (rather than QDialog) gives us a regular
     // window with its own taskbar entry, not a dialog that the WM
@@ -144,7 +144,7 @@ void DebugLogViewer::poll()
 
 void DebugLogViewer::onClearClicked()
 {
-    // Clear the displayed text only — the underlying log file is held
+    // Clear the displayed text only - the underlying log file is held
     // open for write by DebugLogger and shouldn't be truncated from
     // here. Subsequent polls continue from m_lastPos so we don't
     // re-append history the operator just cleared.
@@ -155,7 +155,7 @@ void DebugLogViewer::onCopyClicked()
 {
     // Copy the entire in-view buffer (everything currently in the
     // QPlainTextEdit, capped by maxBlockCount), not just the lines
-    // visible in the viewport — the latter would be near-useless for
+    // visible in the viewport - the latter would be near-useless for
     // sharing context. Operator can Clear → repro → Copy to capture
     // a focused snippet.
     if (QClipboard* cb = QGuiApplication::clipboard()) {

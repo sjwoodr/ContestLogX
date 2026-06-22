@@ -3,14 +3,14 @@
 
 Produces two CLX logs exercising the field_day.json definition:
 
-  test_fd_3a.clx   — a 3A club station, LOW power (multiplier x2).
-  test_fd_qrp.clx  — a 1B station, QRP on natural power (multiplier x5).
+  test_fd_3a.clx - a 3A club station, LOW power (multiplier x2).
+  test_fd_qrp.clx - a 1B station, QRP on natural power (multiplier x5).
 
-Field Day has no QSO multipliers — score is QSO points x power multiplier.
+Field Day has no QSO multipliers - score is QSO points x power multiplier.
 Both logs exercise the mode-based point values (Phone 1, CW 2, Digital 2),
 perBandAndMode dupe checking, and the power-level score multiplier.
 
-Callsigns come from scripts/generate_callsigns.py (per project convention —
+Callsigns come from scripts/generate_callsigns.py (per project convention -
 do not hand-write callsigns for test data).
 """
 

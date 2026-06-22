@@ -82,7 +82,7 @@ public:
     void setOutOfBand(bool outOfBand) { m_outOfBand = outOfBand; }
     void setGridSquareMultiplier(const QString& grid) { m_gridSquareMult = grid; }
 
-    // Station info — lookup-derived facts about the worked station,
+    // Station info - lookup-derived facts about the worked station,
     // keyed by standard ADIF field names (NAME, QTH, GRIDSQUARE, COUNTRY,
     // DXCC, CONT, CQZ, ITUZ).  Not shown as log columns but saved to CLX
     // and exported to ADIF.

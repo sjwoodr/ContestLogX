@@ -3,16 +3,16 @@
 
 Produces two CLX logs exercising the wvqp.json definition:
 
-  test_wvqp_instate.clx     — a WV station (Kanawha county) working WV
+  test_wvqp_instate.clx - a WV station (Kanawha county) working WV
                               counties + US states + Canadian provinces +
                               DXCC entities, across CW / SSB / Digital.
-  test_wvqp_outofstate.clx  — a non-WV (OH) station working WV counties only.
+  test_wvqp_outofstate.clx - a non-WV (OH) station working WV counties only.
 
 Both exercise: multsOnce dedup, perBandAndMode dupe checking with Digital
 as its own mode, the W8WVA per-band/mode bonus station, and (in-state)
 DXCC multipliers for WV operators.
 
-Callsigns come from scripts/generate_callsigns.py (per project convention —
+Callsigns come from scripts/generate_callsigns.py (per project convention -
 do not hand-write callsigns for test data).
 """
 
@@ -166,7 +166,7 @@ def build_instate():
     E   4 US states (new)  20m DIG    4 x 2 =  8 pts,  4 state  mults
     F   1 W8WVA QSO        80m CW     1 x 2 =  2 pts,  0 new mult, +100 bonus
     G   3 dupes (Phase A)  20m CW     0 pts,           0 mults
-    Plus "WV" — the operator's own state, automatically credited as a
+    Plus "WV" - the operator's own state, automatically credited as a
     multiplier once a WV county has been worked (Phase A satisfies this).
     Total: 51 QSOs, 90 points, 48 mults (47 worked + WV), +100 bonus
            -> 90 * 48 + 100 = 4420
@@ -213,7 +213,7 @@ def build_instate():
 
 
 def build_instate_nowv():
-    """WV station that works only out-of-state stations — never a WV county.
+    """WV station that works only out-of-state stations - never a WV county.
 
     Gate regression test: the "WV" automatic multiplier must be withheld
     because the operator has not worked any inStateMult (WV county). A pure

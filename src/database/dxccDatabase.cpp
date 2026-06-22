@@ -262,7 +262,7 @@ QString DxccDatabase::stripPortableSuffixes(const QString &callsign) const
         QString afterSlash = call.mid(slashPos + 1);
         QString upperAfterSlash = afterSlash.toUpper();
 
-        // Step 1: license-class / non-location-changing portable suffixes —
+        // Step 1: license-class / non-location-changing portable suffixes -
         // strip and use the base call's DXCC (operator stays in home country).
         // /A and /E are formal license-class indicators per the CQ WPX rule.
         // /MM (maritime mobile) and /AM (aeronautical mobile) do not change
@@ -284,7 +284,7 @@ QString DxccDatabase::stripPortableSuffixes(const QString &callsign) const
         static const QRegularExpression digitsOnly("^[0-9]+$");
         if (digitsOnly.match(upperAfterSlash).hasMatch()) {
             DebugLogger::instance().log("DxccDatabase",
-                QString("Digit suffix /%1 — using base call %2 for DXCC").arg(afterSlash, beforeSlash));
+                QString("Digit suffix /%1 - using base call %2 for DXCC").arg(afterSlash, beforeSlash));
             return beforeSlash;
         }
 
@@ -404,9 +404,9 @@ int DxccDatabase::getItuZone(const QString &callsign) const
 int DxccDatabase::mapItuZoneToRegion(int ituZone) const
 {
     // ITU Region mapping based on ITU zones
-    // Region 1 → ITU zones 14–30, 32–45, 48, 49
-    // Region 2 → ITU zones 7–13, 15–17, 31, 46, 47
-    // Region 3 → ITU zones 1–6, 50–75, plus zone 34 (some overlap exceptions)
+    // Region 1 → ITU zones 14-30, 32-45, 48, 49
+    // Region 2 → ITU zones 7-13, 15-17, 31, 46, 47
+    // Region 3 → ITU zones 1-6, 50-75, plus zone 34 (some overlap exceptions)
     
     if ((ituZone >= 14 && ituZone <= 30) || 
         (ituZone >= 32 && ituZone <= 45) || 

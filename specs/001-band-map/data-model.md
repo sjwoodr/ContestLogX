@@ -64,7 +64,7 @@ contest JSON.
 | `minMhz` | `double` | Lower bound of the band segment in MHz |
 | `maxMhz` | `double` | Upper bound of the band segment in MHz |
 
-**Source**: `ContestEngine::getBandFrequencyRange(QString band)` — reads the
+**Source**: `ContestEngine::getBandFrequencyRange(QString band)` - reads the
 `frequencies[band].min` and `frequencies[band].max` fields from the loaded
 contest JSON.
 
@@ -87,13 +87,13 @@ Internal state of the `BandMapWidget` viewport (zoom and pan). Persisted to
 **Constraints**:
 - `visibleMinMhz` ≥ `bandRange.minMhz`
 - `visibleMaxMhz` ≤ `bandRange.maxMhz`
-- `visibleMaxMhz - visibleMinMhz` ≥ 5 kHz (minimum zoom — prevents degenerate state)
+- `visibleMaxMhz - visibleMinMhz` ≥ 5 kHz (minimum zoom - prevents degenerate state)
 - Reset to full band range when band changes
 
 **QSettings keys**:
-- `BandMap/ZoomMin` — `visibleMinMhz` (stored as double)
-- `BandMap/ZoomMax` — `visibleMaxMhz` (stored as double)
-- `BandMap/ExpiryMinutes` — spot expiry threshold (default: 30)
+- `BandMap/ZoomMin` - `visibleMinMhz` (stored as double)
+- `BandMap/ZoomMax` - `visibleMaxMhz` (stored as double)
+- `BandMap/ExpiryMinutes` - spot expiry threshold (default: 30)
 
 ---
 
@@ -109,9 +109,9 @@ BandMapWidget
 ```
 
 **Spot count expectations**:
-- Typical contest: 10–100 spots per band
+- Typical contest: 10-100 spots per band
 - Peak (major DX contest, good band opening): up to 500 spots
-- `QHash` lookup and insert: O(1) — acceptable at all expected scales
+- `QHash` lookup and insert: O(1) - acceptable at all expected scales
 
 ---
 

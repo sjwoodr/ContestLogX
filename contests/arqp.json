@@ -4,7 +4,7 @@
     "abbreviation": "ARQP",
     "version": "1.0.0",
     "sponsor": "Arkansas QSO Party",
-    "description": "Arkansas QSO Party — third Saturday in May, 12-hour contest. Arkansas stations work everyone; non-Arkansas stations work only Arkansas stations. Exchange is RST + 3-letter Arkansas county abbreviation for AR stations, or RST + 2-letter state/province (or DX) for everyone else. CW + SSB + Digital. Mobile, Portable, and Rover stations earn 2 points per QSO; all other categories earn 1 point. WR5P is the bonus station, worth 200 points per band/mode QSO.",
+    "description": "Arkansas QSO Party - third Saturday in May, 12-hour contest. Arkansas stations work everyone; non-Arkansas stations work only Arkansas stations. Exchange is RST + 3-letter Arkansas county abbreviation for AR stations, or RST + 2-letter state/province (or DX) for everyone else. CW + SSB + Digital. Mobile, Portable, and Rover stations earn 2 points per QSO; all other categories earn 1 point. WR5P is the bonus station, worth 200 points per band/mode QSO.",
     "startDate": "Third Saturday in May (2026: May 16-17)",
     "duration": 12,
     "offTimeGapMinutes": 0,
@@ -105,7 +105,7 @@
         {"value": "MULTI",        "label": "Multi-Operator (non-mobile/portable)"},
         {"value": "PORTABLE_IN",  "label": "Portable Inside Arkansas (Field Day-style)"},
         {"value": "PORTABLE_OUT", "label": "Portable Outside Arkansas (Field Day-style)"},
-        {"value": "ROVER",        "label": "Rover (AR only — activates ≥2 counties)"},
+        {"value": "ROVER",        "label": "Rover (AR only - activates ≥2 counties)"},
         {"value": "MOBILE_IN",    "label": "Mobile Inside Arkansas"},
         {"value": "MOBILE_OUT",   "label": "Mobile Outside Arkansas"}
       ],
@@ -166,7 +166,7 @@
     },
     "multipliers": {
       "type": "multsOnce",
-      "description": "Multipliers count once for the contest. Non-AR stations multiply by AR counties only (max 75). AR stations multiply by AR counties + 49 US states (excluding AR) + 13 Canadian provinces + 1 DX entry (single mult regardless of how many DX QSOs are made — DX QSOs all collapse to one DX multiplier per the rules). DC counts as MD via namedMultAliases.",
+      "description": "Multipliers count once for the contest. Non-AR stations multiply by AR counties only (max 75). AR stations multiply by AR counties + 49 US states (excluding AR) + 13 Canadian provinces + 1 DX entry (single mult regardless of how many DX QSOs are made - DX QSOs all collapse to one DX multiplier per the rules). DC counts as MD via namedMultAliases.",
       "categories": ["namedMults"],
       "alaskaAndHawaiiCountDxcc": false,
       "usAndCanadaCountDxcc": false

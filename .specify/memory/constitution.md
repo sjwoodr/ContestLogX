@@ -10,9 +10,9 @@ Added sections:
   - Governance
 Removed sections: N/A
 Templates checked:
-  - .specify/templates/plan-template.md ✅ — Constitution Check section is generic; no updates needed
-  - .specify/templates/spec-template.md ✅ — No constitution-specific references; no updates needed
-  - .specify/templates/tasks-template.md ✅ — No constitution-specific references; no updates needed
+  - .specify/templates/plan-template.md ✅ - Constitution Check section is generic; no updates needed
+  - .specify/templates/spec-template.md ✅ - No constitution-specific references; no updates needed
+  - .specify/templates/tasks-template.md ✅ - No constitution-specific references; no updates needed
 Deferred TODOs: None
 -->
 
@@ -48,7 +48,7 @@ any perceptible latency to the QSO entry, logging, or CW/SSB sending workflows.
 ### IV. JSON-Driven Contest Definitions
 
 Each supported contest MUST be fully defined in a JSON file under `contests/`.
-The long-term goal is that adding a new contest requires no C++ changes — only a
+The long-term goal is that adding a new contest requires no C++ changes - only a
 JSON file. Until a stable 1.0 release, engine changes to support previously
 unanticipated contest mechanics are expected and acceptable. However, new mechanics
 MUST be implemented as generic, reusable engine capabilities (not contest-specific
@@ -65,19 +65,19 @@ cannot be justified by a concrete operator need MUST be removed or not introduce
 
 ## Technology Stack
 
-**Language**: C++17 — features beyond C++17 MUST NOT be used without explicit
+**Language**: C++17 - features beyond C++17 MUST NOT be used without explicit
 decision.
 
-**Framework**: Qt6 (Core, Widgets, Network, SerialPort, Xml) — Qt5 compatibility
+**Framework**: Qt6 (Core, Widgets, Network, SerialPort, Xml) - Qt5 compatibility
 MUST NOT be maintained.
 
-**Build system**: CMake ≥ 3.16 — build logic lives in `CMakeLists.txt` and the
+**Build system**: CMake ≥ 3.16 - build logic lives in `CMakeLists.txt` and the
 `Makefile` wrapper; no other build systems are introduced.
 
-**Rig control**: flrig via XML-RPC — the sole supported rig control interface.
+**Rig control**: flrig via XML-RPC - the sole supported rig control interface.
 Direct CAT/CI-V drivers MUST NOT be added without a separate architectural decision.
 
-**Contest definitions**: JSON files in `contests/` — one file per contest, loaded
+**Contest definitions**: JSON files in `contests/` - one file per contest, loaded
 at runtime by `ContestEngine`.
 
 **Testing**: `make test` (unit tests), `make test-logs` (automated log validation

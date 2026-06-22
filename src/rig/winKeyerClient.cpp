@@ -32,7 +32,7 @@ namespace {
 }
 
 // ============================================================================
-// WinKeyerWorker — runs on background thread, owns the serial port
+// WinKeyerWorker - runs on background thread, owns the serial port
 // ============================================================================
 
 WinKeyerWorker::WinKeyerWorker(QObject *parent)
@@ -183,12 +183,12 @@ void WinKeyerWorker::onReadyRead()
 }
 
 // ============================================================================
-// WinKeyerClient — main thread facade, delegates to worker
+// WinKeyerClient - main thread facade, delegates to worker
 // ============================================================================
 
 WinKeyerClient::WinKeyerClient(QObject *parent)
     : QObject(parent)
-    , m_worker(new WinKeyerWorker())  // no parent — moved to thread
+    , m_worker(new WinKeyerWorker())  // no parent - moved to thread
     , m_connected(false)
     , m_revision(-1)
     , m_cachedWpm(0)

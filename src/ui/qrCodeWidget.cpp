@@ -49,7 +49,7 @@ void QrCodeWidget::paintEvent(QPaintEvent*)
 
     try {
         // MEDIUM error-correction trades ~15% capacity for ~15% damage
-        // tolerance — good default for printed/photographed QR codes, more
+        // tolerance - good default for printed/photographed QR codes, more
         // than enough for a scanned-from-screen URL.
         const auto qr = qrcodegen::QrCode::encodeText(
             m_data.toUtf8().constData(),
@@ -75,7 +75,7 @@ void QrCodeWidget::paintEvent(QPaintEvent*)
             }
         }
     } catch (const std::exception&) {
-        // Overlong text or internal encoder error — show a readable
+        // Overlong text or internal encoder error - show a readable
         // placeholder instead of crashing the Preferences dialog.
         p.setPen(QColor("#c0392b"));
         p.drawText(rect(), Qt::AlignCenter, tr("(encoder error)"));

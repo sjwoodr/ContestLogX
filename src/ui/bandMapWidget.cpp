@@ -73,7 +73,7 @@ BandMapWidget::BandMapWidget(QWidget *parent)
                 QDockWidget::DockWidgetFloatable |
                 QDockWidget::DockWidgetClosable);
 
-    // Expiry timer — fires every 60 seconds
+    // Expiry timer - fires every 60 seconds
     m_expiryTimer = new QTimer(this);
     m_expiryTimer->setInterval(60 * 1000);
     connect(m_expiryTimer, &QTimer::timeout, this, &BandMapWidget::onExpiryTimer);
@@ -89,7 +89,7 @@ QString BandMapWidget::dedupKey(const SpotData &spot)
 }
 
 // ---------------------------------------------------------------------------
-// addOrUpdateSpot — add a new spot, or refresh an existing one.
+// addOrUpdateSpot - add a new spot, or refresh an existing one.
 // Enforces FR-016: oldest spot evicted when m_maxSpots is reached.
 // ---------------------------------------------------------------------------
 void BandMapWidget::addOrUpdateSpot(const SpotData &spot)
@@ -125,7 +125,7 @@ void BandMapWidget::addOrUpdateSpot(const SpotData &spot)
 }
 
 // ---------------------------------------------------------------------------
-// setBandRange — set the visible band; resets viewport and clears all spots.
+// setBandRange - set the visible band; resets viewport and clears all spots.
 // ---------------------------------------------------------------------------
 void BandMapWidget::setBandRange(double minMhz, double maxMhz, const QString &band)
 {
@@ -137,7 +137,7 @@ void BandMapWidget::setBandRange(double minMhz, double maxMhz, const QString &ba
     m_visibleMinMhz = minMhz;
     m_visibleMaxMhz = maxMhz;
 
-    // Spots are retained across band changes — rendering filters by visible range
+    // Spots are retained across band changes - rendering filters by visible range
 
     // Reset zoom slider
     if (m_zoomSlider) m_zoomSlider->setValue(1);
@@ -147,7 +147,7 @@ void BandMapWidget::setBandRange(double minMhz, double maxMhz, const QString &ba
 }
 
 // ---------------------------------------------------------------------------
-// clearAllSpots — remove all stored spots (e.g., on cluster reconnect).
+// clearAllSpots - remove all stored spots (e.g., on cluster reconnect).
 // ---------------------------------------------------------------------------
 void BandMapWidget::clearAllSpots()
 {
@@ -156,7 +156,7 @@ void BandMapWidget::clearAllSpots()
 }
 
 // ---------------------------------------------------------------------------
-// refreshAllStatuses — re-evaluate contact status for every stored spot.
+// refreshAllStatuses - re-evaluate contact status for every stored spot.
 // ---------------------------------------------------------------------------
 void BandMapWidget::refreshAllStatuses(std::function<ContactStatus(const QString&)> resolver)
 {
@@ -172,7 +172,7 @@ void BandMapWidget::refreshAllStatuses(std::function<ContactStatus(const QString
 }
 
 // ---------------------------------------------------------------------------
-// setClusterConnected — show/hide the no-cluster indicator.
+// setClusterConnected - show/hide the no-cluster indicator.
 // ---------------------------------------------------------------------------
 void BandMapWidget::setClusterConnected(bool connected)
 {
@@ -183,7 +183,7 @@ void BandMapWidget::setClusterConnected(bool connected)
 }
 
 // ---------------------------------------------------------------------------
-// setRigFrequency — update the VFO line position.
+// setRigFrequency - update the VFO line position.
 // ---------------------------------------------------------------------------
 void BandMapWidget::setRigFrequency(double freqMhz)
 {
@@ -194,7 +194,7 @@ void BandMapWidget::setRigFrequency(double freqMhz)
 }
 
 // ---------------------------------------------------------------------------
-// onExpiryTimer — remove spots older than m_expirySeconds.
+// onExpiryTimer - remove spots older than m_expirySeconds.
 // ---------------------------------------------------------------------------
 void BandMapWidget::onExpiryTimer()
 {
@@ -212,7 +212,7 @@ void BandMapWidget::onExpiryTimer()
 }
 
 // ---------------------------------------------------------------------------
-// onZoomSliderChanged — map slider value (1-20) to visible frequency range.
+// onZoomSliderChanged - map slider value (1-20) to visible frequency range.
 // ---------------------------------------------------------------------------
 void BandMapWidget::onZoomSliderChanged(int value)
 {
@@ -248,7 +248,7 @@ void BandMapWidget::onZoomSliderChanged(int value)
 }
 
 // ---------------------------------------------------------------------------
-// updateRangeLabel — show current visible frequency range in toolbar.
+// updateRangeLabel - show current visible frequency range in toolbar.
 // ---------------------------------------------------------------------------
 void BandMapWidget::updateRangeLabel()
 {
@@ -257,14 +257,14 @@ void BandMapWidget::updateRangeLabel()
         m_rangeLabel->setText("");
         return;
     }
-    m_rangeLabel->setText(QString("%1 – %2 MHz")
+    m_rangeLabel->setText(QString("%1 - %2 MHz")
         .arg(m_visibleMinMhz, 0, 'f', 3)
         .arg(m_visibleMaxMhz, 0, 'f', 3));
 }
 
 
 // ---------------------------------------------------------------------------
-// spotStatus / spotTimestamp — accessors for unit tests
+// spotStatus / spotTimestamp - accessors for unit tests
 // ---------------------------------------------------------------------------
 ContactStatus BandMapWidget::spotStatus(const QString &callsign) const
 {
@@ -463,7 +463,7 @@ void BandMapCanvas::paintEvent(QPaintEvent *)
 }
 
 // ---------------------------------------------------------------------------
-// mousePressEvent — record press position for drag/click disambiguation.
+// mousePressEvent - record press position for drag/click disambiguation.
 // ---------------------------------------------------------------------------
 void BandMapCanvas::mousePressEvent(QMouseEvent *event)
 {
@@ -477,7 +477,7 @@ void BandMapCanvas::mousePressEvent(QMouseEvent *event)
 }
 
 // ---------------------------------------------------------------------------
-// mouseMoveEvent — pan drag + tooltip.
+// mouseMoveEvent - pan drag + tooltip.
 // ---------------------------------------------------------------------------
 void BandMapCanvas::mouseMoveEvent(QMouseEvent *event)
 {
@@ -536,7 +536,7 @@ void BandMapCanvas::mouseMoveEvent(QMouseEvent *event)
 }
 
 // ---------------------------------------------------------------------------
-// mouseReleaseEvent — emit spotClicked if this was a click (not a drag).
+// mouseReleaseEvent - emit spotClicked if this was a click (not a drag).
 // ---------------------------------------------------------------------------
 void BandMapCanvas::mouseReleaseEvent(QMouseEvent *event)
 {
@@ -553,7 +553,7 @@ void BandMapCanvas::mouseReleaseEvent(QMouseEvent *event)
 }
 
 // ---------------------------------------------------------------------------
-// wheelEvent — zoom in/out centred on the cursor frequency.
+// wheelEvent - zoom in/out centred on the cursor frequency.
 // ---------------------------------------------------------------------------
 void BandMapCanvas::wheelEvent(QWheelEvent *event)
 {

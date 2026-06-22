@@ -306,7 +306,7 @@ QJsonObject ClxFile::toJson() const
         json["ssb_memories"] = ssbArr;
     }
     
-    // Statistics — prefer values from the contest engine when available
+    // Statistics - prefer values from the contest engine when available
     QJsonObject stats;
     stats["total_qsos"]    = m_qsos.count();
     stats["total_points"]  = m_scoreSet ? m_contactPoints : totalPoints();

@@ -49,14 +49,14 @@ echo "Bundling minimal GStreamer plugin set..."
 mkdir -p AppDir/usr/lib/gstreamer-1.0
 GST_PLUGINS_NEEDED=(
     libgstcoreelements.so     # queue, tee, identity, fakesink, valve
-    libgstapp.so              # appsrc, appsink — Qt Multimedia data sink
+    libgstapp.so              # appsrc, appsink - Qt Multimedia data sink
     libgstaudioconvert.so     # sample format conversion
     libgstaudioresample.so    # sample rate conversion
     libgstaudiorate.so        # audio buffer timing
     libgstvolume.so           # software volume control
-    libgstpulseaudio.so       # pulsesrc / pulsesink — PulseAudio/PipeWire
-    libgstalsa.so             # alsasrc / alsasink — ALSA fallback
-    libgstautodetect.so       # autoaudiosrc / autoaudiosink — Qt uses these
+    libgstpulseaudio.so       # pulsesrc / pulsesink - PulseAudio/PipeWire
+    libgstalsa.so             # alsasrc / alsasink - ALSA fallback
+    libgstautodetect.so       # autoaudiosrc / autoaudiosink - Qt uses these
 )
 for plugin in "${GST_PLUGINS_NEEDED[@]}"; do
     src="/usr/lib/x86_64-linux-gnu/gstreamer-1.0/$plugin"
@@ -69,7 +69,7 @@ for plugin in "${GST_PLUGINS_NEEDED[@]}"; do
 done
 
 # gst-plugin-scanner lives under libexec on Debian/Ubuntu. Path varies by
-# version — try both known locations.
+# version - try both known locations.
 mkdir -p AppDir/usr/libexec/gstreamer-1.0
 for scanner in /usr/libexec/gstreamer1.0/gstreamer-1.0/gst-plugin-scanner \
                /usr/lib/x86_64-linux-gnu/gstreamer1.0/gstreamer-1.0/gst-plugin-scanner; do

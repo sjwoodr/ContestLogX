@@ -31,6 +31,6 @@
 
 ## Notes
 
-- The XML format details in the user's input are developer reference material — they inform the spec but are not included as implementation details in the spec itself
+- The XML format details in the user's input are developer reference material - they inform the spec but are not included as implementation details in the spec itself
 - FR-007 (multiplier type mapping) requires contest definition updates but can be done incrementally per contest
 - Credential storage follows the existing QRZ.com pattern (plaintext in local JSON settings) per user's decision

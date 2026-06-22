@@ -1,16 +1,16 @@
 1. LOC vs EXCH field in WFD module
 2. [2026-01-24 16:35:31.730] DxCluster: Expired spot for KE2EYY (16 minutes old) -- is not filterable / toggle off on
-3. Remote Dashboard — local-network HTTP server for mobile/PC browser dashboards (finalized scope):
-   V1 — Read-only JSON endpoints + built-in mobile dashboard HTML page served at /:
+3. Remote Dashboard - local-network HTTP server for mobile/PC browser dashboards (finalized scope):
+   V1 - Read-only JSON endpoints + built-in mobile dashboard HTML page served at /:
      GET /api/status, /api/score, /api/rate, /api/qsos?limit=N&offset=N,
          /api/rig, /api/mults, /api/propagation
      Single-file static HTML+JS dashboard auto-refreshing every 5s, token via
      ?token= query param for bookmarkable URL.
-   V2 — Minimal rig-control writes — SHIPPED 0.7.25 (no QSO logging, no CW memory trigger):
+   V2 - Minimal rig-control writes - SHIPPED 0.7.25 (no QSO logging, no CW memory trigger):
      POST /api/rig/qsy { radio, freq_hz, mode }
      POST /api/rig/band { radio, band }
      POST /api/rig/run_mode { radio, mode: Run|S&P|Off }
-   V3+ (explicitly deferred): POST /api/qso, POST /api/cw/memory — both race
+   V3+ (explicitly deferred): POST /api/qso, POST /api/cw/memory - both race
      with keyboard focus, not worth the risk.
    Infrastructure:
      - Qt6::HttpServer module (add to CMakeLists + install-qt-action modules)
@@ -23,7 +23,7 @@
        nayuki's qrcodegen under third_party/). Operator scans with phone
        camera; no mDNS responder needed, no Bonjour-on-Windows burden.
 
-4. Multi-Multi networked operation — peer-to-peer CLX coordination across multiple
+4. Multi-Multi networked operation - peer-to-peer CLX coordination across multiple
    stations on the same LAN. Each station runs its own CLX; instances discover each
    other (mDNS, shared with item 3) and coordinate via UDP multicast for real-time
    push (QSOs, band state) and HTTP/RPC for request-response (serial number draws,

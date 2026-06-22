@@ -33,7 +33,7 @@ AudioCapture::AudioCapture(const QAudioDevice& device, QObject* parent)
     // (e.g. stereo Float). When that mismatch happens the stream opens
     // successfully and the OS shows the app as "currently using the
     // microphone," but the readyRead callbacks deliver only zero-filled
-    // buffers — the exact "decoder shows nothing" symptom users hit. By
+    // buffers - the exact "decoder shows nothing" symptom users hit. By
     // taking the device's native format directly and converting to mono
     // int16 ourselves in onReadyRead() (which already handles every Qt
     // sample format and arbitrary channel counts) we avoid that path.
@@ -54,7 +54,7 @@ bool AudioCapture::start()
     }
 
     if (!m_device.isFormatSupported(m_format)) {
-        // The device's preferred format isn't actually supported — extremely
+        // The device's preferred format isn't actually supported - extremely
         // unusual (preferredFormat() is supposed to return something the
         // device can do natively) but possible if a virtual / aggregate
         // device misreports. Nothing to fall back to in that case.
@@ -66,7 +66,7 @@ bool AudioCapture::start()
 
     // Diagnostic: log every QAudioSource state transition. On Windows we've
     // seen the source go silently Idle or Stopped after the initial buffered
-    // burst (~20 ms at 48 kHz), without any visible error — readyRead just
+    // burst (~20 ms at 48 kHz), without any visible error - readyRead just
     // stops firing and the decoder appears dead. Logging the state changes
     // makes the failure mode visible. Always-on (not gated by debug toggle)
     // because state transitions are rare events and exactly the smoking
@@ -103,7 +103,7 @@ bool AudioCapture::start()
     m_running = true;
 
     // Reset silence-detection state and arm a single-shot watchdog. The
-    // callback fires once if no non-zero sample has been seen by then —
+    // callback fires once if no non-zero sample has been seen by then -
     // distinguishing "device is genuinely silent / muted at OS or driver
     // level" from "decoder is too slow / misconfigured." Logged
     // unconditionally because it's exactly the data needed to triage
@@ -136,7 +136,7 @@ bool AudioCapture::start()
     m_silenceTimer->start(kSilenceDetectionMs);
 
     DebugLogger::instance().log("CwDecoder",
-        QString("Audio capture started on '%1' — negotiated format %2 Hz, "
+        QString("Audio capture started on '%1' - negotiated format %2 Hz, "
                 "%3 channel(s), sampleFormat=%4")
             .arg(m_device.description())
             .arg(m_format.sampleRate())
@@ -188,7 +188,7 @@ void AudioCapture::onReadyRead()
     // which is the typical wiring) by N×, costing ~6 dB of SNR on a
     // stereo device. That manifested as the decoder catching real
     // tokens but also a stream of single-dit "E" / single-dah "T"
-    // false-positives — noise breaching the on-threshold whose
+    // false-positives - noise breaching the on-threshold whose
     // hysteresis was no longer matched to the true signal level.
     //
     // Why not just take channel 0? It silently failed on stereo
@@ -197,7 +197,7 @@ void AudioCapture::onReadyRead()
     // the operator wired up AND restores full signal level.
     //
     // For true stereo input (rare for ham radio) max-abs acts as a
-    // "loudest channel wins" mixdown — fine for CW where the signal
+    // "loudest channel wins" mixdown - fine for CW where the signal
     // is concentrated at one tone frequency.
     //
     // NO resampling: we operate at the device's native rate end-to-end,
@@ -252,14 +252,14 @@ void AudioCapture::onReadyRead()
 
     if (peakAbs > 0) m_seenNonZeroSample = true;
 
-    // First few chunks get an unconditional triage log — chunk size, frames,
+    // First few chunks get an unconditional triage log - chunk size, frames,
     // and peak amplitude. If the operator reports the decoder as dead we can
     // see immediately whether the stream is delivering data and whether the
     // bytes are non-zero, without asking them to flip the per-component
     // debug toggle first. After the first three, when CW Decoder Debug is
     // enabled we drop a heartbeat every kHeartbeatChunks chunks (≈ 5 s at
     // 10 ms/chunk) so we can tell whether the audio path is still flowing
-    // — the failure mode of "Windows WASAPI delivers an initial buffered
+    // - the failure mode of "Windows WASAPI delivers an initial buffered
     // burst and then silently stops calling readyRead" is otherwise
     // invisible to the operator and to us.
     ++m_chunkLogCount;

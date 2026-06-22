@@ -74,7 +74,7 @@ def generate_russian_callsign():
         'R', 'RA', 'RW', 'RV', 'RN', 'RK', 'RZ', 'UA', 'UK',
     ])
 
-    # District digit — 0-9 covers EU Russia (1-7) and AS Russia (0, 8, 9)
+    # District digit - 0-9 covers EU Russia (1-7) and AS Russia (0, 8, 9)
     digit = str(random.randint(0, 9))
 
     # Suffix letters (typically 2-3)

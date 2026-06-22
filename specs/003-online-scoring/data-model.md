@@ -2,7 +2,7 @@
 
 ## Extended Entities
 
-### StationInfo (existing — extended)
+### StationInfo (existing - extended)
 | Field       | Type    | New? | Notes                                      |
 |-------------|---------|------|--------------------------------------------|
 | callsign    | QString | no   | Operator callsign                          |
@@ -19,7 +19,7 @@
 
 **JSON serialization**: cqZone, ituZone added to `location` object. arrlSection added to `location` object.
 
-### Settings — onlineScoring (new block)
+### Settings - onlineScoring (new block)
 | Field           | Type    | Default                                     |
 |-----------------|---------|---------------------------------------------|
 | callsign        | QString | "" (empty = not configured)                 |
@@ -30,7 +30,7 @@
 
 **Storage location**: `m_settings["onlineScoring"]` in ContestLogX.json
 
-### Contest Definition — contestOnlineScore (new block)
+### Contest Definition - contestOnlineScore (new block)
 | Field             | Type    | Required | Notes                                  |
 |-------------------|---------|----------|----------------------------------------|
 | contestId         | QString | yes      | Server contest ID (e.g., "NAQP-CW")   |
@@ -67,7 +67,7 @@
 
 ## New Entities
 
-### ScorePostData (transient — built per posting cycle)
+### ScorePostData (transient - built per posting cycle)
 | Field         | Type                          | Source                              |
 |---------------|-------------------------------|-------------------------------------|
 | contestId     | QString                       | contestOnlineScore.contestId (or mapping) |

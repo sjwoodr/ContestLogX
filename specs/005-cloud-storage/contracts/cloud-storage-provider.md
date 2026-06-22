@@ -7,7 +7,7 @@ plus the S3 wire contract the concrete provider must satisfy.
 
 ## 1. CloudStorageProvider (abstract interface)
 
-`CloudStorageProvider : public QObject` — analogous to `RigInterface`. All operations are
+`CloudStorageProvider : public QObject` - analogous to `RigInterface`. All operations are
 **asynchronous and non-blocking**; results/errors arrive via signals on the GUI thread.
 
 ### Methods (slots / invokable)
@@ -39,10 +39,10 @@ plus the S3 wire contract the concrete provider must satisfy.
 error:
 | Condition | Trigger | Message theme |
 |-----------|---------|---------------|
-| Auth failure | HTTP 403 / `SignatureDoesNotMatch` / `InvalidAccessKeyId` | "Authentication failed — check your access/secret keys." |
+| Auth failure | HTTP 403 / `SignatureDoesNotMatch` / `InvalidAccessKeyId` | "Authentication failed - check your access/secret keys." |
 | Missing bucket | HTTP 404 `NoSuchBucket` | "Bucket '<bucket>' not found." |
 | Object not found | HTTP 404 `NoSuchKey` (download) | "Log '<key>' no longer exists." |
-| Network timeout | `QNetworkReply::TimeoutError` / transfer timeout | "Network timeout — could not reach <endpoint>." |
+| Network timeout | `QNetworkReply::TimeoutError` / transfer timeout | "Network timeout - could not reach <endpoint>." |
 | Other | any other non-2xx / network error | include HTTP status + S3 `<Code>` if present. |
 
 In ALL failure cases the local filesystem remains available as a fallback (the provider never
@@ -108,7 +108,7 @@ Response `204` ⇒ deleted.
 
 ## 3. SigV4 signing contract (s3Signer)
 
-Pure function, no Qt network types — unit-testable in isolation.
+Pure function, no Qt network types - unit-testable in isolation.
 
 Input: HTTP method, host, canonical URI (path), query params (map), headers (map), payload-hash
 (hex), `S3Config` (region, accessKey, secretKey), and a UTC timestamp.

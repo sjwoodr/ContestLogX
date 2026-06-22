@@ -6,7 +6,7 @@ Downloads (or reads cached) public WPX logs from cqwpx.com/publiclogs, converts
 each one to CLX's .clx JSON format, runs CLX in --test-only mode, and compares
 CLX's computed score against the operator's CLAIMED-SCORE in the Cabrillo
 header. A match means our scoring agrees with whatever logger produced the
-log (N1MM, Win-Test, WriteLog, etc.) — which is the closest thing we have to
+log (N1MM, Win-Test, WriteLog, etc.) - which is the closest thing we have to
 a ground-truth comparison without access to the official adjudicator.
 
 Usage:
@@ -250,7 +250,7 @@ def main():
         all_match = all_match and (match or False)
         match_str = "✓" if match else "✗"
         clx_str = f"{clx_score}" if clx_score is not None else "?"
-        delta_str = (f"{delta:+d}" if delta is not None else "—")
+        delta_str = (f"{delta:+d}" if delta is not None else " - ")
 
         print(f"{call.upper():<8} {n_log:>6} {n_clx:>9} {band:<5} "
               f"{claimed:>10} {clx_str:>10} {delta_str:>10}  {match_str}  {note}")
@@ -264,7 +264,7 @@ def main():
         print("All real-log claimed scores match CLX's calculation.")
         return 0
     else:
-        print("One or more real-log scores diverged — investigate above.")
+        print("One or more real-log scores diverged - investigate above.")
         return 1
 
 

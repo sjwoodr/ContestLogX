@@ -160,7 +160,7 @@ QNetworkReply* S3StorageWorker::sendSigned(const QString& method,
         networkError = reply->errorString();
     responseBody = reply->readAll();
 
-    // Log method + path + status only — never the Authorization header or keys.
+    // Log method + path + status only - never the Authorization header or keys.
     dlog(QString("%1 %2 -> HTTP %3%4")
             .arg(method, path).arg(httpStatus)
             .arg(networkError.isEmpty() ? QString() : QStringLiteral(" [") + networkError + QLatin1Char(']')));
@@ -170,7 +170,7 @@ QNetworkReply* S3StorageWorker::sendSigned(const QString& method,
 QString S3StorageWorker::classifyError(int httpStatus, const QString& networkError,
                                        const QByteArray& responseBody) const
 {
-    // Never include secret/signing material — only HTTP status and the S3 <Code>.
+    // Never include secret/signing material - only HTTP status and the S3 <Code>.
     if (httpStatus == 403)
         return QStringLiteral("Authentication failed - check your access/secret keys.");
     if (httpStatus == 404) {

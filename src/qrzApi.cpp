@@ -76,7 +76,7 @@ void QrzApi::getSession()
 void QrzApi::lookupCallsign(const QString& callsign)
 {
     if (m_sessionToken.isEmpty()) {
-        emit lookupError("No active QRZ session — configure credentials in Preferences");
+        emit lookupError("No active QRZ session - configure credentials in Preferences");
         return;
     }
 

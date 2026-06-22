@@ -4,7 +4,7 @@
  *
  * Released under the MIT License. See LICENSE file for details.
  *
- * PracticeContentGenerator — produces text fragments for the CW Practice
+ * PracticeContentGenerator - produces text fragments for the CW Practice
  * audio source. Two modes:
  *   - Ragchew: random CQ calls and DX rag-chew exchanges from a template
  *     pool with substitution slots (call, name, QTH, rig, power, etc.)

@@ -17,7 +17,7 @@ signals:
     void spotReceived(const SpotData &spot);
 ```
 
-**Emitted by**: `DxClusterPanel` — after parsing a new incoming cluster spot and
+**Emitted by**: `DxClusterPanel` - after parsing a new incoming cluster spot and
 adding it to the cluster table.
 
 **Payload**:
@@ -110,7 +110,7 @@ refactored to:
 3. Emit `spotReceived(spot)` (new)
 
 No behavior change visible to the DX cluster panel or cluster connection. Backward
-compatible — existing connections to `DxClusterPanel` are unaffected.
+compatible - existing connections to `DxClusterPanel` are unaffected.
 
 ---
 

@@ -40,7 +40,7 @@ constexpr int    kQrm2WpmOffset    = +2;      // faster than primary
 } // namespace
 
 PracticeAudioSource::PracticeAudioSource(PracticeMode mode, QObject* parent)
-    // Pass a null QAudioDevice to the base — m_ring will be sized using
+    // Pass a null QAudioDevice to the base - m_ring will be sized using
     // kSampleRateHz * kRingBufferSeconds from the base ctor's fallback
     // branch. We then overwrite m_format with our fixed 48 kHz mono
     // int16 format before start().
@@ -53,11 +53,11 @@ PracticeAudioSource::PracticeAudioSource(PracticeMode mode, QObject* parent)
     m_envSamples = (kEnvRiseFallMs * m_sampleRate) / 1000;
     m_samplesPerTick = (kTickMs * m_sampleRate) / 1000;
 
-    // Build the voice list. Ragchew mode is a single clean signal — the
+    // Build the voice list. Ragchew mode is a single clean signal - the
     // operator is learning to copy pure CW, not fight QRM. Contest mode
     // adds two QRM stations (separate simulated ops running rag-chew
     // chatter at different tone frequencies, lower amplitude, and
-    // slightly different WPM) — mimicking what a contest band sounds
+    // slightly different WPM) - mimicking what a contest band sounds
     // like when you're trying to copy the exchange right on your
     // frequency with adjacent-channel interference.
     Voice primary;
@@ -255,7 +255,7 @@ void PracticeAudioSource::fillBlock(int16_t* out, int count)
 {
     // Per-sample mixing across all voices. Each voice has its own phase,
     // element queue, and content stream, so they drift in and out of sync
-    // naturally — just like real operators on a crowded band.
+    // naturally - just like real operators on a crowded band.
     //
     // We cap total summed amplitude at ~0.9 (hard clip fallback at 32767)
     // because simultaneous tone peaks across voices can briefly exceed

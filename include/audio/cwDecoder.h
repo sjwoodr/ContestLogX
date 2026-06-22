@@ -4,8 +4,8 @@
  *
  * Released under the MIT License. See LICENSE file for details.
  *
- * CwDecoder — owns an array of BinChannels and applies them to incoming
- * audio blocks (SPEC-005). Pure C++ — no Qt threading; host code on a
+ * CwDecoder - owns an array of BinChannels and applies them to incoming
+ * audio blocks (SPEC-005). Pure C++ - no Qt threading; host code on a
  * QThread wraps it.
  */
 

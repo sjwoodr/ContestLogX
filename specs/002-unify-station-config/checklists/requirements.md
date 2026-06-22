@@ -31,6 +31,6 @@
 
 ## Notes
 
-- FR-003 and FR-004 (visibleWhen) are already implemented in v0.6.14 — listed here for completeness
+- FR-003 and FR-004 (visibleWhen) are already implemented in v0.6.14 - listed here for completeness
 - FR-008 (backward-compatible log loading) is an edge case that must be tested during migration
 - Migration order is designed so each step is independently testable via `make test-logs`

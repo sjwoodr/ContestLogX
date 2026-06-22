@@ -22,7 +22,7 @@ This document defines the signal/slot interfaces introduced by SPEC-005. These a
 
 ```cpp
 signals:
-    void pttStateChanged(bool active);   // NEW — SPEC-005 R4
+    void pttStateChanged(bool active);   // NEW - SPEC-005 R4
 ```
 
 **Emission contract**:
@@ -100,8 +100,8 @@ public slots:
     void setSquelch(float threshold);
 
     // Mute control (FR-019a, FR-019c)
-    void setPttMute(bool active);                     // path 1 — rig backend
-    void muteForInternalSend(int durationMs);         // path 2 — MainWindow signals
+    void setPttMute(bool active);                     // path 1 - rig backend
+    void muteForInternalSend(int durationMs);         // path 2 - MainWindow signals
 ```
 
 **Signals (emitted toward the widget on the main thread via `Qt::QueuedConnection`)**:
@@ -159,10 +159,10 @@ signals:
 };
 ```
 
-**Click-fill contract** (critical — FR-020, FR-021, FR-022, FR-023, FR-024a):
+**Click-fill contract** (critical - FR-020, FR-021, FR-022, FR-023, FR-024a):
 - Widget emits `callClicked(callsign, binIndex)` and `rstClicked(rst, binIndex)`.
 - `MainWindow` connects these signals to handlers that target the widget's `owningRadio`'s entry panel.
-- The handlers MUST invoke the **same** code path used for keyboard entry of the same characters. In current code, keyboard entry sets the field's text and triggers the field's `textEdited` signal handler (which runs SCP, call-history, dupe check, etc.). The click-fill handler MUST mirror this exactly — do NOT call any internal method that keyboard entry bypasses.
+- The handlers MUST invoke the **same** code path used for keyboard entry of the same characters. In current code, keyboard entry sets the field's text and triggers the field's `textEdited` signal handler (which runs SCP, call-history, dupe check, etc.). The click-fill handler MUST mirror this exactly - do NOT call any internal method that keyboard entry bypasses.
 - The handler MUST NOT call `setFocus()` on any widget (FR-022).
 
 ---
@@ -196,7 +196,7 @@ private slots:
 
 ### New signal (outbound to decoders)
 
-None — internal-send mute is invoked by direct method call on the decoder widget / worker:
+None - internal-send mute is invoked by direct method call on the decoder widget / worker:
 
 ```cpp
 void MainWindow::notifyInternalCwSend(RadioSide side, int textChars, int sendWpm) {
@@ -208,7 +208,7 @@ void MainWindow::notifyInternalCwSend(RadioSide side, int textChars, int sendWpm
 }
 ```
 
-This method MUST be called from every existing CW-send code path — F-key memory handler, CW console send button, and any other internal path that invokes `flrigClient->cwioText(...)` or equivalent. Implementation audits all existing send sites as a task.
+This method MUST be called from every existing CW-send code path - F-key memory handler, CW console send button, and any other internal path that invokes `flrigClient->cwioText(...)` or equivalent. Implementation audits all existing send sites as a task.
 
 ### PTT wiring (both radios)
 
@@ -221,13 +221,13 @@ connect(m_rigRight, &RigInterface::pttStateChanged,
         this, [this](bool active){ onRigPttChanged(RadioSide::Right, active); });
 ```
 
-`onRigPttChanged` forwards to the corresponding decoder widget's `setPttMute(active)`, respecting the `muteDecoderOnPtt` setting — if the setting is false for that radio, the slot does nothing.
+`onRigPttChanged` forwards to the corresponding decoder widget's `setPttMute(active)`, respecting the `muteDecoderOnPtt` setting - if the setting is false for that radio, the slot does nothing.
 
 ---
 
 ## 6. `CwDecoder` (new, internal-only API)
 
-Not exposed via Qt signals — all DSP happens inside the worker. Documented here for completeness.
+Not exposed via Qt signals - all DSP happens inside the worker. Documented here for completeness.
 
 ```cpp
 class CwDecoder {
@@ -270,7 +270,7 @@ All persisted via `QSettings` (no JSON files).
 |---|---|---|---|
 | `audioInputDevice` | `QString` | `""` | Empty = "(none)" |
 | `muteDecoderOnPtt` | `bool` | `true` | |
-| `decoderPttGraceMs` | `int` | `250` | Range 0–2000 |
+| `decoderPttGraceMs` | `int` | `250` | Range 0-2000 |
 
 **Decoder runtime keys** (under `audio/cwDecoder/left/*` and `audio/cwDecoder/right/*`):
 
@@ -278,9 +278,9 @@ All persisted via `QSettings` (no JSON files).
 |---|---|---|---|
 | `passbandLowHz` | `int` | `400` | |
 | `passbandHighHz` | `int` | `1000` | |
-| `binCount` | `int` | `6` | Range 1–16 |
+| `binCount` | `int` | `6` | Range 1-16 |
 | `spotlightRowIndex` | `int` | `-1` | -1 = none |
-| `squelchThreshold` | `float` | `0.05` | Range 0.0–1.0 |
+| `squelchThreshold` | `float` | `0.05` | Range 0.0-1.0 |
 | `wpmMin` | `int` | `5` | |
 | `wpmMax` | `int` | `60` | |
 

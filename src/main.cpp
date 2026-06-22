@@ -95,7 +95,7 @@ void applyTheme()
     QApplication::setStyle(QStyleFactory::create("Fusion"));
 
     QString theme = Settings::instance().getTheme();
-    // Use a stylesheet to force colors — this overrides the GNOME/GTK platform
+    // Use a stylesheet to force colors - this overrides the GNOME/GTK platform
     // theme which would otherwise ignore QPalette changes on dark desktops.
     if (theme == "light") {
         qApp->setStyleSheet(
@@ -237,7 +237,7 @@ int main(int argc, char *argv[])
                         sandboxFile.toLocal8Bit().constData());
                 } else {
                     fprintf(stderr,
-                        "config-dir: WARNING — failed to copy %s into sandbox; "
+                        "config-dir: WARNING - failed to copy %s into sandbox; "
                         "CLX will start with default config\n",
                         realFile.toLocal8Bit().constData());
                 }
@@ -254,7 +254,7 @@ int main(int argc, char *argv[])
         QSettings::setPath(QSettings::IniFormat, QSettings::UserScope, sandboxDir);
     }
 
-    // Initialize debug logger FIRST — it owns the debug log file for the lifetime of the process
+    // Initialize debug logger FIRST - it owns the debug log file for the lifetime of the process
     DebugLogger::instance().init(parser.value(debugLogOption));
     DebugLogger::instance().setStdoutEnabled(debugToStdout);
     DebugLogger::instance().loadSettings();
@@ -278,17 +278,17 @@ int main(int argc, char *argv[])
     int acceptedVersion = Settings::instance().getTermsAcceptedVersion();
     if (!parser.isSet(testOnlyOption) && acceptedVersion < TERMS_VERSION) {
         DebugLogger::instance().log("INFO",
-            QString("Terms v%1 not yet accepted (have v%2) — showing dialog")
+            QString("Terms v%1 not yet accepted (have v%2) - showing dialog")
                 .arg(TERMS_VERSION).arg(acceptedVersion));
         TermsDialog terms;
         if (terms.exec() != QDialog::Accepted) {
-            DebugLogger::instance().log("INFO", "User declined terms of use — exiting");
+            DebugLogger::instance().log("INFO", "User declined terms of use - exiting");
             return 1;
         }
         DebugLogger::instance().log("INFO", QString("User accepted terms v%1").arg(TERMS_VERSION));
         Settings::instance().setTermsAcceptedVersion(TERMS_VERSION);
     } else if (!parser.isSet(testOnlyOption)) {
-        DebugLogger::instance().log("INFO", "Terms of use previously accepted — skipping dialog");
+        DebugLogger::instance().log("INFO", "Terms of use previously accepted - skipping dialog");
     }
 
     MainWindow window;

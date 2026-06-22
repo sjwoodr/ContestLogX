@@ -62,8 +62,8 @@
       "question": "Are you a Georgia or non-GA station?",
       "type": "select",
       "options": [
-        {"value": "GA", "label": "Georgia (In-State) — send RST + GA county"},
-        {"value": "NON_GA", "label": "Non-Georgia (US/VE/DX) — send RST + state/province/DX"}
+        {"value": "GA", "label": "Georgia (In-State) - send RST + GA county"},
+        {"value": "NON_GA", "label": "Non-Georgia (US/VE/DX) - send RST + state/province/DX"}
       ],
       "required": true,
       "storeInMeta": true,
@@ -194,7 +194,7 @@
     ],
     "multipliers": {
       "type": "multsPerMode",
-      "description": "GA counties (159) for non-GA; US states+DC (51) + Canadian provinces (13) for GA — each counted once per mode (CW/SSB). DX is points only, no DX multiplier.",
+      "description": "GA counties (159) for non-GA; US states+DC (51) + Canadian provinces (13) for GA - each counted once per mode (CW/SSB). DX is points only, no DX multiplier.",
       "categories": ["namedMults"]
     },
     "finalScore": "SUM(points) * SUM(multipliers)"

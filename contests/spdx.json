@@ -64,8 +64,8 @@
       "question": "Are you a Polish or non-Polish station?",
       "type": "select",
       "options": [
-        {"value": "DX", "label": "Non-Polish (DX) — send RST + serial number"},
-        {"value": "SP", "label": "Polish (SP) — send RST + province designator"}
+        {"value": "DX", "label": "Non-Polish (DX) - send RST + serial number"},
+        {"value": "SP", "label": "Polish (SP) - send RST + province designator"}
       ],
       "required": true,
       "storeInMeta": true

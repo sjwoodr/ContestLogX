@@ -4,7 +4,7 @@
     "abbreviation": "7QP",
     "version": "1.0.0",
     "sponsor": "Western Washington DX Club, Willamette Valley DX Club, et al.",
-    "description": "7th call area state QSO party — 7th-area stations work everyone, others work 7th-area stations only. CW, SSB, and non-WSJT digital modes (RTTY, PSK, etc.). WSJT modes (FT8, FT4, MSK144, JT65) are NOT allowed because they cannot transmit the required 7QP exchange.",
+    "description": "7th call area state QSO party - 7th-area stations work everyone, others work 7th-area stations only. CW, SSB, and non-WSJT digital modes (RTTY, PSK, etc.). WSJT modes (FT8, FT4, MSK144, JT65) are NOT allowed because they cannot transmit the required 7QP exchange.",
     "startDate": "First Saturday in May, 1300 UTC (2026: May 2)",
     "duration": 18,
     "offTimeGapMinutes": 0,
@@ -176,7 +176,7 @@
   },
   "dupeChecking": {
     "type": "perBandAndMode",
-    "description": "A station may be worked once per band/mode combination. 7th-area mobiles and stations participating in concurrent QSO parties may be re-worked from new counties. County-line contacts: log each county as a separate QSO with the same callsign — the per-band-and-mode dupe check by exchange code allows this naturally."
+    "description": "A station may be worked once per band/mode combination. 7th-area mobiles and stations participating in concurrent QSO parties may be re-worked from new counties. County-line contacts: log each county as a separate QSO with the same callsign - the per-band-and-mode dupe check by exchange code allows this naturally."
   },
   "multAliases": [
     {

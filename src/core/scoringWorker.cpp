@@ -28,7 +28,7 @@ void ScoringWorker::doScore()
     DebugLogger::instance().log("ScoringWorker",
         QString("Starting to score %1 QSOs on background thread").arg(m_qsos.count()));
 
-    // Single O(n) pass — rescoreAll handles dupe detection, points, mults, and running score.
+    // Single O(n) pass - rescoreAll handles dupe detection, points, mults, and running score.
     m_contestEngine->rescoreAll(m_qsos, m_myCallsign);
 
     DebugLogger::instance().log("ScoringWorker",

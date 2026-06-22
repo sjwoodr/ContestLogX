@@ -4,7 +4,7 @@
     "abbreviation": "FD",
     "version": "1.0.0",
     "sponsor": "ARRL",
-    "description": "ARRL Field Day — the fourth full weekend of June, an emergency-preparedness operating exercise. Work as many stations as possible on 160-10m HF (no WARC bands) and all bands 50 MHz and above. Exchange is operating class + ARRL/RAC section (e.g. '3A CT'); DX stations send class + 'DX'. Phone QSO = 1 point, CW and Digital QSO = 2 points. Final score is QSO points x the power multiplier (x5 for 5 W or less on natural power, x2 for 100 W or less, x1 for more than 100 W) plus bonus points. The Rule 7.3 bonus points (emergency power, media publicity, GOTA, satellite QSO, W1AW bulletin, youth participation, etc.) are proof-based claims submitted on the official ARRL Field Day entry and are NOT auto-computed here — ContestLogX scores the QSO-points x power-multiplier portion. A GOTA station operates under its own callsign and is logged separately; satellite QSOs are logged as normal QSOs.",
+    "description": "ARRL Field Day - the fourth full weekend of June, an emergency-preparedness operating exercise. Work as many stations as possible on 160-10m HF (no WARC bands) and all bands 50 MHz and above. Exchange is operating class + ARRL/RAC section (e.g. '3A CT'); DX stations send class + 'DX'. Phone QSO = 1 point, CW and Digital QSO = 2 points. Final score is QSO points x the power multiplier (x5 for 5 W or less on natural power, x2 for 100 W or less, x1 for more than 100 W) plus bonus points. The Rule 7.3 bonus points (emergency power, media publicity, GOTA, satellite QSO, W1AW bulletin, youth participation, etc.) are proof-based claims submitted on the official ARRL Field Day entry and are NOT auto-computed here - ContestLogX scores the QSO-points x power-multiplier portion. A GOTA station operates under its own callsign and is logged separately; satellite QSOs are logged as normal QSOs.",
     "startDate": "Fourth full weekend of June (2026: June 27-28, 1800Z Sat to 2059Z Sun)",
     "duration": 27,
     "offTimeGapMinutes": 0,
@@ -70,9 +70,9 @@
       "question": "Select your power level (determines the Field Day power multiplier).",
       "type": "select",
       "options": [
-        {"value": "QRP_NATURAL", "label": "5 W or less, natural power (battery / solar / wind / water — not mains or generator) — power multiplier x5"},
-        {"value": "LOW",         "label": "100 W or less (or 5 W or less from mains / generator) — power multiplier x2"},
-        {"value": "HIGH",        "label": "More than 100 W — power multiplier x1"}
+        {"value": "QRP_NATURAL", "label": "5 W or less, natural power (battery / solar / wind / water - not mains or generator) - power multiplier x5"},
+        {"value": "LOW",         "label": "100 W or less (or 5 W or less from mains / generator) - power multiplier x2"},
+        {"value": "HIGH",        "label": "More than 100 W - power multiplier x1"}
       ],
       "required": true,
       "storeInMeta": true,
@@ -120,7 +120,7 @@
   },
   "dupeChecking": {
     "type": "perBandAndMode",
-    "description": "A station may be worked once per band per mode — Phone, CW, and Digital count separately, so the same station is workable up to three times on a band (Rule 6.3). All voice modes (SSB/FM/AM) count as one Phone mode; all non-CW digital modes count as one Digital mode."
+    "description": "A station may be worked once per band per mode - Phone, CW, and Digital count separately, so the same station is workable up to three times on a band (Rule 6.3). All voice modes (SSB/FM/AM) count as one Phone mode; all non-CW digital modes count as one Digital mode."
   },
   "callHistory": {
     "fieldsToSave": ["CLASSr", "SECTr"],
@@ -131,7 +131,7 @@
     "cabrillo": {
       "version": "3.0",
       "contest": "ARRL-FIELD-DAY",
-      "notes": "Cabrillo is accepted in lieu of a dupe sheet but does not by itself constitute an entry — the ARRL summary sheet / web app is required. HF frequencies in kHz; VHF and above logged by band.",
+      "notes": "Cabrillo is accepted in lieu of a dupe sheet but does not by itself constitute an entry - the ARRL summary sheet / web app is required. HF frequencies in kHz; VHF and above logged by band.",
       "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {exch_sent} {call} {exch_rcvd}"
     }
   },
@@ -141,7 +141,7 @@
     "offTimesRequired": false,
     "exchangeValidation": {
       "type": "freeForm",
-      "description": "Class and section are collected but not validated against a fixed list — the operator is responsible for correct entry. Section may be any ARRL/RAC section or DX."
+      "description": "Class and section are collected but not validated against a fixed list - the operator is responsible for correct entry. Section may be any ARRL/RAC section or DX."
     }
   },
   "ui": {

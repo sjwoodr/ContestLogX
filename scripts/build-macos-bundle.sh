@@ -11,7 +11,7 @@ mkdir -p build dist
 
 # Configure and build as a universal binary (x86_64 + arm64) so the bundle
 # runs natively on both Intel and Apple Silicon Macs. Qt 6.2+ ships
-# universal frameworks by default so no separate Qt install is needed —
+# universal frameworks by default so no separate Qt install is needed -
 # clang cross-compiles the x86_64 slice even on an Apple Silicon runner.
 # Deployment target is Big Sur (macOS 11.0), the oldest macOS with Apple
 # Silicon support and the effective floor for Qt 6.5.
@@ -82,7 +82,7 @@ cat > "dist/${APP_NAME}.app/Contents/Info.plist" << EOF
     <string>11.0</string>
     <!-- NSMicrophoneUsageDescription is REQUIRED for the CW Decoder to
          receive any audio from a capture device. macOS TCC silently hands
-         back a zero-filled stream if this key is missing — symptom is
+         back a zero-filled stream if this key is missing - symptom is
          "CW Decoder produces no output at all, not even garbage." The
          string below is shown to the user in the mic-access prompt. -->
     <key>NSMicrophoneUsageDescription</key>
@@ -112,7 +112,7 @@ macdeployqt "dist/${APP_NAME}.app" -always-overwrite
 # Re-sign the bundle with an ad-hoc signature that seals all bundled
 # resources. The linker's original ad-hoc signature on the main binary is
 # invalidated the moment macdeployqt rewrites rpaths inside the frameworks
-# and plugins — Gatekeeper then rejects the bundle with "code has no
+# and plugins - Gatekeeper then rejects the bundle with "code has no
 # resources but signature indicates they must be present." The --deep flag
 # walks into Contents/Frameworks and Contents/PlugIns so each nested
 # bundle gets its own valid signature. The --force flag replaces the
@@ -120,7 +120,7 @@ macdeployqt "dist/${APP_NAME}.app" -always-overwrite
 #
 # "--sign -" means ad-hoc (no signing identity, no notarization). Users
 # downloading from GitHub will still trip Gatekeeper's quarantine check
-# (com.apple.quarantine xattr set on download) — they'll need to right-
+# (com.apple.quarantine xattr set on download) - they'll need to right-
 # click → Open the first time, or run
 #   xattr -dr com.apple.quarantine /Applications/ContestLogX.app
 # to remove the attribute. Full notarization requires an Apple Developer

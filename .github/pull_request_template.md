@@ -5,7 +5,7 @@ See CONTRIBUTING.md for the full guidelines.
 
 ## Summary
 
-<!-- What does this PR do, and why? Keep it brief — the diff shows the what. -->
+<!-- What does this PR do, and why? Keep it brief - the diff shows the what. -->
 
 ## Type of Change
 

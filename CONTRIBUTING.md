@@ -5,7 +5,7 @@ Thanks for your interest in ContestLogX. This document covers what you need to k
 ## Ground Rules
 
 - ContestLogX is cross-platform: every change must work on **Linux, macOS, and Windows**. Use `Q_OS_LINUX` / `Q_OS_MACOS` / `Q_OS_WIN` guards for platform-specific code, and avoid GCC/Clang-only extensions (the Windows build uses MSVC).
-- Use `QDir`, `QStandardPaths`, and `/` separators for paths — Qt normalizes them.
+- Use `QDir`, `QStandardPaths`, and `/` separators for paths - Qt normalizes them.
 - C++17 only. No new third-party dependencies without discussion in an issue first.
 - Keep changes focused. One logical change per PR. Refactors that touch unrelated code are easier to review as separate PRs.
 
@@ -37,7 +37,7 @@ See [`docs/BUILD.md`](docs/BUILD.md) for Windows build instructions and full det
 
 ```bash
 make test                # unit tests
-make test-logs-headless  # contest log validation (parallel — faster than make test-logs)
+make test-logs-headless  # contest log validation (parallel - faster than make test-logs)
 ```
 
 `make test-logs` validates scores AND multiplier details for every supported contest using the logs in `test_logs/`. If you change the contest engine, scoring, or any contest definition, this catches regressions across the rest of the contests.
@@ -47,23 +47,23 @@ If you add a new contest, add a corresponding entry in `test_logs/automated_test
 ## Code Conventions
 
 ### Naming
-- **Exchange fields:** 3-letter codes with `s` (sent) or `r` (received) suffix — `RSTs`, `RSTr`, `SNs`, `SNr`, `EXCHs`, `EXCHr`, `GRIDs`, `GRIDr`, `NAMEs`, `NAMEr`
-- **QSO log columns:** uppercase — `DATE`, `TIME`, `CALL`, `FREQ`, `MODE`, `POINTS`
+- **Exchange fields:** 3-letter codes with `s` (sent) or `r` (received) suffix - `RSTs`, `RSTr`, `SNs`, `SNr`, `EXCHs`, `EXCHr`, `GRIDs`, `GRIDr`, `NAMEs`, `NAMEr`
+- **QSO log columns:** uppercase - `DATE`, `TIME`, `CALL`, `FREQ`, `MODE`, `POINTS`
 - **Mode tracking:** the score widget collapses SSB/AM/FM into `PH` (PHONE)
 
 ### Adding a New Contest
-Most contests can be added by dropping a JSON file into `contests/` — no C++ changes required. See [`docs/contest-module-format.md`](docs/contest-module-format.md) for the schema and the existing `contests/*.json` files for examples. If your contest needs a scoring relationship or multiplier type that doesn't exist yet, that's a contest engine change — open an issue first.
+Most contests can be added by dropping a JSON file into `contests/` - no C++ changes required. See [`docs/contest-module-format.md`](docs/contest-module-format.md) for the schema and the existing `contests/*.json` files for examples. If your contest needs a scoring relationship or multiplier type that doesn't exist yet, that's a contest engine change - open an issue first.
 
 ### Comments
-Default to writing no comments. Only add one when the *why* is non-obvious — a hidden constraint, a workaround for a specific bug, behavior that would surprise a reader. Don't explain *what* the code does (well-named identifiers do that) or reference the current task or PR number.
+Default to writing no comments. Only add one when the *why* is non-obvious - a hidden constraint, a workaround for a specific bug, behavior that would surprise a reader. Don't explain *what* the code does (well-named identifiers do that) or reference the current task or PR number.
 
 ## Changelog
 
 **Every user-facing change must update [`CHANGELOG.md`](CHANGELOG.md)** under the current unreleased version. Organize entries into these three sections (omit any that don't apply):
 
-1. **Contest Updates** — new contests, contest definition changes
-2. **Contest Engine Changes** — scoring/multiplier engine, contest JSON schema additions
-3. **Other Changes and Bugfixes** — UI, rig control, file formats, build, everything else
+1. **Contest Updates** - new contests, contest definition changes
+2. **Contest Engine Changes** - scoring/multiplier engine, contest JSON schema additions
+3. **Other Changes and Bugfixes** - UI, rig control, file formats, build, everything else
 
 Entries are **release notes**, not commit messages: short, user-facing, and focused on what changed from the operator's perspective. Save deep engine internals and implementation rationale for the commit message.
 

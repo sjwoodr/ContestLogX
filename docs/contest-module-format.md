@@ -2,7 +2,7 @@
 
 Complete reference for the ContestLogX contest definition JSON format.
 Every contest is defined by a single `.json` file in the `contests/` directory.
-Drop a new file there and it appears in the contest selection dialog immediately — no recompilation needed.
+Drop a new file there and it appears in the contest selection dialog immediately - no recompilation needed.
 
 ## Contents
 
@@ -30,18 +30,18 @@ A contest definition file contains these top-level keys:
 
 ```json
 {
-  "contest":        { },   // required — metadata, bands, modes
-  "frequencies":    { },   // required — band/mode frequency ranges
-  "stationClasses": { },   // required — entry classes (can be disabled)
-  "userPrompts":    [ ],   // optional — setup questions collected at contest start
-  "exchangeFields": { },   // required — sent/received exchange field definitions
-  "qsoFields":      [ ],   // required — log table column definitions
-  "scoring":        { },   // required — QSO points, multipliers, final score formula
-  "dupeChecking":   { },   // required — duplicate detection scope
-  "logging":        { },   // required — Cabrillo export settings
-  "callHistory":    { },   // optional — fields to persist to call history
-  "validation":     { },   // required — constraints and valid multiplier lists
-  "ui":             { }    // required — log columns, entry fields, display options
+  "contest":        { },   // required - metadata, bands, modes
+  "frequencies":    { },   // required - band/mode frequency ranges
+  "stationClasses": { },   // required - entry classes (can be disabled)
+  "userPrompts":    [ ],   // optional - setup questions collected at contest start
+  "exchangeFields": { },   // required - sent/received exchange field definitions
+  "qsoFields":      [ ],   // required - log table column definitions
+  "scoring":        { },   // required - QSO points, multipliers, final score formula
+  "dupeChecking":   { },   // required - duplicate detection scope
+  "logging":        { },   // required - Cabrillo export settings
+  "callHistory":    { },   // optional - fields to persist to call history
+  "validation":     { },   // required - constraints and valid multiplier lists
+  "ui":             { }    // required - log columns, entry fields, display options
 }
 ```
 
@@ -170,10 +170,10 @@ An array of questions shown to the operator when starting a new log. Answers are
 | `id` | string | Unique identifier; also the key used in `exchangeFieldMapping` |
 | `type` | string | `"text"`, `"select"`, or `"checkboxes"` |
 | `options` | array | For `select` and `checkboxes`; each has `value` and `label`; checkboxes may also have `points` |
-| `forceUppercase` | boolean | For `text` type — forces input to uppercase |
+| `forceUppercase` | boolean | For `text` type - forces input to uppercase |
 | `validation` | string | Regex applied to `text` type input |
 | `storeInMeta` | boolean | If true, answer is stored in the `.clx` file metadata |
-| `restrictMode` | boolean | For `select` type — if true, the selected value restricts the log to that mode only. Restored automatically when reopening a `.clx` file. |
+| `restrictMode` | boolean | For `select` type - if true, the selected value restricts the log to that mode only. Restored automatically when reopening a `.clx` file. |
 | `exchangeFieldMapping` | object | Maps prompt `id` → exchange field name (e.g., `"myExchange": "EXCHs"`) |
 
 ---
@@ -219,21 +219,21 @@ Defines the sent and received exchange fields. These drive the QSO entry form an
 
 ### Field name conventions
 
-Exchange field names use a 3–5 letter code with an `s` (sent) or `r` (received) suffix:
+Exchange field names use a 3-5 letter code with an `s` (sent) or `r` (received) suffix:
 
-- `RSTs` / `RSTr` — RST signal report
-- `NAMEs` / `NAMEr` — operator first name
-- `EXCHs` / `EXCHr` — generic exchange (state, serial, etc.)
-- `SNs` / `SNr` — serial number
-- `GRIDs` / `GRIDr` — Maidenhead grid square
-- `CATs` / `CATr` — category/class
-- `LOCs` / `LOCr` — location identifier
-- `EXCH` — single exchange field (no sent/rcvd variant)
+- `RSTs` / `RSTr` - RST signal report
+- `NAMEs` / `NAMEr` - operator first name
+- `EXCHs` / `EXCHr` - generic exchange (state, serial, etc.)
+- `SNs` / `SNr` - serial number
+- `GRIDs` / `GRIDr` - Maidenhead grid square
+- `CATs` / `CATr` - category/class
+- `LOCs` / `LOCr` - location identifier
+- `EXCH` - single exchange field (no sent/rcvd variant)
 
 ### Field types
 
-- `"rst"` — RST field with default 599 (or 59 for SSB)
-- `"string"` — general text field
+- `"rst"` - RST field with default 599 (or 59 for SSB)
+- `"string"` - general text field
 
 The `validation` property accepts a regex string applied to input.
 
@@ -329,15 +329,15 @@ An ordered array of point rule names. The engine evaluates each rule in order an
 
 **Custom rules.** A rule name in `precedence` that isn't a built-in relationship (`sameDxccEntity`, `differentDxccEntity`, `sameContinent`, `differentContinent`, `bothIn<XX>`) fires when the worked station matches either:
 
-- `"<ruleName>Prefixes": ["..."]` — the worked station's DXCC primary prefix is in the array. Used to match a whole DXCC entity (e.g. `canadianStationPrefixes: ["VE"]` for every Canadian station).
-- `"<ruleName>Callsigns": ["..."]` — the worked station's full callsign is in the array. Used to score a fixed list of specific call signs (e.g. the RAC Canada Day Contest's 15 RAC official stations get 20 pts/QSO via `racStationCallsigns: ["VE1RAC", "VE3RHQ", ...]`).
+- `"<ruleName>Prefixes": ["..."]` - the worked station's DXCC primary prefix is in the array. Used to match a whole DXCC entity (e.g. `canadianStationPrefixes: ["VE"]` for every Canadian station).
+- `"<ruleName>Callsigns": ["..."]` - the worked station's full callsign is in the array. Used to score a fixed list of specific call signs (e.g. the RAC Canada Day Contest's 15 RAC official stations get 20 pts/QSO via `racStationCallsigns: ["VE1RAC", "VE3RHQ", ...]`).
 
 Both arrays can be set on the same rule; the callsign list is checked only if the prefix list doesn't match.
 
 **Exchange-based rules (`scoring.exchangeRules`).** A rule can also fire based on the *received exchange* (`EXCHr`) rather than the worked station's DXCC/callsign. Add a `scoring.exchangeRules` object keyed by rule name; each entry may contain:
 
-- `"matchesPrompt": "<promptId>"` — the rule applies when the received exchange equals the operator's own answer to that `userPrompts` entry. Numbers are compared numerically, so `08` matches `8`.
-- `"exchangeIsAlpha": true` — the rule applies when the received exchange contains any letter (useful for distinguishing a numeric code from an alphabetic abbreviation).
+- `"matchesPrompt": "<promptId>"` - the rule applies when the received exchange equals the operator's own answer to that `userPrompts` entry. Numbers are compared numerically, so `08` matches `8`.
+- `"exchangeIsAlpha": true` - the rule applies when the received exchange contains any letter (useful for distinguishing a numeric code from an alphabetic abbreviation).
 
 ```json
 "scoring": {
@@ -349,7 +349,7 @@ Both arrays can be set on the same rule; the callsign list is checked only if th
 }
 ```
 
-The IARU HF World Championship uses this: `sameItuZone` (received ITU zone equals the operator's own zone) scores 1 point, and `iaruHqOrOfficial` (HQ/official stations send a letter abbreviation like `ARRL`/`R2` instead of a numeric zone) scores 1 point — both ahead of the continent-based rules in `precedence`.
+The IARU HF World Championship uses this: `sameItuZone` (received ITU zone equals the operator's own zone) scores 1 point, and `iaruHqOrOfficial` (HQ/official stations send a letter abbreviation like `ARRL`/`R2` instead of a numeric zone) scores 1 point - both ahead of the continent-based rules in `precedence`.
 
 ### multipliers
 
@@ -393,8 +393,8 @@ The IARU HF World Championship uses this: `sameItuZone` (received ITU zone equal
 An optional object inside `multipliers` that credits a named multiplier the
 operator earns **without an explicit exchange**. The motivating case is the
 West Virginia QSO Party: a WV station's own state, `WV`, is one of its 50
-state multipliers, but a WV station always sends a *county* — it never
-receives `WV` in an exchange — so the mult could never be tallied from QSO
+state multipliers, but a WV station always sends a *county* - it never
+receives `WV` in an exchange - so the mult could never be tallied from QSO
 data alone.
 
 ```json
@@ -413,10 +413,10 @@ data alone.
 |-------|-------------|
 | `promptId` | The `userPrompts` id whose answer selects a rule |
 | `rules` | Map of prompt-answer → array of named-mult values to credit |
-| `requiresWorkedFrom` | *(optional)* Gate — credit only after the operator has worked a multiplier from this list (`inStateMults` or `namedMults`). Omit for an unconditional credit. |
+| `requiresWorkedFrom` | *(optional)* Gate - credit only after the operator has worked a multiplier from this list (`inStateMults` or `namedMults`). Omit for an unconditional credit. |
 
 With `requiresWorkedFrom: "inStateMults"`, `WV` is credited only once the WV
-operator has worked at least one WV county — i.e. it is *earned* by working a
+operator has worked at least one WV county - i.e. it is *earned* by working a
 WV station, not handed out free. Supported with `multsOnce` and
 `multsPerBand`. Under `multsPerBand`, each automatic multiplier is credited
 on every band where the operator has worked at least one
@@ -459,7 +459,7 @@ A formula string controlling how the final score is computed:
 | `perBand` | Once per band (most HF contests) |
 | `perMode` | Once per mode |
 | `perBandAndMode` | Once per band/mode combination (e.g., CW and SSB on 40m are separate) |
-| `perBandAndGridSquare` | Once per band per grid square (ARRL VHF — rovers may be worked from multiple grids) |
+| `perBandAndGridSquare` | Once per band per grid square (ARRL VHF - rovers may be worked from multiple grids) |
 
 ---
 
@@ -545,7 +545,7 @@ Set `fieldsToSave` to `[]` if no fields should be persisted (e.g., serial-number
 | `namedMultOrPower` | Accepts a named mult OR a power value (format in `powerFormat`) |
 | `maidenheadGrid` | Validates against `gridSquareFormat` regex |
 | `serial` | Numeric serial number only |
-| `freeForm` | No validation — user is responsible for correct entry |
+| `freeForm` | No validation - user is responsible for correct entry |
 
 ### namedMultAliases (unconditional 1:1 remap)
 
@@ -560,7 +560,7 @@ A simple key→value table applied to **every** received exchange before mult lo
 }
 ```
 
-Unlike `multAliases` (the conditional system documented below), this remap is unconditional — it applies regardless of operator class. Common uses:
+Unlike `multAliases` (the conditional system documented below), this remap is unconditional - it applies regardless of operator class. Common uses:
 
 - The operator types a short form that doesn't appear in the `namedMults` list (`"5"` → `"05"`).
 - Two codes are administratively distinct but scoring-equivalent (`"DC"` → `"MD"` for ARRL contests where DC ARES counts as MD).
@@ -573,11 +573,11 @@ Conditionally rewrite a received exchange value to a different multiplier based 
 
 Two examples that drove the design:
 
-- **FQP (Florida QSO Party)** — Florida operators send their county code (e.g., `ALA`) and receive county codes back from in-state contacts. But for a Florida operator, every Florida county counts as a single `FL` mult — they're not collecting their own counties. A `multAliases` rule maps "any value in `inStateMults`" → `FL`, *only when the operator is a FL station*.
+- **FQP (Florida QSO Party)** - Florida operators send their county code (e.g., `ALA`) and receive county codes back from in-state contacts. But for a Florida operator, every Florida county counts as a single `FL` mult - they're not collecting their own counties. A `multAliases` rule maps "any value in `inStateMults`" → `FL`, *only when the operator is a FL station*.
 
-- **7QP (7th Call Area QSO Party)** — 7th-area stations work everyone, including each other. Two 7th-area stations exchange 5-letter `<state><county>` codes (e.g., `WYALB`, `ORDES`). For a 7th-area operator, those codes count toward the **state** multiplier, not the county. A `multAliases` rule extracts the first 2 characters as the mult value, *only when the operator is in one of the eight 7th-area states*.
+- **7QP (7th Call Area QSO Party)** - 7th-area stations work everyone, including each other. Two 7th-area stations exchange 5-letter `<state><county>` codes (e.g., `WYALB`, `ORDES`). For a 7th-area operator, those codes count toward the **state** multiplier, not the county. A `multAliases` rule extracts the first 2 characters as the mult value, *only when the operator is in one of the eight 7th-area states*.
 
-- **CPQP (Canadian Prairies QSO Party)** — prairie stations (MB/SK/AB) work each other and exchange 3-letter Federal Electoral District (FED) codes that aren't algorithmically convertible to a province (`AIR`, `BAT`, `RGW`, `BRA`, etc.). A prairie operator who works two MB stations on the same band should earn one MB province mult, not two FED mults. Three `multAliases` rules — one per prairie province — use `sourceValues` to enumerate that province's FED codes and `mapsTo` the 2-letter province code. Only one rule's source set contains any given FED, so the right province wins.
+- **CPQP (Canadian Prairies QSO Party)** - prairie stations (MB/SK/AB) work each other and exchange 3-letter Federal Electoral District (FED) codes that aren't algorithmically convertible to a province (`AIR`, `BAT`, `RGW`, `BRA`, etc.). A prairie operator who works two MB stations on the same band should earn one MB province mult, not two FED mults. Three `multAliases` rules - one per prairie province - use `sourceValues` to enumerate that province's FED codes and `mapsTo` the 2-letter province code. Only one rule's source set contains any given FED, so the right province wins.
 
 ### JSON shape
 
@@ -609,8 +609,8 @@ The rule fires when the operator's answer to `promptId` (set during contest star
 | Field | Purpose |
 |-------|---------|
 | `promptId` | Required. The `userPrompts` id whose stored answer is checked. |
-| `promptValue` | Single-value trigger — fires when the operator's answer equals this string. |
-| `promptValueIn` | Array trigger — fires when the operator's answer is in this list. Overrides `promptValue` if non-empty. |
+| `promptValue` | Single-value trigger - fires when the operator's answer equals this string. |
+| `promptValueIn` | Array trigger - fires when the operator's answer is in this list. Overrides `promptValue` if non-empty. |
 
 ### Mapping fields
 
@@ -619,7 +619,7 @@ When a rule fires, the engine inspects the rawMult value (the received exchange 
 | Field | Effect |
 |-------|--------|
 | `sourceList` | Either `"inStateMults"` (the same list referenced by `validation.inStateMults`) or `"namedMults"` (`validation.namedMults`). The rule's mapping only applies if rawMult is in this set. Required unless `sourceValues` is set. |
-| `sourceValues` | Inline exact-match list — array of specific values (e.g., `["AIR","BAT","BOW",…]`) that this rule applies to. Use when different subsets of the source list need to map to different targets, so each subset gets its own rule. Wins over `sourceList` when present. CPQP uses this to map each prairie province's FED codes to its 2-letter province code with one rule per province. |
+| `sourceValues` | Inline exact-match list - array of specific values (e.g., `["AIR","BAT","BOW",…]`) that this rule applies to. Use when different subsets of the source list need to map to different targets, so each subset gets its own rule. Wins over `sourceList` when present. CPQP uses this to map each prairie province's FED codes to its 2-letter province code with one rule per province. |
 | `mapsTo` | Static replacement: rawMult is replaced with this string in the engine's mult lookup. |
 | `mapByPrefix` | Prefix extraction: take `rawMult.left(N)` as the mult value. Use for state-prefixed codes (e.g., 7QP's 5-letter `<state><county>` → 2-char state with `mapByPrefix: 2`). Wins over `mapsTo` when both are present. |
 
@@ -636,7 +636,7 @@ The check happens after `validation.namedMultAliases` (the unconditional 1:1 rem
 
 ### Multiplier panel display
 
-When a `multAliases` rule is active for the current operator, the values in its `sourceList` are **hidden from the multiplier panel display**. They would just clutter the panel — the operator is earning credit for the aliased *target*, not the individual source values. The remaining `namedMults` (states, provinces, DX, etc., that don't appear in the source list) are shown normally.
+When a `multAliases` rule is active for the current operator, the values in its `sourceList` are **hidden from the multiplier panel display**. They would just clutter the panel - the operator is earning credit for the aliased *target*, not the individual source values. The remaining `namedMults` (states, provinces, DX, etc., that don't appear in the source list) are shown normally.
 
 For example, a 7QP operator in Wyoming sees ~65 destination mults in the multiplier panel (50 states + DC + 13 provinces + DX), while the 259 5-letter county codes are hidden because they all alias to state codes via `mapByPrefix: 2`.
 
@@ -671,7 +671,7 @@ For example, a 7QP operator in Wyoming sees ~65 destination mults in the multipl
 | `showMultiplierPanel` | Shows the multiplier checkbox panel (requires `validation.namedMults`) |
 | `logColumns` | Ordered list of column keys shown in the QSO log table; must match `qsoFields[].column` values |
 | `entryFields` | Fields shown in the QSO entry row (Tab navigates between them). `CALL` is always first. |
-| `fieldNavigation.keys` | `"tab"` — Tab only; `"both"` — Tab and Space both advance fields |
+| `fieldNavigation.keys` | `"tab"` - Tab only; `"both"` - Tab and Space both advance fields |
 | `bandMap.enabled` | Shows the band selector buttons |
 | `multiplierDisplay` | Controls which multiplier groups appear in the multiplier panel |
 

@@ -48,7 +48,7 @@ QVariant QsoListModel::data(const QModelIndex &index, int role) const
         QString header = m_columnHeaders.at(index.column()).toUpper();
         QString originalHeader = m_columnHeaders.at(index.column());  // Keep original case
         
-        // QSO number column — show logged serial so it stays meaningful after sorting
+        // QSO number column - show logged serial so it stays meaningful after sorting
         if (header == "#") {
             unsigned long serial = qso.getSerial();
             return serial > 0 ? QVariant::fromValue(serial) : QVariant(index.row() + 1);
@@ -147,12 +147,12 @@ void QsoListModel::addQso(const QsoRecord& qso)
 {
     int sourceRow = m_qsos.count();
     if (m_visibleIndices.isEmpty()) {
-        // No filter active — simple append
+        // No filter active - simple append
         beginInsertRows(QModelIndex(), sourceRow, sourceRow);
         m_qsos.append(qso);
         endInsertRows();
     } else {
-        // Filter active — add to source, then expose if it matches
+        // Filter active - add to source, then expose if it matches
         m_qsos.append(qso);
         if (matchesFilter(qso)) {
             int viewRow = m_visibleIndices.count();
@@ -347,7 +347,7 @@ void QsoListModel::sort(int column, Qt::SortOrder order)
             } else if (header == "P" || header == "POINTS") {
                 lessThan = a.getPoints() < b.getPoints();
             } else {
-                // Exchange fields and anything else — string comparison
+                // Exchange fields and anything else - string comparison
                 lessThan = a.getExchangeField(origHeader) < b.getExchangeField(origHeader);
             }
 

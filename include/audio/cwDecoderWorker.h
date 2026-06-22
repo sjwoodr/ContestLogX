@@ -4,7 +4,7 @@
  *
  * Released under the MIT License. See LICENSE file for details.
  *
- * CwDecoderWorker — QObject running on a dedicated QThread; owns a CwDecoder
+ * CwDecoderWorker - QObject running on a dedicated QThread; owns a CwDecoder
  * and an AudioCapture pointer; drains audio samples from the ring buffer,
  * runs decode, emits decoded character and WPM signals (SPEC-005).
  */

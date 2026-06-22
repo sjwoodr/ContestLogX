@@ -43,17 +43,17 @@ void CwDecoderWorker::startCapture(AudioCapture* capture,
         emit errorOccurred(QStringLiteral("Null AudioCapture pointer"));
         return;
     }
-    // The capture object should already be on this worker thread — the
+    // The capture object should already be on this worker thread - the
     // widget calls `capture->moveToThread(workerThread)` from the main
     // thread (i.e. on the source side, where the object currently lives)
     // BEFORE invokeMethod hands the pointer here. That's the canonical
-    // Qt pattern — moveToThread() is supposed to be called from the
+    // Qt pattern - moveToThread() is supposed to be called from the
     // object's *current* thread. Calling it from the destination thread
     // (which is what an earlier version of this code did) is technically
     // forbidden by Qt and may not actually move thread affinity reliably,
     // which on Windows leaves the QAudioSource and its WASAPI polling
     // timer on the main thread while the worker drives readyRead from
-    // here — manifesting as a silent stall after the initial buffered
+    // here - manifesting as a silent stall after the initial buffered
     // burst.
     Q_ASSERT_X(m_capture->thread() == this->thread(),
                "CwDecoderWorker::startCapture",
@@ -98,7 +98,7 @@ void CwDecoderWorker::startCapture(AudioCapture* capture,
     }
 
     // Decoder configuration summary, debug-gated. The single most important
-    // triage hint when the operator says "the decoder shows nothing" — we
+    // triage hint when the operator says "the decoder shows nothing" - we
     // can immediately see whether their CW pitch (typically 600-800 Hz on
     // most rigs) lands inside the configured passband and which specific
     // bin centers will fire when it does.
@@ -217,7 +217,7 @@ void CwDecoderWorker::drainAndProcess()
     if (!m_capture) return;
     if (m_blockSamples <= 0) return;   // not yet configured
 
-    // Process audio in dynamically-sized blocks — 10 ms at whatever the
+    // Process audio in dynamically-sized blocks - 10 ms at whatever the
     // device's native sample rate turned out to be. No downsampling or
     // resampling: we feed the Goertzel detectors samples at the exact
     // rate the device captured.
@@ -237,7 +237,7 @@ void CwDecoderWorker::drainAndProcess()
                 m_decoder.setMuted(stillMuted);
                 emit muteStateChanged(stillMuted);
             } else if (m_muteState.internalSendMuteUntilMs != 0 && !m_decoder.isMuted()) {
-                // An internal-send mute is active but decoder isn't muted — sync.
+                // An internal-send mute is active but decoder isn't muted - sync.
                 m_decoder.setMuted(true);
             }
         }
@@ -245,7 +245,7 @@ void CwDecoderWorker::drainAndProcess()
         const qint64 ts = monotonicNowMs();
         QList<CharEvent> events = m_decoder.processBlock(block.data(), m_blockSamples, ts);
         for (const auto& ev : events) {
-            // Per-character emission log — kept commented out because at
+            // Per-character emission log - kept commented out because at
             // 25 WPM it's ~50 lines/min, drowning the bin-stats output.
             // Uncomment temporarily if a "characters decode but don't
             // appear in the UI" report comes in (i.e. need to confirm
@@ -263,7 +263,7 @@ void CwDecoderWorker::drainAndProcess()
 
         // Periodic per-bin magnitude snapshot, debug-gated. Fires every
         // kBinStatsIntervalMs (5 s) and surfaces the current normalized
-        // magnitude per bin plus the configured squelch — so we can
+        // magnitude per bin plus the configured squelch - so we can
         // immediately tell whether the operator's CW pitch is reaching
         // any bin with usable signal level. A leading '*' marks bins
         // currently in tone-active state. If every bin is well below
@@ -293,7 +293,7 @@ void CwDecoderWorker::drainAndProcess()
 
         // Auto-squelch update. When enabled, recompute the threshold
         // from per-bin noise-PEAK estimates (BinChannel's 90th-percentile
-        // of recent magnitudes — captures the upper end of typical noise
+        // of recent magnitudes - captures the upper end of typical noise
         // excursions for idle bins, and tone-on level for active bins).
         //
         // Across-bins reduction: take the MEDIAN, not the max. The bin
@@ -301,7 +301,7 @@ void CwDecoderWorker::drainAndProcess()
         // (many recent blocks are tone-on). Max would set squelch at
         // the signal level and choke the decoder. Median picks a
         // noise-only bin almost always (typical CW has 1-2 bins with
-        // signal out of 6 — median lands on noise). Adjacent-channel
+        // signal out of 6 - median lands on noise). Adjacent-channel
         // skirt bleed inflates bins next to the signal; median ignores
         // those too.
         //
@@ -313,7 +313,7 @@ void CwDecoderWorker::drainAndProcess()
         // matches the manual slider's effective cap.
         //
         // KNOWN LIMITATION: when a weak station replies, its magnitude
-        // can be barely above noise — auto-squelch with this margin may
+        // can be barely above noise - auto-squelch with this margin may
         // gate it out. The operator can uncheck Auto and lower the
         // slider manually for weak-signal copy.
         if (m_autoSquelchEnabled) {

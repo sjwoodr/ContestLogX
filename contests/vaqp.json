@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "sponsor": "Sterling Park Amateur Radio Club (SPARC), Call Box 29, Sterling, VA 20167",
     "description": "Annual Virginia QSO Party. VA stations work all stations. Out-of-state stations work VA stations only. Work fixed stations once per band/mode; work VA Mobiles/Rovers/Expeditions once per county from which they operate.",
-    "startDate": "Third Saturday in March (2026: March 21, 1400 UTC – March 22, 0400 UTC; then March 22, 1200 UTC – 2400 UTC)",
+    "startDate": "Third Saturday in March (2026: March 21, 1400 UTC - March 22, 0400 UTC; then March 22, 1200 UTC - 2400 UTC)",
     "duration": 26,
     "offTimeGapMinutes": 0,
     "modes": ["CW", "SSB", "RTTY"],
@@ -83,9 +83,9 @@
       "question": "Select your station location",
       "type": "select",
       "options": [
-        {"value": "VA",  "label": "Virginia (in-state) — send VA county or independent city abbreviation"},
-        {"value": "WVE", "label": "W/VE (US or Canada outside VA) — send state or province abbreviation"},
-        {"value": "DX",  "label": "DX (outside US/Canada) — send DX"}
+        {"value": "VA",  "label": "Virginia (in-state) - send VA county or independent city abbreviation"},
+        {"value": "WVE", "label": "W/VE (US or Canada outside VA) - send state or province abbreviation"},
+        {"value": "DX",  "label": "DX (outside US/Canada) - send DX"}
       ],
       "required": true,
       "storeInMeta": true,
@@ -116,9 +116,9 @@
       "question": "Select your power category",
       "type": "select",
       "options": [
-        {"value": "QRP",  "label": "QRP — 5 watts or less"},
-        {"value": "LOW",  "label": "Low Power — 150 watts or less"},
-        {"value": "HIGH", "label": "High Power — greater than 150 watts"}
+        {"value": "QRP",  "label": "QRP - 5 watts or less"},
+        {"value": "LOW",  "label": "Low Power - 150 watts or less"},
+        {"value": "HIGH", "label": "High Power - greater than 150 watts"}
       ],
       "required": true,
       "storeInMeta": true,
@@ -193,7 +193,7 @@
     "mobileSuffixes": ["/M", "/R"],
     "multipliers": {
       "type": "multsOnce",
-      "description": "VA stations: VA counties/independent cities + US states (excl VA) + Canadian provinces + DX — each counted once. Out-of-state stations: VA counties and independent cities only — each counted once.",
+      "description": "VA stations: VA counties/independent cities + US states (excl VA) + Canadian provinces + DX - each counted once. Out-of-state stations: VA counties and independent cities only - each counted once.",
       "categories": ["namedMults"],
       "alaskaAndHawaiiCountDxcc": false,
       "usAndCanadaCountDxcc": false
@@ -299,7 +299,7 @@
   ],
 
   "countyAbbreviations": {
-    "description": "Virginia County abbreviations (95 counties) — official VaQP abbreviations",
+    "description": "Virginia County abbreviations (95 counties) - official VaQP abbreviations",
     "ACC": "Accomack",
     "ALB": "Albemarle",
     "ALL": "Alleghany",
@@ -398,7 +398,7 @@
   },
 
   "cityAbbreviations": {
-    "description": "Virginia Independent City abbreviations (38 cities) — official VaQP abbreviations, X suffix denotes independent city",
+    "description": "Virginia Independent City abbreviations (38 cities) - official VaQP abbreviations, X suffix denotes independent city",
     "ALX": "Alexandria",
     "BRX": "Bristol",
     "BVX": "Buena Vista",

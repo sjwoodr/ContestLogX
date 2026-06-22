@@ -4,8 +4,8 @@
     "abbreviation": "RAC-CD",
     "version": "1.0.0",
     "sponsor": "Radio Amateurs of Canada",
-    "description": "RAC Canada Day Contest — held on Canada Day (July 1), 0000Z–2359Z (24 hours). CW and phone on 160/80/40/20/15/10/6/2 meters — no digital, no repeater QSOs. Canadian stations send RST + 2-letter province/territory abbreviation; VE0 maritime mobile and non-Canadian stations send RST + serial number. Work each station once per band per mode. QSO points: 20 per QSO with a RAC official station (VA2RAC, VA3RAC, VE1RAC, VE3RHQ, VE4RAC, VE5RAC, VE6RAC, VE7RAC, VE8RAC, VE9RAC, VO1RAC, VO2RAC, VY0RAC, VY1RAC, VY2RAC); 10 per QSO with a Canadian (or VE0) station; 2 per QSO with a non-Canadian station. Multipliers are Canada's 10 provinces and 3 territories (13 total), each counted once per band per mode. Final score = (sum of QSO points across all bands) × (sum of multipliers across all bands). Note: The rule grants a phantom multiplier of 1 to operators who fail to work any Canadian station — this app does not auto-apply that fallback (the score will simply be zero in that edge case). Cabrillo CONTEST tag: RAC-CANADA-DAY",
-    "startDate": "Canada Day, July 1 (2026: Wed July 1, 0000Z–2359Z)",
+    "description": "RAC Canada Day Contest - held on Canada Day (July 1), 0000Z-2359Z (24 hours). CW and phone on 160/80/40/20/15/10/6/2 meters - no digital, no repeater QSOs. Canadian stations send RST + 2-letter province/territory abbreviation; VE0 maritime mobile and non-Canadian stations send RST + serial number. Work each station once per band per mode. QSO points: 20 per QSO with a RAC official station (VA2RAC, VA3RAC, VE1RAC, VE3RHQ, VE4RAC, VE5RAC, VE6RAC, VE7RAC, VE8RAC, VE9RAC, VO1RAC, VO2RAC, VY0RAC, VY1RAC, VY2RAC); 10 per QSO with a Canadian (or VE0) station; 2 per QSO with a non-Canadian station. Multipliers are Canada's 10 provinces and 3 territories (13 total), each counted once per band per mode. Final score = (sum of QSO points across all bands) × (sum of multipliers across all bands). Note: The rule grants a phantom multiplier of 1 to operators who fail to work any Canadian station - this app does not auto-apply that fallback (the score will simply be zero in that edge case). Cabrillo CONTEST tag: RAC-CANADA-DAY",
+    "startDate": "Canada Day, July 1 (2026: Wed July 1, 0000Z-2359Z)",
     "duration": 24,
     "offTimeGapMinutes": 0,
     "modes": ["CW", "SSB"],
@@ -73,9 +73,9 @@
       "question": "Select your station location",
       "type": "select",
       "options": [
-        {"value": "CANADA", "label": "Canada (in-country) — send RST + province/territory abbreviation"},
-        {"value": "VE0",    "label": "VE0 (Canadian maritime mobile) — send RST + serial number"},
-        {"value": "DX",     "label": "Outside Canada — send RST + serial number"}
+        {"value": "CANADA", "label": "Canada (in-country) - send RST + province/territory abbreviation"},
+        {"value": "VE0",    "label": "VE0 (Canadian maritime mobile) - send RST + serial number"},
+        {"value": "DX",     "label": "Outside Canada - send RST + serial number"}
       ],
       "required": true,
       "storeInMeta": true,
@@ -110,7 +110,7 @@
       "required": false,
       "forceUppercase": true,
       "storeInMeta": true,
-      "description": "Province/territory abbreviation (NS, QC, ON, MB, SK, AB, BC, NT, NB, NL, NU, YT, PE) for Canadian stations. VE0 maritime mobile and non-Canadian stations send a serial number — leave this field blank.",
+      "description": "Province/territory abbreviation (NS, QC, ON, MB, SK, AB, BC, NT, NB, NL, NU, YT, PE) for Canadian stations. VE0 maritime mobile and non-Canadian stations send a serial number - leave this field blank.",
       "exchangeFieldMapping": {
         "myExchange": "EXCHs"
       }
@@ -175,7 +175,7 @@
     "canadianStationPrefixes": ["VE"],
     "multipliers": {
       "type": "multsPerBandAndMode",
-      "description": "13 Canadian provinces/territories, each counted once per band per mode. Maximum 13 × 8 bands × 2 modes = 208 multiplier credits if every province is worked on every band/mode combination. Non-Canadian and VE0 contacts are points-only — they are not multipliers.",
+      "description": "13 Canadian provinces/territories, each counted once per band per mode. Maximum 13 × 8 bands × 2 modes = 208 multiplier credits if every province is worked on every band/mode combination. Non-Canadian and VE0 contacts are points-only - they are not multipliers.",
       "categories": ["namedMults"],
       "alaskaAndHawaiiCountDxcc": false,
       "usAndCanadaCountDxcc": false

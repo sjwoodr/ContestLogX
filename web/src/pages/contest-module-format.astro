@@ -2,7 +2,7 @@
 import Layout from '../layouts/Layout.astro';
 ---
 
-<Layout title="Contest Module Format – ContestLogX">
+<Layout title="Contest Module Format - ContestLogX">
   <div class="flex flex-col items-center px-5 py-10">
     <div class="max-w-4xl w-full">
 
@@ -14,7 +14,7 @@ import Layout from '../layouts/Layout.astro';
       <p class="text-lg opacity-80 mb-10">
         Complete reference for the ContestLogX contest definition JSON format.
         Every contest is defined by a single <code>.json</code> file in the <code>contests/</code>
-        directory. Drop a new file there and it appears in the contest selection dialog immediately —
+        directory. Drop a new file there and it appears in the contest selection dialog immediately -
         no recompilation needed.
       </p>
 
@@ -47,18 +47,18 @@ import Layout from '../layouts/Layout.astro';
           <h2 class="text-2xl font-semibold mb-4">Top-Level Structure</h2>
           <p class="opacity-80 mb-4">A contest definition file contains these top-level keys:</p>
           <pre class="rounded p-4 text-sm overflow-x-auto" style="background-color: #0d1117; color: #e6edf3;">{`{
-  "contest":       { ... },   // required — metadata, bands, modes
-  "frequencies":   { ... },   // required — band/mode frequency ranges
-  "stationClasses":{ ... },   // required — entry classes (can be disabled)
-  "userPrompts":   [ ... ],   // optional — setup questions collected at contest start
-  "exchangeFields":{ ... },   // required — sent/received exchange field definitions
-  "qsoFields":     [ ... ],   // required — log table column definitions
-  "scoring":       { ... },   // required — QSO points, multipliers, final score formula
-  "dupeChecking":  { ... },   // required — duplicate detection scope
-  "logging":       { ... },   // required — Cabrillo export settings
-  "callHistory":   { ... },   // optional — fields to persist to call history
-  "validation":    { ... },   // required — constraints and valid multiplier lists
-  "ui":            { ... }    // required — log columns, entry fields, display options
+  "contest":       { ... },   // required - metadata, bands, modes
+  "frequencies":   { ... },   // required - band/mode frequency ranges
+  "stationClasses":{ ... },   // required - entry classes (can be disabled)
+  "userPrompts":   [ ... ],   // optional - setup questions collected at contest start
+  "exchangeFields":{ ... },   // required - sent/received exchange field definitions
+  "qsoFields":     [ ... ],   // required - log table column definitions
+  "scoring":       { ... },   // required - QSO points, multipliers, final score formula
+  "dupeChecking":  { ... },   // required - duplicate detection scope
+  "logging":       { ... },   // required - Cabrillo export settings
+  "callHistory":   { ... },   // optional - fields to persist to call history
+  "validation":    { ... },   // required - constraints and valid multiplier lists
+  "ui":            { ... }    // required - log columns, entry fields, display options
 }`}</pre>
         </section>
 
@@ -141,9 +141,9 @@ import Layout from '../layouts/Layout.astro';
             Set <code>enabled: false</code> if your contest has no class distinction.
           </p>
           <div class="rounded p-3 mb-4 text-sm" style="background-color: #2d1e00; border: 1px solid #9e6a03; color: #e3b341;">
-            <strong>Deprecated:</strong> The per-class input collection fields —
+            <strong>Deprecated:</strong> The per-class input collection fields -
             <code>needsInput</code>, <code>inputPrompts</code>, <code>exchangeFieldMapping</code>,
-            and <code>inputValidation</code> inside each station class — are the older approach for
+            and <code>inputValidation</code> inside each station class - are the older approach for
             collecting operator name, state, and other sent exchange values at setup time.
             New contest modules should use the top-level <a href="#user-prompts" style="color: #58a6ff;" class="underline">userPrompts</a> array instead,
             which is more flexible and works independently of <code>stationClasses</code>.
@@ -157,7 +157,7 @@ import Layout from '../layouts/Layout.astro';
       "id":          "SO_UNASSISTED_CW",
       "name":        "Single Operator Unassisted - CW",
       "description": "One operator, no spotting assistance, CW mode",
-      "mode":        "CW",           // optional — locks contest to this mode
+      "mode":        "CW",           // optional - locks contest to this mode
       "needsInput":  true,
       "inputPrompts": {
         "name": "Enter your first name",
@@ -262,10 +262,10 @@ import Layout from '../layouts/Layout.astro';
               <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">id</td><td class="pr-4">string</td><td>Unique identifier; also the key used in <code>exchangeFieldMapping</code></td></tr>
               <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">type</td><td class="pr-4">string</td><td><code>"text"</code>, <code>"select"</code>, or <code>"checkboxes"</code></td></tr>
               <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">options</td><td class="pr-4">array</td><td>For <code>select</code> and <code>checkboxes</code>; each has <code>value</code> and <code>label</code>; checkboxes may also have <code>points</code></td></tr>
-              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">forceUppercase</td><td class="pr-4">boolean</td><td>For <code>text</code> type — forces input to uppercase</td></tr>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">forceUppercase</td><td class="pr-4">boolean</td><td>For <code>text</code> type - forces input to uppercase</td></tr>
               <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">validation</td><td class="pr-4">string</td><td>Regex applied to <code>text</code> type input</td></tr>
               <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">storeInMeta</td><td class="pr-4">boolean</td><td>If true, answer is stored in the <code>.clx</code> file metadata</td></tr>
-              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">restrictMode</td><td class="pr-4">boolean</td><td>For <code>select</code> type — if true, the selected value restricts the log to that mode only (e.g., selecting "CW" blocks SSB contacts). Restored automatically when reopening a <code>.clx</code> file.</td></tr>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">restrictMode</td><td class="pr-4">boolean</td><td>For <code>select</code> type - if true, the selected value restricts the log to that mode only (e.g., selecting "CW" blocks SSB contacts). Restored automatically when reopening a <code>.clx</code> file.</td></tr>
               <tr><td class="py-2 pr-4 font-mono">exchangeFieldMapping</td><td class="pr-4">object</td><td>Maps prompt <code>id</code> → exchange field name (e.g., <code>"myExchange": "EXCHs"</code>)</td></tr>
             </tbody>
           </table>
@@ -309,24 +309,24 @@ import Layout from '../layouts/Layout.astro';
 }`}</pre>
 
           <h3 class="text-lg font-semibold mb-2 mt-2">Field name conventions</h3>
-          <p class="opacity-80 mb-2 text-sm">Exchange field names use a 3–5 letter code with an <code>s</code> (sent) or <code>r</code> (received) suffix:</p>
+          <p class="opacity-80 mb-2 text-sm">Exchange field names use a 3-5 letter code with an <code>s</code> (sent) or <code>r</code> (received) suffix:</p>
           <div class="grid grid-cols-2 gap-4 text-sm opacity-80">
             <ul class="list-disc list-inside space-y-1">
-              <li><code>RSTs</code> / <code>RSTr</code> — RST signal report</li>
-              <li><code>NAMEs</code> / <code>NAMEr</code> — operator first name</li>
-              <li><code>EXCHs</code> / <code>EXCHr</code> — generic exchange (state, serial, etc.)</li>
-              <li><code>SNs</code> / <code>SNr</code> — serial number</li>
+              <li><code>RSTs</code> / <code>RSTr</code> - RST signal report</li>
+              <li><code>NAMEs</code> / <code>NAMEr</code> - operator first name</li>
+              <li><code>EXCHs</code> / <code>EXCHr</code> - generic exchange (state, serial, etc.)</li>
+              <li><code>SNs</code> / <code>SNr</code> - serial number</li>
             </ul>
             <ul class="list-disc list-inside space-y-1">
-              <li><code>GRIDs</code> / <code>GRIDr</code> — Maidenhead grid square</li>
-              <li><code>CATs</code> / <code>CATr</code> — category/class</li>
-              <li><code>LOCs</code> / <code>LOCr</code> — location identifier</li>
-              <li><code>EXCH</code> — single exchange field (no sent/rcvd variant)</li>
+              <li><code>GRIDs</code> / <code>GRIDr</code> - Maidenhead grid square</li>
+              <li><code>CATs</code> / <code>CATr</code> - category/class</li>
+              <li><code>LOCs</code> / <code>LOCr</code> - location identifier</li>
+              <li><code>EXCH</code> - single exchange field (no sent/rcvd variant)</li>
             </ul>
           </div>
 
           <h3 class="text-lg font-semibold mb-2 mt-4">Field types</h3>
-          <p class="opacity-80 text-sm"><code>"rst"</code> — RST field with default 599 (or 59 for SSB); <code>"string"</code> — general text field.
+          <p class="opacity-80 text-sm"><code>"rst"</code> - RST field with default 599 (or 59 for SSB); <code>"string"</code> - general text field.
           The <code>validation</code> property accepts a regex string applied to input.</p>
         </section>
 
@@ -407,8 +407,8 @@ import Layout from '../layouts/Layout.astro';
             fires when the worked station matches either:
           </p>
           <ul class="opacity-80 mb-2 pl-6" style="list-style-type: disc;">
-            <li><code>"&lt;ruleName&gt;Prefixes": [...]</code> — the worked station's DXCC primary prefix is in the array. Used to match a whole DXCC entity (e.g. <code>canadianStationPrefixes: ["VE"]</code> for every Canadian station).</li>
-            <li><code>"&lt;ruleName&gt;Callsigns": [...]</code> — the worked station's full callsign is in the array. Used to score a fixed list of specific call signs (e.g. the RAC Canada Day Contest's 15 RAC official stations get 20 pts/QSO via <code>racStationCallsigns: ["VE1RAC", "VE3RHQ", ...]</code>).</li>
+            <li><code>"&lt;ruleName&gt;Prefixes": [...]</code> - the worked station's DXCC primary prefix is in the array. Used to match a whole DXCC entity (e.g. <code>canadianStationPrefixes: ["VE"]</code> for every Canadian station).</li>
+            <li><code>"&lt;ruleName&gt;Callsigns": [...]</code> - the worked station's full callsign is in the array. Used to score a fixed list of specific call signs (e.g. the RAC Canada Day Contest's 15 RAC official stations get 20 pts/QSO via <code>racStationCallsigns: ["VE1RAC", "VE3RHQ", ...]</code>).</li>
           </ul>
           <p class="opacity-80 mb-4">
             Both arrays can be set on the same rule; the callsign list is checked only if the prefix list doesn't match.
@@ -460,8 +460,8 @@ import Layout from '../layouts/Layout.astro';
             An optional object inside <code>multipliers</code> that credits a named multiplier the
             operator earns <strong>without an explicit exchange</strong>. The motivating case is the
             West Virginia QSO Party: a WV station's own state, <code>WV</code>, is one of its 50 state
-            multipliers, but a WV station always sends a <em>county</em> — it never receives <code>WV</code> in
-            an exchange — so the mult could never be tallied from QSO data alone.
+            multipliers, but a WV station always sends a <em>county</em> - it never receives <code>WV</code> in
+            an exchange - so the mult could never be tallied from QSO data alone.
           </p>
           <pre class="rounded p-4 text-sm overflow-x-auto mb-4" style="background-color: #0d1117; color: #e6edf3;">{`"multipliers": {
   "type": "multsOnce",
@@ -479,12 +479,12 @@ import Layout from '../layouts/Layout.astro';
             <tbody>
               <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">promptId</td><td>The <code>userPrompts</code> id whose answer selects a rule</td></tr>
               <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">rules</td><td>Map of prompt-answer → array of named-mult values to credit</td></tr>
-              <tr><td class="py-2 pr-4 font-mono">requiresWorkedFrom</td><td><em>(optional)</em> Gate — credit only after the operator has worked a multiplier from this list (<code>inStateMults</code> or <code>namedMults</code>). Omit for an unconditional credit.</td></tr>
+              <tr><td class="py-2 pr-4 font-mono">requiresWorkedFrom</td><td><em>(optional)</em> Gate - credit only after the operator has worked a multiplier from this list (<code>inStateMults</code> or <code>namedMults</code>). Omit for an unconditional credit.</td></tr>
             </tbody>
           </table>
           <p class="opacity-80 mb-4">
             With <code>requiresWorkedFrom: "inStateMults"</code>, <code>WV</code> is credited only once the
-            WV operator has worked at least one WV county — i.e. it is <em>earned</em> by working a
+            WV operator has worked at least one WV county - i.e. it is <em>earned</em> by working a
             WV station, not handed out free. Supported with <code>multsOnce</code> and <code>multsPerBand</code>.
             Under <code>multsPerBand</code>, each automatic multiplier is credited on every band where
             the operator has worked at least one <code>requiresWorkedFrom</code> entry (per-band
@@ -524,7 +524,7 @@ import Layout from '../layouts/Layout.astro';
               <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">perBand</td><td>Once per band (most HF contests)</td></tr>
               <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">perMode</td><td>Once per mode</td></tr>
               <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">perBandAndMode</td><td>Once per band/mode combination (e.g., CW and SSB on 40m are separate)</td></tr>
-              <tr><td class="py-2 pr-4 font-mono">perBandAndGridSquare</td><td>Once per band per grid square (ARRL VHF — rovers may be worked from multiple grids)</td></tr>
+              <tr><td class="py-2 pr-4 font-mono">perBandAndGridSquare</td><td>Once per band per grid square (ARRL VHF - rovers may be worked from multiple grids)</td></tr>
             </tbody>
           </table>
         </section>
@@ -573,10 +573,10 @@ import Layout from '../layouts/Layout.astro';
   "offTimesRequired":   true,
   "minimumOffTimeMinutes": 30,
 
-  // Named multipliers — valid values for the exchange mult field:
+  // Named multipliers - valid values for the exchange mult field:
   "namedMults": ["AL","AK","AZ","CA", ...],
 
-  // Named call prefixes — for namedCallPrefixes multiplier category:
+  // Named call prefixes - for namedCallPrefixes multiplier category:
   "namedCallPrefixes": ["YB0","YB1","YC0", ...],
 
   // Grid square format regex (ARRL VHF):
@@ -590,7 +590,7 @@ import Layout from '../layouts/Layout.astro';
     "logic":              "Accept if matches namedMult OR serialNumberFormat"
   },
 
-  // Per-station-type exchange filter (MNQP — W/VE and DX only see MN counties):
+  // Per-station-type exchange filter (MNQP - W/VE and DX only see MN counties):
   "receivedExchangeFilter": {
     "promptId": "stationType",
     "rules": {
@@ -612,7 +612,7 @@ import Layout from '../layouts/Layout.astro';
               <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">namedMultOrPower</td><td>Accepts a named mult OR a power value (format in <code>powerFormat</code>)</td></tr>
               <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">maidenheadGrid</td><td>Validates against <code>gridSquareFormat</code> regex</td></tr>
               <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">serial</td><td>Numeric serial number only</td></tr>
-              <tr><td class="py-2 pr-4 font-mono">freeForm</td><td>No validation — user is responsible for correct entry</td></tr>
+              <tr><td class="py-2 pr-4 font-mono">freeForm</td><td>No validation - user is responsible for correct entry</td></tr>
             </tbody>
           </table>
 
@@ -743,7 +743,7 @@ import Layout from '../layouts/Layout.astro';
               <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">showMultiplierPanel</td><td>Shows the multiplier checkbox panel (requires <code>validation.namedMults</code>)</td></tr>
               <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">logColumns</td><td>Ordered list of column keys shown in the QSO log table; must match <code>qsoFields[].column</code> values</td></tr>
               <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">entryFields</td><td>Fields shown in the QSO entry row (Tab navigates between them). <code>CALL</code> is always first.</td></tr>
-              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">fieldNavigation.keys</td><td><code>"tab"</code> — Tab only; <code>"both"</code> — Tab and Space both advance fields</td></tr>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">fieldNavigation.keys</td><td><code>"tab"</code> - Tab only; <code>"both"</code> - Tab and Space both advance fields</td></tr>
               <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">bandMap.enabled</td><td>Shows the band selector buttons</td></tr>
               <tr><td class="py-2 pr-4 font-mono">multiplierDisplay</td><td>Controls which multiplier groups appear in the multiplier panel</td></tr>
             </tbody>

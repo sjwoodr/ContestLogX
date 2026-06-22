@@ -69,14 +69,14 @@
     th { color: var(--muted); font-weight: 500; }
 
     /* Inside the Rig card, L + R (when SO2R) sit side-by-side even on
-       mobile — two compact columns. */
+       mobile - two compact columns. */
     .rig-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     @media (max-width: 420px) { .rig-grid { grid-template-columns: 1fr; } }
     .rig .freq { font-size: 1.3rem; font-weight: 700;
                   font-variant-numeric: tabular-nums; }
     .rig .mode-band { color: var(--muted); font-size: 0.9rem; }
 
-    /* Rig Control card — small toggle-button groups for band/mode/run-sp
+    /* Rig Control card - small toggle-button groups for band/mode/run-sp
        + a freq input. Buttons are touch-sized (min 40px tap target) and
        wrap onto multiple rows on narrow phones. */
     .rc-group { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
@@ -124,16 +124,16 @@
     <div class="grid">
       <div class="card card-wide">
         <h2>Score</h2>
-        <div class="score-big" id="final-score">—</div>
-        <div class="score-sub" id="score-sub">— QSOs · — pts · — mults</div>
+        <div class="score-big" id="final-score"> - </div>
+        <div class="score-sub" id="score-sub"> - QSOs · - pts · - mults</div>
       </div>
 
       <div class="card">
         <h2>Rate</h2>
         <div class="kv">
-          <div class="k">Current (last 10m ×6)</div><div class="v" id="rate-current">—</div>
-          <div class="k">Last hour</div><div class="v" id="rate-hour">—</div>
-          <div class="k">Session average</div><div class="v" id="rate-session">—</div>
+          <div class="k">Current (last 10m ×6)</div><div class="v" id="rate-current"> - </div>
+          <div class="k">Last hour</div><div class="v" id="rate-hour"> - </div>
+          <div class="k">Session average</div><div class="v" id="rate-session"> - </div>
         </div>
       </div>
 
@@ -142,13 +142,13 @@
         <div class="rig-grid">
           <div class="rig" id="rig-L">
             <div class="meta"><span class="dot off"></span>Radio L</div>
-            <div class="freq">—</div>
-            <div class="mode-band">—</div>
+            <div class="freq"> - </div>
+            <div class="mode-band"> - </div>
           </div>
           <div class="rig" id="rig-R" style="display:none">
             <div class="meta"><span class="dot off"></span>Radio R</div>
-            <div class="freq">—</div>
-            <div class="mode-band">—</div>
+            <div class="freq"> - </div>
+            <div class="mode-band"> - </div>
           </div>
         </div>
       </div>
@@ -201,9 +201,9 @@
       <div class="card">
         <h2>Propagation</h2>
         <div class="kv">
-          <div class="k">SFI</div><div class="v" id="prop-sfi">—</div>
-          <div class="k">A-index</div><div class="v" id="prop-a">—</div>
-          <div class="k">K-index</div><div class="v" id="prop-k">—</div>
+          <div class="k">SFI</div><div class="v" id="prop-sfi"> - </div>
+          <div class="k">A-index</div><div class="v" id="prop-a"> - </div>
+          <div class="k">K-index</div><div class="v" id="prop-k"> - </div>
         </div>
       </div>
 
@@ -214,14 +214,14 @@
             <tr><th>UTC</th><th>Call</th><th>Band</th><th>Mode</th><th>Exch</th></tr>
           </thead>
           <tbody id="qso-tbody">
-            <tr><td colspan="5" style="color: var(--muted)">—</td></tr>
+            <tr><td colspan="5" style="color: var(--muted)"> - </td></tr>
           </tbody>
         </table>
       </div>
     </div>
   </div>
 
-  <footer>Auto-refreshes every 5 seconds · <span id="last-updated">—</span></footer>
+  <footer>Auto-refreshes every 5 seconds · <span id="last-updated"> - </span></footer>
 
   <script>
     // Token is pulled from the URL query string so a phone bookmark is
@@ -275,7 +275,7 @@
     // Wire up the Rig Control buttons. Each tap: optimistically flash the
     // active class on the tapped button, fire the POST, then refresh()
     // to pull the confirmed state (which re-sets the active class on the
-    // correct button — overriding our optimistic flash if the rig rejected).
+    // correct button - overriding our optimistic flash if the rig rejected).
     function optimisticActivate(groupId, tapped) {
       document.querySelectorAll('#' + groupId + ' .rc-btn').forEach(b => {
         b.classList.toggle('rc-active', b === tapped);
@@ -329,7 +329,7 @@
     });
 
     function fmtFreq(hz) {
-      if (!hz || hz <= 0) return '—';
+      if (!hz || hz <= 0) return ' - ';
       return (hz / 1e6).toFixed(4) + ' MHz';
     }
     function fmtBandFromHz(hz) {
@@ -346,7 +346,7 @@
       return '';
     }
     function fmtTime(hhmmss) {
-      if (!hhmmss || hhmmss.length !== 6) return hhmmss || '—';
+      if (!hhmmss || hhmmss.length !== 6) return hhmmss || ' - ';
       return hhmmss.substring(0, 2) + ':' + hhmmss.substring(2, 4);
     }
     function setRig(panelId, data) {
@@ -361,7 +361,7 @@
       if (data.mode)  parts.push(data.mode);
       if (data.band)  parts.push(data.band);
       if (data.runSpMode && data.runSpMode !== 'Off') parts.push(data.runSpMode);
-      p.querySelector('.mode-band').textContent = parts.join(' · ') || '—';
+      p.querySelector('.mode-band').textContent = parts.join(' · ') || ' - ';
     }
     function setErrorMode(msg) {
       document.getElementById('connection-text').textContent = msg;
@@ -425,9 +425,9 @@
         }
         updateRigControlActiveStates();
 
-        document.getElementById('prop-sfi').textContent = prop.sfi || '—';
-        document.getElementById('prop-a').textContent   = (prop.aIndex != null) ? prop.aIndex : '—';
-        document.getElementById('prop-k').textContent   = (prop.kIndex != null) ? prop.kIndex : '—';
+        document.getElementById('prop-sfi').textContent = prop.sfi || ' - ';
+        document.getElementById('prop-a').textContent   = (prop.aIndex != null) ? prop.aIndex : ' - ';
+        document.getElementById('prop-k').textContent   = (prop.kIndex != null) ? prop.kIndex : ' - ';
 
         const tbody = document.getElementById('qso-tbody');
         if (!qsos.qsos || qsos.qsos.length === 0) {

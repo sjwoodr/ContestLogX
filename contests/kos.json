@@ -4,7 +4,7 @@
     "abbreviation": "KOS-CW",
     "version": "1.0.0",
     "sponsor": "Unión de Radioaficionados Españoles (URE)",
-    "description": "His Majesty The King of Spain CW Contest — third full weekend of May, 24-hour single window from 1200Z Saturday to 1159Z Sunday. Anyone may participate. Spanish stations send 2-letter province codes; DX stations send incrementing serial numbers (001+); the special station EF0F (HM the King of Spain) sends SMR. Multipliers are 52 Spanish provinces, the SMR special-station identifier, and EADX-100 entities (URE-curated, ~344 entities). Asymmetric per-direction scoring: EA→EA = 2 pts, EA→DX = 1 pt, DX→EA = 3 pts, DX→DX = 1 pt.",
+    "description": "His Majesty The King of Spain CW Contest - third full weekend of May, 24-hour single window from 1200Z Saturday to 1159Z Sunday. Anyone may participate. Spanish stations send 2-letter province codes; DX stations send incrementing serial numbers (001+); the special station EF0F (HM the King of Spain) sends SMR. Multipliers are 52 Spanish provinces, the SMR special-station identifier, and EADX-100 entities (URE-curated, ~344 entities). Asymmetric per-direction scoring: EA→EA = 2 pts, EA→DX = 1 pt, DX→EA = 3 pts, DX→DX = 1 pt.",
     "startDate": "Third full weekend of May, 1200Z Saturday to 1159Z Sunday (2026: May 16-17)",
     "duration": 24,
     "offTimeGapMinutes": 0,
@@ -39,7 +39,7 @@
       "question": "Are you operating from Spanish territory?",
       "type": "select",
       "options": [
-        {"value": "EA", "label": "Spain (mainland EA, EA6 Baleares, EA8 Canarias, or EA9 Ceuta/Melilla — 'Spanish stations' per the rules)"},
+        {"value": "EA", "label": "Spain (mainland EA, EA6 Baleares, EA8 Canarias, or EA9 Ceuta/Melilla - 'Spanish stations' per the rules)"},
         {"value": "DX", "label": "DX (any station outside Spanish territory)"}
       ],
       "required": true,
@@ -64,7 +64,7 @@
     },
     {
       "id": "myExchange",
-      "question": "Enter your sent exchange. Spanish stations: 2-letter province code (e.g., MA for Málaga, M for Madrid, B for Barcelona). DX stations: leave as 001 — the engine will increment serial numbers automatically.",
+      "question": "Enter your sent exchange. Spanish stations: 2-letter province code (e.g., MA for Málaga, M for Madrid, B for Barcelona). DX stations: leave as 001 - the engine will increment serial numbers automatically.",
       "type": "text",
       "required": true,
       "forceUppercase": true,
@@ -125,7 +125,7 @@
     ],
     "multipliers": {
       "type": "multsPerBand",
-      "description": "Per-band multipliers: 52 Spanish provinces + SMR (His Majesty The King of Spain special station EF0F) + EADX-100 entities (URE list, ~344). EA-related entities (EA, EA6, EA8, EA9) are excluded from EADX-100 counting because Spanish stations contribute the more granular province multiplier — counting them via both namedMults (province) and eadx100 (country) would double-credit.",
+      "description": "Per-band multipliers: 52 Spanish provinces + SMR (His Majesty The King of Spain special station EF0F) + EADX-100 entities (URE list, ~344). EA-related entities (EA, EA6, EA8, EA9) are excluded from EADX-100 counting because Spanish stations contribute the more granular province multiplier - counting them via both namedMults (province) and eadx100 (country) would double-credit.",
       "categories": ["namedMults", "eadx100"],
       "eadx100Excludes": ["EA", "EA6", "EA8", "EA9"],
       "alaskaAndHawaiiCountDxcc": false,
@@ -135,7 +135,7 @@
   },
   "dupeChecking": {
     "type": "perBand",
-    "description": "A station may be worked once per band. CW only — no mode dimension."
+    "description": "A station may be worked once per band. CW only - no mode dimension."
   },
   "logging": {
     "requiredFields": ["date", "time", "frequency", "mode", "callsign", "rstSent", "rstReceived", "exchSent", "exchReceived"],

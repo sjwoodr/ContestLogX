@@ -4,7 +4,7 @@
     "abbreviation": "RSGB-80M-CC",
     "version": "1.0.0",
     "sponsor": "Radio Society of Great Britain",
-    "description": "RSGB 3.5 MHz Club Championship — short evening contests on 80m, 1.5 hours each, run on Mondays/Wednesdays/Thursdays from February through July. Entrants represent RSGB Affiliated Societies; non-UK&CD stations welcome but do not contribute to Society scores. Exchange is RST + serial number starting at 1. One point per QSO; QSOs with the RSGB special station (G6XX or regional variant) are worth 5 points each. No multipliers. CW, SSB, PSK63, and RTTY sessions run on different dates within the series.",
+    "description": "RSGB 3.5 MHz Club Championship - short evening contests on 80m, 1.5 hours each, run on Mondays/Wednesdays/Thursdays from February through July. Entrants represent RSGB Affiliated Societies; non-UK&CD stations welcome but do not contribute to Society scores. Exchange is RST + serial number starting at 1. One point per QSO; QSOs with the RSGB special station (G6XX or regional variant) are worth 5 points each. No multipliers. CW, SSB, PSK63, and RTTY sessions run on different dates within the series.",
     "startDate": "Various Mondays/Wednesdays/Thursdays Feb-Jul (1.5-hour sessions)",
     "duration": 1.5,
     "offTimeGapMinutes": 0,
@@ -39,7 +39,7 @@
       "question": "Select your section",
       "type": "select",
       "options": [
-        {"value": "100W_ASSISTED",    "label": "100W Assisted (≤100W, SSB/CW/Data — required for SSB sessions)"},
+        {"value": "100W_ASSISTED",    "label": "100W Assisted (≤100W, SSB/CW/Data - required for SSB sessions)"},
         {"value": "10W_ASSISTED",     "label": "10W Assisted (≤10W, SSB/CW/Data)"},
         {"value": "100W_UNASSISTED",  "label": "100W Unassisted (≤100W, CW/Data only)"},
         {"value": "10W_UNASSISTED",   "label": "10W Unassisted (≤10W, CW/Data only)"},
@@ -124,7 +124,7 @@
       "pointsEach": 4,
       "type": "bonusPerBandAndMode",
       "stations": ["G6XX", "GD6XX", "GI6XX", "GJ6XX", "GM6XX", "GU6XX", "GW6XX"],
-      "note": "QSOs with the RSGB special station (G6XX or regional variant — GD/GI/GJ/GM/GU/GW6XX) are worth 5 QSO points (1 base + 4 bonus). RSGB activates only one of these per session, but all 7 variants are listed defensively."
+      "note": "QSOs with the RSGB special station (G6XX or regional variant - GD/GI/GJ/GM/GU/GW6XX) are worth 5 QSO points (1 base + 4 bonus). RSGB activates only one of these per session, but all 7 variants are listed defensively."
     }
   ],
   "logging": {

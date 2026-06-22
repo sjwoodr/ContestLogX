@@ -65,19 +65,19 @@ New tests added by this feature:
 | `tests/test_binChannel` | Dot/dash classifier, rolling-median WPM estimator, Morse-table lookup against generated dot/dash patterns. |
 | `tests/test_cwDecoder` | End-to-end: synthetic audio block → decoded character stream. Two concurrent signals at different tones decoded independently (SC-011). |
 
-These tests use no `QAudioSource` — they invoke `CwDecoder::processBlock()` directly with pre-generated `int16_t` arrays.
+These tests use no `QAudioSource` - they invoke `CwDecoder::processBlock()` directly with pre-generated `int16_t` arrays.
 
 ---
 
-## 4. Manual verification — routing CW audio into ContestLogX
+## 4. Manual verification - routing CW audio into ContestLogX
 
 You need a way to feed CW audio into a system audio input device that `ContestLogX` can see in its Rig Connection Settings → Audio Input Device dropdown. Options below, by platform.
 
-### Option A — Virtual audio cable (any platform)
+### Option A - Virtual audio cable (any platform)
 
 Create a loopback so that audio from one app (fldigi, a web Morse sender, a YouTube CW recording) is routed to a virtual input device that ContestLogX captures.
 
-#### Linux — PipeWire loopback (recommended)
+#### Linux - PipeWire loopback (recommended)
 
 ```bash
 pw-loopback --capture-props='media.name=clx-cw-src' \
@@ -86,7 +86,7 @@ pw-loopback --capture-props='media.name=clx-cw-src' \
 
 This creates a virtual source named `clx_cw_virtual_input` that picks up any audio routed to the paired sink. In `pavucontrol` (or `helvum`), route your CW-producing app's output to `clx-cw-src`. In ContestLogX's Rig Connection Settings, select `clx_cw_virtual_input` as the Radio L audio device.
 
-#### Linux — PulseAudio module-null-sink (older systems)
+#### Linux - PulseAudio module-null-sink (older systems)
 
 ```bash
 pactl load-module module-null-sink sink_name=clx_cw \
@@ -96,7 +96,7 @@ pactl load-module module-loopback source=clx_cw.monitor
 
 Select `Monitor of ContestLogX_CW_Virtual_Sink` in ContestLogX.
 
-#### macOS — BlackHole (free)
+#### macOS - BlackHole (free)
 
 ```bash
 brew install blackhole-2ch
@@ -104,11 +104,11 @@ brew install blackhole-2ch
 
 Create a Multi-Output Device in Audio MIDI Setup combining your speakers + BlackHole 2ch. Set it as the system output. In ContestLogX, select **BlackHole 2ch** as the audio input device.
 
-#### Windows — VB-CABLE (free)
+#### Windows - VB-CABLE (free)
 
 Download and install [VB-CABLE](https://vb-audio.com/Cable/). Set **CABLE Input** as the playback device for the CW-producing app; in ContestLogX select **CABLE Output** as the audio input device.
 
-### Option B — Direct from a radio's USB audio
+### Option B - Direct from a radio's USB audio
 
 If you have an Elecraft K4, Icom IC-7300, IC-7610, Yaesu FT-710, or similar radio with a USB audio endpoint:
 
@@ -122,10 +122,10 @@ If you have an Elecraft K4, Icom IC-7300, IC-7610, Yaesu FT-710, or similar radi
 
 If you don't have a live signal on the air, any of these work:
 
-- **fldigi** — Menu → Op Mode → CW. Type into the transmit pane; fldigi sends via the audio output device selected in fldigi's config.
-- **MRP40** — ships with a CW sender tool.
-- **[rfzero.net Morse Sender](https://morsecode.world/international/translator.html)** — web-based; paste text, press play, captures system audio.
-- **Pre-recorded WAV** — play any CW recording through your normal audio output; the virtual cable routes it into ContestLogX.
+- **fldigi** - Menu → Op Mode → CW. Type into the transmit pane; fldigi sends via the audio output device selected in fldigi's config.
+- **MRP40** - ships with a CW sender tool.
+- **[rfzero.net Morse Sender](https://morsecode.world/international/translator.html)** - web-based; paste text, press play, captures system audio.
+- **Pre-recorded WAV** - play any CW recording through your normal audio output; the virtual cable routes it into ContestLogX.
 
 Send at a known speed (e.g., 25 WPM) and verify:
 
@@ -133,7 +133,7 @@ Send at a known speed (e.g., 25 WPM) and verify:
 2. The panel shows 6 rows labeled with their center frequencies (400, 500, 600, 700, 800, 900 Hz by default).
 3. The row corresponding to your sender's tone frequency scrolls the decoded text in real time (within 200 ms perceptible).
 4. The row's live WPM readout shows ~25.
-5. Decoded callsigns appear as clickable tokens (underlined or colored). Click one — it fills the CALL field in Radio L's QSO entry panel without stealing keyboard focus.
+5. Decoded callsigns appear as clickable tokens (underlined or colored). Click one - it fills the CALL field in Radio L's QSO entry panel without stealing keyboard focus.
 6. Decoded RST tokens (`599`, `5NN`) are also clickable and fill RSTr.
 
 ---
@@ -144,7 +144,7 @@ Send at a known speed (e.g., 25 WPM) and verify:
 
 1. Ensure "Mute decoder on PTT" is checked for Radio L in Rig Connection Settings.
 2. Start a CW signal on the audio input (see step 5 above).
-3. Key the radio manually (mic PTT or paddle — anything that causes the rig backend to report PTT active).
+3. Key the radio manually (mic PTT or paddle - anything that causes the rig backend to report PTT active).
 4. Observe: all decoder rows for Radio L freeze while PTT is active. No new characters appear.
 5. Release PTT. Decoding resumes on the active bin.
 
@@ -164,7 +164,7 @@ If your backend is `MockedRigClient`, you can simulate PTT via the developer men
 1. In Rig Connection Settings, enable SO2R. Configure Radio L's audio device (e.g., BlackHole 2ch) and Radio R's audio device (e.g., CABLE Output, a second instance of BlackHole, or a real radio's USB audio).
 2. Route one CW source to Radio L's audio device and a different CW source to Radio R's audio device.
 3. Observe: two decoder widgets appear (one per radio), each decoding only its own audio.
-4. Set keyboard focus to Radio L's entry (backtick toggle). Click a callsign in Radio R's decoder — verify:
+4. Set keyboard focus to Radio L's entry (backtick toggle). Click a callsign in Radio R's decoder - verify:
    - Radio R's CALL field is filled.
    - Keyboard focus remains on Radio L's entry (no focus steal).
    - SCP / call-history lookup fires for Radio R's field (identical to keyboard entry per FR-024a).
@@ -186,9 +186,9 @@ The CW decoder does not change `ContestEngine`; `make test-logs` is not required
 | Symptom | Likely cause | Fix |
 |---|---|---|
 | Decoder panel does not appear | No audio device configured for the radio, OR "(none)" selected | Rig Connection Settings → select an audio device for Radio L (and Radio R for SO2R) |
-| Rows are empty despite CW audible | Squelch too high | Lower the squelch slider; also check that the source signal lands within the configured passband (default 400–1000 Hz) |
+| Rows are empty despite CW audible | Squelch too high | Lower the squelch slider; also check that the source signal lands within the configured passband (default 400-1000 Hz) |
 | Garbled decode | Speed outside WPM hint range; or audio too distorted | Adjust WPM Min/Max in decoder settings; verify audio level is not clipping |
-| WPM readout stuck on "—" | No lock — signal too weak or speed out of bounds | Increase audio level; widen WPM Min/Max |
+| WPM readout stuck on " - " | No lock - signal too weak or speed out of bounds | Increase audio level; widen WPM Min/Max |
 | Own keying appears in decoder | Mute on PTT is OFF, or rig backend does not report PTT state | Re-enable Mute on PTT for that radio. If using `MockedRigClient`, the fallback log entry appears once per session |
 | CMake error "Could not find Qt6::Multimedia" | Missing dev package | See step 1 for your platform |
 | macOS build prompts for microphone access every run | `NSMicrophoneUsageDescription` missing from `Info.plist` | Add the key to the app bundle's plist; after one grant, subsequent runs are silent |

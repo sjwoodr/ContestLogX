@@ -3,7 +3,7 @@
 ## Phase 0 Research Findings
 
 ### Decision 1: HTTP Client Pattern
-**Decision**: Follow the existing QrzApi pattern — dedicated QObject class with QNetworkAccessManager, async signal/slot completion.
+**Decision**: Follow the existing QrzApi pattern - dedicated QObject class with QNetworkAccessManager, async signal/slot completion.
 **Rationale**: QrzApi already demonstrates the exact pattern needed (HTTPS POST, credential management, XML parsing, error handling). Reusing this approach ensures consistency and leverages proven code patterns.
 **Alternatives considered**: Direct QNetworkAccessManager usage in MainWindow (rejected: mixes concerns), synchronous blocking calls (rejected: blocks UI).
 

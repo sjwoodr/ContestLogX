@@ -6,7 +6,7 @@
 This document resolves the technical unknowns for implementing S3-compatible cloud storage for
 contest logs, using only Qt6 (no new third-party dependencies).
 
-## R1: FileLu access method — S3-compatible vs native API
+## R1: FileLu access method - S3-compatible vs native API
 
 **Decision**: Use FileLu's S3-compatible "S5" object storage interface.
 
@@ -25,7 +25,7 @@ already has working S3/S5 access/secret keys for FileLu.
 - Note from docs: AWS-CLI multipart uploads should set checksum calculation to `when_required`
   to avoid `Content-Encoding: aws-chunked`. We avoid multipart entirely (see R4), so this is moot.
 
-**Alternatives considered**: FileLu native REST API (`https://filelu.com/pages/api`) — rejected:
+**Alternatives considered**: FileLu native REST API (`https://filelu.com/pages/api`) - rejected:
 FileLu-only, would not generalize to AWS S3, and would be a second integration to maintain.
 
 ## R2: AWS Signature Version 4 signing with Qt only
@@ -89,8 +89,8 @@ complicate Windows/macOS/Linux CI.
   trimmed). Send `Host` explicitly (Qt sets it, but it must be in the canonical headers).
 
 **Alternatives considered**:
-- `aws-sdk-cpp` — rejected (dependency weight, CI complexity, constitution conflict).
-- SigV2 (older, simpler HMAC-SHA1) — rejected: AWS S3 deprecated SigV2 in most regions and
+- `aws-sdk-cpp` - rejected (dependency weight, CI complexity, constitution conflict).
+- SigV2 (older, simpler HMAC-SHA1) - rejected: AWS S3 deprecated SigV2 in most regions and
   FileLu/modern S3-compatible stores expect SigV4.
 
 ## R3: HTTP transport on a background thread
@@ -110,7 +110,7 @@ thread. The Hamlib/WinKeyer worker pattern is the established, proven approach i
 - Add a request timeout (`QNetworkRequest::setTransferTimeout`, Qt 6) so a dead connection fails
   promptly with a clear error instead of hanging.
 
-**Alternatives considered**: synchronous I/O with a local event loop (like FlrigClient) — rejected:
+**Alternatives considered**: synchronous I/O with a local event loop (like FlrigClient) - rejected:
 risks UI stalls on slow links, contrary to the constitution.
 
 ## R4: S3 operations needed and their wire formats
@@ -127,7 +127,7 @@ risks UI stalls on slow links, contrary to the constitution.
 **ListObjectsV2 response parsing**: response is XML. Parse with **Qt Xml** (`QXmlStreamReader`),
 extracting each `<Contents><Key>...</Key><Size>...</Size><LastModified>...</LastModified></Contents>`.
 Filter to keys ending in `.clx`. Handle pagination via `<IsTruncated>` + `<NextContinuationToken>`
-(loop until not truncated) — buckets of contest logs will be small, but pagination correctness is
+(loop until not truncated) - buckets of contest logs will be small, but pagination correctness is
 cheap to add and avoids silently truncating long lists.
 
 **Upload simplicity**: contest `.clx` files are small JSON; a single PUT of the whole body is
@@ -146,10 +146,10 @@ same class with different config; the provider type only changes defaults and th
 
 **Rationale**: Spec FR-016 requires FileLu and AWS S3 to share one mechanism differing only by
 config. This mirrors `RigInterface` (one interface, multiple backends) and keeps the door open for
-future native (non-S3) providers (Dropbox/GDrive/iCloud) implementing the same interface later — but
+future native (non-S3) providers (Dropbox/GDrive/iCloud) implementing the same interface later - but
 those are stubs this round (out of scope), so no concrete classes are written for them now (YAGNI).
 
-**Alternatives considered**: separate `FileLuProvider` and `AwsS3Provider` classes — rejected:
+**Alternatives considered**: separate `FileLuProvider` and `AwsS3Provider` classes - rejected:
 duplicates the entire S3 client for a config difference.
 
 ## R6: Credential storage
@@ -164,7 +164,7 @@ The obfuscation is not strong encryption, but it matches the application's curre
 and the constitution's simplicity principle. (Exact helper names/structure to be confirmed against
 `src/utils/settings.cpp` in the design phase and reflected in data-model.md.)
 
-**Alternatives considered**: OS keychain via QtKeychain — rejected (new dependency, inconsistent
+**Alternatives considered**: OS keychain via QtKeychain - rejected (new dependency, inconsistent
 with existing storage).
 
 ## R7: Sync model (open/save)
@@ -178,7 +178,7 @@ saves of a cloud-opened log default back to the same destination.
 **Rationale**: Reuses all existing, tested local open/save/parse/serialize logic; files are small;
 keeps a local copy so a failed upload never loses data (spec FR-018). Minimal new surface area.
 
-**Alternatives considered**: direct in-memory streaming to/from cloud — rejected: more complex,
+**Alternatives considered**: direct in-memory streaming to/from cloud - rejected: more complex,
 risks data loss and UI stalls for negligible benefit at these file sizes.
 
 ## Open items deferred to design (Phase 1)

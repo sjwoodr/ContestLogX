@@ -4,7 +4,7 @@
  *
  * Released under the MIT License. See LICENSE file for details.
  *
- * ClxSnapshot — thread-safe point-in-time view of the current CLX session
+ * ClxSnapshot - thread-safe point-in-time view of the current CLX session
  * state. Populated from MainWindow on score / QSO / rig-state changes;
  * consumed by the HTTP server's JSON endpoints (and eventually by the M/M
  * multicast sender). A single writer (MainWindow) + multiple readers
@@ -76,7 +76,7 @@ struct PropagationSnapshot {
 // handlers don't hold the lock while serializing.
 class ClxSnapshot {
 public:
-    // Writer side — MainWindow calls these on change events.
+    // Writer side - MainWindow calls these on change events.
     void setRunning(bool running);
     void setContestName(const QString& name);
     void setContestFile(const QString& path);
@@ -85,7 +85,7 @@ public:
     void setScore(const ScoreSnapshot& score);
     void setRate(const RateSnapshot& rate);
     void setPropagation(const PropagationSnapshot& prop);
-    // Recent-QSO buffer — MainWindow appends on log, newest last. The
+    // Recent-QSO buffer - MainWindow appends on log, newest last. The
     // snapshot keeps the last N (configurable) so /api/qsos?limit=N can
     // pull cheaply. Full history goes through the app's QsoListModel.
     void pushQso(const QsoSnapshot& qso);
@@ -93,7 +93,7 @@ public:
     void setWorkedNamedMults(const QStringList& mults);
     void setStartedAt(const QDateTime& t);
 
-    // Reader side — HTTP handlers take a copy under the read lock and
+    // Reader side - HTTP handlers take a copy under the read lock and
     // operate on the copy without holding the lock through serialization.
     struct Copy {
         bool running = false;

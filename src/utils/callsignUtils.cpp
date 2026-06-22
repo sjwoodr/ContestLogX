@@ -187,7 +187,7 @@ QString computeWpxPrefixCore(const QString& call)
             return call.left(i + 1);
     }
 
-    // No digits anywhere — apply the WPX "append 0 after second letter" rule.
+    // No digits anywhere - apply the WPX "append 0 after second letter" rule.
     // Examples from the rules: XEFTJW → XE0, PA (designator only) → PA0.
     if (call.length() >= 2)
         return call.left(2) + QStringLiteral("0");
@@ -196,7 +196,7 @@ QString computeWpxPrefixCore(const QString& call)
 
 // Compute the WPX prefix for a string we KNOW is a portable designator
 // (slash notation already resolved to a single side). The WPX rule says
-// "the portable designator will then become the prefix" — so if the
+// "the portable designator will then become the prefix" - so if the
 // designator already contains any digit, the designator string IS the
 // prefix verbatim (e.g. KH6, OE25, 3D2, 4U1, 4X). The 0-padding rule only
 // fires for designators with NO digits at all (PA → PA0, XE → XE0).
@@ -214,7 +214,7 @@ QString computeWpxPrefixForDesignator(const QString& d)
     if (hasDigit.match(d).hasMatch())
         return d;                         // designator already has area digit
 
-    // Pure-alpha designator — apply WPX 0-padding rule.
+    // Pure-alpha designator - apply WPX 0-padding rule.
     if (d.length() >= 2)
         return d.left(2) + QStringLiteral("0");
     return d + QStringLiteral("0");
@@ -254,7 +254,7 @@ QString CallsignUtils::extractWpxPrefix(const QString& callsign)
         break;
     }
 
-    // Trim leading and trailing slashes (typos like "/K1ABC" or "K1ABC/" —
+    // Trim leading and trailing slashes (typos like "/K1ABC" or "K1ABC/" -
     // be lenient since these are operator entry mistakes, not WPX-relevant).
     while (call.startsWith('/')) call.remove(0, 1);
     while (call.endsWith('/'))   call.chop(1);
@@ -276,11 +276,11 @@ QString CallsignUtils::extractWpxPrefix(const QString& callsign)
         if (left.isEmpty() || right.isEmpty())
             return QString();
 
-        // Case A: one side is purely digits — call-area change. Replace the
+        // Case A: one side is purely digits - call-area change. Replace the
         // base call's prefix-digit run with the new digit. Examples:
         //   W1AW/4    → W4    (W1 → W4)
         //   HG19ABC/8 → HG8   (HG19 → HG8)
-        //   3D2RI/4   → 3D4   (3D2 → 3D4) — digit-led prefix supported
+        //   3D2RI/4   → 3D4   (3D2 → 3D4) - digit-led prefix supported
         //   4/W1AW    → W4    (designator on the left side)
         static const QRegularExpression digitsOnly(QStringLiteral("^[0-9]+$"));
 
@@ -339,6 +339,6 @@ QString CallsignUtils::extractWpxPrefix(const QString& callsign)
         return computeWpxPrefixForDesignator(designator);
     }
 
-    // Step 3: no slash — extract prefix directly from the call.
+    // Step 3: no slash - extract prefix directly from the call.
     return computeWpxPrefixCore(call);
 }

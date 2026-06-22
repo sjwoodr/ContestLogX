@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "sponsor": "Louisiana Contest Club",
     "description": "Annual Louisiana QSO Party. Non-LA stations work LA stations only for LA parish multipliers. LA stations work everyone for parishes, states, provinces, and DXCC multipliers.",
-    "startDate": "First Saturday in April (2026: April 4, 1400 UTC – April 5, 0200 UTC)",
+    "startDate": "First Saturday in April (2026: April 4, 1400 UTC - April 5, 0200 UTC)",
     "duration": 12,
     "offTimeGapMinutes": 0,
     "modes": ["CW", "SSB"],
@@ -83,9 +83,9 @@
       "question": "Select your station location",
       "type": "select",
       "options": [
-        {"value": "LA",  "label": "Louisiana (in-state) — send LA parish abbreviation"},
-        {"value": "WVE", "label": "W/VE (US or Canada outside LA) — send state or province"},
-        {"value": "DX",  "label": "DX (outside US/Canada) — send DXCC entity prefix"}
+        {"value": "LA",  "label": "Louisiana (in-state) - send LA parish abbreviation"},
+        {"value": "WVE", "label": "W/VE (US or Canada outside LA) - send state or province"},
+        {"value": "DX",  "label": "DX (outside US/Canada) - send DXCC entity prefix"}
       ],
       "required": true,
       "storeInMeta": true,
@@ -115,9 +115,9 @@
       "question": "Select your power level",
       "type": "select",
       "options": [
-        {"value": "HIGH", "label": "High Power — up to 1500 watts"},
-        {"value": "LOW",  "label": "Low Power — up to 100 watts"},
-        {"value": "QRP",  "label": "QRP — up to 5 watts"}
+        {"value": "HIGH", "label": "High Power - up to 1500 watts"},
+        {"value": "LOW",  "label": "Low Power - up to 100 watts"},
+        {"value": "QRP",  "label": "QRP - up to 5 watts"}
       ],
       "required": true,
       "storeInMeta": true,
@@ -129,9 +129,9 @@
       "type": "select",
       "options": [
         {"value": "NONE",     "label": "None"},
-        {"value": "WIRES",    "label": "WIRES — antennas made of wires only, no aluminum tubing"},
-        {"value": "TB-WIRES", "label": "TB-WIRES — tribander for 10/15/20m and wires for 40/80/160m"},
-        {"value": "POTA",     "label": "POTA — Parks on the Air, campground, or federal wildlife refuge"}
+        {"value": "WIRES",    "label": "WIRES - antennas made of wires only, no aluminum tubing"},
+        {"value": "TB-WIRES", "label": "TB-WIRES - tribander for 10/15/20m and wires for 40/80/160m"},
+        {"value": "POTA",     "label": "POTA - Parks on the Air, campground, or federal wildlife refuge"}
       ],
       "required": false,
       "storeInMeta": true,

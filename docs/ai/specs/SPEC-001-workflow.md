@@ -1,4 +1,4 @@
-# SpecKit Workflow: SPEC-001 — Visual Band Map
+# SpecKit Workflow: SPEC-001 - Visual Band Map
 
 **Template Version**: 1.0.0
 **Created**: 2026-03-21
@@ -11,7 +11,7 @@
 | Phase | Command | Status | Notes |
 |-------|---------|--------|-------|
 | Specify | `/speckit.specify` | ⏳ Pending | |
-| Clarify | `/speckit.clarify` | ⏳ Pending | Recommended — rendering + interaction details |
+| Clarify | `/speckit.clarify` | ⏳ Pending | Recommended - rendering + interaction details |
 | Plan | `/speckit.plan` | ⏳ Pending | |
 | Checklist | `/speckit.checklist` | ⏳ Pending | ux, performance, error-handling |
 | Tasks | `/speckit.tasks` | ⏳ Pending | |
@@ -44,7 +44,7 @@
 | II. Qt6-Native Architecture | Widget MUST use Qt6 idioms (QPainter, signals/slots, QDockWidget) | Code review |
 | III. Keyboard-First | Click-to-QSY is an enhancement; keyboard QSY path must not regress | Manual test |
 | IV. JSON-Driven Contests | Band ranges read from contest JSON `frequencies` field; no hardcoding | Code review |
-| V. Simplicity | No waterfall, no SDR — frequency-axis spot map only | Code review |
+| V. Simplicity | No waterfall, no SDR - frequency-axis spot map only | Code review |
 
 **Constitution Check:** ⏳ (mark ✅ / ❌ before proceeding to G1)
 
@@ -92,7 +92,7 @@
 Contest operators using DX cluster spots currently see them only in a tabular list
 (the DX Cluster panel). There is no visual representation of where spots fall on the
 band. Operators must mentally map frequencies to positions, which slows S&P operation.
-A frequency-axis band map — like those found in N1MM+ and Win-Test — lets operators
+A frequency-axis band map - like those found in N1MM+ and Win-Test - lets operators
 see the entire band at a glance, identify clusters of activity, and click to QSY
 directly to a spot.
 
@@ -121,15 +121,15 @@ directly to a spot.
 
 ### Constraints
 
-- The band map MUST be a QDockWidget — dockable, floatable, closable — consistent
+- The band map MUST be a QDockWidget - dockable, floatable, closable - consistent
   with all other panels in ContestLogX
-- The widget MUST consume spots from the existing DxClusterPanel (via signal) — no
+- The widget MUST consume spots from the existing DxClusterPanel (via signal) - no
   second cluster connection
 - Band range MUST be derived from the contest JSON `frequencies` field for the active
-  contest band — no hardcoded band edges
+  contest band - no hardcoded band edges
 - When no contest is loaded or no cluster connection is active, the widget shows an
   appropriate empty state
-- The radio QSY path MUST call the existing flrig QSY mechanism — no duplicate rig
+- The radio QSY path MUST call the existing flrig QSY mechanism - no duplicate rig
   control logic
 - Widget layout state (dock position, size, zoom) MUST persist via QMainWindow
   saveState/restoreState and QSettings
@@ -137,9 +137,9 @@ directly to a spot.
 ### Out of Scope
 
 - Showing two radios' positions (SPEC-002 will add this)
-- Waterfall or panadapter display (audio/SDR input) — frequency-axis spot map only
+- Waterfall or panadapter display (audio/SDR input) - frequency-axis spot map only
 - Networked spot sharing across multi-op stations (SPEC-003)
-- Spotting (transmitting spots to the cluster) — already handled by existing UI
+- Spotting (transmitting spots to the cluster) - already handled by existing UI
 ```
 
 ### Specify Results
@@ -158,19 +158,19 @@ directly to a spot.
 
 ## Phase 2: Clarify
 
-**When to run:** After spec — rendering model and interaction details benefit from
+**When to run:** After spec - rendering model and interaction details benefit from
 explicit resolution before planning.
 
 ### Clarify Session 1: Rendering & Layout
 
 ```
 /speckit.clarify Focus on rendering and layout:
-- How are overlapping spots (multiple spots within a few kHz) displayed — stacked
+- How are overlapping spots (multiple spots within a few kHz) displayed - stacked
   vertically, or truncated with a count indicator?
 - What is the minimum zoom granularity (e.g., can the operator zoom to show only
   a 10 kHz window, or is the minimum one full sub-band like the CW segment)?
 - Are spot labels shown always, or only on hover/selection?
-- How is the operator's own radio frequency (the VFO) shown on the map — as a
+- How is the operator's own radio frequency (the VFO) shown on the map - as a
   distinct marker, a line, or not shown at all?
 ```
 
@@ -179,12 +179,12 @@ explicit resolution before planning.
 ```
 /speckit.clarify Focus on spot state and color coding:
 - Spot status (new mult / worked / unworked) must be computed from ContestEngine
-  state — which ContestEngine method or data structure is the source of truth?
+  state - which ContestEngine method or data structure is the source of truth?
 - When a spot's status changes (e.g., operator works the mult), does the color
   update in real time or only on next spot refresh?
 - If the same callsign is spotted on slightly different frequencies (cluster
   aggregation), are they shown as one spot or multiple?
-- What happens to spots when the operator changes band — are they cleared immediately
+- What happens to spots when the operator changes band - are they cleared immediately
   or retained until the next cluster update?
 ```
 
@@ -221,13 +221,13 @@ explicit resolution before planning.
 
 - `BandMapWidget` is a QDockWidget containing a custom QWidget subclass that
   overrides `paintEvent()` for frequency-axis rendering
-- Spots are received from `DxClusterPanel` via a signal — `DxClusterPanel` needs a
+- Spots are received from `DxClusterPanel` via a signal - `DxClusterPanel` needs a
   new `spotReceived(SpotData)` signal added; `SpotData` is a struct with callsign,
   frequency (MHz), mode, spotter, timestamp
-- Spot status (new mult / worked) is queried from `ContestEngine` — use existing
+- Spot status (new mult / worked) is queried from `ContestEngine` - use existing
   multiplier tracking methods
 - QSY on click: call existing `MainWindow::qsyToFrequency(double mhz, QString mode)`
-  (or equivalent) — do not duplicate rig control logic
+  (or equivalent) - do not duplicate rig control logic
 - Band range: read from `ContestEngine::getAllowedBands()` and the `frequencies`
   section of the contest JSON for the active band's min/max frequency
 - Spot expiry: a `QTimer` fires every 60 seconds; spots older than the configured
@@ -236,7 +236,7 @@ explicit resolution before planning.
 ## Project Structure
 
 Source files follow this layout (no subdirectories under src/ except src/ui/,
-src/core/, src/database/, src/engine/ — note: contestEngine is at src/contestEngine.cpp):
+src/core/, src/database/, src/engine/ - note: contestEngine is at src/contestEngine.cpp):
 
 src/ui/bandMapWidget.cpp
 include/bandMapWidget.h
@@ -247,10 +247,10 @@ include/mainWindow.h
 
 ## Constraints
 
-- No new third-party dependencies — Qt6 only
+- No new third-party dependencies - Qt6 only
 - The custom paint widget MUST handle HiDPI (use logical coordinates, Qt handles
   device pixel ratio)
-- Spot storage in BandMapWidget is a QList<SpotData> — simple, no external cache
+- Spot storage in BandMapWidget is a QList<SpotData> - simple, no external cache
 - All new classes MUST have descriptive objectName() set for QMainWindow state
   persistence
 ```
@@ -288,7 +288,7 @@ Focus on Visual Band Map requirements:
 - Click target areas: are spots large enough to click accurately, especially when
   zoomed out?
 - Zoom/pan interaction: is the zoom gesture discoverable (scroll wheel? slider?)?
-- Empty states: no contest loaded, no cluster connected, no spots on current band —
+- Empty states: no contest loaded, no cluster connected, no spots on current band -
   each needs a distinct, informative empty state
 - Dock widget behavior: does the widget degrade gracefully when very narrow or
   very short (docked alongside other panels)?
@@ -302,11 +302,11 @@ Focus on Visual Band Map requirements:
 /speckit.checklist performance
 
 Focus on Visual Band Map requirements:
-- Repaint frequency: every incoming spot triggers a repaint — is this debounced or
+- Repaint frequency: every incoming spot triggers a repaint - is this debounced or
   batched to avoid excessive repaints during cluster bursts?
-- Spot expiry timer: runs every 60s scanning all spots — acceptable for typical
-  contest spot counts (50–500 spots)?
-- ContestEngine status query: called per spot to determine color — is this O(1) or
+- Spot expiry timer: runs every 60s scanning all spots - acceptable for typical
+  contest spot counts (50-500 spots)?
+- ContestEngine status query: called per spot to determine color - is this O(1) or
   does it involve a list scan?
 - QPainter performance: full widget repaint vs. dirty-rect optimization for
   incremental spot additions
@@ -356,24 +356,24 @@ Focus on Visual Band Map requirements:
 ## Project File Layout
 
 Source files:
-  src/ui/           — UI widgets (bandMapWidget.cpp goes here)
-  src/core/         — Non-UI core logic
-  include/          — All headers (flat, no subdirectories)
-  tests/            — Unit tests
+  src/ui/ - UI widgets (bandMapWidget.cpp goes here)
+  src/core/ - Non-UI core logic
+  include/ - All headers (flat, no subdirectories)
+  tests/ - Unit tests
 
 Build commands:
-  make              — build
-  make test         — unit tests
-  make test-logs    — automated log validation (not needed for this spec)
+  make - build
+  make test - unit tests
+  make test-logs - automated log validation (not needed for this spec)
 
 ## Implementation Phases
-1. Foundation — SpotData struct, DxClusterPanel signal, ContestEngine band-range query
-2. User Story 1 — BandMapWidget rendering (frequency axis, spot markers, labels)
-3. User Story 2 — Spot color coding from ContestEngine state
-4. User Story 3 — Click-to-QSY
-5. User Story 4 — Spot expiry timer
-6. User Story 5 — Zoom/pan
-7. Polish — Empty states, settings persistence, Window menu integration
+1. Foundation - SpotData struct, DxClusterPanel signal, ContestEngine band-range query
+2. User Story 1 - BandMapWidget rendering (frequency axis, spot markers, labels)
+3. User Story 2 - Spot color coding from ContestEngine state
+4. User Story 3 - Click-to-QSY
+5. User Story 4 - Spot expiry timer
+6. User Story 5 - Zoom/pan
+7. Polish - Empty states, settings persistence, Window menu integration
 ```
 
 ### Tasks Results
@@ -395,11 +395,11 @@ Build commands:
 /speckit.analyze
 
 Focus on:
-1. Constitution alignment — Qt6 idioms, no hardcoded band edges, no duplicate rig
+1. Constitution alignment - Qt6 idioms, no hardcoded band edges, no duplicate rig
    control, keyboard path regression check
-2. Coverage gaps — all 5 user stories have tasks; empty states covered; settings
+2. Coverage gaps - all 5 user stories have tasks; empty states covered; settings
    persistence covered
-3. File path consistency — verify task file paths match actual project layout
+3. File path consistency - verify task file paths match actual project layout
    (src/ui/, include/ flat, no subdirectories)
 4. Verify US1 (spot display) and US3 (click-to-QSY) have complete task coverage
    as the highest-risk items
@@ -424,7 +424,7 @@ Focus on:
 
 For each task:
 1. Write the code
-2. Build with `make` — must succeed with zero warnings
+2. Build with `make` - must succeed with zero warnings
 3. For any testable logic (e.g., spot expiry calculation, frequency-to-pixel math),
    write a unit test in tests/ first
 4. Manual verification: launch ContestLogX with a contest loaded and DX cluster
@@ -433,17 +433,17 @@ For each task:
 ## Pre-Implementation Setup
 
 1. Create branch: `git checkout -b sw/spec-001-band-map`
-2. Verify baseline: `make && make test` — must pass before any changes
+2. Verify baseline: `make && make test` - must pass before any changes
 3. Confirm DX cluster connection is available for integration testing
 
 ## Implementation Notes
 
 - All Qt object names set via `setObjectName()` for dock state persistence
 - Use `qRound()` for frequency-to-pixel conversions (avoid floating-point pixel gaps)
-- DxClusterPanel signal must be added with backward-compatible default — existing
+- DxClusterPanel signal must be added with backward-compatible default - existing
   connections must not break
 - QSY path: call the same method the DX Cluster table's row-click already calls
-  (find it in mainWindow.cpp before implementing — do not create a parallel path)
+  (find it in mainWindow.cpp before implementing - do not create a parallel path)
 - HiDPI: use `painter.setRenderHint(QPainter::Antialiasing)` and work in logical
   pixels; Qt handles device pixel ratio automatically
 ```
@@ -473,7 +473,7 @@ For each task:
 - [ ] Spots expire after configured threshold
 - [ ] No crash when cluster not connected or no contest loaded
 - [ ] Dock state persists across app restart
-- [ ] Update `docs/ai/specs/contestlogx-master-plan.md` — mark SPEC-001 ✅ Complete
+- [ ] Update `docs/ai/specs/contestlogx-master-plan.md` - mark SPEC-001 ✅ Complete
 
 ---
 
@@ -502,7 +502,7 @@ ContestLogX/
 │   ├── core/             # Non-UI logic
 │   ├── database/         # DxccDatabase
 │   └── contestEngine.cpp # Core scoring engine (note: NOT in src/engine/)
-├── include/              # All headers (flat — no subdirectories)
+├── include/              # All headers (flat - no subdirectories)
 ├── contests/             # Contest JSON definitions
 ├── tests/                # Unit tests
 ├── scripts/              # Test runners

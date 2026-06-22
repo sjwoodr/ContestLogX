@@ -63,7 +63,7 @@ void ScpWidget::setupUi()
     m_stack->addWidget(m_callsignTable);
 
     // Page 1: clickable "configure" button (shown when SCP is disabled)
-    m_configureButton = new QPushButton("SCP is disabled — click to configure", this);
+    m_configureButton = new QPushButton("SCP is disabled - click to configure", this);
     m_configureButton->setFocusPolicy(Qt::NoFocus);
     m_configureButton->setCursor(Qt::PointingHandCursor);
     m_configureButton->setStyleSheet("QPushButton { border: none; padding: 20px; font-size: 10pt; "
@@ -171,14 +171,14 @@ void ScpWidget::updateTitle()
     if (enabled) {
         setWindowTitle(title);
         if (m_stack) m_stack->setCurrentWidget(m_callsignTable);
-        if (m_configureButton) m_configureButton->setText("SCP is disabled — click to configure");
+        if (m_configureButton) m_configureButton->setText("SCP is disabled - click to configure");
     } else {
         // Determine the specific reason so the button text is informative
-        QString reason = "SCP is disabled — click to configure";
+        QString reason = "SCP is disabled - click to configure";
         if (!Settings::instance().getScpEnabled()) {
-            reason = "SCP is disabled — click to enable";
+            reason = "SCP is disabled - click to enable";
         } else {
-            reason = "master.scp not found — click to download";
+            reason = "master.scp not found - click to download";
         }
         setWindowTitle(title + " - disabled");
         if (m_stack) m_stack->setCurrentWidget(m_configureButton);

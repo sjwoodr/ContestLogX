@@ -96,7 +96,7 @@ jobs:
         with:
           name: appimage
           path: dist/ContestLogX.${{ steps.version.outputs.version }}.AppImage.tar.gz
-          retention-days: 1  # Intermediate — attached to Release by create-release job
+          retention-days: 1  # Intermediate - attached to Release by create-release job
 
   build-macos:
     runs-on: macos-latest
@@ -142,7 +142,7 @@ jobs:
         with:
           name: macos-app
           path: dist/ContestLogX.${{ steps.version.outputs.version }}.macOS.tar.gz
-          retention-days: 1  # Intermediate — attached to Release by create-release job
+          retention-days: 1  # Intermediate - attached to Release by create-release job
 
   build-windows:
     # Pin to windows-2022 (VS 2022 / MSVC v143). windows-latest rolled to

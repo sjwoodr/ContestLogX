@@ -73,11 +73,11 @@ private:
         QLabel* statusLabel = nullptr;
         QLabel* rigNameLabel = nullptr;
         QLabel* attributionLabel = nullptr;
-        // CW Decoder — per-radio audio input (SPEC-005)
+        // CW Decoder - per-radio audio input (SPEC-005)
         QComboBox* audioInputCombo = nullptr;    // populated from QMediaDevices + "(none)"
         QCheckBox* muteDecoderOnPttCheck = nullptr;
         QSpinBox* decoderPttGraceSpin = nullptr;
-        // CW Keyer (WinKeyer) — per-radio, independent of the rig backend
+        // CW Keyer (WinKeyer) - per-radio, independent of the rig backend
         QComboBox* keyerSourceCombo = nullptr;       // "rig" | "winkeyer"
         QComboBox* keyerPortCombo = nullptr;         // editable; QSerialPortInfo list
         QPushButton* keyerRefreshButton = nullptr;

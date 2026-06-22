@@ -13,16 +13,16 @@
 /**
  * @brief Role a memory slot plays in the Run/S&P ENTER-key sequence.
  *
- * Roles are optional — a memory with NoRole behaves exactly as before.
+ * Roles are optional - a memory with NoRole behaves exactly as before.
  * At most one memory slot should carry each role; if multiple carry the
  * same role the first match wins.
  */
 enum class MemoryRole {
-    NoRole,      ///< Normal standalone memory — not part of Enter sequence
+    NoRole,      ///< Normal standalone memory - not part of Enter sequence
     CQ,          ///< Sent in Run mode when call field is empty (e.g. "CQ TEST {MYCALL}")
     MyCall,      ///< Sent in S&P mode on first Enter press (e.g. "{MYCALL}")
-    RunExchange, ///< Run mode exchange — typically includes {CALL} (e.g. "{CALL} 5NN {SN}")
-    SPExchange,  ///< S&P exchange — your part only, no {CALL} (e.g. "5NN {SN}")
+    RunExchange, ///< Run mode exchange - typically includes {CALL} (e.g. "{CALL} 5NN {SN}")
+    SPExchange,  ///< S&P exchange - your part only, no {CALL} (e.g. "5NN {SN}")
     TU           ///< Sent after logging in Run mode (e.g. "TU {MYCALL}")
 };
 

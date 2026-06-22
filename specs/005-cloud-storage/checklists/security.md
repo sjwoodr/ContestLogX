@@ -24,7 +24,7 @@ before implementation. These are "unit tests for the requirements," not tests of
 
 ## SigV4 / Wire Secret Exposure
 
-- [x] CHK011 - Does the contract make explicit that the secret key is NEVER transmitted on the wire — only the derived SigV4 signature? [Clarity, contracts §SigV4]
+- [x] CHK011 - Does the contract make explicit that the secret key is NEVER transmitted on the wire - only the derived SigV4 signature? [Clarity, contracts §SigV4]
 - [x] CHK012 - Are requirements defined for which request components are signed (host, x-amz-date, x-amz-content-sha256) so signing integrity is unambiguous? [Completeness, contracts §SigV4]
 - [x] CHK013 - Is there a requirement that signing material (derived signing key, kSigning) is not persisted or exposed beyond the signing operation? [Gap]
 
@@ -54,5 +54,5 @@ before implementation. These are "unit tests for the requirements," not tests of
 
 - Items left unchecked after review are gaps to remediate in spec.md / plan.md before `/speckit.tasks`.
 - Security posture is intentionally "match existing app credential handling" (obfuscation) per the
-  constitution's simplicity principle — but that decision and its limits must be *written down*, which
+  constitution's simplicity principle - but that decision and its limits must be *written down*, which
   several items above test for.

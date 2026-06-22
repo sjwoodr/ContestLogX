@@ -133,7 +133,7 @@ void CWWindow::sendCWText(const QString& text)
 {
     if (text.isEmpty()) return;
 
-    // Hamlib/rigctld CW keying depends on rig support — most rigs don't have
+    // Hamlib/rigctld CW keying depends on rig support - most rigs don't have
     // it. Only warn when we're actually keying via the rig; a WinKeyer keys
     // independently of the CAT backend.
     const bool keyingViaRig = (m_keyer == static_cast<CwKeyerInterface*>(rigClient));
@@ -156,7 +156,7 @@ void CWWindow::sendCWText(const QString& text)
     m_keyer->setCWSpeed(currentWpm);
 
     // Notify CW decoder (via MainWindow) before the send so it can mute its
-    // bins for the owning radio — prevents self-decode of ContestLogX's own
+    // bins for the owning radio - prevents self-decode of ContestLogX's own
     // keying bleeding back through the audio input (SPEC-005 FR-019c). The
     // rigClient pointer identifies the owning radio; muting is about that
     // radio's audio even when the keyer is a separate device.

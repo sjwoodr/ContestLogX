@@ -35,21 +35,21 @@ Validated on initial write (2026-04-21). All items pass.
 
 ### Content Quality review
 
-- Spec avoids naming specific implementations (Goertzel, Qt6::Multimedia, QAudioSource, etc.) — those are retained in `docs/ai/specs/SPEC-005-workflow.md` for the Plan phase.
-- The one potentially-technical phrase — "single-frequency tone detection" in FR-015 — is a capability description, not an implementation prescription. Left as-is because the product-level decision (not a waterfall, not a full panadapter) is a scope boundary the operator cares about.
+- Spec avoids naming specific implementations (Goertzel, Qt6::Multimedia, QAudioSource, etc.) - those are retained in `docs/ai/specs/SPEC-005-workflow.md` for the Plan phase.
+- The one potentially-technical phrase - "single-frequency tone detection" in FR-015 - is a capability description, not an implementation prescription. Left as-is because the product-level decision (not a waterfall, not a full panadapter) is a scope boundary the operator cares about.
 - Written from an operator's perspective throughout.
 
 ### Requirement Completeness review
 
-- Zero `[NEEDS CLARIFICATION]` markers — all ambiguities were resolved into Assumptions (widget layout, passband default, overwrite policy, SCP trigger, RST normalization, callsign pattern, reconnection behavior, buffer size, no-lock display).
+- Zero `[NEEDS CLARIFICATION]` markers - all ambiguities were resolved into Assumptions (widget layout, passband default, overwrite policy, SCP trigger, RST normalization, callsign pattern, reconnection behavior, buffer size, no-lock display).
 - Functional requirements are grouped by capability (Audio Configuration, Decoder Widget, Decoding Behavior, Click-to-Fill, Persistence, Non-Interference, Platform) and each is directly testable.
 - Edge cases section covers device-missing, device-mid-session-disappearance, unsupported format, no-contest-loaded, repeated clicks, prosigns, exit, WPM no-lock.
 - Out-of-scope is explicit and comprehensive (CW sending, SSB/RTTY/FT8 decode, waterfall, network share, multi-signal separation, flrig audio API, auto-log).
 
 ### Feature Readiness review
 
-- 8 user stories, each with independent test criteria and priorities (3×P1, 4×P2, 1×P1 for SO2R — 5×P1, 3×P2 total).
-- 10 measurable success criteria — all framed from the operator's viewpoint (decode accuracy, latency, convergence time, CPU cost, cross-platform parity, SO2R routing correctness).
+- 8 user stories, each with independent test criteria and priorities (3×P1, 4×P2, 1×P1 for SO2R - 5×P1, 3×P2 total).
+- 10 measurable success criteria - all framed from the operator's viewpoint (decode accuracy, latency, convergence time, CPU cost, cross-platform parity, SO2R routing correctness).
 - No implementation details leak into the spec body; assumptions are labeled as defaults revisitable in clarify.
 
 ## Notes

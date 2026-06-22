@@ -4,7 +4,7 @@
  *
  * Released under the MIT License. See LICENSE file for details.
  *
- * QrCodeWidget — renders a QR code for a single string (typically the
+ * QrCodeWidget - renders a QR code for a single string (typically the
  * Remote Dashboard phone URL). Uses nayuki's header-only QR generator
  * under third_party/qrcodegen. Static image; no interaction.
  */

@@ -83,7 +83,7 @@ bool FileHandler::save(const QString& filename, const QList<QsoRecord>& qsos)
 }
 
 // ---------------------------------------------------------------------------
-// CLX format — delegates to ClxFile
+// CLX format - delegates to ClxFile
 // ---------------------------------------------------------------------------
 
 bool FileHandler::loadClx(const QString& filename, QList<QsoRecord>& qsos)

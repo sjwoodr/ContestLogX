@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "sponsor": "Vicksburg Amateur Radio Club",
     "description": "Annual Mississippi QSO Party. Non-MS stations work MS stations for county and grid square multipliers. MS stations work everyone for counties, states, provinces, DXCC, and grid square multipliers.",
-    "startDate": "First Saturday in April (2026: April 4, 1500 UTC – April 5, 0300 UTC)",
+    "startDate": "First Saturday in April (2026: April 4, 1500 UTC - April 5, 0300 UTC)",
     "duration": 12,
     "offTimeGapMinutes": 0,
     "modes": ["CW", "SSB", "RTTY", "FT8"],
@@ -83,9 +83,9 @@
       "question": "Select your station location",
       "type": "select",
       "options": [
-        {"value": "MS",  "label": "Mississippi (in-state) — send MS county abbreviation"},
-        {"value": "WVE", "label": "W/VE (US or Canada outside MS) — send state or province"},
-        {"value": "DX",  "label": "DX (outside US/Canada) — send DXCC entity prefix"}
+        {"value": "MS",  "label": "Mississippi (in-state) - send MS county abbreviation"},
+        {"value": "WVE", "label": "W/VE (US or Canada outside MS) - send state or province"},
+        {"value": "DX",  "label": "DX (outside US/Canada) - send DXCC entity prefix"}
       ],
       "required": true,
       "storeInMeta": true,
@@ -258,7 +258,7 @@
   },
 
   "countyAbbreviations": {
-    "description": "Mississippi County abbreviations (82 counties) — official MSQP abbreviations from arrlmiss.org",
+    "description": "Mississippi County abbreviations (82 counties) - official MSQP abbreviations from arrlmiss.org",
     "ADA": "Adams",
     "ALC": "Alcorn",
     "AMI": "Amite",

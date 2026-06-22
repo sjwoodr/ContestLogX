@@ -36,9 +36,9 @@
 **Goal**: Add CQ zone, ITU zone, and ARRL section to StationInfo.
 
 **Changes**:
-- `include/stationInfo.h` — Add `int m_cqZone`, `int m_ituZone`, `QString m_arrlSection` with getters/setters
-- `src/core/stationInfo.cpp` — Add to `toJson()` and `fromJson()` serialization
-- `src/ui/mainWindow.cpp` — Auto-populate cqZone/ituZone from DxccDatabase when callsign is set in station dialog
+- `include/stationInfo.h` - Add `int m_cqZone`, `int m_ituZone`, `QString m_arrlSection` with getters/setters
+- `src/core/stationInfo.cpp` - Add to `toJson()` and `fromJson()` serialization
+- `src/ui/mainWindow.cpp` - Auto-populate cqZone/ituZone from DxccDatabase when callsign is set in station dialog
 
 **Validation**: Load a saved CLX file with old station info format → new fields default to 0/"". Save and reload → new fields persist.
 
@@ -49,9 +49,9 @@
 **Goal**: Add online scoring credentials and interval to application settings.
 
 **Changes**:
-- `include/settings.h` — Add getters/setters for online scoring callsign, password, interval, perQso flag
-- `src/utils/settings.cpp` — Implement under `m_settings["onlineScoring"]` with XOR+Base64 password encoding (same as QRZ pattern)
-- `src/ui/preferencesDialog.cpp` — Add "Online Scoring" section with callsign, password, interval dropdown, per-QSO checkbox
+- `include/settings.h` - Add getters/setters for online scoring callsign, password, interval, perQso flag
+- `src/utils/settings.cpp` - Implement under `m_settings["onlineScoring"]` with XOR+Base64 password encoding (same as QRZ pattern)
+- `src/ui/preferencesDialog.cpp` - Add "Online Scoring" section with callsign, password, interval dropdown, per-QSO checkbox
 
 **Validation**: Set credentials in preferences, restart app, verify retained. Change interval, verify saved.
 
@@ -89,10 +89,10 @@ class OnlineScoreClient : public QObject
 **Goal**: Add enable/disable toggle to Contest menu with field validation.
 
 **Changes**:
-- `include/mainWindow.h` — Add `QAction *m_onlineScoringAction`, `OnlineScoreClient *m_onlineScoreClient`, `QTimer *m_scorePostTimer`, slots
+- `include/mainWindow.h` - Add `QAction *m_onlineScoringAction`, `OnlineScoreClient *m_onlineScoreClient`, `QTimer *m_scorePostTimer`, slots
 - `src/ui/mainWindow.cpp`:
   - Add checkable menu action to Contest menu
-  - `onToggleOnlineScoring()` — validate required fields, show warning if missing, start/stop timer
+  - `onToggleOnlineScoring()` - validate required fields, show warning if missing, start/stop timer
   - Required fields: callsign, password, cqZone, ituZone, state, grid, contestOnlineScore block in contest def
   - Disable on log file close
 
@@ -126,7 +126,7 @@ class OnlineScoreClient : public QObject
 **Goal**: Show posting status in the status bar.
 
 **Changes**:
-- `include/mainWindow.h` — Add `QLabel *m_onlineScoringLabel`
+- `include/mainWindow.h` - Add `QLabel *m_onlineScoringLabel`
 - `src/ui/mainWindow.cpp`:
   - Add label to status bar (between existing labels)
   - Connect to OnlineScoreClient signals:
@@ -142,7 +142,7 @@ class OnlineScoreClient : public QObject
 **Goal**: Map userPrompt values to XML class element attributes.
 
 **Changes**:
-- `src/net/onlineScoreClient.cpp` — ClassAttributes derivation logic:
+- `src/net/onlineScoreClient.cpp` - ClassAttributes derivation logic:
   - Check for `powerCategory` prompt → map HP/LP/QRP to HIGH/LOW/QRP
   - Check for `operatingCategory` prompt → extract ops (SINGLE-OP/MULTI-OP) and transmitter (ONE/TWO/UNLIMITED)
   - Check for `contestMode` prompt → map to CW/PH/MIXED/etc.
@@ -156,31 +156,31 @@ class OnlineScoreClient : public QObject
 **Goal**: Add contestOnlineScore blocks to 10 eligible contest definitions.
 
 **Files**: All in `contests/` directory:
-- `arrl_10m.json` — contestId: "ARRL-10", country + state
-- `arrl_dx.json` — contestIdMapping by mode (ARRL-DX-CW / ARRL-DX-SSB), country
-- `arrl_vhf.json` — contestId: "ARRL-VHF", gridsquare
-- `cwops_cwt.json` — contestId: "CW-Ops", state
-- `eudx.json` — contestId: "EUDXC", country + state
-- `fqp.json` — contestId: "FL-QSO-PARTY", state
-- `mnqp.json` — contestId: "MN-QSO-PARTY", state
-- `naqp.json` — contestIdMapping by mode (NAQP-CW / NAQP-SSB / NAQP-RTTY), state
-- `vaqp.json` — contestId: "VA-QSO-PARTY", state
-- `winter_field_day.json` — contestId: "WFDA-CONTEST", wpxprefix
+- `arrl_10m.json` - contestId: "ARRL-10", country + state
+- `arrl_dx.json` - contestIdMapping by mode (ARRL-DX-CW / ARRL-DX-SSB), country
+- `arrl_vhf.json` - contestId: "ARRL-VHF", gridsquare
+- `cwops_cwt.json` - contestId: "CW-Ops", state
+- `eudx.json` - contestId: "EUDXC", country + state
+- `fqp.json` - contestId: "FL-QSO-PARTY", state
+- `mnqp.json` - contestId: "MN-QSO-PARTY", state
+- `naqp.json` - contestIdMapping by mode (NAQP-CW / NAQP-SSB / NAQP-RTTY), state
+- `vaqp.json` - contestId: "VA-QSO-PARTY", state
+- `winter_field_day.json` - contestId: "WFDA-CONTEST", wpxprefix
 
-**Validation**: `make test-logs` passes — contest definition changes don't affect scoring.
+**Validation**: `make test-logs` passes - contest definition changes don't affect scoring.
 
 ---
 
 ## Implementation Order
 
-1. Station Info extension (Phase 1) — no dependencies
-2. Settings extension (Phase 2) — no dependencies
-3. OnlineScoreClient class (Phase 3) — needs Qt6::Network/Xml (already linked)
-4. Contest menu toggle (Phase 4) — needs Phase 2 + 3
-5. Posting timer & trigger (Phase 5) — needs Phase 3 + 4
-6. Status bar feedback (Phase 6) — needs Phase 3 + 4
-7. Operating class derivation (Phase 7) — needs Phase 3
-8. Contest definition updates (Phase 8) — independent, can be done anytime
+1. Station Info extension (Phase 1) - no dependencies
+2. Settings extension (Phase 2) - no dependencies
+3. OnlineScoreClient class (Phase 3) - needs Qt6::Network/Xml (already linked)
+4. Contest menu toggle (Phase 4) - needs Phase 2 + 3
+5. Posting timer & trigger (Phase 5) - needs Phase 3 + 4
+6. Status bar feedback (Phase 6) - needs Phase 3 + 4
+7. Operating class derivation (Phase 7) - needs Phase 3
+8. Contest definition updates (Phase 8) - independent, can be done anytime
 
 Phases 1, 2, 3, and 8 can be done in parallel. Phases 4-7 depend on Phase 3.
 

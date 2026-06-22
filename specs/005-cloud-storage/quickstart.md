@@ -15,11 +15,11 @@
    - Click **Test connection** → expect "Connection OK".
    - Click **OK**.
 4. **Save a log to the cloud**: File → Save. Because a provider is configured, a destination
-   chooser appears — pick **FileLu**, confirm the filename, Save. The log uploads.
+   chooser appears - pick **FileLu**, confirm the filename, Save. The log uploads.
 5. **Open a log from the cloud**: File → Open → choose **FileLu** → pick a `.clx` log from the
    list → Open. It downloads and loads with all QSOs/score intact.
 
-> If you configure **no** cloud providers, Open/Save behave exactly as before — straight to the
+> If you configure **no** cloud providers, Open/Save behave exactly as before - straight to the
 > local file dialog, no extra step.
 
 ## For operators: AWS S3
@@ -36,9 +36,9 @@ Dropbox, Google Drive, and iCloud Drive appear in the Cloud Storage settings but
 ## For developers: build & test
 
 ```bash
-make                 # zero-warning build (GCC/Clang); links existing Qt6 Network + Xml — no new deps
+make                 # zero-warning build (GCC/Clang); links existing Qt6 Network + Xml - no new deps
 make test            # unit tests, including the SigV4 signer test
-make test-logs       # contest log validation (must remain green — engine untouched)
+make test-logs       # contest log validation (must remain green - engine untouched)
 ```
 
 ### Verifying the SigV4 signer

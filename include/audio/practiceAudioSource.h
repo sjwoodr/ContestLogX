@@ -4,7 +4,7 @@
  *
  * Released under the MIT License. See LICENSE file for details.
  *
- * PracticeAudioSource — virtual audio source that synthesizes CW training
+ * PracticeAudioSource - virtual audio source that synthesizes CW training
  * material and feeds it into both the decoder pipeline (via the inherited
  * AudioCapture ring buffer) and the default playback device (so the
  * operator can hear and copy it in their head). Fills the same role as a
@@ -43,7 +43,7 @@ public:
         m_generator.setContestEngine(engine);
     }
 
-    // Provider is called each time a new fragment begins — this way
+    // Provider is called each time a new fragment begins - this way
     // mid-session WPM changes in the CW console take effect on the next
     // fragment without any signal/slot plumbing.
     void setWpmProvider(std::function<int()> provider) {
@@ -54,7 +54,7 @@ private slots:
     void onTick();
 
 private:
-    // Synthesized queue entry — contiguous tone-on or tone-off chunk.
+    // Synthesized queue entry - contiguous tone-on or tone-off chunk.
     struct Element {
         bool  toneOn;
         int   samples;
@@ -92,14 +92,14 @@ private:
     // entries are QRM stations at asymmetric offsets and reduced amplitude.
     QVector<Voice> m_voices;
 
-    const int m_sampleRate = 48000;   // fixed — matches typical output devices
+    const int m_sampleRate = 48000;   // fixed - matches typical output devices
     int m_envSamples = 0;             // rise/fall ramp length, ~5 ms
 
     // Playback path (what the operator hears on their speakers/headphones)
     std::unique_ptr<QAudioSink> m_sink;
     QIODevice* m_sinkIO = nullptr;
 
-    // Real-time pacing — a 10 ms tick generates 480 samples at 48 kHz
+    // Real-time pacing - a 10 ms tick generates 480 samples at 48 kHz
     QTimer* m_timer = nullptr;
     int m_samplesPerTick = 0;
 };

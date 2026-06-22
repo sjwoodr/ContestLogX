@@ -3,15 +3,15 @@
 
 Produces two CLX logs exercising the kyqp.json definition:
 
-  test_kyqp_instate.clx     — a KY station (Fayette county) working KY
+  test_kyqp_instate.clx - a KY station (Fayette county) working KY
                               counties + US states + Canadian provinces + DX.
-  test_kyqp_outofstate.clx  — a non-KY (MA) station working KY counties only.
+  test_kyqp_outofstate.clx - a non-KY (MA) station working KY counties only.
 
 Both exercise: multsOnce dedup (re-working a county/state on another band
 adds points but no new multiplier), perBandAndMode dupe checking, the
 power-level final-score multiplier, and DX-as-points-only.
 
-Callsigns come from scripts/generate_callsigns.py (per project convention —
+Callsigns come from scripts/generate_callsigns.py (per project convention -
 do not hand-write callsigns for test data).
 """
 

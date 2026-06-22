@@ -24,7 +24,7 @@ Zero warnings required before committing.
 ## Run Tests
 
 ```bash
-make test          # unit tests — run after any logic change
+make test          # unit tests - run after any logic change
 make test-logs     # NOT required for this feature (no contest engine changes)
 ```
 
@@ -32,17 +32,17 @@ make test-logs     # NOT required for this feature (no contest engine changes)
 
 | File | Role |
 |------|------|
-| `include/bandMapWidget.h` | NEW — BandMapWidget + BandMapCanvas declarations |
-| `src/ui/bandMapWidget.cpp` | NEW — Full implementation |
-| `include/dxClusterPanel.h` | MODIFY — add `spotReceived(SpotData)` signal |
-| `src/ui/dxClusterPanel.cpp` | MODIFY — emit signal after parsing each spot |
-| `src/ui/mainWindow.cpp` | MODIFY — add dock, wire signals, extend rig + log handlers |
-| `include/mainWindow.h` | MODIFY — `m_bandMapWidget` member, new slots |
-| `tests/test_bandmap.cpp` | NEW — unit tests for SpotData logic |
+| `include/bandMapWidget.h` | NEW - BandMapWidget + BandMapCanvas declarations |
+| `src/ui/bandMapWidget.cpp` | NEW - Full implementation |
+| `include/dxClusterPanel.h` | MODIFY - add `spotReceived(SpotData)` signal |
+| `src/ui/dxClusterPanel.cpp` | MODIFY - emit signal after parsing each spot |
+| `src/ui/mainWindow.cpp` | MODIFY - add dock, wire signals, extend rig + log handlers |
+| `include/mainWindow.h` | MODIFY - `m_bandMapWidget` member, new slots |
+| `tests/test_bandmap.cpp` | NEW - unit tests for SpotData logic |
 
 ## SpotData Struct Location
 
-Defined in `include/bandMapWidget.h` — no separate header needed. If other
+Defined in `include/bandMapWidget.h` - no separate header needed. If other
 files need it, include `bandMapWidget.h`.
 
 ## Testing the Band Map Manually
@@ -52,12 +52,12 @@ files need it, include `bandMapWidget.h`.
 3. Connect to a DX cluster (e.g., telnet to a test cluster or local NC7J/W6YX)
 4. Verify spots appear on the frequency axis within ~2 seconds of arriving in
    the cluster panel
-5. Hover over a spot — verify tooltip shows callsign, freq, mode, spotter, age
-6. Click a spot — verify radio QSYs (requires flrig connected)
-7. Log a QSO with a spotted station — verify spot color changes to Worked gray
-8. Wait 2+ minutes with a short expiry setting — verify spots disappear
-9. Use scroll wheel on the band map — verify zoom in/out
-10. Drag on the band map — verify pan
+5. Hover over a spot - verify tooltip shows callsign, freq, mode, spotter, age
+6. Click a spot - verify radio QSYs (requires flrig connected)
+7. Log a QSO with a spotted station - verify spot color changes to Worked gray
+8. Wait 2+ minutes with a short expiry setting - verify spots disappear
+9. Use scroll wheel on the band map - verify zoom in/out
+10. Drag on the band map - verify pan
 
 ## Injecting a Test Spot (without live cluster)
 

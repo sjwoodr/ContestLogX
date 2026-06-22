@@ -4,7 +4,7 @@
     "abbreviation": "WVQP",
     "version": "1.0.0",
     "sponsor": "West Virginia State Amateur Radio Council",
-    "description": "West Virginia QSO Party — held on the Saturday on or before June 20 (West Virginia statehood day), noon to midnight Eastern (1600Z Sat to 0400Z Sun). West Virginia stations work everyone; out-of-state stations work West Virginia stations only. Exchange is RST + 3-letter West Virginia county abbreviation for WV stations, or RST + state / province / DXCC country for everyone else. CW, SSB, and Digital (non-CW) — no WARC bands. Phone QSO = 1 point, CW and Digital QSO = 2 points. Out-of-state stations multiply by WV counties; WV stations multiply by WV counties + US states + Canadian provinces + DXCC entities (USA, Alaska, Hawaii, and Canada do not count as DXCC entities). Multipliers count once for the contest. Final score is QSO points x multipliers plus bonus points. Bonus station W8WVA is worth 100 points per band/mode QSO; WV mobiles additionally claim 100 points per WV county activated (a self-activation bonus that is not auto-tracked — add it manually to the claimed score).",
+    "description": "West Virginia QSO Party - held on the Saturday on or before June 20 (West Virginia statehood day), noon to midnight Eastern (1600Z Sat to 0400Z Sun). West Virginia stations work everyone; out-of-state stations work West Virginia stations only. Exchange is RST + 3-letter West Virginia county abbreviation for WV stations, or RST + state / province / DXCC country for everyone else. CW, SSB, and Digital (non-CW) - no WARC bands. Phone QSO = 1 point, CW and Digital QSO = 2 points. Out-of-state stations multiply by WV counties; WV stations multiply by WV counties + US states + Canadian provinces + DXCC entities (USA, Alaska, Hawaii, and Canada do not count as DXCC entities). Multipliers count once for the contest. Final score is QSO points x multipliers plus bonus points. Bonus station W8WVA is worth 100 points per band/mode QSO; WV mobiles additionally claim 100 points per WV county activated (a self-activation bonus that is not auto-tracked - add it manually to the claimed score).",
     "startDate": "Saturday on or before June 20 (2026: June 20, 1600Z Sat to 0400Z Sun)",
     "duration": 12,
     "offTimeGapMinutes": 0,
@@ -76,10 +76,10 @@
       "question": "Select your entry category",
       "type": "select",
       "options": [
-        {"value": "SINGLE_OP", "label": "Single Operator (Fixed) — one signal, one operator"},
-        {"value": "MULTI",     "label": "Multi/Multi (Fixed) — unlimited signals and operators, one QTH"},
-        {"value": "QRP",       "label": "QRP (Fixed or Mobile) — one signal, one operator, 10 W Voice / 5 W CW max"},
-        {"value": "MOBILE",    "label": "Mobile — capable of operation while in motion"}
+        {"value": "SINGLE_OP", "label": "Single Operator (Fixed) - one signal, one operator"},
+        {"value": "MULTI",     "label": "Multi/Multi (Fixed) - unlimited signals and operators, one QTH"},
+        {"value": "QRP",       "label": "QRP (Fixed or Mobile) - one signal, one operator, 10 W Voice / 5 W CW max"},
+        {"value": "MOBILE",    "label": "Mobile - capable of operation while in motion"}
       ],
       "required": true,
       "storeInMeta": true,
@@ -90,13 +90,13 @@
       "question": "Select your power level",
       "type": "select",
       "options": [
-        {"value": "HP",  "label": "High Power — 101 W and above"},
-        {"value": "LP",  "label": "Low Power — 100 W or less"},
-        {"value": "QRP", "label": "QRP — 10 W Voice / 5 W CW or less"}
+        {"value": "HP",  "label": "High Power - 101 W and above"},
+        {"value": "LP",  "label": "Low Power - 100 W or less"},
+        {"value": "QRP", "label": "QRP - 10 W Voice / 5 W CW or less"}
       ],
       "required": true,
       "storeInMeta": true,
-      "description": "Power level is used for award classification only — WVQP has no power-based score multiplier."
+      "description": "Power level is used for award classification only - WVQP has no power-based score multiplier."
     },
     {
       "id": "myExchange",
@@ -142,7 +142,7 @@
     },
     "multipliers": {
       "type": "multsOnce",
-      "description": "Multipliers count once for the contest. Out-of-state stations multiply by WV counties only (max 55). WV stations multiply by WV counties (55) + US states (50 max — the 49 other worked states plus WV itself, credited via automaticMultipliers once the WV operator works any WV station, since WV stations send their county rather than 'WV'; DC counts as MD via namedMultAliases) + 13 Canadian provinces + DXCC entities. USA, Alaska, Hawaii, and Canada are NOT counted as DXCC entities (alaskaAndHawaiiCountDxcc / usAndCanadaCountDxcc are false).",
+      "description": "Multipliers count once for the contest. Out-of-state stations multiply by WV counties only (max 55). WV stations multiply by WV counties (55) + US states (50 max - the 49 other worked states plus WV itself, credited via automaticMultipliers once the WV operator works any WV station, since WV stations send their county rather than 'WV'; DC counts as MD via namedMultAliases) + 13 Canadian provinces + DXCC entities. USA, Alaska, Hawaii, and Canada are NOT counted as DXCC entities (alaskaAndHawaiiCountDxcc / usAndCanadaCountDxcc are false).",
       "categories": ["namedMults", "dxcc"],
       "alaskaAndHawaiiCountDxcc": false,
       "usAndCanadaCountDxcc": false,
@@ -167,12 +167,12 @@
       "pointsEach": 100,
       "type": "bonusPerBandAndMode",
       "stations": ["W8WVA"],
-      "note": "Work W8WVA once per band per mode for 100 bonus points per QSO, added to the final score. WV mobiles additionally claim 100 points per WV county activated — that self-activation bonus is not auto-tracked and must be added manually to the claimed score."
+      "note": "Work W8WVA once per band per mode for 100 bonus points per QSO, added to the final score. WV mobiles additionally claim 100 points per WV county activated - that self-activation bonus is not auto-tracked and must be added manually to the claimed score."
     }
   ],
   "dupeChecking": {
     "type": "perBandAndMode",
-    "description": "Work a station once per band per mode. CW, SSB, and Digital count as separate modes — e.g. W1AW may be worked on 80m CW, 80m Digital, and 80m SSB for three contacts. All digital (non-CW) modes are equivalent: a station worked on 80m RTTY cannot be worked again on 80m PSK31. WV Mobiles changing counties count as a new station and may be re-worked; a mobile on a (non-wet) county line is logged as a separate QSO per county for both QSO and multiplier credit."
+    "description": "Work a station once per band per mode. CW, SSB, and Digital count as separate modes - e.g. W1AW may be worked on 80m CW, 80m Digital, and 80m SSB for three contacts. All digital (non-CW) modes are equivalent: a station worked on 80m RTTY cannot be worked again on 80m PSK31. WV Mobiles changing counties count as a new station and may be re-worked; a mobile on a (non-wet) county line is logged as a separate QSO per county for both QSO and multiplier credit."
   },
   "logging": {
     "requiredFields": ["date", "time", "frequency", "mode", "callsign", "rstSent", "rstReceived", "exchSent", "exchReceived"],

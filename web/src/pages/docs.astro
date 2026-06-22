@@ -2,7 +2,7 @@
 import Layout from '../layouts/Layout.astro';
 ---
 
-<Layout title="Documentation – ContestLogX">
+<Layout title="Documentation - ContestLogX">
   <div class="flex flex-col items-center px-5 py-10">
 
     <div class="max-w-4xl w-full">
@@ -75,7 +75,7 @@ import Layout from '../layouts/Layout.astro';
             <li>Missouri QSO Party (MOQP)</li>
             <li>New Mexico QSO Party (NMQP)</li>
             <li>North Dakota QSO Party (NDQP)</li>
-            <li>North American QSO Party (NAQP) — CW, SSB, RTTY</li>
+            <li>North American QSO Party (NAQP) - CW, SSB, RTTY</li>
             <li>OK-OM DX Contest</li>
             <li>Russian DX Contest (RDXC)</li>
             <li>SP DX Contest</li>
@@ -84,7 +84,7 @@ import Layout from '../layouts/Layout.astro';
             <li>YB DX Contest</li>
             <li>General DXCC (open-ended DXCC tracking)</li>
           </ul>
-          <p class="opacity-80 mt-2">Additional contests can be added by dropping a JSON definition file into the <code>contests/</code> directory — no recompilation needed.</p>
+          <p class="opacity-80 mt-2">Additional contests can be added by dropping a JSON definition file into the <code>contests/</code> directory - no recompilation needed.</p>
         </section>
 
         <!-- Rig Control -->
@@ -223,7 +223,7 @@ import Layout from '../layouts/Layout.astro';
 
           <h3 class="text-lg font-semibold mb-2 mt-6">Sorting the Log</h3>
           <p class="opacity-80">
-            Click any column header to sort the log by that field — click again to reverse the order. The status bar shows
+            Click any column header to sort the log by that field - click again to reverse the order. The status bar shows
             the active sort (e.g., <em>Sorted by CALL ▲</em>). The sort resets to chronological order automatically when
             you start typing a new callsign.
           </p>
@@ -231,7 +231,7 @@ import Layout from '../layouts/Layout.astro';
           <h3 class="text-lg font-semibold mb-2 mt-4">Filtering the Log</h3>
           <p class="opacity-80">
             Press <strong>Ctrl+F</strong> (configurable in <strong>Preferences → Shortcuts</strong>) to open the filter bar.
-            Type any substring to narrow the log to matching QSOs — the search covers callsign, mode, exchange, comment, and
+            Type any substring to narrow the log to matching QSOs - the search covers callsign, mode, exchange, comment, and
             frequency. The status bar shows <em>Filter: N of M QSOs</em> while a filter is active. Press
             <strong>Escape</strong>, click the clear button, or start typing in the entry fields to dismiss the filter.
           </p>
@@ -254,7 +254,7 @@ import Layout from '../layouts/Layout.astro';
 
           <p class="opacity-80 mb-4">
             ContestLogX maintains a persistent call history database. When you enter a callsign, exchange fields (name, state, QTH, CWops ID, grid, etc.)
-            are automatically pre-filled from previous QSOs — across contests and sessions.
+            are automatically pre-filled from previous QSOs - across contests and sessions.
           </p>
 
           <h3 class="text-lg font-semibold mb-2">How It Works</h3>
@@ -284,16 +284,16 @@ import Layout from '../layouts/Layout.astro';
           <h2 class="text-2xl font-semibold mb-4">CW &amp; SSB Memories</h2>
 
           <p class="opacity-80 mb-4">
-            ContestLogX supports eight programmable message memories (F1–F8). CW messages are sent via your keyer interface;
-            SSB messages use the system text-to-speech (TTS) engine — no audio recordings to manage.
+            ContestLogX supports eight programmable message memories (F1-F8). CW messages are sent via your keyer interface;
+            SSB messages use the system text-to-speech (TTS) engine - no audio recordings to manage.
           </p>
 
           <h3 class="text-lg font-semibold mb-2">Token Substitution</h3>
           <p class="opacity-80 mb-2">Both CW and SSB memories support token substitution. The following tokens are expanded at send time:</p>
           <ul class="list-disc list-inside space-y-1 opacity-80">
-            <li><code>{"{"+"CALL}"}</code> — callsign in the entry field</li>
-            <li><code>{"{"+"MYCALL}"}</code> — your station callsign</li>
-            <li><code>{"{"+"SN}"}</code> / <code>{"{"+"SNs}"}</code> / <code>{"{"+"serial}"}</code> — next outgoing serial number</li>
+            <li><code>{"{"+"CALL}"}</code> - callsign in the entry field</li>
+            <li><code>{"{"+"MYCALL}"}</code> - your station callsign</li>
+            <li><code>{"{"+"SN}"}</code> / <code>{"{"+"SNs}"}</code> / <code>{"{"+"serial}"}</code> - next outgoing serial number</li>
           </ul>
           <p class="opacity-80 mt-2">For SSB memories, <code>{"{"+"CALL}"}</code> and <code>{"{"+"MYCALL}"}</code> are automatically converted to NATO phonetics before being sent to TTS (e.g., "Kilo One Alpha Bravo Charlie"). CW memories send the expanded text literally.</p>
 
@@ -302,8 +302,8 @@ import Layout from '../layouts/Layout.astro';
             Each memory type (CW and SSB) has two independent sets of eight slots:
           </p>
           <ul class="list-disc list-inside space-y-1 opacity-80 mb-2">
-            <li><strong>Station Memories</strong> — global, shared across all contests</li>
-            <li><strong>Contest-Specific Memories</strong> — saved inside the <code>.clx</code> log file, specific to one contest log</li>
+            <li><strong>Station Memories</strong> - global, shared across all contests</li>
+            <li><strong>Contest-Specific Memories</strong> - saved inside the <code>.clx</code> log file, specific to one contest log</li>
           </ul>
           <p class="opacity-80 mb-2">
             The active set is shown in the status bar as a clickable button (<strong>Station Memories</strong> or <strong>Contest Memories</strong>).
@@ -321,8 +321,8 @@ import Layout from '../layouts/Layout.astro';
           <h3 class="text-lg font-semibold mb-2 mt-4">CW Serial Number Formatting</h3>
           <p class="opacity-80 mb-2">The CW Memories editor includes options for the <code>{"{"+"SN}"}</code> token:</p>
           <ul class="list-disc list-inside space-y-1 opacity-80">
-            <li><strong>Minimum digits</strong> — pad with leading zeros: 1 digit (e.g. <code>7</code>), 2 digits (e.g. <code>07</code>), or 3 digits (e.g. <code>007</code>)</li>
-            <li><strong>Cut numbers</strong> — substitute traditional CW abbreviations: <code>0→T</code>, <code>9→N</code>, <code>1→A</code></li>
+            <li><strong>Minimum digits</strong> - pad with leading zeros: 1 digit (e.g. <code>7</code>), 2 digits (e.g. <code>07</code>), or 3 digits (e.g. <code>007</code>)</li>
+            <li><strong>Cut numbers</strong> - substitute traditional CW abbreviations: <code>0→T</code>, <code>9→N</code>, <code>1→A</code></li>
           </ul>
 
           <h3 class="text-lg font-semibold mb-2 mt-4">Typical Memory Layout</h3>
@@ -342,7 +342,7 @@ F8  N9OH`}</pre>
 
           <p class="opacity-80 mb-4">
             ContestLogX supports two operating modes that change how the <strong>Enter</strong> key sequences
-            through a contact — so you can work a full QSO without touching the mouse or the F-keys.
+            through a contact - so you can work a full QSO without touching the mouse or the F-keys.
           </p>
 
           <h3 class="text-lg font-semibold mb-2">Selecting a Mode</h3>
@@ -357,18 +357,18 @@ F8  N9OH`}</pre>
             Open the CW or SSB Memories editor and set the <strong>Role</strong> column for each relevant memory:
           </p>
           <ul class="list-disc list-inside space-y-1 opacity-80 mb-4">
-            <li><strong>CQ</strong> — your CQ call (e.g. <code>CQ TEST {"{MYCALL}"}</code>)</li>
-            <li><strong>My Call</strong> — your callsign, sent when answering a running station (e.g. <code>{"{MYCALL}"}</code>)</li>
-            <li><strong>Run Exch</strong> — exchange sent in Run mode; typically starts with the caller's callsign (e.g. <code>{"{CALL}"} 5NN {"{SN}"}</code>)</li>
-            <li><strong>S&amp;P Exch</strong> — exchange sent in S&amp;P mode; your part only, no callsign needed (e.g. <code>5NN {"{SN}"}</code>)</li>
-            <li><strong>TU</strong> — sign-off after logging in Run mode (e.g. <code>TU {"{MYCALL}"} TEST</code>)</li>
+            <li><strong>CQ</strong> - your CQ call (e.g. <code>CQ TEST {"{MYCALL}"}</code>)</li>
+            <li><strong>My Call</strong> - your callsign, sent when answering a running station (e.g. <code>{"{MYCALL}"}</code>)</li>
+            <li><strong>Run Exch</strong> - exchange sent in Run mode; typically starts with the caller's callsign (e.g. <code>{"{CALL}"} 5NN {"{SN}"}</code>)</li>
+            <li><strong>S&amp;P Exch</strong> - exchange sent in S&amp;P mode; your part only, no callsign needed (e.g. <code>5NN {"{SN}"}</code>)</li>
+            <li><strong>TU</strong> - sign-off after logging in Run mode (e.g. <code>TU {"{MYCALL}"} TEST</code>)</li>
           </ul>
           <p class="opacity-80 mb-4">
-            Memories without a role work exactly as before — press the F-key to send them at any time.
+            Memories without a role work exactly as before - press the F-key to send them at any time.
             At most one memory per role is used; if multiple are tagged with the same role the first match wins.
           </p>
 
-          <h3 class="text-lg font-semibold mb-2">Run Mode — Enter Sequence</h3>
+          <h3 class="text-lg font-semibold mb-2">Run Mode - Enter Sequence</h3>
           <p class="opacity-80 mb-2">Use Run mode when you are calling CQ and stations answer you.</p>
           <ol class="list-decimal list-inside space-y-2 opacity-80 mb-4">
             <li><strong>Call box empty → Enter</strong> sends the <em>CQ</em> memory.</li>
@@ -376,7 +376,7 @@ F8  N9OH`}</pre>
             <li><strong>After receiving exchange, Enter again</strong> sends the <em>TU</em> memory and logs the QSO.</li>
           </ol>
 
-          <h3 class="text-lg font-semibold mb-2">Search &amp; Pounce Mode — Enter Sequence</h3>
+          <h3 class="text-lg font-semibold mb-2">Search &amp; Pounce Mode - Enter Sequence</h3>
           <p class="opacity-80 mb-2">Use S&amp;P mode when you are tuning the band and calling a running station.</p>
           <ol class="list-decimal list-inside space-y-2 opacity-80 mb-4">
             <li><strong>Call filled → Enter</strong> sends the <em>My Call</em> memory so the running station hears you.</li>
@@ -386,7 +386,7 @@ F8  N9OH`}</pre>
           <h3 class="text-lg font-semibold mb-2 mt-2">Notes</h3>
           <ul class="list-disc list-inside space-y-1 opacity-80">
             <li>The Enter sequence resets each time a QSO is logged or the entry form is cleared.</li>
-            <li>You can always press F-keys directly — the mode only affects the Enter key behaviour.</li>
+            <li>You can always press F-keys directly - the mode only affects the Enter key behaviour.</li>
             <li>If no memory is tagged with the required role for the current step, Enter does nothing for that step (a warning is written to the debug log).</li>
           </ul>
         </section>
@@ -463,12 +463,12 @@ F8  N9OH`}</pre>
             ContestLogX listens for UDP messages from <a href="https://wsjt.sourceforge.io/" target="_blank" rel="noopener noreferrer" style="color: #58a6ff;">WSJT-X</a> on port 2237 (configurable in settings). When WSJT-X logs a QSO, the callsign, exchange, RST, frequency, and mode are pre-filled in the QSO entry panel for operator review before logging.
           </p>
           <p class="leading-relaxed opacity-80 mb-4">
-            Digital modes (FT8, FT4, JT65, etc.) are automatically mapped to the appropriate contest mode. No configuration is needed — the listener starts automatically when ContestLogX launches.
+            Digital modes (FT8, FT4, JT65, etc.) are automatically mapped to the appropriate contest mode. No configuration is needed - the listener starts automatically when ContestLogX launches.
           </p>
           <h3 class="text-lg font-semibold mb-2 mt-6">Supported WSJT-X Messages</h3>
           <ul class="list-disc list-inside space-y-1 opacity-80">
-            <li><strong>QSO Logged</strong> — pre-fills entry fields with call, exchange, RST, frequency, and mode</li>
-            <li><strong>Status</strong>, <strong>Heartbeat</strong>, <strong>Decode</strong> — logged when WSJT-X debug is enabled (Debug menu)</li>
+            <li><strong>QSO Logged</strong> - pre-fills entry fields with call, exchange, RST, frequency, and mode</li>
+            <li><strong>Status</strong>, <strong>Heartbeat</strong>, <strong>Decode</strong> - logged when WSJT-X debug is enabled (Debug menu)</li>
           </ul>
         </section>
 
@@ -491,7 +491,7 @@ F8  N9OH`}</pre>
           <h3 class="text-lg font-semibold mb-2">Band Filter</h3>
           <p class="opacity-80 mb-2">
             Use the band dropdown (to the right of the <strong>Auto-scroll</strong> checkbox) to show only spots on a specific band.
-            Selecting <strong>ALL</strong> removes the filter. The band list is populated from the contest definition currently loaded —
+            Selecting <strong>ALL</strong> removes the filter. The band list is populated from the contest definition currently loaded -
             it updates automatically when you switch contests.
           </p>
 
@@ -508,7 +508,7 @@ F8  N9OH`}</pre>
 
           <h3 class="text-lg font-semibold mb-2 mt-4">Band Map</h3>
           <p class="opacity-80">
-            When the DX cluster is connected, spots are also fed to the visual Band Map panel. See <a href="#band-map" class="underline" style="color: #58a6ff;">Section 8 — Band Map</a> for details.
+            When the DX cluster is connected, spots are also fed to the visual Band Map panel. See <a href="#band-map" class="underline" style="color: #58a6ff;">Section 8 - Band Map</a> for details.
           </p>
         </section>
 
@@ -519,7 +519,7 @@ F8  N9OH`}</pre>
           <p class="opacity-80 mb-4">
             The Band Map displays DX cluster spots as labeled markers on a horizontal frequency axis, giving you
             a spatial overview of activity on the current band. Open it from <strong>Window → Band Map</strong>.
-            The panel is a dockable, floatable window — drag it anywhere or float it on a second monitor.
+            The panel is a dockable, floatable window - drag it anywhere or float it on a second monitor.
           </p>
 
           <h3 class="text-lg font-semibold mb-2">Color Coding</h3>
@@ -533,10 +533,10 @@ F8  N9OH`}</pre>
             <div class="flex gap-4 items-start">
               <div class="flex-shrink-0 w-6 h-6 rounded mt-1" style="background-color: #FF6B00;"></div>
               <div>
-                <p class="font-semibold">Orange — New Multiplier</p>
+                <p class="font-semibold">Orange - New Multiplier</p>
                 <p class="opacity-80 text-sm">
                   This station would add a multiplier you haven't worked yet. ContestLogX checks whether the
-                  station's DXCC entity already appears anywhere in your log — if not, the spot is orange.
+                  station's DXCC entity already appears anywhere in your log - if not, the spot is orange.
                   These are your highest-priority targets: working them increases both your QSO count <em>and</em>
                   your multiplier total.
                 </p>
@@ -546,11 +546,11 @@ F8  N9OH`}</pre>
             <div class="flex gap-4 items-start">
               <div class="flex-shrink-0 w-6 h-6 rounded mt-1" style="background-color: #1E90FF;"></div>
               <div>
-                <p class="font-semibold">Blue — Unworked, Not a New Multiplier</p>
+                <p class="font-semibold">Blue - Unworked, Not a New Multiplier</p>
                 <p class="opacity-80 text-sm">
                   You haven't worked this station yet, but their DXCC entity is already in your log on
                   this band. Worth working for the QSO point, but won't add to your multiplier count.
-                  These are your bread-and-butter contacts — move quickly and keep the rate up.
+                  These are your bread-and-butter contacts - move quickly and keep the rate up.
                 </p>
               </div>
             </div>
@@ -558,7 +558,7 @@ F8  N9OH`}</pre>
             <div class="flex gap-4 items-start">
               <div class="flex-shrink-0 w-6 h-6 rounded mt-1" style="background-color: #505050;"></div>
               <div>
-                <p class="font-semibold">Gray — Already Worked</p>
+                <p class="font-semibold">Gray - Already Worked</p>
                 <p class="opacity-80 text-sm">
                   This callsign is already in your log. Depending on the contest's dupe rules (per-band,
                   per-mode, or overall), working them again may not count. Gray spots fade into the
@@ -570,21 +570,21 @@ F8  N9OH`}</pre>
           </div>
 
           <p class="opacity-80 mb-4">
-            Colors update automatically the moment you log a QSO or run <strong>Contest → Recalculate Score</strong> —
+            Colors update automatically the moment you log a QSO or run <strong>Contest → Recalculate Score</strong> -
             a freshly worked orange spot turns gray without disappearing from the map.
           </p>
 
           <h3 class="text-lg font-semibold mb-2">Click to QSY</h3>
           <p class="opacity-80 mb-4">
-            Click any spot marker to tune your rig to that frequency and mode — same behavior as clicking a row in the DX Cluster panel.
+            Click any spot marker to tune your rig to that frequency and mode - same behavior as clicking a row in the DX Cluster panel.
             The callsign is also pre-filled in the entry field.
           </p>
 
           <h3 class="text-lg font-semibold mb-2">Zoom &amp; Pan</h3>
           <ul class="list-disc list-inside space-y-1 opacity-80 mb-4">
-            <li><strong>Scroll wheel</strong> — zoom in/out centered on cursor position</li>
-            <li><strong>Zoom slider</strong> — drag the slider at the top of the panel to adjust the visible frequency range</li>
-            <li><strong>Click-drag</strong> — pan the view left or right</li>
+            <li><strong>Scroll wheel</strong> - zoom in/out centered on cursor position</li>
+            <li><strong>Zoom slider</strong> - drag the slider at the top of the panel to adjust the visible frequency range</li>
+            <li><strong>Click-drag</strong> - pan the view left or right</li>
             <li>Zoom and pan reset to full-band default whenever you change bands</li>
           </ul>
 
@@ -818,12 +818,12 @@ F8  N9OH`}</pre>
             The Remote Dashboard is a small HTTP server built into ContestLogX that serves a live,
             read-only view of your current session (score, rate, recent QSOs, rig state, propagation)
             on your local network. Point a phone, tablet, or another PC browser at the URL and you
-            get an auto-refreshing dashboard — useful for checking your score from the couch during
+            get an auto-refreshing dashboard - useful for checking your score from the couch during
             a coffee break, monitoring a guest operator&apos;s session from another room, or just
             having an ambient display on a second screen while you run.
           </p>
           <p class="opacity-80 mb-4">
-            The server is <strong>off by default</strong> and binds to your LAN only — it&apos;s
+            The server is <strong>off by default</strong> and binds to your LAN only - it&apos;s
             not exposed to the internet. Every request requires a bearer token, and the
             bookmarkable URL includes that token so your phone reconnects without prompting.
           </p>
@@ -871,7 +871,7 @@ F8  N9OH`}</pre>
               feature disabled.</li>
             <li>Click <strong>Rotate</strong> next to the token in Preferences to invalidate old
               bookmarks &mdash; e.g. after a guest operator leaves, or if you suspect the URL leaked.</li>
-            <li>The dashboard can <strong>change the rig</strong> — band, mode, frequency, and Run/S&amp;P
+            <li>The dashboard can <strong>change the rig</strong> - band, mode, frequency, and Run/S&amp;P
               are tappable on the dashboard&apos;s Rig Control card. It will <em>not</em> log a QSO or
               trigger CW memories from the dashboard page (both would race with the operator&apos;s
               keyboard focus at the shack PC). All writes require the same bearer token as reads.</li>
@@ -956,8 +956,8 @@ F8  N9OH`}</pre>
 
           <h3 class="text-lg font-semibold mb-2">Export</h3>
           <ul class="list-disc list-inside space-y-1 opacity-80">
-            <li><strong>Cabrillo</strong> — standard format for contest submission to sponsors (ARRL, CQ, etc.)</li>
-            <li><strong>ADIF</strong> — standard format for uploading to Logbook of the World (LoTW), QRZ, eQSL, and others</li>
+            <li><strong>Cabrillo</strong> - standard format for contest submission to sponsors (ARRL, CQ, etc.)</li>
+            <li><strong>ADIF</strong> - standard format for uploading to Logbook of the World (LoTW), QRZ, eQSL, and others</li>
           </ul>
           <p class="opacity-80 mt-2">Access via <strong>File → Export</strong> and choose the desired format.</p>
 
@@ -984,12 +984,12 @@ F8  N9OH`}</pre>
 
           <p class="opacity-80 mb-4">
             Every contest in ContestLogX is defined by a JSON file in the <code>contests/</code> directory.
-            You can add support for any contest — including regional and club-sponsored events — by creating a new JSON file.
+            You can add support for any contest - including regional and club-sponsored events - by creating a new JSON file.
             No recompilation is needed.
           </p>
           <p class="mb-4">
             <a href="/contest-module-format" style="color: #58a6ff;" class="underline font-semibold">→ Full Contest Module Format Reference</a>
-            — complete field-by-field documentation with examples from all built-in contest modules.
+ - complete field-by-field documentation with examples from all built-in contest modules.
           </p>
           <h3 class="text-lg font-semibold mb-2">File Structure Overview</h3>
           <pre class="rounded p-4 text-sm overflow-x-auto mb-4" style="background-color: #0d1117; color: #e6edf3;">{`{
@@ -1015,24 +1015,24 @@ F8  N9OH`}</pre>
 
           <h3 class="text-lg font-semibold mb-2 mt-2">Multiplier Types</h3>
           <ul class="list-disc list-inside space-y-1 opacity-80">
-            <li><code>namedMults</code> — exchange field values validated against a list (e.g., US states, ARRL sections)</li>
-            <li><code>dxccMultipliers</code> — DXCC entities, scored once per contest or once per band</li>
-            <li><code>ituRegions</code> — ITU regions per band</li>
-            <li><code>namedCallPrefixes</code> — specific callsign prefixes from a static list (e.g., YB0–YB9 in the YB DX Contest)</li>
-            <li><code>wpxPrefix</code> — CQ WPX-style prefix multipliers extracted dynamically from each callsign per the official WPX rules (handles portable designators, /<code>digit</code> call-area changes, and zero-padding for callsigns without numbers)</li>
-            <li><code>gridSquareMultipliers</code> — Maidenhead grid squares per band (used in VHF contests)</li>
+            <li><code>namedMults</code> - exchange field values validated against a list (e.g., US states, ARRL sections)</li>
+            <li><code>dxccMultipliers</code> - DXCC entities, scored once per contest or once per band</li>
+            <li><code>ituRegions</code> - ITU regions per band</li>
+            <li><code>namedCallPrefixes</code> - specific callsign prefixes from a static list (e.g., YB0-YB9 in the YB DX Contest)</li>
+            <li><code>wpxPrefix</code> - CQ WPX-style prefix multipliers extracted dynamically from each callsign per the official WPX rules (handles portable designators, /<code>digit</code> call-area changes, and zero-padding for callsigns without numbers)</li>
+            <li><code>gridSquareMultipliers</code> - Maidenhead grid squares per band (used in VHF contests)</li>
           </ul>
 
           <h3 class="text-lg font-semibold mb-2 mt-4">Multiplier Scope</h3>
           <ul class="list-disc list-inside space-y-1 opacity-80">
-            <li><code>multsOnce</code> — counted once for the whole contest</li>
-            <li><code>multsPerBand</code> — a new multiplier on each band</li>
-            <li><code>multsPerMode</code> — a new multiplier on each mode</li>
-            <li><code>multsPerBandAndMode</code> — a new multiplier per band/mode combination</li>
+            <li><code>multsOnce</code> - counted once for the whole contest</li>
+            <li><code>multsPerBand</code> - a new multiplier on each band</li>
+            <li><code>multsPerMode</code> - a new multiplier on each mode</li>
+            <li><code>multsPerBandAndMode</code> - a new multiplier per band/mode combination</li>
           </ul>
 
           <h3 class="text-lg font-semibold mb-2 mt-4">QSO Scoring Rules</h3>
-          <p class="opacity-80 mb-2">Points are assigned based on the geographic relationship between stations. Rules are evaluated in the order listed in the <code>precedence</code> array — the first match wins.</p>
+          <p class="opacity-80 mb-2">Points are assigned based on the geographic relationship between stations. Rules are evaluated in the order listed in the <code>precedence</code> array - the first match wins.</p>
           <pre class="rounded p-4 text-sm overflow-x-auto" style="background-color: #0d1117; color: #e6edf3;">{`"qsoPoints": {
   "sameDxccEntity":     { "CW": 1, "SSB": 1 },
   "sameContinent":      { "CW": 2, "SSB": 1 },
@@ -1057,7 +1057,7 @@ F8  N9OH`}</pre>
           <h2 class="text-2xl font-semibold mb-4">CLX File Format</h2>
 
           <p class="opacity-80 mb-4">
-            ContestLogX saves logs in the <code>.clx</code> format — a human-readable JSON file that is easy to inspect,
+            ContestLogX saves logs in the <code>.clx</code> format - a human-readable JSON file that is easy to inspect,
             back up, and version-control. It stores all contest and station metadata alongside the full QSO list.
           </p>
 
@@ -1089,9 +1089,9 @@ F8  N9OH`}</pre>
 macOS:   ~/Library/Application Support/ContestLogX/
 Windows: %APPDATA%\ContestLogX\</pre>
           <ul class="list-disc list-inside space-y-1 opacity-80">
-            <li><code>cty.dat</code> — DXCC database (download via <strong>File → Download cty.dat</strong>)</li>
-            <li><code>master.scp</code> — Super Check Partial callsign database (optional, download via <strong>File → Download master.scp</strong>)</li>
-            <li><code>history.json</code> — call history records (auto-maintained)</li>
+            <li><code>cty.dat</code> - DXCC database (download via <strong>File → Download cty.dat</strong>)</li>
+            <li><code>master.scp</code> - Super Check Partial callsign database (optional, download via <strong>File → Download master.scp</strong>)</li>
+            <li><code>history.json</code> - call history records (auto-maintained)</li>
           </ul>
 
           <h3 class="text-lg font-semibold mb-2 mt-4">Configuration</h3>

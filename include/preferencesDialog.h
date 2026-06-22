@@ -43,7 +43,7 @@ public:
     bool fontsChanged() const { return m_fontsChanged; }
 
 signals:
-    // Fires on every successful Settings write — both OK and Apply.
+    // Fires on every successful Settings write - both OK and Apply.
     // MainWindow uses this to run post-save side effects (font reapply,
     // theme reapply, Remote Dashboard server restart, etc.) without
     // having to wait for the dialog to close. "Apply" keeps the dialog
@@ -136,7 +136,7 @@ private:
     QLabel *m_osTestStatusLabel;
     class OnlineScoreClient *m_osTestClient;
 
-    // Cloud Storage tab — one row per functional provider (FileLu, AWS S3)
+    // Cloud Storage tab - one row per functional provider (FileLu, AWS S3)
     struct CloudProviderRow {
         CloudProviderType type;
         QCheckBox*  enabled = nullptr;

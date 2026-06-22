@@ -12,9 +12,9 @@ configuration and runtime transfer structures.
 enum class CloudProviderType {
     FileLu,        // functional (S3-compatible, s5lu.com)
     AwsS3,         // functional (S3)
-    Dropbox,       // stub — "Not implemented yet"
-    GoogleDrive,   // stub — "Not implemented yet"
-    ICloudDrive    // stub — "Not implemented yet"
+    Dropbox,       // stub - "Not implemented yet"
+    GoogleDrive,   // stub - "Not implemented yet"
+    ICloudDrive    // stub - "Not implemented yet"
 };
 ```
 - `isFunctional(type)` → true only for `FileLu` and `AwsS3`.
@@ -99,7 +99,7 @@ Added under the top-level `m_settings` object in `src/utils/settings.cpp`:
 ```
 
 - `accessKey` and `secretKey` are obfuscated with the **same** XOR(`"ContestLogX"`)+Base64 helper
-  used by `getOnlineScoringPassword`/`setOnlineScoringCredentials` (settings.cpp ~lines 1756–1786).
+  used by `getOnlineScoringPassword`/`setOnlineScoringCredentials` (settings.cpp ~lines 1756-1786).
 - `endpoint`/`region`/`bucket` are stored plain (not secret).
 - Stub providers (Dropbox/GoogleDrive/ICloudDrive) are **not** persisted (no functional config);
   they are rendered as disabled UI only. (Keeps the settings file clean per YAGNI.)

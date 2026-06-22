@@ -18,7 +18,7 @@
 #include <functional>
 
 // ---------------------------------------------------------------------------
-// ContactStatus — classification of a spot relative to the current log
+// ContactStatus - classification of a spot relative to the current log
 // ---------------------------------------------------------------------------
 enum class ContactStatus {
     NewMultiplier,    // Working this station adds a scoring multiplier
@@ -28,7 +28,7 @@ enum class ContactStatus {
 };
 
 // ---------------------------------------------------------------------------
-// SpotData — a single DX cluster spot stored by the band map
+// SpotData - a single DX cluster spot stored by the band map
 // ---------------------------------------------------------------------------
 struct SpotData {
     QString callsign;
@@ -40,7 +40,7 @@ struct SpotData {
 };
 
 // ---------------------------------------------------------------------------
-// BandRange — frequency boundaries for the active contest band segment
+// BandRange - frequency boundaries for the active contest band segment
 // ---------------------------------------------------------------------------
 struct BandRange {
     QString band;
@@ -51,7 +51,7 @@ struct BandRange {
 class BandMapCanvas;
 
 // ---------------------------------------------------------------------------
-// BandMapWidget — dockable band map panel (QDockWidget)
+// BandMapWidget - dockable band map panel (QDockWidget)
 // ---------------------------------------------------------------------------
 class BandMapWidget : public QDockWidget
 {
@@ -134,7 +134,7 @@ private:
 };
 
 // ---------------------------------------------------------------------------
-// BandMapCanvas — the custom-painted viewport inside BandMapWidget
+// BandMapCanvas - the custom-painted viewport inside BandMapWidget
 // ---------------------------------------------------------------------------
 class BandMapCanvas : public QWidget
 {

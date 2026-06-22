@@ -17,7 +17,7 @@ I/O on the worker thread; reuse `FileHandler` for byte-identical `.clx` round-tr
   and `include/net/cloudStorageTypes.h`, `include/net/cloudStorageProvider.h`,
   `include/net/s3Signer.h`, `include/net/s3StorageWorker.h`, `include/net/s3StorageProvider.h` in
   the `HEADERS` list (~L100-175) of `CMakeLists.txt`. Confirm `Qt6::Network` and `Qt6::Xml` are
-  already linked (they are) — add nothing new.
+  already linked (they are) - add nothing new.
 - [x] T002 [P] Create `include/net/cloudStorageTypes.h` with the shared types from data-model.md:
   `enum class CloudProviderType { FileLu, AwsS3, Dropbox, GoogleDrive, ICloudDrive }`, helper
   decls `isFunctional/displayName/signupUrl`, `struct S3Config { endpoint, region, bucket,
@@ -59,7 +59,7 @@ I/O on the worker thread; reuse `FileHandler` for byte-identical `.clx` round-tr
 ### Provider abstraction + S3 backend (worker thread)
 
 - [x] T008 [P] Create `include/net/cloudStorageProvider.h`: abstract `CloudStorageProvider : public
-  QObject` per contracts §1 — slots `listLogs/downloadLog/uploadLog/deleteLog/testConnection`,
+  QObject` per contracts §1 - slots `listLogs/downloadLog/uploadLog/deleteLog/testConnection`,
   `isConfigured()/type()`, and signals `listReady/downloadReady/uploadFinished/deleteFinished/
   testResult/operationFailed(CloudOp,QString)/objectExists`.
 - [x] T009 Create `include/net/s3StorageWorker.h` + implement `src/net/s3StorageWorker.cpp`: a
@@ -84,7 +84,7 @@ I/O on the worker thread; reuse `FileHandler` for byte-identical `.clx` round-tr
 
 ---
 
-## Phase 3: User Story 1 — Save & open logs on FileLu (P1) 🎯 MVP
+## Phase 3: User Story 1 - Save & open logs on FileLu (P1) 🎯 MVP
 
 **Goal**: Configure FileLu and save/open `.clx` logs to/from its S3 bucket, fully in-app.
 **Independent test**: With FileLu configured, save a log to FileLu, reopen it in a fresh session,
@@ -92,7 +92,7 @@ verify QSOs/multipliers/score are byte-identical (SC-001).
 
 > NOTE: US1's *configuration UI* is delivered by US3 (T020-T023) and its *open/save entry points*
 > by US4 (T016-T019). To exercise US1 alone before that UI exists, use a temporary hard-coded
-> `S3Config` (or the FileLu settings written by T020) — the provider/worker (T008-T010) already
+> `S3Config` (or the FileLu settings written by T020) - the provider/worker (T008-T010) already
 > deliver the core FileLu capability. T011-T015 below are the FileLu-specific glue.
 
 - [x] T011 [US1] Add a cloud-cache helper in `src/ui/mainWindow.cpp` (+ decl in header) resolving
@@ -119,7 +119,7 @@ verify QSOs/multipliers/score are byte-identical (SC-001).
 
 ---
 
-## Phase 4: User Story 4 — Choose storage location on open/save (P1)
+## Phase 4: User Story 4 - Choose storage location on open/save (P1)
 
 **Goal**: Open/Save offer a Local-vs-cloud chooser when ≥1 functional provider is configured;
 identical-to-today behavior when none are configured.
@@ -130,10 +130,10 @@ configured, both offer Local + FileLu.
   `Settings::getConfiguredCloudProviders()` is empty, run the EXISTING local
   `QFileDialog::getOpenFileName` path unchanged (byte-for-byte). Otherwise show a source chooser
   (Local / each configured provider) first; Local → existing path; cloud → US1 open path (T012).
-- [x] T017 [US4] In `mainWindow.cpp` `onSaveLog()` (~L3068): same pattern — empty config →
+- [x] T017 [US4] In `mainWindow.cpp` `onSaveLog()` (~L3068): same pattern - empty config →
   unchanged local save; otherwise destination chooser; cloud → US1 save path (T013).
 - [x] T018 [P] [US4] Build the source/destination chooser as a small keyboard-navigable `QDialog`
-  (or `QInputDialog`-style list) — keep it Tab/Enter friendly per constitution III. Reusable for
+  (or `QInputDialog`-style list) - keep it Tab/Enter friendly per constitution III. Reusable for
   both open and save.
 - [x] T019 [P] [US4] Build the remote object-picker dialog (list `CloudObject`s, key/size/date,
   keyboard-navigable, empty-bucket message). Used by T012; keep separate from the chooser.
@@ -142,7 +142,7 @@ configured, both offer Local + FileLu.
 
 ---
 
-## Phase 5: User Story 3 — Cloud Storage settings + stubs (P2)
+## Phase 5: User Story 3 - Cloud Storage settings + stubs (P2)
 
 **Goal**: A "Cloud Storage" Preferences tab to configure FileLu/AWS and show disabled stubs.
 **Independent test**: Enter FileLu creds, save, reopen Preferences → values persisted, secret
@@ -166,7 +166,7 @@ masked; Dropbox/GDrive/iCloud shown disabled + "Not implemented yet" (US3 accept
 
 ---
 
-## Phase 6: User Story 2 — AWS S3 (P2)
+## Phase 6: User Story 2 - AWS S3 (P2)
 
 **Goal**: AWS S3 works identically to FileLu, differing only by config.
 **Independent test**: Configure an AWS S3 bucket, save and reopen a log against it (SC-005).
@@ -176,7 +176,7 @@ masked; Dropbox/GDrive/iCloud shown disabled + "Not implemented yet" (US3 accept
   `https://s3.us-east-1.amazonaws.com`), region (e.g. `us-east-1`), bucket, access/secret keys,
   Test connection. Persist via `setCloudProviderConfig(AwsS3, ...)`.
 - [x] T025 [US2] Confirm the open/save chooser (T016-T019) and provider/worker (T008-T010) treat
-  AWS S3 purely as another `S3Config` — no AWS-specific code path (FR-016). Add no new logic beyond
+  AWS S3 purely as another `S3Config` - no AWS-specific code path (FR-016). Add no new logic beyond
   config; verify path-style/region/endpoint flow through unchanged.
 
 **Checkpoint**: Both functional providers selectable and working.
@@ -186,16 +186,16 @@ masked; Dropbox/GDrive/iCloud shown disabled + "Not implemented yet" (US3 accept
 ## Phase 7: Polish & Cross-Cutting
 
 - [x] T026 [P] Update `CHANGELOG.md` under "Other Changes and Bugfixes": brief, user-facing release
-  note — "Cloud Storage: open/save contest logs to FileLu or AWS S3 (Settings → Cloud Storage);
+  note - "Cloud Storage: open/save contest logs to FileLu or AWS S3 (Settings → Cloud Storage);
   other providers coming later." Keep it short per changelog brevity preference.
 - [x] T027 [P] Update `CLAUDE.md` with a "Cloud Storage" core-module section: `CloudStorageProvider`
   abstraction, `S3StorageProvider`/`S3StorageWorker` (Hamlib-style worker thread), `s3Signer`
   (SigV4), `cloudStorage` settings section, and the open/save chooser integration points.
 - [x] T028 Build gate: `make` succeeds with ZERO warnings on GCC/Clang (constitution Dev Workflow).
 - [x] T029 Test gate: `make test` passes (incl. the SigV4 vector test) and `make test-logs` remains
-  green (engine untouched — round-trip via `FileHandler` must keep scores/mults identical).
+  green (engine untouched - round-trip via `FileHandler` must keep scores/mults identical).
   Also verify **FR-022**: grep the new code paths to confirm `accessKey`/`secretKey` are never
-  written to the cloud-cache working copies, the uploaded object body, or the `.clx` files —
+  written to the cloud-cache working copies, the uploaded object body, or the `.clx` files -
   credentials must exist only in the application settings.
 - [x] T030 Cross-platform sanity: confirm no platform-specific APIs were introduced (no new
   `#ifdef` needed); paths use `QStandardPaths`/`QDir`; verify the feature compiles on the Windows
@@ -214,7 +214,7 @@ masked; Dropbox/GDrive/iCloud shown disabled + "Not implemented yet" (US3 accept
 - **US2 (T024-T025)** depends on US3 tab (T020-T021) + US4 chooser (T016-T019).
 - **Polish (T026-T030)** last.
 
-**Suggested MVP**: Phase 1 + Phase 2 + US1 + US4 + the FileLu portion of US3 (T020-T022) — this
+**Suggested MVP**: Phase 1 + Phase 2 + US1 + US4 + the FileLu portion of US3 (T020-T022) - this
 delivers configurable FileLu save/open, the spec's primary value (SC-001).
 
 ## Parallel Opportunities

@@ -3,7 +3,7 @@
 **Branch**: `001-band-map` | **Date**: 2026-03-21
 
 All technical unknowns resolved from existing project knowledge and Qt6
-documentation. No external library research required — pure Qt6.
+documentation. No external library research required - pure Qt6.
 
 ---
 
@@ -17,8 +17,8 @@ spots within 0.1 kHz as the same spot (reset timestamp) while showing the same
 callsign on widely separated frequencies as distinct markers.
 
 **Alternatives considered**:
-- `QList<SpotData>` with linear scan — O(n) dedup, unacceptable at 200+ spots
-- `std::unordered_map` — no advantage over QHash in a Qt6 context; adds
+- `QList<SpotData>` with linear scan - O(n) dedup, unacceptable at 200+ spots
+- `std::unordered_map` - no advantage over QHash in a Qt6 context; adds
   inconsistency with project's Qt container usage
 
 ---
@@ -35,9 +35,9 @@ over rendering, is lightweight, and is the established Qt idiom for custom
 visualizations in the project.
 
 **Alternatives considered**:
-- Qt Charts (`QChart` + `QScatterSeries`) — would require adding Qt6::Charts
+- Qt Charts (`QChart` + `QScatterSeries`) - would require adding Qt6::Charts
   dependency; violates constitution Principle V (Simplicity). Rejected.
-- `QGraphicsView` — appropriate for complex interactive scene graphs; unnecessary
+- `QGraphicsView` - appropriate for complex interactive scene graphs; unnecessary
   here. Rejected.
 
 ---
@@ -54,9 +54,9 @@ This keeps band-range logic inside `ContestEngine` where all other contest-defin
 reading lives.
 
 **Alternatives considered**:
-- Hardcoding band edges (14.000–14.350 MHz for 20m, etc.) — violates Principle IV
+- Hardcoding band edges (14.000-14.350 MHz for 20m, etc.) - violates Principle IV
   (JSON-Driven). Rejected.
-- Reading the JSON directly from `BandMapWidget` — violates separation of concerns.
+- Reading the JSON directly from `BandMapWidget` - violates separation of concerns.
   Rejected.
 
 ---
@@ -67,7 +67,7 @@ reading lives.
 passes the resolved `ContactStatus` enum value to `BandMapWidget`. `BandMapWidget`
 is decoupled from `ContestEngine`.
 
-**Rationale**: `BandMapWidget` should not depend on `ContestEngine` directly —
+**Rationale**: `BandMapWidget` should not depend on `ContestEngine` directly -
 this would couple the UI widget to the core engine and complicate unit testing.
 `MainWindow` already orchestrates all `ContestEngine` interactions. A lambda-based
 `refreshAllStatuses()` callback pattern allows `MainWindow` to supply status without
@@ -87,13 +87,13 @@ this would couple the UI widget to the core engine and complicate unit testing.
 coalesces multiple `update()` calls within the same event loop iteration).
 
 **Rationale**: Qt's `update()` is non-blocking and idempotent within an event loop
-cycle — multiple calls before the next paint event result in a single `paintEvent()`
+cycle - multiple calls before the next paint event result in a single `paintEvent()`
 call. No explicit debouncing timer is needed; Qt's event loop provides it for free.
 
 **Alternatives considered**:
-- Explicit debounce timer (e.g., 100ms) — more control but unnecessary complexity
+- Explicit debounce timer (e.g., 100ms) - more control but unnecessary complexity
   given Qt's built-in coalescing. Rejected.
-- `repaint()` (immediate, synchronous) — blocks the event loop during bursts.
+- `repaint()` (immediate, synchronous) - blocks the event loop during bursts.
   Rejected.
 
 ---
@@ -114,8 +114,8 @@ move events without button held.
 
 | Item | Resolution |
 |------|-----------|
-| Dock state persistence | `objectName()` + `QMainWindow::saveState()` — established Qt pattern used by all other docks in the project |
-| Zoom/pan state persistence | `QSettings` — used throughout the project for all widget state |
-| QSY path | Re-use existing `MainWindow::qsyToFrequency()` — verified it exists via DX cluster table row-click |
-| HiDPI rendering | `QPainter` logical coordinates + `setRenderHint(Antialiasing)` — Qt handles device pixel ratio |
-| Expiry timer interval | 60-second `QTimer` — matches user expectation; 30-min spots need only minute-level accuracy |
+| Dock state persistence | `objectName()` + `QMainWindow::saveState()` - established Qt pattern used by all other docks in the project |
+| Zoom/pan state persistence | `QSettings` - used throughout the project for all widget state |
+| QSY path | Re-use existing `MainWindow::qsyToFrequency()` - verified it exists via DX cluster table row-click |
+| HiDPI rendering | `QPainter` logical coordinates + `setRenderHint(Antialiasing)` - Qt handles device pixel ratio |
+| Expiry timer interval | 60-second `QTimer` - matches user expectation; 30-min spots need only minute-level accuracy |

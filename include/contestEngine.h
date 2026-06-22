@@ -75,7 +75,7 @@ public:
     QString getMultiplierType() const;
     QStringList getMultiplierCategories() const;
     // Named multipliers the operator earns without an explicit exchange,
-    // resolved against the current userPrompt values — e.g. WVQP credits "WV"
+    // resolved against the current userPrompt values - e.g. WVQP credits "WV"
     // to a West Virginia station as its own state multiplier. With the
     // optional "requiresWorkedFrom" gate the credit is withheld until the
     // operator has worked a multiplier from that list (so "WV" is earned by
@@ -118,7 +118,7 @@ public:
         int contactScore = 0;
         int multipliers = 0;
         int namedMultCount = 0;   // Named multiplier count (for category scoring)
-        int dxccMultCount = 0;    // DXCC/EADX-100 multipliers (entity mults — both share this bucket since they cover ~99% the same set)
+        int dxccMultCount = 0;    // DXCC/EADX-100 multipliers (entity mults - both share this bucket since they cover ~99% the same set)
         int ituRegionMultCount = 0;   // ITU Region multipliers (for category scoring)
         int namedCallPrefixCount = 0;  // Call prefix multipliers (for category scoring)
         int gridSquareMultCount = 0;  // Grid square multipliers (for category scoring)
@@ -214,7 +214,7 @@ private:
         QString promptValue;          // legacy: single trigger value
         QStringList promptValueIn;    // newer: any-of trigger values (overrides promptValue if non-empty)
         QString sourceList;           // "inStateMults" or "namedMults"
-        QStringList sourceValues;     // newer: inline exact-match list (overrides sourceList when non-empty). Lets one alias rule target a specific subset of values without requiring a named list — used by CPQP to map FED codes to one of three prairie provinces with a separate rule per province.
+        QStringList sourceValues;     // newer: inline exact-match list (overrides sourceList when non-empty). Lets one alias rule target a specific subset of values without requiring a named list - used by CPQP to map FED codes to one of three prairie provinces with a separate rule per province.
         QString mapsTo;               // legacy: replace whole rawMult with this string
         int mapByPrefix = 0;          // newer: take rawMult.left(mapByPrefix) instead of mapsTo (e.g., 2 = first 2 chars). 0 = disabled.
     };
@@ -238,7 +238,7 @@ private:
     EadxDatabase* m_eadxDatabase = nullptr;
     ContestScore m_runningScore;
 
-    // Cached contest properties — populated in loadContest(), avoids repeated JSON parsing
+    // Cached contest properties - populated in loadContest(), avoids repeated JSON parsing
     QString m_cachedScoreMultiplierPromptId;
     QMap<QString, int> m_cachedScoreMultiplierValues;
     QString m_cachedMultType;
@@ -253,7 +253,7 @@ private:
     bool m_cachedIncludeWaeEntities = false;
     void cacheContestProperties();
 
-    // DXCC lookup cache — keyed by callsign, avoids repeated database scans per scoring pass
+    // DXCC lookup cache - keyed by callsign, avoids repeated database scans per scoring pass
     mutable QHash<QString, DxccEntity> m_dxccCache;
 
     // Worked named multiplier sets (persisted across updateRunningScore for widget display)

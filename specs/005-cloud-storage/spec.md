@@ -1,6 +1,6 @@
 # Feature Specification: Cloud Storage Backends for Contest Logs
 
-**Feature Branch**: `sw/0.9.2` (existing branch — no new feature branch)
+**Feature Branch**: `sw/0.9.2` (existing branch - no new feature branch)
 **Spec Directory**: `specs/005-cloud-storage`
 **Created**: 2026-06-21
 **Status**: Draft
@@ -50,7 +50,7 @@ at low marginal cost and broadens the feature's appeal. It is secondary to FileL
 is not the originating motivation.
 
 **Independent Test**: With an AWS S3 bucket configured, save a log to it and reopen it,
-verifying data integrity — identical flow to the FileLu test but against an AWS endpoint.
+verifying data integrity - identical flow to the FileLu test but against an AWS endpoint.
 
 **Acceptance Scenarios**:
 
@@ -167,7 +167,7 @@ background (status bar shows the sync), and that Open offers local vs FileLu.
   MUST let the operator choose the source (local filesystem or a configured provider) and, for a
   cloud source, MUST list the available `.clx` logs to pick from.
 - **FR-010**: Opening a log from a cloud provider MUST prompt the operator for the LOCAL location
-  to save the downloaded copy, download it there, and open that local file — such that all QSO,
+  to save the downloaded copy, download it there, and open that local file - such that all QSO,
   multiplier, and scoring data is identical to the stored log and subsequent saves re-sync.
 - **FR-011**: The cloud backup of each save MUST run on a background thread and MUST report its
   progress/outcome in the status bar (e.g. "Syncing to FileLu…" then success/failure).
@@ -183,7 +183,7 @@ background (status bar shows the sync), and that Open offers local vs FileLu.
   credentials/connectivity (a "Test connection" action) and report the result clearly.
 - **FR-016**: FileLu and AWS S3 MUST be reachable through a single common storage mechanism so
   that the two differ only by configuration (endpoint, region, addressing), not by separate
-  code paths — keeping the design generic and reusable for future providers.
+  code paths - keeping the design generic and reusable for future providers.
 - **FR-017**: The feature MUST work on Linux, macOS, and Windows without behavioral difference.
 - **FR-018**: No data loss: if a cloud save fails, the local working copy MUST remain intact
   and the operator MUST be informed.
@@ -194,7 +194,7 @@ background (status bar shows the sync), and that Open offers local vs FileLu.
   written to any log output (including the debug log) or included in any error message shown to
   the operator.
 - **FR-021**: The secret key MUST NEVER be transmitted to the provider; only a derived
-  request signature is sent. Stored secrets are obfuscated, not encrypted — this is an accepted
+  request signature is sent. Stored secrets are obfuscated, not encrypted - this is an accepted
   limitation matching the application's existing credential handling, and MUST be documented as
   such (see Assumptions & Decisions).
 - **FR-022**: Secret credentials MUST NOT be written into local working-copy files, the cloud
@@ -205,7 +205,7 @@ background (status bar shows the sync), and that Open offers local vs FileLu.
 
 ### Key Entities *(include if feature involves data)*
 
-- **Cloud Provider Configuration**: A named, persisted set of settings for one provider —
+- **Cloud Provider Configuration**: A named, persisted set of settings for one provider -
   provider type, enabled/functional state, endpoint, region, bucket, access key, secret key
   (obfuscated), and a sign-up link. FileLu and AWS S3 are functional; the others are stubs.
 - **Cloud Storage Provider (runtime)**: The active abstraction used to list, retrieve, store,
@@ -223,7 +223,7 @@ background (status bar shows the sync), and that Open offers local vs FileLu.
 - **SC-001**: An operator can configure FileLu and successfully save and reopen a contest log
   entirely within the application, with 100% data fidelity (QSOs, multipliers, score match).
 - **SC-002**: An operator with no cloud providers configured sees zero change to the Open/Save
-  experience — the same number of steps as before the feature.
+  experience - the same number of steps as before the feature.
 - **SC-003**: During any cloud operation, QSO entry and logging remain responsive with no
   perceptible pause (operator can keep logging while a transfer is in progress).
 - **SC-004**: For each of authentication failure, network timeout, missing bucket, and
@@ -244,12 +244,12 @@ recorded here (with rejected alternatives) so they are not re-litigated during p
 - **FileLu access via S3-compatible API** (not FileLu's native REST API). FileLu exposes an
   S3-compatible "S5" object storage interface. Choosing it lets one mechanism serve both FileLu
   and AWS S3, and the operator already has working S3/S5 keys.
-  *Rejected*: FileLu native REST API (`https://filelu.com/pages/api`) — FileLu-only, would not
+  *Rejected*: FileLu native REST API (`https://filelu.com/pages/api`) - FileLu-only, would not
   generalize to AWS S3 and would add a second, parallel integration to maintain.
 - **Self-implemented S3 request signing on the existing networking stack** rather than adding a
   third-party AWS SDK. Only the operations the feature needs are implemented (list, retrieve,
   store, and optionally delete objects).
-  *Rejected*: adding the `aws-sdk-cpp` dependency — conflicts with the project's
+  *Rejected*: adding the `aws-sdk-cpp` dependency - conflicts with the project's
   no-new-third-party-dependencies principle and complicates cross-platform CI.
 - **Credentials stored with the existing settings obfuscation**, matching how QRZ and
   online-scoring passwords are already stored. This is **obfuscation, not encryption**: it
@@ -258,12 +258,12 @@ recorded here (with rejected alternatives) so they are not re-litigated during p
   assumed to be protected by the OS's normal per-user file permissions (single-user desktop
   assumption); CLX does not add stronger at-rest protection this round. This tradeoff is accepted
   per the constitution's simplicity principle.
-  *Rejected*: an OS keychain integration — adds a dependency and is inconsistent with current
+  *Rejected*: an OS keychain integration - adds a dependency and is inconsistent with current
   credential storage.
 - **Download-to-local-copy on open, upload-on-save sync model**, reusing all existing local
   file logic. Contest log files are small JSON documents, so a full-file transfer is simple and
   safe.
-  *Rejected*: direct streaming with no local copy — more complex and risks UI stalls or data
+  *Rejected*: direct streaming with no local copy - more complex and risks UI stalls or data
   loss for little benefit at these file sizes.
 - **FileLu S5 facts** (for configuration defaults/validation): S3-compatible endpoints
   `https://s5lu.com` and regional `us/eu/me/ap.s5lu.com`; region `global` (default) or

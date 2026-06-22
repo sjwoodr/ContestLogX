@@ -3,9 +3,9 @@
 Generate the CQ WPX automated test logs and INDEPENDENTLY recompute their
 expected scores.
 
-We deliberately implement the full WPX scoring pipeline here in Python — prefix
+We deliberately implement the full WPX scoring pipeline here in Python - prefix
 extraction, per-band point tiers, NA-NA exception, sameDxccEntity precedence,
-multsOnce uniqueness, per-band dupe handling, and out-of-band filtering — so
+multsOnce uniqueness, per-band dupe handling, and out-of-band filtering - so
 that any divergence between this implementation and the C++ engine fails the
 automated_tests.json check loudly.
 
@@ -30,7 +30,7 @@ the past:
   - sameDxccEntity precedence wins over bothInNA for K-K NA contacts
 
 The expected score in automated_tests.json is the value computed by THIS
-script — so adding QSOs without recomputing is impossible.
+script - so adding QSOs without recomputing is impossible.
 """
 
 import json
@@ -278,25 +278,25 @@ def build_clx(my_call, mode, qsos_spec, out_path):
 
 
 # ---------------------------------------------------------------------------
-# Test log #1 — NA station N9OH (USA, K, NA)
+# Test log #1 - NA station N9OH (USA, K, NA)
 #
 # Coverage:
-#   - sameDxccEntity (K-K, 1 pt) — KC2ABC, K1AAA, W2DDD, KC1XX
-#   - bothInNA HF (2 pt) — VE3XYZ, XE2DEF
-#   - bothInNA LF (4 pt) — VE7CCC
-#   - differentContinent HF (3 pt) — G3PQR, DL5ABC, JA1HGY, ZS6FFF, PY1GGG,
+#   - sameDxccEntity (K-K, 1 pt) - KC2ABC, K1AAA, W2DDD, KC1XX
+#   - bothInNA HF (2 pt) - VE3XYZ, XE2DEF
+#   - bothInNA LF (4 pt) - VE7CCC
+#   - differentContinent HF (3 pt) - G3PQR, DL5ABC, JA1HGY, ZS6FFF, PY1GGG,
 #                                    9A1XX, 4U1ITU, 3D2RI
-#   - differentContinent LF (6 pt) — F5BBB, JA3HHH, EA5EEE, OZ7HHH, OE25HG
+#   - differentContinent LF (6 pt) - F5BBB, JA3HHH, EA5EEE, OZ7HHH, OE25HG
 #   - portable: K1AAA/4 (call-area change → K4 prefix), W1AAA/KH6 (visiting,
 #               KH6 prefix, differentContinent), PJ2/N9OH (PJ2 prefix, dC),
 #               G3ABC/MM (maritime stripped → G3 prefix, dC),
 #               DL1XX/QRP (QRP stripped → DL1 prefix, dC)
-#   - per-band dupe — KC2ABC on 20m logged twice (second is 0 pts, no mult)
-#   - out-of-band — N1OOB on 30m (must score 0 and not contribute prefix)
-#   - same call different prefix — K1AAA on 20m (K1) and K1AAA/4 on 40m (K4)
+#   - per-band dupe - KC2ABC on 20m logged twice (second is 0 pts, no mult)
+#   - out-of-band - N1OOB on 30m (must score 0 and not contribute prefix)
+#   - same call different prefix - K1AAA on 20m (K1) and K1AAA/4 on 40m (K4)
 # ---------------------------------------------------------------------------
 NA_QSOS = [
-    # (band, callsign, their_continent, their_dxcc) — DXCC code rough proxy
+    # (band, callsign, their_continent, their_dxcc) - DXCC code rough proxy
     {"band": "20m",  "callsign": "KC2ABC",   "their_continent": "NA", "their_dxcc": 291},  # USA
     {"band": "20m",  "callsign": "VE3XYZ",   "their_continent": "NA", "their_dxcc": 1},    # Canada
     {"band": "20m",  "callsign": "XE2DEF",   "their_continent": "NA", "their_dxcc": 50},   # Mexico
@@ -306,12 +306,12 @@ NA_QSOS = [
     {"band": "20m",  "callsign": "9A1XX",    "their_continent": "EU", "their_dxcc": 497},  # Croatia (digit-led prefix)
     {"band": "20m",  "callsign": "4U1ITU",   "their_continent": "EU", "their_dxcc": 117},  # UN/ITU (digit-led prefix)
     {"band": "20m",  "callsign": "3D2RI",    "their_continent": "OC", "their_dxcc": 176},  # Fiji (digit-led prefix)
-    {"band": "20m",  "callsign": "K1AAA",    "their_continent": "NA", "their_dxcc": 291},  # USA — same call appears /4 on 40m
+    {"band": "20m",  "callsign": "K1AAA",    "their_continent": "NA", "their_dxcc": 291},  # USA - same call appears /4 on 40m
     {"band": "20m",  "callsign": "KC2ABC",   "their_continent": "NA", "their_dxcc": 291},  # DUPE (same band+call) → 0 pts
     {"band": "20m",  "callsign": "PJ2/N9OH", "their_continent": "SA", "their_dxcc": 520},  # Curaçao designator → PJ2 prefix
     {"band": "20m",  "callsign": "G3ABC/MM", "their_continent": "EU", "their_dxcc": 223},  # /MM stripped, prefix G3
 
-    {"band": "40m",  "callsign": "K1AAA/4",  "their_continent": "NA", "their_dxcc": 291},  # USA — call-area change to K4
+    {"band": "40m",  "callsign": "K1AAA/4",  "their_continent": "NA", "their_dxcc": 291},  # USA - call-area change to K4
     {"band": "40m",  "callsign": "VE7CCC",   "their_continent": "NA", "their_dxcc": 1},    # Canada
     {"band": "40m",  "callsign": "F5BBB",    "their_continent": "EU", "their_dxcc": 227},  # France
     {"band": "40m",  "callsign": "JA3HHH",   "their_continent": "AS", "their_dxcc": 339},  # Japan
@@ -322,7 +322,7 @@ NA_QSOS = [
     {"band": "80m",  "callsign": "W1AAA/KH6","their_continent": "OC", "their_dxcc": 110},  # KH6 designator (Hawaii)
 
     {"band": "15m",  "callsign": "ZS6FFF",   "their_continent": "AF", "their_dxcc": 462},  # S. Africa
-    {"band": "15m",  "callsign": "KC1XX",    "their_continent": "NA", "their_dxcc": 291},  # USA — adds KC1 prefix
+    {"band": "15m",  "callsign": "KC1XX",    "their_continent": "NA", "their_dxcc": 291},  # USA - adds KC1 prefix
 
     {"band": "10m",  "callsign": "PY1GGG",   "their_continent": "SA", "their_dxcc": 108},  # Brazil
 
@@ -335,21 +335,21 @@ NA_QSOS = [
 
 
 # ---------------------------------------------------------------------------
-# Test log #2 — DX station DL5XX (Germany, DL, EU)
+# Test log #2 - DX station DL5XX (Germany, DL, EU)
 #
 # Coverage:
-#   - sameDxccEntity (DL-DL, 1 pt) — DL1ABC, DL2XYZ
-#   - sameContinent HF (1 pt) — F5DEF, G3PQR, OE25HG (multi-digit prefix),
+#   - sameDxccEntity (DL-DL, 1 pt) - DL1ABC, DL2XYZ
+#   - sameContinent HF (1 pt) - F5DEF, G3PQR, OE25HG (multi-digit prefix),
 #                               OK1ZZZ, 9A1XX (digit-led prefix EU)
-#   - sameContinent LF (2 pt) — OZ7XXX, EA5YYY, I2ZZZ, F8AAA
-#   - differentContinent HF (3 pt) — W1ABC, JA1HGY, PY1GGG, ZS6FFF
-#   - differentContinent LF (6 pt) — K1AAA, VE3CCC, JA3HHH, EA8XX
+#   - sameContinent LF (2 pt) - OZ7XXX, EA5YYY, I2ZZZ, F8AAA
+#   - differentContinent HF (3 pt) - W1ABC, JA1HGY, PY1GGG, ZS6FFF
+#   - differentContinent LF (6 pt) - K1AAA, VE3CCC, JA3HHH, EA8XX
 #   - portable: F5XX/4 (call-area change → F4 prefix, sameContinent),
 #               W1AW/HB (HB designator visiting → HB0 prefix, sameContinent),
 #               LY1000A (special-event multi-digit prefix → LY1000),
 #               JA1XX/MM (maritime stripped → JA1, differentContinent)
-#   - per-band dupe — F5DEF on 20m logged twice
-#   - out-of-band — DL2OOB on 17m
+#   - per-band dupe - F5DEF on 20m logged twice
+#   - out-of-band - DL2OOB on 17m
 # ---------------------------------------------------------------------------
 DX_QSOS = [
     {"band": "20m",  "callsign": "DL1ABC",   "their_continent": "EU", "their_dxcc": 230},
@@ -390,7 +390,7 @@ DX_QSOS = [
 
 
 # ---------------------------------------------------------------------------
-# Test log #3 — SSB-mode coverage. Reuse a small NA log in SSB to verify the
+# Test log #3 - SSB-mode coverage. Reuse a small NA log in SSB to verify the
 # engine's mode-string normalization (USB/SSB) and per-band tier are also
 # correct on the SSB path.
 # ---------------------------------------------------------------------------
@@ -459,7 +459,7 @@ def verify_with_clx(repo_root: Path, summaries):
 
     clx = repo_root / "clx"
     if not clx.exists():
-        print(f"\nERROR: {clx} not found — build the project first.")
+        print(f"\nERROR: {clx} not found - build the project first.")
         sys.exit(1)
 
     print()

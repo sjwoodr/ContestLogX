@@ -95,7 +95,7 @@ void SsbMemoriesDialog::setupUi()
         gridLayout->addWidget(m_textEdits[i], i + 1, 2);
 
         m_roleCombo[i] = new QComboBox(this);
-        m_roleCombo[i]->addItem("—",          static_cast<int>(MemoryRole::NoRole));
+        m_roleCombo[i]->addItem(" - ",          static_cast<int>(MemoryRole::NoRole));
         m_roleCombo[i]->addItem("CQ",         static_cast<int>(MemoryRole::CQ));
         m_roleCombo[i]->addItem("My Call",    static_cast<int>(MemoryRole::MyCall));
         m_roleCombo[i]->addItem("Run Exch",   static_cast<int>(MemoryRole::RunExchange));

@@ -4,7 +4,7 @@
     "abbreviation": "UN-DX",
     "version": "1.0.0",
     "sponsor": "Kazakhstan Federation of Radio Sports and Radioamateur",
-    "description": "UN DX Contest — annual ~15-hour event sponsored by the Kazakhstan Federation of Radio Sports and Radioamateur. 16 May 2026, 0600Z to 2059Z. Kazakhstan stations work everyone; non-Kazakhstan stations work everyone (including own country and other DX). Exchange is RST + 3-character KDA district code (1 letter + 2 digits, e.g., L17 for Kostanay city) for Kazakhstan stations, or RST + serial number starting at 001 for everyone else. Asymmetric scoring: 10 pts for QSOs with Kazakhstan (any direction); 2 pts (DX op) or 10 pts (UN op) for own-country QSOs; 3 pts same-continent; 5 pts other-continent.",
+    "description": "UN DX Contest - annual ~15-hour event sponsored by the Kazakhstan Federation of Radio Sports and Radioamateur. 16 May 2026, 0600Z to 2059Z. Kazakhstan stations work everyone; non-Kazakhstan stations work everyone (including own country and other DX). Exchange is RST + 3-character KDA district code (1 letter + 2 digits, e.g., L17 for Kostanay city) for Kazakhstan stations, or RST + serial number starting at 001 for everyone else. Asymmetric scoring: 10 pts for QSOs with Kazakhstan (any direction); 2 pts (DX op) or 10 pts (UN op) for own-country QSOs; 3 pts same-continent; 5 pts other-continent.",
     "startDate": "16 May 2026, 0600Z to 2059Z",
     "duration": 15,
     "offTimeGapMinutes": 0,
@@ -58,7 +58,7 @@
       "question": "Are you operating from Kazakhstan?",
       "type": "select",
       "options": [
-        {"value": "UN", "label": "Kazakhstan (UN/UP — sends KDA district code)"},
+        {"value": "UN", "label": "Kazakhstan (UN/UP - sends KDA district code)"},
         {"value": "DX", "label": "Outside Kazakhstan (sends serial number)"}
       ],
       "required": true,
@@ -81,7 +81,7 @@
     },
     {
       "id": "myExchange",
-      "question": "Enter your sent exchange. Kazakhstan stations: 3-character KDA district code (e.g., L17 for Kostanay city, A05 for Aktau city, G01 for Almaty Almalinskiy). DX stations: leave as 001 — the engine will auto-increment.",
+      "question": "Enter your sent exchange. Kazakhstan stations: 3-character KDA district code (e.g., L17 for Kostanay city, A05 for Aktau city, G01 for Almaty Almalinskiy). DX stations: leave as 001 - the engine will auto-increment.",
       "type": "text",
       "required": true,
       "forceUppercase": true,
@@ -154,7 +154,7 @@
   },
   "dupeChecking": {
     "type": "perBandAndMode",
-    "description": "A station may be worked once per band per mode. Duplicates earn 0 points but should NOT be removed from the log — they help with log checking. Sponsor explicitly says 'DO NOT DELETE DUPES'."
+    "description": "A station may be worked once per band per mode. Duplicates earn 0 points but should NOT be removed from the log - they help with log checking. Sponsor explicitly says 'DO NOT DELETE DUPES'."
   },
   "logging": {
     "requiredFields": ["date", "time", "frequency", "mode", "callsign", "rstSent", "rstReceived", "exchSent", "exchReceived"],

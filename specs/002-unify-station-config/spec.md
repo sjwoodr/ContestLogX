@@ -17,7 +17,7 @@ selects their station type through the standard userPrompts dialog during contes
 The selection drives all downstream behavior: exchange fields, scoring, multipliers, and
 partner restrictions.
 
-**Why this priority**: This is the foundation — every other behavior depends on knowing
+**Why this priority**: This is the foundation - every other behavior depends on knowing
 the operator's station type. If the prompt-based selection doesn't work, nothing else can.
 
 **Independent Test**: Start a new ARRL DX log. Verify that a "Station Type" prompt
@@ -46,7 +46,7 @@ operator counts US states and Canadian provinces. The multiplier categories that
 toward the score change based on the station type selected in the userPrompt.
 
 **Why this priority**: Incorrect multiplier counting produces wrong scores. This is a
-scoring correctness requirement — the contest results depend on it.
+scoring correctness requirement - the contest results depend on it.
 
 **Independent Test**: Create an ARRL DX log as W/VE, work several DX stations, and verify
 DXCC entities appear as multipliers. Create a second log as DX, work W/VE stations, and
@@ -213,11 +213,11 @@ new userPrompt values during log restoration.
 
 ## Success Criteria *(mandatory)*
 
-1. All 12 contest definitions use userPrompts exclusively — no stationClasses blocks remain
+1. All 12 contest definitions use userPrompts exclusively - no stationClasses blocks remain
 2. All automated test suites pass (`make test`, `make test-logs`) with zero regressions
 3. Score parity confirmed for every migrated contest across all existing test logs
 4. Saved log files from pre-migration versions load and score correctly
-5. Station class selection dialog is removed — station type is collected through the
+5. Station class selection dialog is removed - station type is collected through the
    standard userPrompts flow
 6. Contest definition format has one unified mechanism for all station-dependent behavior
 
@@ -262,12 +262,12 @@ new userPrompt values during log restoration.
 
 Contests are ordered by complexity to validate the approach incrementally:
 
-1. **cwops_cwt** — Exchange type only (simplest case)
-2. **general_dxcc** — Exchange type only
-3. **naqp** — Exchange type with name + state
-4. **arrl_10m** — Exchange type with station class selection
-5. **ybdx** — Exchange type with prefix multipliers
-6. **arrl_vhf** — Exchange type + mode restriction + multiplier categories
-7. **arrl_dx** — Exchange type + multiplier categories + invalidPartners (most complex)
+1. **cwops_cwt** - Exchange type only (simplest case)
+2. **general_dxcc** - Exchange type only
+3. **naqp** - Exchange type with name + state
+4. **arrl_10m** - Exchange type with station class selection
+5. **ybdx** - Exchange type with prefix multipliers
+6. **arrl_vhf** - Exchange type + mode restriction + multiplier categories
+7. **arrl_dx** - Exchange type + multiplier categories + invalidPartners (most complex)
 
 Each migration is independently testable via `make test-logs`.

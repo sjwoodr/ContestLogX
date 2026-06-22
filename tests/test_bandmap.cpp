@@ -61,7 +61,7 @@ void TestBandMap::testDedupKey_sameCallSameFreq()
 
 void TestBandMap::testDedupKey_sameCallWithin01kHz()
 {
-    // 14.025000 vs 14.025049 — both round to the same 0.1 kHz bucket (14.0250)
+    // 14.025000 vs 14.025049 - both round to the same 0.1 kHz bucket (14.0250)
     SpotData a = makeSpot("W1AW", 14.025000);
     SpotData b = makeSpot("W1AW", 14.025049);
     QCOMPARE(BandMapWidget::dedupKey(a), BandMapWidget::dedupKey(b));
@@ -69,7 +69,7 @@ void TestBandMap::testDedupKey_sameCallWithin01kHz()
 
 void TestBandMap::testDedupKey_sameCallDifferentFreq()
 {
-    // 14.025 vs 14.026 — 1 kHz apart → different buckets
+    // 14.025 vs 14.026 - 1 kHz apart → different buckets
     SpotData a = makeSpot("W1AW", 14.025);
     SpotData b = makeSpot("W1AW", 14.026);
     QVERIFY(BandMapWidget::dedupKey(a) != BandMapWidget::dedupKey(b));

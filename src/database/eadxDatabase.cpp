@@ -100,7 +100,7 @@ EadxEntity EadxDatabase::lookupCallsign(const QString &callsign) const
     if (callsign.isEmpty() || m_entities.isEmpty())
         return EadxEntity{};
 
-    // Slash notation: "EA8/N9OH" means N9OH operating from Canary Islands —
+    // Slash notation: "EA8/N9OH" means N9OH operating from Canary Islands -
     // the prefix BEFORE the slash names the entity. If a slash is present and
     // the part before it matches an entity prefix, use that.
     const QString upper = callsign.toUpper();

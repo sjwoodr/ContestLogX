@@ -26,7 +26,7 @@
 #include <QPalette>
 #include <QtGlobal>
 // QPermission was introduced in Qt 6.5, but the header is gated behind
-// QT_REQUIRE_CONFIG(permissions) — many distro packages and prebuilt Qt
+// QT_REQUIRE_CONFIG(permissions) - many distro packages and prebuilt Qt
 // archives (including the one our CI gets via aqtinstall) ship Qt 6.5+
 // with the permissions feature *disabled*, in which case qpermissions.h
 // simply isn't installed. Compile-time-detect the header instead of
@@ -67,15 +67,15 @@ CwDecoderWidget::CwDecoderWidget(RadioSide owningRadio, QWidget* parent)
 {
     const bool isR = isRightRadio();
     setObjectName(isR ? "CwDecoderWidgetRight" : "CwDecoderWidgetLeft");
-    setWindowTitle(isR ? QStringLiteral("Radio R — CW Decoder")
-                       : QStringLiteral("Radio L — CW Decoder"));
+    setWindowTitle(isR ? QStringLiteral("Radio R - CW Decoder")
+                       : QStringLiteral("Radio L - CW Decoder"));
     setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable |
                 QDockWidget::DockWidgetClosable);
 
     // One-shot audio device enumeration log on widget construction.
     // Unconditional (not gated by isCwDecoderDebugEnabled()) because
     // the volume is small and this is exactly the data needed to
-    // triage "decoder shows nothing" reports — what devices the OS
+    // triage "decoder shows nothing" reports - what devices the OS
     // exposed, which one is the system default, and which one CLX has
     // saved for this radio. Runs once per widget spawn (plus once
     // more for the other radio in SO2R).
@@ -143,7 +143,7 @@ CwDecoderWidget::CwDecoderWidget(RadioSide owningRadio, QWidget* parent)
     // When this dock is floated, lock its height to its natural size hint
     // so the operator can grow it horizontally (to see more decoded text
     // scrolling per row) but can't inflate it vertically (which would
-    // only add whitespace — the row count is already set by the bin
+    // only add whitespace - the row count is already set by the bin
     // config). When docked again, release the constraint so Qt's dock
     // layout can manage vertical size normally.
     connect(this, &QDockWidget::topLevelChanged, this, [this](bool floating) {
@@ -173,7 +173,7 @@ void CwDecoderWidget::buildUi()
     QHBoxLayout* controls = new QHBoxLayout;
     controls->setSpacing(6);
 
-    // Audio input device — same list as in Rig Connection Settings, so the
+    // Audio input device - same list as in Rig Connection Settings, so the
     // operator can switch source without opening a dialog. Changes write
     // back to the per-radio rig settings and restart the decoder's capture.
     // The combo is deliberately narrow in the header so the decoder fits
@@ -187,14 +187,14 @@ void CwDecoderWidget::buildUi()
     m_audioDeviceCombo->setMaximumWidth(160);
     m_audioDeviceCombo->addItem(tr("(none)"), QString());
     // Virtual "Practice" entries live above the real devices. These are
-    // sentinel device names handled in beginDecoding() — selecting either
+    // sentinel device names handled in beginDecoding() - selecting either
     // spawns a PracticeAudioSource that synthesizes CW training audio
     // (plays on the default output + feeds the decoder pipeline). The
     // "practice-test" entry is enabled/disabled dynamically based on
     // whether a contest is currently loaded (see refreshPracticeContestAvailability).
-    m_audioDeviceCombo->addItem(tr("Practice — CW Rag Chew"),
+    m_audioDeviceCombo->addItem(tr("Practice - CW Rag Chew"),
                                 QStringLiteral("practice-cw"));
-    m_audioDeviceCombo->addItem(tr("Practice — Contest Exchange"),
+    m_audioDeviceCombo->addItem(tr("Practice - Contest Exchange"),
                                 QStringLiteral("practice-test"));
     for (const QAudioDevice& d : QMediaDevices::audioInputs()) {
         m_audioDeviceCombo->addItem(d.description(), d.description());
@@ -217,8 +217,8 @@ void CwDecoderWidget::buildUi()
     // fixed 50 Hz bin spacing:
     //    low  = center - (bins × 25)
     //    high = center + (bins × 25)
-    // This exposes the two knobs operators actually reason about — "where
-    // is my signal?" and "how wide a net?" — and eliminates the redundant
+    // This exposes the two knobs operators actually reason about - "where
+    // is my signal?" and "how wide a net?" - and eliminates the redundant
     // passband-low/high controls that were always derivable from them.
     controls->addWidget(new QLabel(tr("Center")));
     m_centerHzSpin = new QSpinBox(this);
@@ -232,12 +232,12 @@ void CwDecoderWidget::buildUi()
     m_binCountSpin->setRange(1, kMaxBinCount);
     controls->addWidget(m_binCountSpin);
 
-    // The WPM bounds spinboxes were removed — the decoder hard-codes the
-    // operator-relevant range (5–60 WPM) which already covers every CW
+    // The WPM bounds spinboxes were removed - the decoder hard-codes the
+    // operator-relevant range (5-60 WPM) which already covers every CW
     // operator on the bands. The toolbar real-estate is reused for the
     // Word Gap control below.
 
-    // Word Gap multiplier — controls how aggressive the decoder is about
+    // Word Gap multiplier - controls how aggressive the decoder is about
     // detecting word boundaries. Default 4.0 is a contest-friendly
     // compromise between textbook 7× spacing and tightly-sent QRQ contest
     // CW where operators compress inter-word gaps to ~3×. Lower = more
@@ -251,7 +251,7 @@ void CwDecoderWidget::buildUi()
     m_wordGapSpin->setDecimals(1);
     m_wordGapSpin->setToolTip(
         tr("Word boundary multiplier (× dot length).\n"
-           "Lower = more aggressive (more spaces inserted) — good for tightly-sent contest CW.\n"
+           "Lower = more aggressive (more spaces inserted) - good for tightly-sent contest CW.\n"
            "Higher = stricter (textbook 7× standard).\n"
            "Default 4.0 splits the difference."));
     controls->addWidget(m_wordGapSpin);
@@ -262,7 +262,7 @@ void CwDecoderWidget::buildUi()
     m_squelchSlider->setMinimumWidth(80);
     controls->addWidget(m_squelchSlider);
 
-    // Auto-squelch checkbox — when checked, the worker recomputes the
+    // Auto-squelch checkbox - when checked, the worker recomputes the
     // squelch threshold every second from the worst-case per-bin noise
     // floor (×1.5 + 0.02 margin, clamped to [0.05, 0.6]) and updates
     // the slider visually so the operator can see what it picked. The
@@ -270,10 +270,10 @@ void CwDecoderWidget::buildUi()
     // manual control back at the last auto value.
     m_squelchAutoCheck = new QCheckBox(tr("Auto"), this);
     m_squelchAutoCheck->setToolTip(
-        tr("Auto-squelch — track band noise and place the threshold "
+        tr("Auto-squelch - track band noise and place the threshold "
            "above typical noise spikes. Slider shows the current auto value.\n\n"
            "Note: when chasing a weak station whose signal is just above "
-           "the noise floor, uncheck Auto and lower the slider manually — "
+           "the noise floor, uncheck Auto and lower the slider manually - "
            "Auto's safety margin can gate weak signals out."));
     controls->addWidget(m_squelchAutoCheck);
 
@@ -287,7 +287,7 @@ void CwDecoderWidget::buildUi()
     controls->addWidget(m_clearButton);
 
     // Start/Stop toggle. Label tracks the current decoding state and is
-    // updated centrally by updateStartStopButton() — which is called from
+    // updated centrally by updateStartStopButton() - which is called from
     // beginDecoding() / endDecoding() so external callers (e.g. MainWindow
     // re-driving the decoder, or a device change in the combo) keep the
     // button in sync without having to touch it directly.
@@ -298,7 +298,7 @@ void CwDecoderWidget::buildUi()
 
     outer->addLayout(controls);
 
-    // Rows container — populated in rebuildRows() once the worker emits
+    // Rows container - populated in rebuildRows() once the worker emits
     // binLayoutChanged() with the actual center frequencies.
     m_rowsContainer = new QWidget(this);
     m_rowsLayout = new QVBoxLayout(m_rowsContainer);
@@ -372,7 +372,7 @@ void CwDecoderWidget::loadSettings()
     }
 
     // Re-evaluate the Start/Stop button now that the combo has its
-    // saved selection — enables the button if a real device is picked.
+    // saved selection - enables the button if a real device is picked.
     updateStartStopButton();
 
     m_applyingSettings = false;
@@ -407,8 +407,8 @@ void CwDecoderWidget::beginDecoding(const QString& audioDeviceDescription)
     // Practice mode: the device name is a sentinel, not a real audio
     // device. Spawn a PracticeAudioSource that synthesizes CW from either
     // a rag-chew template pool or the active contest's exchange format.
-    // The WPM comes from Settings::getCwWpm() — same setting the CW
-    // console uses — so practice speed follows whatever the operator
+    // The WPM comes from Settings::getCwWpm() - same setting the CW
+    // console uses - so practice speed follows whatever the operator
     // has the keyer set to.
     const bool isPracticeCw   = (audioDeviceDescription == QLatin1String("practice-cw"));
     const bool isPracticeTest = (audioDeviceDescription == QLatin1String("practice-test"));
@@ -474,7 +474,7 @@ void CwDecoderWidget::beginDecoding(const QString& audioDeviceDescription)
     // Surface real audio-path errors (silence watchdog, format negotiation,
     // null I/O) to the operator instead of letting them vanish into the
     // debug log. Fires at most once per session per device-start because
-    // we tear the decoder down right after — the next click on Start will
+    // we tear the decoder down right after - the next click on Start will
     // re-arm the watchdog. Use queued connection because errorOccurred is
     // emitted from the worker thread.
     connect(m_worker, &CwDecoderWorker::errorOccurred,
@@ -483,10 +483,10 @@ void CwDecoderWidget::beginDecoding(const QString& audioDeviceDescription)
             QString("Audio path error for %1: %2")
                 .arg(isRightRadio() ? "Radio R" : "Radio L", message));
         endDecoding();
-        QMessageBox::warning(this, tr("CW Decoder — no audio"), message);
+        QMessageBox::warning(this, tr("CW Decoder - no audio"), message);
     }, Qt::QueuedConnection);
     connect(m_worker, &CwDecoderWorker::pttFallbackLogged, this, [this]() {
-        // FR-019b fallback notice — always log this one since it indicates a
+        // FR-019b fallback notice - always log this one since it indicates a
         // real functional limitation the operator needs to know about.
         DebugLogger::instance().log("CwDecoder",
             QString("Rig backend for %1 does not report PTT state; decoder relies "
@@ -501,11 +501,11 @@ void CwDecoderWidget::beginDecoding(const QString& audioDeviceDescription)
 
     // Push the capture onto the worker thread BEFORE handing the pointer
     // off via invokeMethod. moveToThread() must be called from the
-    // object's *current* thread (here, the main thread — capture was
+    // object's *current* thread (here, the main thread - capture was
     // just constructed a few lines above). Doing this on the worker
     // side is technically forbidden by Qt and on Windows leaves Qt's
     // WASAPI plugin uncertain about which thread owns its internal
-    // polling timer — manifesting as a silent stall after the initial
+    // polling timer - manifesting as a silent stall after the initial
     // buffered burst (only the first 2-3 readyRead callbacks fire,
     // then nothing further). The ASSERT in CwDecoderWorker::startCapture
     // catches future regressions if anyone moves this call back.
@@ -517,7 +517,7 @@ void CwDecoderWidget::beginDecoding(const QString& audioDeviceDescription)
     const int lowHz = center - bins * 25;
     const int highHz = center + bins * 25;
     // Invoke startCapture on the worker thread. WPM bounds are
-    // hard-coded to the broadly-useful 5-60 range — every CW operator
+    // hard-coded to the broadly-useful 5-60 range - every CW operator
     // on the bands falls inside it, so a per-operator UI knob added no
     // value and just consumed widget toolbar real estate.
     QMetaObject::invokeMethod(m_worker, "startCapture", Qt::QueuedConnection,
@@ -528,7 +528,7 @@ void CwDecoderWidget::beginDecoding(const QString& audioDeviceDescription)
                               Q_ARG(int, clx::audio::kDefaultWpmMin),
                               Q_ARG(int, clx::audio::kDefaultWpmMax),
                               Q_ARG(float, static_cast<float>(m_squelchSlider->value() / 100.0)));
-    // Apply the operator's word-gap preference — must be sent after
+    // Apply the operator's word-gap preference - must be sent after
     // startCapture has built the bins, so do it via a queued setter
     // here rather than as a startCapture argument.
     QMetaObject::invokeMethod(m_worker, "setWordGapMultiplier", Qt::QueuedConnection,
@@ -555,12 +555,12 @@ bool CwDecoderWidget::ensureMicrophonePermissionFor(const QString& audioDeviceDe
         // Trigger the OS to record / surface a decision. On macOS this
         // pops the TCC consent prompt the first time. On Windows for
         // unpackaged desktop apps the OS rarely shows an interactive
-        // prompt — Undetermined collapses straight to Granted or Denied
+        // prompt - Undetermined collapses straight to Granted or Denied
         // based on the global "Let desktop apps access your microphone"
         // toggle, which is fine: we get a definitive status either way
         // and the lambda below routes accordingly.
         DebugLogger::instance().log("CwDecoder",
-            QString("%1 microphone permission undetermined — requesting from OS")
+            QString("%1 microphone permission undetermined - requesting from OS")
                 .arg(isRightRadio() ? "Radio R" : "Radio L"));
         qApp->requestPermission(micPerm, this,
             [this, audioDeviceDescription](const QPermission& p) {
@@ -581,13 +581,13 @@ bool CwDecoderWidget::ensureMicrophonePermissionFor(const QString& audioDeviceDe
 
     // Denied.
     DebugLogger::instance().log("CwDecoder",
-        QString("%1 microphone permission denied — decoder cannot capture from '%2'")
+        QString("%1 microphone permission denied - decoder cannot capture from '%2'")
             .arg(isRightRadio() ? "Radio R" : "Radio L", audioDeviceDescription));
     showMicrophonePermissionDeniedDialog();
     return false;
 #else
     // QPermission API not compiled in (older Qt, or a Qt 6.5+ build with
-    // QT_FEATURE_permissions disabled — common in distro/aqtinstall-bundled
+    // QT_FEATURE_permissions disabled - common in distro/aqtinstall-bundled
     // archives). Treat as Granted: if the OS has actually denied access,
     // the silence watchdog in AudioCapture will catch it within 3 seconds
     // and surface the same platform-specific guidance.
@@ -624,7 +624,7 @@ void CwDecoderWidget::showMicrophonePermissionDeniedDialog()
 
     QMessageBox::warning(
         this,
-        tr("CW Decoder — microphone access denied"),
+        tr("CW Decoder - microphone access denied"),
         tr("The operating system has not granted ContestLogX access to your "
            "microphone, so the CW Decoder cannot capture audio.\n\n%1").arg(detail));
 }
@@ -707,7 +707,7 @@ void CwDecoderWidget::refreshPracticeContestAvailability()
 void CwDecoderWidget::rebuildRows(const QList<double>& centerFrequencies)
 {
     // Clear previous rows. Use synchronous delete (not deleteLater) so new
-    // rows added below are the ONLY children of m_rowsLayout — otherwise
+    // rows added below are the ONLY children of m_rowsLayout - otherwise
     // the deferred deletion leaves stale containers in the layout at the
     // moment new rows are inserted, and the user sees (N-1) rows or an
     // incorrectly sized container.
@@ -735,7 +735,7 @@ void CwDecoderWidget::rebuildRows(const QList<double>& centerFrequencies)
         freqFont.setFamily(QStringLiteral("monospace"));
         row.freqLabel->setFont(freqFont);
 
-        row.wpmLabel = new QLabel(QStringLiteral("— WPM"), row.container);
+        row.wpmLabel = new QLabel(QStringLiteral(" - WPM"), row.container);
         row.wpmLabel->setMinimumWidth(60);
         row.wpmLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
 
@@ -781,7 +781,7 @@ void CwDecoderWidget::rebuildRows(const QList<double>& centerFrequencies)
     adjustSize();
 
     // If we're currently floating, the operator's bin-count change has
-    // altered the natural height — re-pin to the new size hint so the
+    // altered the natural height - re-pin to the new size hint so the
     // window resizes to match (and height stays locked horizontally-only).
     if (isFloating()) {
         setFixedHeight(sizeHint().height());
@@ -820,7 +820,7 @@ static const QRegularExpression& kCallRe()
     //   "PA3/W1AW", "DL/K1ABC". Capped at 4 chars so we don't fold
     //   arbitrary long word prefixes into a callsign match.
     // - main_call ([A-Z0-9]*[A-Z][0-9][A-Z0-9]*[A-Z]): the classic
-    //   callsign skeleton — letter, digit, letter, with optional
+    //   callsign skeleton - letter, digit, letter, with optional
     //   surrounding alphanumerics. Must end in a letter.
     // - suffix (/alphanumerics): portable/mobile/zone modifier, e.g.
     //   "K1ABC/P", "YB1AR/2", "W1AW/MM".
@@ -857,7 +857,7 @@ void CwDecoderWidget::rescanTokensForRow(int binIndex)
     if (!te) return;
 
     // Apply visual formatting to clickable tokens so the operator knows
-    // what's interactive. This runs on every decoded character — cheap for
+    // what's interactive. This runs on every decoded character - cheap for
     // the 1-line-per-row widget. The actual click-to-fill is driven by
     // eventFilter() on mouse release, not by regex match here.
     QTextDocument* doc = te->document();
@@ -885,8 +885,8 @@ void CwDecoderWidget::rescanTokensForRow(int binIndex)
             c.mergeCharFormat(fmt);
         }
     };
-    applyFormat(kCallRe(), QColor(0x4d, 0xa6, 0xff));  // blue — callsigns
-    applyFormat(kRstRe(),  QColor(0xff, 0xc1, 0x07));  // amber — RST
+    applyFormat(kCallRe(), QColor(0x4d, 0xa6, 0xff));  // blue - callsigns
+    applyFormat(kRstRe(),  QColor(0xff, 0xc1, 0x07));  // amber - RST
 
     // Keep the cursor at the end so the view auto-scrolls to show new chars.
     te->moveCursor(QTextCursor::End);
@@ -918,7 +918,7 @@ bool CwDecoderWidget::eventFilter(QObject* obj, QEvent* event)
 
     // Find the token under the pointer. QTextCursor::WordUnderCursor stops
     // at the slash character, which would split "IT9/DK6XZ" into just
-    // "IT9" or "DK6XZ" depending on click position — so we hand-roll the
+    // "IT9" or "DK6XZ" depending on click position - so we hand-roll the
     // boundary scan to include alphanumerics AND slashes in the token.
     // That way clicking anywhere in "IT9/DK6XZ" grabs the full call.
     QTextCursor cursor = te->cursorForPosition(me->pos());
@@ -940,7 +940,7 @@ bool CwDecoderWidget::eventFilter(QObject* obj, QEvent* event)
     const bool isCall = !word.isEmpty() && kCallRe().match(word).hasMatch();
     const bool isRst  = !word.isEmpty() && kRstRe().match(word).hasMatch();
 
-    // On hover, swap cursor to pointing-hand when over a token — gives
+    // On hover, swap cursor to pointing-hand when over a token - gives
     // a visual affordance the same way a hyperlink would.
     if (event->type() == QEvent::MouseMove) {
         te->viewport()->setCursor((isCall || isRst)
@@ -964,7 +964,7 @@ bool CwDecoderWidget::eventFilter(QObject* obj, QEvent* event)
 
     if (isCall) {
         emit callClicked(word, row);
-        return true;   // consume — operator acted on a token
+        return true;   // consume - operator acted on a token
     }
     if (isRst) {
         // Normalize CW cut-numbers to digits before filling: N → 9, T → 0.
@@ -991,7 +991,7 @@ void CwDecoderWidget::onWpmUpdated(int binIndex, int wpm)
     QLabel* lbl = m_rows[binIndex].wpmLabel;
     if (!lbl) return;
     if (wpm <= 0) {
-        lbl->setText(QStringLiteral("— WPM"));
+        lbl->setText(QStringLiteral(" - WPM"));
     } else {
         lbl->setText(QStringLiteral("%1 WPM").arg(wpm));
     }
@@ -1021,13 +1021,13 @@ void CwDecoderWidget::onClearClicked()
 void CwDecoderWidget::onStartStopClicked()
 {
     if (m_worker) {
-        // Currently running — stop the worker (and tear down any
+        // Currently running - stop the worker (and tear down any
         // PracticeAudioSource the worker owns, which silences practice
         // audio on the speakers as well).
         endDecoding();
         return;
     }
-    // Currently stopped — re-start against whatever device the combo
+    // Currently stopped - re-start against whatever device the combo
     // is showing. "(none)" is a no-op (button stays as "Start").
     if (!m_audioDeviceCombo) return;
     const QString device =
@@ -1078,7 +1078,7 @@ void CwDecoderWidget::onSquelchChanged(int sliderValue)
 void CwDecoderWidget::onSquelchAutoChanged(bool enabled)
 {
     if (m_applyingSettings) return;
-    // Disable the slider visually when Auto is on — the worker's
+    // Disable the slider visually when Auto is on - the worker's
     // periodic update will be the only thing changing its position.
     // Re-enable when Auto is off so the operator can take manual
     // control at the last auto value.
@@ -1091,7 +1091,7 @@ void CwDecoderWidget::onSquelchAutoChanged(bool enabled)
 
 void CwDecoderWidget::onSquelchAutoUpdated(float threshold)
 {
-    // Auto-squelch picked a new value — mirror it on the slider so the
+    // Auto-squelch picked a new value - mirror it on the slider so the
     // operator can see what the decoder is using. Guard with
     // m_applyingSettings so onSquelchChanged doesn't fire and re-send
     // the value back to the worker (which would be both wasteful and

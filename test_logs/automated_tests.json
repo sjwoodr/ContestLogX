@@ -316,7 +316,7 @@
       "expected_score": 10304
     },
     {
-      "name": "K1USN SST (12 QSOs, multsOnce, 6 states + 1 province + 3 DXCC = 10 mults — matches the rules example exactly)",
+      "name": "K1USN SST (12 QSOs, multsOnce, 6 states + 1 province + 3 DXCC = 10 mults - matches the rules example exactly)",
       "log_file": "test_sst_example.clx",
       "expected_score": 120
     },

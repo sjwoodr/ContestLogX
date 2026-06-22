@@ -4,7 +4,7 @@
     "abbreviation": "SST",
     "version": "1.0.0",
     "sponsor": "K1USN Radio Club",
-    "description": "K1USN's Slow Speed Test (SST) — a CW-only, 20-WPM-max contest aimed at CW Academy students and any operator wanting low-pressure CW practice. Runs 1 hour, twice weekly: every Monday 0000-0100 UTC and every Friday 2000-2100 UTC. Exchange is NAME + STATE/PROVINCE for W/VE, NAME + DX for everyone else. Hawaii (KH6) and Alaska (KL7) count as DX, not as US states.",
+    "description": "K1USN's Slow Speed Test (SST) - a CW-only, 20-WPM-max contest aimed at CW Academy students and any operator wanting low-pressure CW practice. Runs 1 hour, twice weekly: every Monday 0000-0100 UTC and every Friday 2000-2100 UTC. Exchange is NAME + STATE/PROVINCE for W/VE, NAME + DX for everyone else. Hawaii (KH6) and Alaska (KL7) count as DX, not as US states.",
     "startDate": "Every Monday 0000-0100 UTC and every Friday 2000-2100 UTC",
     "duration": 1,
     "offTimeGapMinutes": 0,

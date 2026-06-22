@@ -4,7 +4,7 @@
     "abbreviation": "CWOPS-CWT",
     "version": "1.0.0",
     "sponsor": "CWops",
-    "startDate": "Every Wednesday at 1300 – 1400z and 1900 – 2000z, and every Thursday at 0300 – 0400z and  0700 – 0800z.",
+    "startDate": "Every Wednesday at 1300 - 1400z and 1900 - 2000z, and every Thursday at 0300 - 0400z and  0700 - 0800z.",
     "duration": 2,
     "offTimeGapMinutes": 0,
     "modes": ["CW"],

@@ -544,7 +544,7 @@ void Settings::setRadioRMockedAutoConnect(bool autoConnect)
     save();
 }
 
-// ---------- CW Decoder — per-radio audio input + PTT mute (SPEC-005) ----------
+// ---------- CW Decoder - per-radio audio input + PTT mute (SPEC-005) ----------
 
 QString Settings::getRadioLAudioInputDevice() const
 {
@@ -1030,7 +1030,7 @@ QStringList Settings::getDxClusterServers() const
         return servers;
     }
 
-    // Key not yet present — seed from default_dxclusters.json
+    // Key not yet present - seed from default_dxclusters.json
     QString defaultPath = getDataPath() + "/default_dxclusters.json";
     QFile f(defaultPath);
     if (f.open(QIODevice::ReadOnly)) {
@@ -2201,7 +2201,7 @@ QString Settings::getUserDataPath()
     return dir.absolutePath();
 }
 
-// ---------- Remote Control — embedded HTTP server (TODO item 3) ----------
+// ---------- Remote Control - embedded HTTP server (TODO item 3) ----------
 
 bool Settings::getRemoteControlEnabled() const
 {

@@ -284,7 +284,7 @@ void DxClusterPanel::onSocketReadyRead()
             return;
         }
         
-        // Parse propagation data — two common formats:
+        // Parse propagation data - two common formats:
         // DXSpider tabular (sh/wwv):
         //   14-Dec-2025   15   122  14   1 No Storms -> No Storms   <W0MU>
         // WWV bulletin style (sh/wwv on many clusters):
@@ -522,7 +522,7 @@ void DxClusterPanel::sendLoginAndCommands()
 void DxClusterPanel::onClusterSelectionChanged(const QString& text)
 {
     if (m_isConnected && text.trimmed() != m_connectedServer) {
-        DebugLogger::instance().log("DxCluster", "Server selection changed while connected — disconnecting");
+        DebugLogger::instance().log("DxCluster", "Server selection changed while connected - disconnecting");
         onDisconnect();
     }
     // Persist the current selection immediately so a crash doesn't lose it
@@ -680,7 +680,7 @@ void DxClusterPanel::setBands(const QStringList& bands)
 // Map raw mode string + comment text → filter category
 QString DxClusterPanel::modeCategory(const QString& mode, const QString& comment)
 {
-    // Check comment first — clusters often annotate FT8/RTTY explicitly
+    // Check comment first - clusters often annotate FT8/RTTY explicitly
     QString upperComment = comment.toUpper();
     if (upperComment.contains("FT8") || upperComment.contains("FT4") || upperComment.contains("FT2"))
         return "FTx";

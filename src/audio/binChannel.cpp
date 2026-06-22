@@ -59,13 +59,13 @@ void BinChannel::clearTextBuffer()
 
 double BinChannel::estimateNoiseFloor() const
 {
-    // Require enough samples to be meaningful — 20 blocks = 200 ms of
+    // Require enough samples to be meaningful - 20 blocks = 200 ms of
     // magnitude history. During warmup, return 0 (no lift from baseline
     // Schmitt behavior).
     if (m_noiseFloorWindow.size() < 20) return 0.0;
 
     // 10th-percentile of recent smoothed magnitudes. During decoding,
-    // the quietest 10% of recent blocks are inter-character gaps —
+    // the quietest 10% of recent blocks are inter-character gaps -
     // exactly the level the off-threshold must clear to release the
     // Schmitt. During silence, it's near zero.
     std::vector<double> sorted(m_noiseFloorWindow.begin(), m_noiseFloorWindow.end());
@@ -75,7 +75,7 @@ double BinChannel::estimateNoiseFloor() const
 
 double BinChannel::estimateNoisePeak() const
 {
-    // 90th-percentile of recent smoothed magnitudes — captures the upper
+    // 90th-percentile of recent smoothed magnitudes - captures the upper
     // end of typical noise excursions. Used by auto-squelch with an
     // additional ×1.8 + 0.02 margin at the worker level so the threshold
     // sits above the long-tail noise spikes (the 10% above the 90th
@@ -86,7 +86,7 @@ double BinChannel::estimateNoisePeak() const
     // decoder behavior was correct.
     //
     // Picking 10th percentile (estimateNoiseFloor) and multiplying by
-    // some constant does NOT work — band noise distributions vary too
+    // some constant does NOT work - band noise distributions vary too
     // widely for any single multiplier to keep peaks below threshold
     // without cratering sensitivity in quiet conditions.
     if (m_noiseFloorWindow.size() < 20) return 0.0;
@@ -97,7 +97,7 @@ double BinChannel::estimateNoisePeak() const
 
 int BinChannel::currentDotEstimateMs() const
 {
-    // Bootstrap: not enough samples yet — return a baseline derived from
+    // Bootstrap: not enough samples yet - return a baseline derived from
     // the SLOWEST allowed WPM (wpmMin). This gives the largest possible
     // dot length, so the classifier's dot-vs-dash threshold (2×dot) is
     // permissive and even slow signals' dots get counted as dots
@@ -118,7 +118,7 @@ int BinChannel::currentDotEstimateMs() const
 
 int BinChannel::wordGapThresholdMs(int dotBaselineMs) const
 {
-    // Configurable multiplier — 4.0 by default (compromise between
+    // Configurable multiplier - 4.0 by default (compromise between
     // textbook 7× and tight contest CW ~3×). Lower = more aggressive
     // about inserting spaces. Operator can tune via the Word Gap
     // control in the CW Decoder widget.
@@ -126,7 +126,7 @@ int BinChannel::wordGapThresholdMs(int dotBaselineMs) const
     // Never let the word-gap threshold drop below 3 dot-units; below that
     // it would overlap the 2-dot-unit character-gap threshold and produce
     // a word split on every inter-character boundary. (Keep this floor
-    // hardcoded — going below 3× breaks the inter-character / inter-word
+    // hardcoded - going below 3× breaks the inter-character / inter-word
     // distinction regardless of operator preference.)
     const int floorMs = dotBaselineMs * 3;
 
@@ -162,7 +162,7 @@ int BinChannel::wordGapThresholdMs(int dotBaselineMs) const
     const int median = sorted[sorted.size() / 2];
     const int secondary = median * 2;
 
-    // Effective threshold is the LOWER of the two — OR semantics: a gap
+    // Effective threshold is the LOWER of the two - OR semantics: a gap
     // that exceeds EITHER trigger counts as a word boundary. The floor
     // keeps us above the character-gap threshold at all times.
     const int effective = qMin(primary, secondary);
@@ -200,7 +200,7 @@ void BinChannel::closeElement(int durationMs, qint64 timestampMs,
     // a brief beat-fragmentation burst can split a real dash into two
     // short pieces; without filtering, those short pieces drop the 25th
     // percentile, which shrinks the classifier threshold, which causes
-    // more real elements to fragment — a self-reinforcing runaway that
+    // more real elements to fragment - a self-reinforcing runaway that
     // carries a stable 24 WPM lock up to a bogus 40 WPM within seconds.
     // The [D/3, D×6] window still admits genuine speed changes up to
     // about 3× faster or 6× slower before requiring a re-lock, so the
@@ -216,7 +216,7 @@ void BinChannel::closeElement(int durationMs, qint64 timestampMs,
 
     // Classify the current element using the (possibly unchanged)
     // estimate. Even rejected-from-window elements still get classified
-    // so character decoding proceeds — only the estimator is protected
+    // so character decoding proceeds - only the estimator is protected
     // from outlier contamination.
     const int dotBaseline = currentDotEstimateMs();
     if (durationMs < dotBaseline * 2) {
@@ -265,10 +265,10 @@ QList<CharEvent> BinChannel::processBlock(const int16_t* samples, int count,
     const double mag2 = (m_sPrev * m_sPrev + m_sPrev2 * m_sPrev2
                         - m_coeff * m_sPrev * m_sPrev2);
     // Normalize so typical receiver audio at ~10% full-scale produces
-    // normMag in the 0.25–0.5 range and a loud signal saturates near 1.0.
-    // This gives the operator's 0–100% squelch slider a useful dynamic
-    // range: noise-floor around 0.05–0.15, comfortable operating around
-    // 0.2–0.4, strong signals always pass. Clamped to [0,1].
+    // normMag in the 0.25-0.5 range and a loud signal saturates near 1.0.
+    // This gives the operator's 0-100% squelch slider a useful dynamic
+    // range: noise-floor around 0.05-0.15, comfortable operating around
+    // 0.2-0.4, strong signals always pass. Clamped to [0,1].
     //
     // Scale factor tracks block size (we now run at the device's native
     // sample rate, so `count` may be 80, 441, 480 etc. depending on rate).
@@ -283,11 +283,11 @@ QList<CharEvent> BinChannel::processBlock(const int16_t* samples, int count,
     // Earlier versions used a 4-block (40 ms) moving average to damp the
     // Goertzel magnitude oscillation that appears when a signal lands
     // between bin centers. That smoothing worked for off-center signals
-    // but introduced a ~35 ms decay latency on every element — which
+    // but introduced a ~35 ms decay latency on every element - which
     // stretched legitimate dots and dashes enough to make the WPM
     // estimator lock 30-50% too slow on bins with strong signal. The
     // classifier's dot/dash threshold scaled up to 2× the wrong dot
-    // length, causing real dashes to be classified as dots — the source
+    // length, causing real dashes to be classified as dots - the source
     // of the "==5=" stuck pattern on middle bins.
     //
     // With native-rate processing via pavucontrol monitor routing (no
@@ -301,7 +301,7 @@ QList<CharEvent> BinChannel::processBlock(const int16_t* samples, int count,
     const double normMag = m_recentMagnitudes.back();
 
     // Feed the noise-floor window AFTER smoothing. 50 blocks = 500 ms of
-    // history — long enough to cover several character gaps so the 10th
+    // history - long enough to cover several character gaps so the 10th
     // percentile reliably lands on the inter-character floor, short
     // enough to adapt to changing conditions within a second or two.
     m_noiseFloorWindow.push_back(normMag);
@@ -321,10 +321,10 @@ QList<CharEvent> BinChannel::processBlock(const int16_t* samples, int count,
     }
 
     // Schmitt-trigger hysteresis with TWO adaptive components:
-    //   (a) noise-floor-lifted floor — keeps off above the bin's
+    //   (a) noise-floor-lifted floor - keeps off above the bin's
     //       rolling 10th-percentile magnitude so gaps can be detected
     //       on bins close to strong signal bleed.
-    //   (b) peak-relative ceiling — off rises to 30% of the current
+    //   (b) peak-relative ceiling - off rises to 30% of the current
     //       tone's peak on strong signals. Without this, strong signals
     //       stretch every element by ~7 ms (the time it takes the
     //       transition block's partial-tone magnitude to drop below a
@@ -339,7 +339,7 @@ QList<CharEvent> BinChannel::processBlock(const int16_t* samples, int count,
     const float peakRelative = static_cast<float>(m_currentToneOnPeak * 0.3);
     // The squelch-relative ceiling caps the off-threshold so on > off is
     // always guaranteed for hysteresis. When the operator has the squelch
-    // slider at zero, that cap collapses the whole expression to 0 — and
+    // slider at zero, that cap collapses the whole expression to 0 - and
     // with offThreshold=0 the Schmitt off-test (`normMag > 0`) holds the
     // tone "on" forever for any non-zero magnitude, so dits and dashes
     // never close and no characters get emitted (regardless of how strong
@@ -353,10 +353,10 @@ QList<CharEvent> BinChannel::processBlock(const int16_t* samples, int count,
                                          qMax(floorLifted, peakRelative)));
     bool toneDetected;
     if (m_toneActive) {
-        toneDetected = normMag > offThreshold;       // sticky — hold on until drop
+        toneDetected = normMag > offThreshold;       // sticky - hold on until drop
     } else {
         // When squelch is zero, "any non-zero magnitude" would let pure
-        // noise turn the tone on too — so use the noise-floor-lifted
+        // noise turn the tone on too - so use the noise-floor-lifted
         // value as the on-threshold floor in that case. This keeps the
         // operator-friendly behavior of "no manual squelch needed" while
         // still suppressing the noise floor.
@@ -374,7 +374,7 @@ QList<CharEvent> BinChannel::processBlock(const int16_t* samples, int count,
     // ---- Stuck-tone safety release -----------------------------------
     // If the Schmitt trigger has been "on" for longer than any plausible
     // CW element (6× current dot estimate = 2× a full-length dash), the
-    // detector is wedged — most likely the noise floor crept above the
+    // detector is wedged - most likely the noise floor crept above the
     // hysteresis off-threshold and the tone never formally "turns off".
     // Without release, no character gap is ever measured, the morse
     // buffer accumulates silently, and the decoder appears to stop even
@@ -394,7 +394,7 @@ QList<CharEvent> BinChannel::processBlock(const int16_t* samples, int count,
             m_elementStartMs = m_elapsedAudioMs;
             m_recentMagnitudes.clear();    // force fresh Schmitt decision
             m_currentToneOnPeak = 0.0;     // reset peak tracker
-            // Don't fall into the transition branch below — we've already
+            // Don't fall into the transition branch below - we've already
             // handled the state change manually.
             committedTransition = false;
             toneDetected = false;
@@ -436,7 +436,7 @@ QList<CharEvent> BinChannel::processBlock(const int16_t* samples, int count,
                         }
                         out.append({m_binIndex, QChar(' '), timestampMs});
                     } else {
-                        // Character boundary only — no visible space.
+                        // Character boundary only - no visible space.
                         closeCharacter(timestampMs, out);
                     }
                 }

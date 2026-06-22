@@ -17,8 +17,8 @@ struct EadxEntity {
     QString prefix;     // canonical prefix as stored in the JSON (e.g., "EA6", "IT9", "GM/s")
     QString name;       // display name (e.g., "Baleares", "Sicilia")
     QString continent;  // 2-letter continent code (e.g., "EU", "NA", "AS")
-    QString cqZone;     // CQ zone(s) — string because the URE list uses ranges/multi-zone (e.g., "23-24")
-    QString ituZone;    // ITU zone(s) — same
+    QString cqZone;     // CQ zone(s) - string because the URE list uses ranges/multi-zone (e.g., "23-24")
+    QString ituZone;    // ITU zone(s) - same
 };
 
 class EadxDatabase : public QObject

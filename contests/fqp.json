@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "sponsor": "Florida Contest Group (FCG)",
     "description": "Annual Florida state QSO party. Non-FL stations work as many FL counties as possible. FL stations work everyone inside and outside Florida.",
-    "startDate": "Last full weekend of April (2026: April 25-26, 1200 UTC Sat – 1959 UTC Sun)",
+    "startDate": "Last full weekend of April (2026: April 25-26, 1200 UTC Sat - 1959 UTC Sun)",
     "duration": 32,
     "offTimeGapMinutes": 0,
     "modes": ["CW", "SSB"],
@@ -59,9 +59,9 @@
       "question": "Select your station location",
       "type": "select",
       "options": [
-        {"value": "FL",  "label": "Florida (in-state) — send FL county abbreviation"},
-        {"value": "WVE", "label": "W/VE (US or Canada outside FL) — send state or province"},
-        {"value": "DX",  "label": "DX (outside US/Canada, including KP4) — send DXCC entity prefix"}
+        {"value": "FL",  "label": "Florida (in-state) - send FL county abbreviation"},
+        {"value": "WVE", "label": "W/VE (US or Canada outside FL) - send state or province"},
+        {"value": "DX",  "label": "DX (outside US/Canada, including KP4) - send DXCC entity prefix"}
       ],
       "required": true,
       "storeInMeta": true,
@@ -76,10 +76,10 @@
         {"value": "FL_SOA",        "label": "FL: Single Op Assisted"},
         {"value": "FL_MS",         "label": "FL: Multi-Single"},
         {"value": "FL_MM",         "label": "FL: Multi-Multi"},
-        {"value": "FL_MOB_SOLO",   "label": "FL: Mobile – Single Op No Driver"},
-        {"value": "FL_MOB_DRIVER", "label": "FL: Mobile – Single Op with Driver"},
-        {"value": "FL_MOB_MS",     "label": "FL: Mobile – Multi-Single"},
-        {"value": "FL_MOB_MM",     "label": "FL: Mobile – Multi-Multi"},
+        {"value": "FL_MOB_SOLO",   "label": "FL: Mobile - Single Op No Driver"},
+        {"value": "FL_MOB_DRIVER", "label": "FL: Mobile - Single Op with Driver"},
+        {"value": "FL_MOB_MS",     "label": "FL: Mobile - Multi-Single"},
+        {"value": "FL_MOB_MM",     "label": "FL: Mobile - Multi-Multi"},
         {"value": "FL_EXP",        "label": "FL: Expedition (portable, 2+ counties)"},
         {"value": "OUT_SO",        "label": "Out-of-State: Single Op (no spotting)"},
         {"value": "OUT_SOA",       "label": "Out-of-State: Single Op Assisted"},
@@ -95,9 +95,9 @@
       "question": "Select your power level",
       "type": "select",
       "options": [
-        {"value": "QRP",  "label": "QRP — 5 watts or less (Power Multiplier ×3)"},
-        {"value": "LOW",  "label": "Low Power — greater than 5W and less than 100W (Power Multiplier ×2)"},
-        {"value": "HIGH", "label": "High Power — 100 watts or more (no Power Multiplier)"}
+        {"value": "QRP",  "label": "QRP - 5 watts or less (Power Multiplier ×3)"},
+        {"value": "LOW",  "label": "Low Power - greater than 5W and less than 100W (Power Multiplier ×2)"},
+        {"value": "HIGH", "label": "High Power - 100 watts or more (no Power Multiplier)"}
       ],
       "required": true,
       "storeInMeta": true,
@@ -143,7 +143,7 @@
         "name": "EXCHr",
         "type": "string",
         "required": true,
-        "description": "FL county (from FL stations), state/province (from W/VE), or DXCC prefix (from DX). Do not log FL — log the county abbreviation."
+        "description": "FL county (from FL stations), state/province (from W/VE), or DXCC prefix (from DX). Do not log FL - log the county abbreviation."
       }
     ]
   },

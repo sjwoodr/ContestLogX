@@ -51,7 +51,7 @@ inline constexpr std::array<MorseEntry, 56> kMorseTable = {{
     {"-...-",  "<BT>"},    // same as = (pause)
     {".-.-.",  "<AR>"},    // same as + (end of message)
     {"........","<HH>"},   // error
-    // CW short-form RST (operator shortcut — decodes as N for 9)
+    // CW short-form RST (operator shortcut - decodes as N for 9)
     {"-.",     "N"},       // already covered as letter N; N used for 9 in RST
     // (5NN, 4NN are composed at the token-parser layer, not here)
 }};

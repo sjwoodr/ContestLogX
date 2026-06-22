@@ -147,7 +147,7 @@
     {"name": "Prefix",       "column": "WPX",    "type": "string", "calculated": true}
   ],
   "scoring": {
-    "__points_comment": "CQ WPX point structure: same DXCC = 1 pt regardless of band; intra-NA different-country = 2 pts on HF (10/15/20) and 4 pts on LF (40/80/160); other same-continent = 1/2 pts; inter-continent = 3/6 pts. The bothInNA rule fires for NA-NA different-country contacts only — sameDxccEntity catches NA-NA same-country at 1 pt before bothInNA is evaluated.",
+    "__points_comment": "CQ WPX point structure: same DXCC = 1 pt regardless of band; intra-NA different-country = 2 pts on HF (10/15/20) and 4 pts on LF (40/80/160); other same-continent = 1/2 pts; inter-continent = 3/6 pts. The bothInNA rule fires for NA-NA different-country contacts only - sameDxccEntity catches NA-NA same-country at 1 pt before bothInNA is evaluated.",
     "points": {
       "sameDxccEntity": {
         "CW":  1,

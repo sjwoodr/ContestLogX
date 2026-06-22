@@ -157,21 +157,21 @@ bool WsjtxListener::parseQsoLogged(QDataStream& stream, WsjtxQsoData& data)
     data.reportSent = readUtf8(stream);
     data.reportReceived = readUtf8(stream);
 
-    // txPower and comments — read but don't store
+    // txPower and comments - read but don't store
     readUtf8(stream);  // txPower
     readUtf8(stream);  // comments
 
     data.operatorName = readUtf8(stream);
     data.timeOn = readDateTime(stream);
 
-    // Schema 2+ fields — read if available
+    // Schema 2+ fields - read if available
     if (stream.status() == QDataStream::Ok) {
         readUtf8(stream);  // operatorCall
         readUtf8(stream);  // deCall
         readUtf8(stream);  // deGrid
         data.exchangeSent = readUtf8(stream);
         data.exchangeReceived = readUtf8(stream);
-        // propagationMode — optional, ignore
+        // propagationMode - optional, ignore
     }
 
     return !data.callsign.isEmpty();

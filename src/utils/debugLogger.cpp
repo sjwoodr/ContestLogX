@@ -30,7 +30,7 @@ void DebugLogger::init(const QString& logPath)
     // to the per-user writable data dir so the path is the same regardless
     // of where CLX was launched from. The old default was the relative
     // path "clx_debug.log" which silently broke on Windows when CLX's
-    // cwd was the install dir (`C:\Program Files\ContestLogX\` — not
+    // cwd was the install dir (`C:\Program Files\ContestLogX\` - not
     // writable for normal users; UAC virtualization would redirect the
     // write to %LOCALAPPDATA%\VirtualStore\... while the in-app log
     // viewer kept looking at the install dir and failed to open
@@ -277,9 +277,9 @@ void DebugLogger::writeToFile(const QString& msg)
 
 void DebugLogger::log(const QString& component, const QString& message)
 {
-    // Fast-path guards — cheap boolean checks before any lock or allocation.
+    // Fast-path guards - cheap boolean checks before any lock or allocation.
     if (!m_flrigDebugEnabled && component == "Flrig") return;
-    // MainWindow and CWWindow are always logged — too critical for triage to disable
+    // MainWindow and CWWindow are always logged - too critical for triage to disable
     if (!m_contestEngineDebugEnabled && component == "ContestEngine") return;
     if (!m_contestSelectDialogDebugEnabled && component == "ContestSelectDialog") return;
     if (!m_dxccDatabaseDebugEnabled && component == "DxccDatabase") return;

@@ -7,7 +7,7 @@
  * Cloud storage integration for MainWindow (specs/005-cloud-storage).
  *
  * Model: the local file is always the primary store. Cloud storage is a
- * background BACKUP — every successful local save mirrors the file to the
+ * background BACKUP - every successful local save mirrors the file to the
  * configured provider(s). Opening from the cloud downloads to a user-chosen
  * local location and then opens that local file. All network I/O runs on the
  * provider's worker thread; this file only orchestrates UI and wiring.
@@ -207,7 +207,7 @@ void MainWindow::syncToCloudProviders(const QString& localPath)
     const QVector<CloudProviderConfig> providers =
         Settings::instance().getConfiguredCloudProviders();
     if (providers.isEmpty())
-        return;  // no cloud backup configured — local save only
+        return;  // no cloud backup configured - local save only
 
     const QString key = QFileInfo(localPath).fileName();
 

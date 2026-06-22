@@ -113,7 +113,7 @@ bool HttpServer::start()
         : QHostAddress(addrStr);
 
     if (!m_server->listen(addr, static_cast<quint16>(port))) {
-        emit errorOccurred(QStringLiteral("Remote Control: listen failed on %1:%2 — %3")
+        emit errorOccurred(QStringLiteral("Remote Control: listen failed on %1:%2 - %3")
                            .arg(addrStr).arg(port).arg(m_server->errorString()));
         return false;
     }

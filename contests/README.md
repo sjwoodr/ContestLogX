@@ -282,8 +282,8 @@ The contest engine automatically detects Alaska/Hawaii stations by DXCC lookup a
 The cty.dat prefix database marks certain entities with `*` to indicate they count in CQ/DARC-sponsored contests (WAE) but **not** in ARRL-sponsored contests. Examples: Sicily (IT9), African Italy (IG9), Johnston Island (KH3), Palmyra & Jarvis (KH5).
 
 By default, ContestLogX excludes these WAE-only entities from DXCC multiplier counts (correct for ARRL DX, ARRL 10M, etc.):
-- `"includeWaeEntities": false` *(default)* — WAE-only entities are excluded from DXCC mults. Use for ARRL-sponsored contests and most others.
-- `"includeWaeEntities": true` — WAE-only entities count as valid DXCC mults. Use for DARC WAEDC, CQ WW, and other CQ/DARC-sponsored contests where these entities are recognized.
+- `"includeWaeEntities": false` *(default)* - WAE-only entities are excluded from DXCC mults. Use for ARRL-sponsored contests and most others.
+- `"includeWaeEntities": true` - WAE-only entities count as valid DXCC mults. Use for DARC WAEDC, CQ WW, and other CQ/DARC-sponsored contests where these entities are recognized.
 
 ```json
 "multipliers": {
@@ -304,7 +304,7 @@ The `type` field determines how multipliers are counted:
 The `categories` field specifies what types of multipliers are counted:
 - `namedMults`: Exchange-based multipliers from the `validation.namedMults` array (e.g., US states, Canadian provinces, serial numbers)
 - `namedCallPrefixes`: Call sign prefix-based multipliers from the `validation.namedCallPrefixes` array. These are extracted from the callsign itself based on defined prefixes. For example, in the YBDX contest, YB0-YB9, YE0-YE9, YC0-YC9, YF0-YF9, YD0-YD9, YG0-YG9, 7A-7I, and 8A-8I are valid prefixes. When working YB2ARZ, the prefix "YB2" is extracted as a multiplier.
-- `wpxPrefix`: Dynamic CQ WPX prefix multiplier — the prefix is extracted from each worked callsign per the official CQ WPX rules at the time the QSO is logged, rather than matched against a static list. The prefix is the leading letters + immediately-following digits of the active call (e.g. `N8XX → N8`, `WD8ABC → WD8`, `HG19ABC → HG19`, `LY1000ABC → LY1000`). Slash notation is handled per WPX:
+- `wpxPrefix`: Dynamic CQ WPX prefix multiplier - the prefix is extracted from each worked callsign per the official CQ WPX rules at the time the QSO is logged, rather than matched against a static list. The prefix is the leading letters + immediately-following digits of the active call (e.g. `N8XX → N8`, `WD8ABC → WD8`, `HG19ABC → HG19`, `LY1000ABC → LY1000`). Slash notation is handled per WPX:
   - License-class / non-prefix-affecting suffixes are stripped: `/MM`, `/M`, `/A`, `/E`, `/J`, `/P`, `/QRP`, `/AM`, `/AE`, `/AG` (e.g. `N9OH/P → N9`, `DL1ABC/QRP → DL1`)
   - A digit-only side is treated as a call-area change and combined with the base call's letters (e.g. `W1AW/4 → W4`)
   - Otherwise the side that matches a country-prefix shape (letters + optional digits, no trailing letters) becomes the prefix (e.g. `PA/N8BJQ → PA0`, `N8BJQ/PA → PA0`, `W1AW/KH6 → KH6`, `PJ2/N9OH → PJ2`)
@@ -315,7 +315,7 @@ The `categories` field specifies what types of multipliers are counted:
 - `ituRegions`: ITU regions (automatically looked up from callsign)
 
 **Automatic Multipliers:**
-An optional `automaticMultipliers` object inside `multipliers` credits a named multiplier the operator earns without an explicit exchange. The West Virginia QSO Party uses it for the rule that a WV station counts `WV` as one of its own state multipliers — a WV station always sends a county, so `WV` would otherwise never appear in a received exchange. The optional `requiresWorkedFrom` gate withholds the credit until the operator has worked a multiplier from the named list, so `WV` is earned by working a WV station rather than handed out unconditionally. Supported with `multsOnce`.
+An optional `automaticMultipliers` object inside `multipliers` credits a named multiplier the operator earns without an explicit exchange. The West Virginia QSO Party uses it for the rule that a WV station counts `WV` as one of its own state multipliers - a WV station always sends a county, so `WV` would otherwise never appear in a received exchange. The optional `requiresWorkedFrom` gate withholds the credit until the operator has worked a multiplier from the named list, so `WV` is earned by working a WV station rather than handed out unconditionally. Supported with `multsOnce`.
 
 ```json
 "automaticMultipliers": {
@@ -393,8 +393,8 @@ Example: DXCC-only scoring (ignores continent rules even if defined):
 
 **Exchange-based scoring rules (`scoring.exchangeRules`):**
 A scoring rule can fire based on the *received exchange* (`EXCHr`) instead of the worked station's DXCC/continent. List the rule in `precedence` and describe how it matches under `scoring.exchangeRules`:
-- `"matchesPrompt": "<promptId>"` — applies when the received exchange equals the operator's own answer to that `userPrompts` entry (numbers compared numerically, so `08` matches `8`).
-- `"exchangeIsAlpha": true` — applies when the received exchange contains any letter.
+- `"matchesPrompt": "<promptId>"` - applies when the received exchange equals the operator's own answer to that `userPrompts` entry (numbers compared numerically, so `08` matches `8`).
+- `"exchangeIsAlpha": true` - applies when the received exchange contains any letter.
 
 ```json
 "scoring": {

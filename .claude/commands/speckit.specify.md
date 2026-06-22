@@ -76,7 +76,7 @@ Given that feature description, do this:
    - PowerShell example: `.specify/scripts/bash/create-new-feature.sh "$ARGUMENTS" -Json -ShortName "user-auth" "Add user authentication"`
 
    **IMPORTANT**:
-   - Do NOT pass `--number` — the script determines the correct next number automatically
+   - Do NOT pass `--number` - the script determines the correct next number automatically
    - Always include the JSON flag (`--json` for Bash, `-Json` for PowerShell) so the output can be parsed reliably
    - You must only ever run this script once per feature
    - The JSON is provided in the terminal as output - always refer to it to get the actual content you're looking for

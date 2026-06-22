@@ -41,7 +41,7 @@ close and reopen the application, verify credentials are retained.
 
 5. **Given** the operator wants to verify their setup before a contest, **When** they
    enable online scoring with no active contest loaded (or a test log), **Then** the
-   system posts using the configured server URL — operators can test by pointing to
+   system posts using the configured server URL - operators can test by pointing to
    an alternate URL or by using a test contest log.
 
 ---
@@ -52,7 +52,7 @@ A contest operator has loaded a contest log and wants to start publishing scores
 live scoreboard. They toggle the feature on from the Contest menu. The system validates
 that all required station information is present before enabling.
 
-**Why this priority**: This is the activation gate — the operator must be able to
+**Why this priority**: This is the activation gate - the operator must be able to
 turn publishing on/off during a contest and see clear feedback about what's missing.
 
 **Independent Test**: Load a contest log with complete station info, toggle online
@@ -82,10 +82,10 @@ off and verify posting stops.
 
 During an active contest with online scoring enabled, the system automatically posts
 the current score to the server at the configured interval (default: every 5 minutes).
-The operator continues logging QSOs without interruption — posting happens silently
+The operator continues logging QSOs without interruption - posting happens silently
 in the background.
 
-**Why this priority**: This is the core value — live scores appearing on the public
+**Why this priority**: This is the core value - live scores appearing on the public
 scoreboard without operator intervention. Background operation is critical so it
 never interrupts the operator's workflow.
 
@@ -122,7 +122,7 @@ last successful post time.
 ### User Story 4 - Score Breakdown in Posted Data (Priority: P1)
 
 The posted score includes a detailed band/mode breakdown showing QSO counts, points,
-and multipliers per band — not just a total score. This allows the scoreboard to
+and multipliers per band - not just a total score. This allows the scoreboard to
 display per-band performance and is required by the scoring server's format.
 
 **Why this priority**: The scoring server requires the band/mode breakdown format.
@@ -184,7 +184,7 @@ entry in the correct competition category. These values are derived from the con
 setup prompts the operator already answered.
 
 **Why this priority**: Correct category placement on the scoreboard is essential for
-fair comparison. This data already exists in userPrompts — it just needs mapping.
+fair comparison. This data already exists in userPrompts - it just needs mapping.
 
 **Independent Test**: Start a contest as Single-Op Low Power CW, enable online scoring,
 verify the posted data's class element contains power="LOW", ops="SINGLE-OP",
@@ -242,7 +242,7 @@ and verify the next post succeeds.
 - Q: When online scoring is enabled, should the system post immediately or wait for the first interval? → A: Post immediately on enable, then continue at configured interval.
 - Q: How does test mode differ from live mode? → A: No separate test mode. Server URL is fixed to https://contestonlinescore.com/post/. Testing done via a test contest log.
 - Q: Should the system auto-disable after repeated authentication failures? → A: Auto-disable after 3 consecutive auth failures with a dialog prompting the operator to check credentials.
-- Q: Should the "online scoring enabled" state persist in the CLX log file? → A: Never persist — operator must re-enable each session.
+- Q: Should the "online scoring enabled" state persist in the CLX log file? → A: Never persist - operator must re-enable each session.
 
 ---
 
@@ -256,7 +256,7 @@ sessions. The feature is disabled by default.
 
 ### FR-001a: Server URL
 The server URL is fixed to `https://contestonlinescore.com/post/`. There is no separate
-test mode — operators can verify their setup by enabling online scoring with a test
+test mode - operators can verify their setup by enabling online scoring with a test
 contest log.
 
 ### FR-002: Station Info Fields
@@ -270,9 +270,9 @@ The Contest menu must include a toggle to enable or disable online score publish
 the current session. Before enabling, the system validates that all required fields are
 present: callsign, password, CQ zone, ITU zone, state/province, and grid square. If
 any field is missing, a dialog lists the missing fields and the feature is not enabled.
-When enabled, the system posts immediately (even if the log has zero QSOs — this
+When enabled, the system posts immediately (even if the log has zero QSOs - this
 validates connectivity), then continues at the configured interval. The enable state
-is never saved to the log file — the operator must re-enable each session. If the
+is never saved to the log file - the operator must re-enable each session. If the
 operator switches contest definitions or closes the log, online scoring is automatically
 disabled.
 
@@ -282,7 +282,7 @@ The system must generate score posts in the contestonlinescore.com XML format
 list, operating class, club name, software identification, station QTH, band/mode
 breakdown with QSO counts, points, and multipliers, summary totals, total score, and
 UTC timestamp. The score data is a point-in-time snapshot taken when the post is
-initiated — score recalculations or QSO edits/deletions that happen between posts are
+initiated - score recalculations or QSO edits/deletions that happen between posts are
 reflected in the next post, not retroactively. If a post is already in-flight, the
 next trigger is deferred until the current post completes.
 
@@ -293,7 +293,7 @@ needed for score posting: `contestId` (the server-recognized contest identifier,
 identifier), and optionally `mult2Name` and `mult2Attribute` for contests with two
 multiplier types. Valid attribute values are: zone, country, state, gridsquare,
 wpxprefix, prefix, hq (lowercase only). Contests with no standard multipliers (e.g.,
-objectiveMultipliers like Winter Field Day) omit the mult attributes — the breakdown
+objectiveMultipliers like Winter Field Day) omit the mult attributes - the breakdown
 XML includes only QSO counts and points, no `<mult>` elements. If the
 `contestOnlineScore` block is absent from the contest definition, online scoring is
 unavailable for that contest and the enable toggle is grayed out.
@@ -305,15 +305,15 @@ updated to include the `contestOnlineScore` block. The following 10 contests are
 | CLX Contest       | Server Contest ID | Mult 1 Attribute | Mult 2 Attribute |
 |-------------------|-------------------|------------------|------------------|
 | arrl_10m          | ARRL-10           | country          | state            |
-| arrl_dx           | ARRL-DX-CW / ARRL-DX-SSB (mode-dependent) | country | —   |
-| arrl_vhf          | ARRL-VHF          | gridsquare       | —                |
-| cwops_cwt         | CW-Ops            | state            | —                |
+| arrl_dx           | ARRL-DX-CW / ARRL-DX-SSB (mode-dependent) | country | - |
+| arrl_vhf          | ARRL-VHF          | gridsquare       | - |
+| cwops_cwt         | CW-Ops            | state            | - |
 | eudx              | EUDXC             | country          | state            |
-| fqp               | FL-QSO-PARTY      | state            | —                |
-| mnqp              | MN-QSO-PARTY      | state            | —                |
-| naqp              | NAQP-CW / NAQP-SSB / NAQP-RTTY (mode-dependent) | state | — |
-| vaqp              | VA-QSO-PARTY      | state            | —                |
-| winter_field_day  | WFDA-CONTEST      | wpxprefix        | —                |
+| fqp               | FL-QSO-PARTY      | state            | - |
+| mnqp              | MN-QSO-PARTY      | state            | - |
+| naqp              | NAQP-CW / NAQP-SSB / NAQP-RTTY (mode-dependent) | state | - |
+| vaqp              | VA-QSO-PARTY      | state            | - |
+| winter_field_day  | WFDA-CONTEST      | wpxprefix        | - |
 
 Contests with mode-dependent IDs (arrl_dx, naqp) must support a `contestIdMapping`
 within the `contestOnlineScore` block that maps the contest mode userPrompt value to
@@ -335,7 +335,7 @@ responses are treated as authentication failures. After 3 consecutive authentica
 failures, the system auto-disables online scoring, stops the posting timer, and shows
 a dialog prompting the operator to verify their credentials. The auth failure counter
 resets to zero on any successful post. Network timeouts use a 15-second deadline. Unexpected HTTP status codes (500, 503,
-etc.) and unparseable responses are treated as transient network errors — logged,
+etc.) and unparseable responses are treated as transient network errors - logged,
 shown briefly in the status bar, and retried at the next interval. They do not count
 toward the auth failure counter.
 
@@ -357,7 +357,7 @@ and rescheduled for the next interval.
 
 1. Operators can configure online scoring credentials in under 2 minutes on first setup
 2. Score posts appear on contestonlinescore.com within the configured interval
-3. The application remains responsive during score posting — no UI lag or freezing
+3. The application remains responsive during score posting - no UI lag or freezing
 4. Missing station information prevents enabling with a clear message listing what's needed
 5. Score posts include accurate band/mode breakdown matching the operator's actual log
 6. Failed posts show clear status feedback and retry automatically at the next interval
@@ -397,8 +397,8 @@ and rescheduled for the next interval.
 5. A 2-second debounce in per-QSO mode is sufficient to avoid excessive posts during rapid logging
 6. Contests without a `contestOnlineScore` block in their definition are not eligible for online scoring
 7. The `<ops>` field should contain only the session callsign for single-operator entries, matching the `<call>` field
-8. The online scoring credentials callsign (for HTTP auth) may differ from the session callsign (for the `<call>` element) — this is valid for guest operators using the station owner's account
-9. ARRL section is optional — if empty, the `<arrlsection>` element is included but empty in the XML
+8. The online scoring credentials callsign (for HTTP auth) may differ from the session callsign (for the `<call>` element) - this is valid for guest operators using the station owner's account
+9. ARRL section is optional - if empty, the `<arrlsection>` element is included but empty in the XML
 
 ---
 

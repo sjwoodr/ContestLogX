@@ -13,7 +13,7 @@ S3StorageProvider::S3StorageProvider(CloudProviderType type, const S3Config& con
     : CloudStorageProvider(parent)
     , m_type(type)
     , m_config(config)
-    , m_worker(new S3StorageWorker())  // no parent — moved to thread
+    , m_worker(new S3StorageWorker())  // no parent - moved to thread
 {
     // Register custom types for cross-thread queued signal delivery (idempotent).
     qRegisterMetaType<CloudObject>("CloudObject");

@@ -24,7 +24,7 @@ class StationInfo;  // Forward declaration
  *   - AdifFile    (.adi / .adif)
  *   - CabrilloFile (.log / .cbr / .cab)
  *   - CsvFile     (.csv)
- *   - ClxFile     (.clx)  — native JSON format
+ *   - ClxFile     (.clx) - native JSON format
  */
 class FileHandler
 {
@@ -37,7 +37,7 @@ public:
     // Set contest definition used by Cabrillo import when called via load()
     void setContestDefinition(const QJsonObject& def) { m_contestDefinition = def; }
 
-    // Main load/save — detects format from file extension
+    // Main load/save - detects format from file extension
     bool load(const QString& filename, QList<QsoRecord>& qsos);
     bool save(const QString& filename, const QList<QsoRecord>& qsos);
 

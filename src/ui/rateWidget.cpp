@@ -33,7 +33,7 @@ void RateWidget::setupUi()
     grid->setSpacing(4);
 
     auto makeValueLabel = [this]() {
-        QLabel* l = new QLabel("—", this);
+        QLabel* l = new QLabel(" - ", this);
         QFont f = l->font();
         f.setBold(true);
         l->setFont(f);
@@ -106,13 +106,13 @@ int RateWidget::qsosInLastMinutes(int minutes) const
 
 void RateWidget::onRefresh()
 {
-    // UTC clock — update every tick
+    // UTC clock - update every tick
     m_utcLabel->setText(QDateTime::currentDateTimeUtc().toString("HH:mm:ss") + " Z");
 
     if (!m_model || m_model->count() == 0) {
-        m_rate60Label->setText("—");
-        m_rate10Label->setText("—");
-        m_operatingTimeLabel->setText("—");
+        m_rate60Label->setText(" - ");
+        m_rate10Label->setText(" - ");
+        m_operatingTimeLabel->setText(" - ");
         return;
     }
 
@@ -135,6 +135,6 @@ void RateWidget::onRefresh()
             .arg(m, 2, 10, QChar('0'))
             .arg(s, 2, 10, QChar('0')));
     } else {
-        m_operatingTimeLabel->setText("—");
+        m_operatingTimeLabel->setText(" - ");
     }
 }

@@ -4,7 +4,7 @@
  *
  * Released under the MIT License. See LICENSE file for details.
  *
- * AudioCapture — QAudioSource wrapper that pushes audio into an SPSC ring
+ * AudioCapture - QAudioSource wrapper that pushes audio into an SPSC ring
  * buffer consumed by the decoder worker (SPEC-005).
  */
 
@@ -38,7 +38,7 @@ public:
     virtual void stop();
     bool isRunning() const { return m_running; }
 
-    // Consumer side — called by the decoder worker.
+    // Consumer side - called by the decoder worker.
     // Returns number of samples read into `out` (<= count).
     size_t popSamples(int16_t* out, size_t count) {
         return m_ring.pop(out, count);
@@ -51,7 +51,7 @@ public:
     // The actual sample rate we're capturing at. Set by start() after
     // format negotiation; 0 until start() returns true. Consumers (the
     // decoder worker) use this to size blocks and compute Goertzel
-    // coefficients for the bins at the native rate — we do NOT
+    // coefficients for the bins at the native rate - we do NOT
     // downsample internally any more (avoiding the alias-fold of
     // above-Nyquist content back into our detection band).
     int actualSampleRate() const { return m_format.sampleRate(); }
@@ -78,7 +78,7 @@ private:
     std::unique_ptr<QAudioSource> m_source;
     QIODevice* m_io = nullptr;
 
-    // Silence-detection diagnostic (real-device capture only — PracticeAudioSource
+    // Silence-detection diagnostic (real-device capture only - PracticeAudioSource
     // overrides start() and never enables this). If we open a stream against a
     // device that the OS reports as in-use but no non-zero sample ever arrives,
     // emit a clear deviceError so the operator gets a real message instead of

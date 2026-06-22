@@ -52,8 +52,8 @@
       "question": "Are you a Michigan or non-MI station?",
       "type": "select",
       "options": [
-        {"value": "MI", "label": "Michigan (In-State) — send RST + MI county"},
-        {"value": "NON_MI", "label": "Non-Michigan (US/VE/DX) — send RST + state/province/DX"}
+        {"value": "MI", "label": "Michigan (In-State) - send RST + MI county"},
+        {"value": "NON_MI", "label": "Non-Michigan (US/VE/DX) - send RST + state/province/DX"}
       ],
       "required": true,
       "storeInMeta": true,
@@ -163,7 +163,7 @@
     ],
     "multipliers": {
       "type": "multsPerMode",
-      "description": "MI counties (83) for non-MI; states+DC (50) + provinces (13) + DX (1) for MI — each counted once per mode (CW/SSB).",
+      "description": "MI counties (83) for non-MI; states+DC (50) + provinces (13) + DX (1) for MI - each counted once per mode (CW/SSB).",
       "categories": ["namedMults"]
     },
     "finalScore": "SUM(points) * SUM(multipliers)"

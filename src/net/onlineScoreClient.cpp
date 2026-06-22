@@ -34,7 +34,7 @@ void OnlineScoreClient::setCredentials(const QString& callsign, const QString& p
 void OnlineScoreClient::postScore(const ScorePostData& data)
 {
     if (m_inFlight) {
-        DebugLogger::instance().log("OnlineScore", "Post skipped — previous request still in flight");
+        DebugLogger::instance().log("OnlineScore", "Post skipped - previous request still in flight");
         return;
     }
 
@@ -206,7 +206,7 @@ void OnlineScoreClient::onReplyFinished(QNetworkReply *reply)
         return;
     }
 
-    // Neither JSON nor plaintext OK — treat as transient error
-    DebugLogger::instance().log("OnlineScore", "Unparseable response — treating as transient error");
+    // Neither JSON nor plaintext OK - treat as transient error
+    DebugLogger::instance().log("OnlineScore", "Unparseable response - treating as transient error");
     emit postFailed("Unexpected server response");
 }

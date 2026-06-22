@@ -11,10 +11,10 @@
 
 ### Session 2026-04-21
 
-- Q: Single-channel decoder (one tone, one stream) or multi-channel skimmer-style (parallel bins across the passband, each with its own stream)? → A: Multi-channel skimmer-style. The decoder runs N parallel single-frequency detectors across the configured passband (default 6 bins at 100 Hz spacing from 400 Hz to 1000 Hz), each bin producing an independent stream of decoded characters rendered as its own horizontal row. Every bin maintains its own continuously-adaptive WPM estimate since different signals on different bins may be sent at different speeds. The "pin tone" concept from the original draft is replaced by a "spotlight row" — the operator can visually emphasize a single bin without suppressing decode in the others.
-- Q: What should the decoder do when the owning radio is transmitting (to avoid decoding the operator's own keyed sidetone)? → A: Per-radio "Mute decoder on PTT" setting in Rig Connection Settings, default ON. While the owning radio is in TX (as reported by its rig backend's PTT state), every bin of that radio's decoder is gated — no new characters are added to any row, no token detection runs — until PTT drops. If the rig backend does not report PTT state (e.g., mocked rig, or a backend that does not expose PTT), the decoder falls back to always-active behavior and logs a one-time notice; the operator can still disable the "Mute on PTT" setting if needed. The setting is stored in the per-radio rig configuration alongside the audio device selection.
-- Q: When the operator clicks a decoded token to fill CALL or RSTr, what side effects should fire (SCP lookup, call-history lookup, dupe check, name/QTH auto-fill)? → A: Click-to-fill is behaviorally identical to keyboard typing the same characters into the field. Every downstream action that would fire for keyboard entry — SCP lookup, call-history lookup, dupe check, name/QTH auto-fill — fires identically for click-fill. The only behavioral difference is focus: clicking does not steal focus from wherever the operator is currently typing. This keeps the operator's mental model consistent (click = type) and means future-added side effects automatically apply to click-fill without additional code paths.
-- Q: How does the decoder know to mute when ContestLogX itself sends CW via F-key memories or the CW console, given that rig-backend PTT state may not reliably track cwio_text-style sends? → A: MainWindow explicitly signals the owning radio's decoder when it initiates a CW send, and the decoder mutes that radio's bins for an estimated duration (text length ÷ current send WPM, converted to time) plus a small grace window (e.g., 250 ms). This is additive to the rig-backend PTT-state path from the prior clarification — backend PTT still mutes when the operator keys manually through the radio, and internal-send signalling mutes when the operator uses ContestLogX's CW macros. Both paths respect the per-radio "Mute decoder on PTT" setting: if the setting is OFF, neither path mutes.
+- Q: Single-channel decoder (one tone, one stream) or multi-channel skimmer-style (parallel bins across the passband, each with its own stream)? → A: Multi-channel skimmer-style. The decoder runs N parallel single-frequency detectors across the configured passband (default 6 bins at 100 Hz spacing from 400 Hz to 1000 Hz), each bin producing an independent stream of decoded characters rendered as its own horizontal row. Every bin maintains its own continuously-adaptive WPM estimate since different signals on different bins may be sent at different speeds. The "pin tone" concept from the original draft is replaced by a "spotlight row" - the operator can visually emphasize a single bin without suppressing decode in the others.
+- Q: What should the decoder do when the owning radio is transmitting (to avoid decoding the operator's own keyed sidetone)? → A: Per-radio "Mute decoder on PTT" setting in Rig Connection Settings, default ON. While the owning radio is in TX (as reported by its rig backend's PTT state), every bin of that radio's decoder is gated - no new characters are added to any row, no token detection runs - until PTT drops. If the rig backend does not report PTT state (e.g., mocked rig, or a backend that does not expose PTT), the decoder falls back to always-active behavior and logs a one-time notice; the operator can still disable the "Mute on PTT" setting if needed. The setting is stored in the per-radio rig configuration alongside the audio device selection.
+- Q: When the operator clicks a decoded token to fill CALL or RSTr, what side effects should fire (SCP lookup, call-history lookup, dupe check, name/QTH auto-fill)? → A: Click-to-fill is behaviorally identical to keyboard typing the same characters into the field. Every downstream action that would fire for keyboard entry - SCP lookup, call-history lookup, dupe check, name/QTH auto-fill - fires identically for click-fill. The only behavioral difference is focus: clicking does not steal focus from wherever the operator is currently typing. This keeps the operator's mental model consistent (click = type) and means future-added side effects automatically apply to click-fill without additional code paths.
+- Q: How does the decoder know to mute when ContestLogX itself sends CW via F-key memories or the CW console, given that rig-backend PTT state may not reliably track cwio_text-style sends? → A: MainWindow explicitly signals the owning radio's decoder when it initiates a CW send, and the decoder mutes that radio's bins for an estimated duration (text length ÷ current send WPM, converted to time) plus a small grace window (e.g., 250 ms). This is additive to the rig-backend PTT-state path from the prior clarification - backend PTT still mutes when the operator keys manually through the radio, and internal-send signalling mutes when the operator uses ContestLogX's CW macros. Both paths respect the per-radio "Mute decoder on PTT" setting: if the setting is OFF, neither path mutes.
 
 ---
 
@@ -22,11 +22,11 @@
 
 ### User Story 1 - Per-Radio Audio Input Configuration (Priority: P1)
 
-A contest operator opens the Rig Connection Settings dialog to configure the radio. Alongside the existing fields (backend, host, port, CAT serial port), they now see an **Audio Input Device** dropdown. They select the system audio input that their radio's receive audio is routed through (a USB audio endpoint on the radio, a soundcard line-in, or a virtual audio cable). The selection persists across sessions. In SO2R mode, this configuration is independent for Radio L and Radio R — the operator can configure an audio device for either, both, or neither radio. A radio with no audio device configured simply has no decoder — this is a legal and common setup.
+A contest operator opens the Rig Connection Settings dialog to configure the radio. Alongside the existing fields (backend, host, port, CAT serial port), they now see an **Audio Input Device** dropdown. They select the system audio input that their radio's receive audio is routed through (a USB audio endpoint on the radio, a soundcard line-in, or a virtual audio cable). The selection persists across sessions. In SO2R mode, this configuration is independent for Radio L and Radio R - the operator can configure an audio device for either, both, or neither radio. A radio with no audio device configured simply has no decoder - this is a legal and common setup.
 
 **Why this priority**: Without a clear configuration model, nothing else in this feature works. This story establishes the primary data binding (audio ↔ radio) that makes SO2R click-routing deterministic. Every other user story depends on this.
 
-**Independent Test**: Open Rig Connection Settings, select an audio device for Radio L only, save, restart the app. Verify the selection persisted. Verify that a decoder panel appears for Radio L and does not appear for Radio R. Change the selection to "(none)" for Radio L, save — the decoder panel disappears.
+**Independent Test**: Open Rig Connection Settings, select an audio device for Radio L only, save, restart the app. Verify the selection persisted. Verify that a decoder panel appears for Radio L and does not appear for Radio R. Change the selection to "(none)" for Radio L, save - the decoder panel disappears.
 
 **Acceptance Scenarios**:
 
@@ -46,9 +46,9 @@ A contest operator opens the Rig Connection Settings dialog to configure the rad
 
 A contest operator has configured an audio input device and has CW signals arriving through that device. The decoder panel displays incoming Morse text from the audio across N parallel frequency bins (default 6 bins at 100 Hz spacing across the configured passband). Each bin renders as its own horizontal row of scrolling text, with the bin's center frequency labeled at the left. Multiple stations audible in the passband at different tones each decode on their own row simultaneously. The operator can read every active signal in the passband at a glance without retuning.
 
-**Why this priority**: This is the core value of the feature. Multi-channel skimmer-style decoding is strictly more powerful than single-channel for contest use — the operator sees every active CW signal in the passband at once. Without real-time decoding nothing else matters; this is the MVP. Even without click-to-fill or SO2R routing, the ability to read six concurrent CW streams delivers immediate operator value.
+**Why this priority**: This is the core value of the feature. Multi-channel skimmer-style decoding is strictly more powerful than single-channel for contest use - the operator sees every active CW signal in the passband at once. Without real-time decoding nothing else matters; this is the MVP. Even without click-to-fill or SO2R routing, the ability to read six concurrent CW streams delivers immediate operator value.
 
-**Independent Test**: Feed two known CW signals at distinct tones within the passband (e.g., 500 Hz and 800 Hz, each at 25 WPM) into the configured audio device. Verify that two different rows of the decoder panel — the 500 Hz bin and the 800 Hz bin — each decode their respective stream independently and that a silent bin (e.g., 700 Hz) produces no output.
+**Independent Test**: Feed two known CW signals at distinct tones within the passband (e.g., 500 Hz and 800 Hz, each at 25 WPM) into the configured audio device. Verify that two different rows of the decoder panel - the 500 Hz bin and the 800 Hz bin - each decode their respective stream independently and that a silent bin (e.g., 700 Hz) produces no output.
 
 **Acceptance Scenarios**:
 
@@ -64,9 +64,9 @@ A contest operator has configured an audio input device and has CW signals arriv
 
 ### User Story 3 - Continuously Adaptive Speed (WPM) (Priority: P1)
 
-A contest operator is copying CW from one station, then tunes to a new station operating at a different speed (e.g., from 25 WPM to 35 WPM). The decoder continuously measures the sender's dot length and updates its receive-WPM estimate in real time. The operator never manually sets a WPM. A live WPM readout in the decoder panel shows the current estimate. The operator configures only a bounding range (default 5–60 WPM) that prevents noise bursts from driving the estimator to implausible values.
+A contest operator is copying CW from one station, then tunes to a new station operating at a different speed (e.g., from 25 WPM to 35 WPM). The decoder continuously measures the sender's dot length and updates its receive-WPM estimate in real time. The operator never manually sets a WPM. A live WPM readout in the decoder panel shows the current estimate. The operator configures only a bounding range (default 5-60 WPM) that prevents noise bursts from driving the estimator to implausible values.
 
-**Why this priority**: Contest operators encounter a wide range of speeds — 15 WPM casual CW, 40+ WPM top-of-band contesters, and everything between. A decoder that requires manual speed setting is effectively unusable in a contest environment. Continuous adaptation is mandatory, not optional.
+**Why this priority**: Contest operators encounter a wide range of speeds - 15 WPM casual CW, 40+ WPM top-of-band contesters, and everything between. A decoder that requires manual speed setting is effectively unusable in a contest environment. Continuous adaptation is mandatory, not optional.
 
 **Independent Test**: Send CW at 20 WPM for 30 seconds, then switch to 35 WPM. Verify the decoder's live WPM readout tracks the change and that decoded text remains accurate within a small number of characters after the speed change.
 
@@ -76,39 +76,39 @@ A contest operator is copying CW from one station, then tunes to a new station o
 
 2. **Given** the sender changes speed from 25 WPM to 35 WPM mid-transmission, **When** the operator watches the decoder, **Then** the WPM readout converges to 35 and decoded text resumes accuracy within a small number of characters of the change.
 
-3. **Given** the operator has configured the bounding WPM range to 15–45, **When** noise bursts suggest an implausible 80 WPM, **Then** the estimator stays within 15–45 and does not drift out of bounds.
+3. **Given** the operator has configured the bounding WPM range to 15-45, **When** noise bursts suggest an implausible 80 WPM, **Then** the estimator stays within 15-45 and does not drift out of bounds.
 
-4. **Given** the decoder is running, **When** the operator opens the panel, **Then** there is no manual WPM entry control — only the live readout and the bounding-range setting.
+4. **Given** the decoder is running, **When** the operator opens the panel, **Then** there is no manual WPM entry control - only the live readout and the bounding-range setting.
 
 ---
 
 ### User Story 4 - Passband, Bin Configuration, and Spotlight Row (Priority: P2)
 
-A contest operator wants to customize the decoder's frequency coverage to match their operating style. They open the decoder panel's settings and adjust the passband edges (default 400–1000 Hz), bin count (default 6), and therefore bin spacing (default 100 Hz). They can also "spotlight" a single row — giving it visual emphasis (larger font, highlighted background, or pinned position at top) without suppressing decode on any other bin. The spotlight is a display aid, not a decode gate; every bin continues to decode in the background and can be un-spotlighted at any time.
+A contest operator wants to customize the decoder's frequency coverage to match their operating style. They open the decoder panel's settings and adjust the passband edges (default 400-1000 Hz), bin count (default 6), and therefore bin spacing (default 100 Hz). They can also "spotlight" a single row - giving it visual emphasis (larger font, highlighted background, or pinned position at top) without suppressing decode on any other bin. The spotlight is a display aid, not a decode gate; every bin continues to decode in the background and can be un-spotlighted at any time.
 
-**Why this priority**: Operators have preferences for sidetone pitch (some prefer 500 Hz, some 700 Hz) and different coverage needs (narrow for a crowded band, wide for quiet conditions). Making the passband and bin configuration tunable is important but not blocking — the defaults work for most cases. Spotlight is a quality-of-life feature for focusing on a specific station within a busy passband.
+**Why this priority**: Operators have preferences for sidetone pitch (some prefer 500 Hz, some 700 Hz) and different coverage needs (narrow for a crowded band, wide for quiet conditions). Making the passband and bin configuration tunable is important but not blocking - the defaults work for most cases. Spotlight is a quality-of-life feature for focusing on a specific station within a busy passband.
 
-**Independent Test**: Change the passband to 300–900 Hz with 4 bins and verify the row labels shift to 300/450/600/750/900 Hz center frequencies. Spotlight the 600 Hz row and verify it is visually emphasized while the other rows continue to scroll normally.
+**Independent Test**: Change the passband to 300-900 Hz with 4 bins and verify the row labels shift to 300/450/600/750/900 Hz center frequencies. Spotlight the 600 Hz row and verify it is visually emphasized while the other rows continue to scroll normally.
 
 **Acceptance Scenarios**:
 
-1. **Given** the decoder is running with default settings, **When** the operator opens the bin-configuration control and changes the passband to 300–900 Hz with 4 bins, **Then** the decoder restarts its DSP and the row labels reflect the new bin center frequencies.
+1. **Given** the decoder is running with default settings, **When** the operator opens the bin-configuration control and changes the passband to 300-900 Hz with 4 bins, **Then** the decoder restarts its DSP and the row labels reflect the new bin center frequencies.
 
 2. **Given** multiple rows are decoding simultaneously, **When** the operator spotlights one row, **Then** that row receives visual emphasis while all other rows continue to decode and scroll normally.
 
 3. **Given** a row is spotlighted, **When** the operator un-spotlights it, **Then** the row returns to its default visual treatment and all rows remain active.
 
-4. **Given** an invalid bin configuration is requested (e.g., 50 bins — more than the passband can cleanly support), **When** the operator applies it, **Then** the system warns and either refuses or clamps to a valid range.
+4. **Given** an invalid bin configuration is requested (e.g., 50 bins - more than the passband can cleanly support), **When** the operator applies it, **Then** the system warns and either refuses or clamps to a valid range.
 
 ---
 
 ### User Story 5 - Click-to-Fill CALL Token (Priority: P1)
 
-A contest operator sees a decoded callsign in any of the decoder panel's rows (e.g., "CQ TEST K1ABC K1ABC" appearing in the 650 Hz bin row). They click the callsign "K1ABC" in that row. The CALL field of the QSO entry panel for the **owning radio** (the radio whose audio produced that decode, regardless of which bin the decode came from) is immediately populated with "K1ABC". In SO2R, this is deterministic: clicking a token in any row of the Radio L decoder always fills Radio L's CALL field, regardless of which radio is currently active for keyboard input. Clicking does not steal keyboard focus from wherever the operator is typing. The bin (row) the click came from is informational only — routing targets the owning *radio*, not the owning bin.
+A contest operator sees a decoded callsign in any of the decoder panel's rows (e.g., "CQ TEST K1ABC K1ABC" appearing in the 650 Hz bin row). They click the callsign "K1ABC" in that row. The CALL field of the QSO entry panel for the **owning radio** (the radio whose audio produced that decode, regardless of which bin the decode came from) is immediately populated with "K1ABC". In SO2R, this is deterministic: clicking a token in any row of the Radio L decoder always fills Radio L's CALL field, regardless of which radio is currently active for keyboard input. Clicking does not steal keyboard focus from wherever the operator is typing. The bin (row) the click came from is informational only - routing targets the owning *radio*, not the owning bin.
 
-**Why this priority**: This is the primary workflow payoff of the feature. The decoder exists to reduce typing during fast-paced QSOs. Routing to the owning radio (not the active radio) is essential for SO2R correctness — otherwise clicks in the left decoder would unpredictably land in the right radio's entry.
+**Why this priority**: This is the primary workflow payoff of the feature. The decoder exists to reduce typing during fast-paced QSOs. Routing to the owning radio (not the active radio) is essential for SO2R correctness - otherwise clicks in the left decoder would unpredictably land in the right radio's entry.
 
-**Independent Test**: In single-radio mode, trigger a decode containing "K1ABC", click the callsign in the scrolling text, verify CALL field is filled with "K1ABC" and keyboard focus remains where it was. Then enable SO2R: with Radio L active for keyboard, click a callsign in Radio R's decoder — verify it fills Radio R's CALL field and keyboard focus remains on Radio L's entry.
+**Independent Test**: In single-radio mode, trigger a decode containing "K1ABC", click the callsign in the scrolling text, verify CALL field is filled with "K1ABC" and keyboard focus remains where it was. Then enable SO2R: with Radio L active for keyboard, click a callsign in Radio R's decoder - verify it fills Radio R's CALL field and keyboard focus remains on Radio L's entry.
 
 **Acceptance Scenarios**:
 
@@ -124,7 +124,7 @@ A contest operator sees a decoded callsign in any of the decoder panel's rows (e
 
 ### User Story 6 - Click-to-Fill RST Token (Priority: P2)
 
-A contest operator sees a decoded signal report in any row of the decoder panel (e.g., "599 001"). They click "599". The RSTr field of the owning radio's QSO entry panel is populated with "599". The same owning-radio routing rule as CALL applies — routing is by radio, not by bin. The decoder recognizes several RST formats in use in contest CW: standard three-digit RST (e.g., `599`), CW short-form with N-for-9 (e.g., `5NN`), and two-digit signal reports used in some exchanges (e.g., `57`).
+A contest operator sees a decoded signal report in any row of the decoder panel (e.g., "599 001"). They click "599". The RSTr field of the owning radio's QSO entry panel is populated with "599". The same owning-radio routing rule as CALL applies - routing is by radio, not by bin. The decoder recognizes several RST formats in use in contest CW: standard three-digit RST (e.g., `599`), CW short-form with N-for-9 (e.g., `5NN`), and two-digit signal reports used in some exchanges (e.g., `57`).
 
 **Why this priority**: RST fill saves less time than CALL fill (operators often use a fixed "599" for CW contests), but for contests where signal reports vary or for operators who log actual reports, it is a meaningful workflow improvement.
 
@@ -136,7 +136,7 @@ A contest operator sees a decoded signal report in any row of the decoder panel 
 
 2. **Given** the decoder has decoded "5NN", **When** the operator clicks "5NN", **Then** the RSTr field is populated with a valid RST value (normalization policy documented in Assumptions).
 
-3. **Given** RST token detection is ambiguous, **When** the operator clicks, **Then** only tokens matching a recognized RST-shaped pattern fill RSTr — non-RST tokens do not.
+3. **Given** RST token detection is ambiguous, **When** the operator clicks, **Then** only tokens matching a recognized RST-shaped pattern fill RSTr - non-RST tokens do not.
 
 ---
 
@@ -144,7 +144,7 @@ A contest operator sees a decoded signal report in any row of the decoder panel 
 
 A contest operator is on a noisy band. Without filtering, the decoder produces spurious characters as the DSP mistakes noise for Morse elements. The operator adjusts a squelch/threshold slider in the decoder panel. Decoded output stops when the signal strength is below the threshold and resumes when the signal is present. The threshold setting persists across sessions.
 
-**Why this priority**: Without a squelch, the decoder is unusable on noisy bands — the scrolling view fills with garbage. But it is not the first thing the operator needs; it is a refinement on top of the core decode.
+**Why this priority**: Without a squelch, the decoder is unusable on noisy bands - the scrolling view fills with garbage. But it is not the first thing the operator needs; it is a refinement on top of the core decode.
 
 **Independent Test**: With a known-noise audio source (e.g., band noise with no CW), verify the decoder produces no output when the squelch is above the noise level and produces output when it is below. Verify the threshold setting is saved and restored after restart.
 
@@ -160,7 +160,7 @@ A contest operator is on a noisy band. Without filtering, the decoder produces s
 
 ### User Story 8 - SO2R Independent Decoding (Priority: P1)
 
-A contest operator running SO2R has audio devices configured for both Radio L and Radio R (for example, via separate USB audio endpoints on two radios, or via a virtual audio cable split). Each radio has its own independent decoder running in real time. Decoded text from Radio L and Radio R appear in separate panels, each labeled with the owning radio. Click-to-fill from either panel targets that panel's owning radio's QSO entry, regardless of which radio is currently active for keyboard input. The operator can switch keyboard focus between radios (using the existing SO2R backtick shortcut) without affecting which decoder is feeding which entry — the audio-to-radio binding is fixed at configuration time.
+A contest operator running SO2R has audio devices configured for both Radio L and Radio R (for example, via separate USB audio endpoints on two radios, or via a virtual audio cable split). Each radio has its own independent decoder running in real time. Decoded text from Radio L and Radio R appear in separate panels, each labeled with the owning radio. Click-to-fill from either panel targets that panel's owning radio's QSO entry, regardless of which radio is currently active for keyboard input. The operator can switch keyboard focus between radios (using the existing SO2R backtick shortcut) without affecting which decoder is feeding which entry - the audio-to-radio binding is fixed at configuration time.
 
 **Why this priority**: SO2R is a first-class supported mode in ContestLogX. A decoder that only works cleanly for one radio would be a regression from the existing SO2R capabilities. Getting this right depends on the per-radio audio-device binding (User Story 1) being solid.
 
@@ -206,7 +206,7 @@ A contest operator running SO2R has audio devices configured for both Radio L an
 - **FR-001**: The Rig Connection Settings dialog MUST expose an "Audio Input Device" selector for each radio (Radio L, and Radio R when SO2R is enabled), listing all system audio input devices plus an explicit "(none)" option.
 - **FR-002**: The selected audio device per radio MUST persist across application sessions.
 - **FR-003**: "(none)" MUST be a legal selection for any radio; a radio with "(none)" selected MUST have no decoder active.
-- **FR-004**: In SO2R mode, the audio device settings for Radio L and Radio R MUST be independent — any combination (neither, L only, R only, both) is legal.
+- **FR-004**: In SO2R mode, the audio device settings for Radio L and Radio R MUST be independent - any combination (neither, L only, R only, both) is legal.
 - **FR-004a**: The Rig Connection Settings dialog MUST expose a per-radio "Mute decoder on PTT" boolean setting, default ON, stored alongside the audio device selection.
 
 **Decoder Widget**
@@ -219,8 +219,8 @@ A contest operator running SO2R has audio devices configured for both Radio L an
 - **FR-010**: Each decoder panel MUST provide a squelch / threshold control that suppresses output when signal strength is below the set level; the squelch applies uniformly to all bins.
 - **FR-011**: The decoder panel MUST allow the operator to configure the passband edges (low Hz and high Hz) and the number of bins, and MUST compute the bin center frequencies as evenly-spaced points across the passband.
 - **FR-012**: Each decoder panel MUST provide a "Clear" control that wipes the on-screen scrolling text in every row without affecting the audio stream or per-bin decoder state.
-- **FR-013**: The operator MUST NOT be able to set WPM manually for any bin — only the live-estimated value per bin is displayed.
-- **FR-014**: The operator MUST be able to set a single bounding WPM range (min and max) that applies uniformly to every bin's estimator; the default range is 5–60 WPM.
+- **FR-013**: The operator MUST NOT be able to set WPM manually for any bin - only the live-estimated value per bin is displayed.
+- **FR-014**: The operator MUST be able to set a single bounding WPM range (min and max) that applies uniformly to every bin's estimator; the default range is 5-60 WPM.
 
 **Decoding Behavior**
 
@@ -229,7 +229,7 @@ A contest operator running SO2R has audio devices configured for both Radio L an
 - **FR-017**: WPM adaptation in every bin MUST be bounded by the operator-configured min/max range so that noise bursts cannot drive any bin's estimate out of bounds.
 - **FR-018**: When bin configuration (passband or bin count) is changed, the decoder MUST restart its DSP cleanly and reflect the new bin layout in the panel within one second.
 - **FR-019**: The decoder MUST suppress output in a bin whose audio signal strength is below the operator-configured squelch threshold.
-- **FR-019a**: When "Mute decoder on PTT" is enabled for a radio AND that radio's rig backend reports PTT active, the decoder for that radio MUST gate all bins — no new characters added to any row, no token detection — until PTT drops. Other radios' decoders are unaffected.
+- **FR-019a**: When "Mute decoder on PTT" is enabled for a radio AND that radio's rig backend reports PTT active, the decoder for that radio MUST gate all bins - no new characters added to any row, no token detection - until PTT drops. Other radios' decoders are unaffected.
 - **FR-019b**: If the owning radio's rig backend does not report PTT state, the decoder MUST fall back to always-active behavior for rig-backend PTT muting and log a one-time notice in the application debug log; no crash, no silent failure. (The internal-send mute path in FR-019c remains active and independent.)
 - **FR-019c**: When ContestLogX itself initiates a CW send for a radio (F-key memory, CW console, or any other internal send path), the application MUST signal the owning radio's decoder to mute its bins for the estimated send duration (character count ÷ current send WPM, converted to time) plus a configurable grace window (default 250 ms). This mute path is additive to FR-019a (rig-backend PTT mute) and is independent of backend PTT reporting accuracy.
 - **FR-019d**: Both mute paths (rig-backend PTT in FR-019a and internal-send signalling in FR-019c) MUST respect the per-radio "Mute decoder on PTT" setting from FR-004a; if the setting is OFF for a radio, neither path mutes that radio's decoder.
@@ -239,9 +239,9 @@ A contest operator running SO2R has audio devices configured for both Radio L an
 - **FR-020**: Clicking a callsign-shaped token in a decoder panel MUST populate the CALL field of that decoder panel's owning radio's QSO entry, replacing any previous CALL contents.
 - **FR-021**: Clicking an RST-shaped token (recognized formats: three-digit e.g. `599`, CW short-form e.g. `5NN`, two-digit e.g. `57`) MUST populate the RSTr field of the owning radio's QSO entry.
 - **FR-022**: Click-to-fill MUST NOT steal keyboard focus from wherever the operator is currently typing.
-- **FR-023**: Click-to-fill MUST route to the owning radio's entry panel (the radio bound to the decoder whose text was clicked), NOT to the currently-active keyboard-entry radio — this binding is deterministic from the decoder-to-radio configuration.
+- **FR-023**: Click-to-fill MUST route to the owning radio's entry panel (the radio bound to the decoder whose text was clicked), NOT to the currently-active keyboard-entry radio - this binding is deterministic from the decoder-to-radio configuration.
 - **FR-024**: Only tokens matching a recognized callsign or RST shape MUST be clickable; plain decoded text that does not match any recognized pattern MUST NOT be interactive.
-- **FR-024a**: Click-to-fill MUST trigger the same downstream actions that keyboard entry of the same characters would trigger — specifically: Super Check Partial (SCP) lookup, call-history lookup, dupe check, and name/QTH auto-fill. The only behavioral difference from keyboard entry is that click-fill does not transfer keyboard focus to the populated field.
+- **FR-024a**: Click-to-fill MUST trigger the same downstream actions that keyboard entry of the same characters would trigger - specifically: Super Check Partial (SCP) lookup, call-history lookup, dupe check, and name/QTH auto-fill. The only behavioral difference from keyboard entry is that click-fill does not transfer keyboard focus to the populated field.
 
 **Persistence**
 
@@ -273,11 +273,11 @@ These are reasonable defaults used where the user description did not specify a 
 
 - **Widget layout (SO2R)**: Two separate dock panels (one per radio), each labeled with its owning radio ("Radio L Decoder", "Radio R Decoder"), mirroring the existing SO2R QSO-entry-panel layout. Single-radio mode shows one unlabeled panel.
 - **Decoder panel when no audio configured**: Hidden entirely, not shown as an empty/disabled panel. The operator sees UI only for radios that have audio to decode.
-- **Passband and bin defaults**: 400–1000 Hz with 6 bins at 100 Hz spacing (bin centers at 400, 500, 600, 700, 800, 900 Hz, plus a 1000 Hz upper bound — exact placement finalized during implementation). Operator-configurable.
+- **Passband and bin defaults**: 400-1000 Hz with 6 bins at 100 Hz spacing (bin centers at 400, 500, 600, 700, 800, 900 Hz, plus a 1000 Hz upper bound - exact placement finalized during implementation). Operator-configurable.
 - **Squelch scope**: One global squelch value per decoder session applies uniformly to every bin. Per-bin squelch is out of scope for the first release.
-- **Spotlight row**: Visual emphasis via a highlighted background color (theme-matched — a distinct, subdued accent on the spotlighted row's background while non-spotlight rows use the default panel background). No font-size change, no row re-ordering, no position change. Decode continues unchanged in every row; click-to-fill routing is unaffected.
+- **Spotlight row**: Visual emphasis via a highlighted background color (theme-matched - a distinct, subdued accent on the spotlighted row's background while non-spotlight rows use the default panel background). No font-size change, no row re-ordering, no position change. Decode continues unchanged in every row; click-to-fill routing is unaffected.
 - **Click-to-fill overwrite policy**: Clicking always replaces the current field contents, consistent with how the DX Cluster row-click fill already behaves in ContestLogX.
-- **Click-to-fill side effects (all)**: Clicking any decoded token is behaviorally identical to keyboard entry of the same characters — SCP lookup, call-history lookup, dupe check, and name/QTH auto-fill all fire identically. The only difference is that keyboard focus is not stolen from wherever the operator is currently typing.
+- **Click-to-fill side effects (all)**: Clicking any decoded token is behaviorally identical to keyboard entry of the same characters - SCP lookup, call-history lookup, dupe check, and name/QTH auto-fill all fire identically. The only difference is that keyboard focus is not stolen from wherever the operator is currently typing.
 - **RST normalization**: CW short-form reports (`5NN`, `4NN`) are accepted as clicked tokens and stored as-typed; the contest engine's existing RST handling decides whether to normalize (no new normalization logic is introduced by this feature).
 - **Callsign token recognition**: Matches standard international callsign patterns including slash-notation (e.g., `PJ2/N9OH`, `YB1AR/2`). Prosigns and non-callsign text are never clickable as CALL tokens.
 - **Audio device reconnection**: If a configured audio device disappears mid-session and then reappears, the decoder auto-resumes without operator intervention. The "Audio device unavailable" indicator clears when capture resumes.
@@ -293,7 +293,7 @@ These are reasonable defaults used where the user description did not specify a 
 - RTTY, FT8, PSK, or any digital-mode decoding (the existing WSJT-X UDP listener covers FT8).
 - Full-spectrum audio analysis (waterfall, panadapter, visual spectrum display).
 - Network sharing of decoded text across multi-op stations.
-- Simultaneous multi-signal separation within a single passband — the operator is expected to tune such that only one signal is within the passband at a time.
+- Simultaneous multi-signal separation within a single passband - the operator is expected to tune such that only one signal is within the passband at a time.
 - Direct audio capture from flrig (no flrig API for this exists; audio is a system-level routing concern).
 - Auto-logging a QSO based on decoder output.
 

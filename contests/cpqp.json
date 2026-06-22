@@ -4,7 +4,7 @@
     "abbreviation": "CPQP",
     "version": "1.0.0",
     "sponsor": "VE6HAMS Calgary Amateur Radio Association",
-    "description": "Canadian Prairies QSO Party — second weekend of May, 10-hour contest. Prairie stations (VA/VE 4, 5, 6 — Manitoba, Saskatchewan, Alberta) work everyone; non-prairie stations work only prairie stations. Exchange is RST + 3-letter Federal Electoral District (FED) code for prairie stations, or RST + 2-letter state/province (or DX) for everyone else. CW + SSB only — no digital modes per the contest rules.",
+    "description": "Canadian Prairies QSO Party - second weekend of May, 10-hour contest. Prairie stations (VA/VE 4, 5, 6 - Manitoba, Saskatchewan, Alberta) work everyone; non-prairie stations work only prairie stations. Exchange is RST + 3-letter Federal Electoral District (FED) code for prairie stations, or RST + 2-letter state/province (or DX) for everyone else. CW + SSB only - no digital modes per the contest rules.",
     "startDate": "Second weekend of May (2026: May 9-10)",
     "duration": 10,
     "offTimeGapMinutes": 0,
@@ -53,7 +53,7 @@
       "question": "Select your station location",
       "type": "select",
       "options": [
-        {"value": "CP",      "label": "Canadian Prairies (MB / SK / AB — VA/VE 4, 5, 6)"},
+        {"value": "CP",      "label": "Canadian Prairies (MB / SK / AB - VA/VE 4, 5, 6)"},
         {"value": "OUTSIDE", "label": "Outside Canadian Prairies (W / VE other than 4, 5, 6)"},
         {"value": "DX",      "label": "DX (outside W / VE)"}
       ],
@@ -71,7 +71,7 @@
         {"value": "SO_QRP",  "label": "Single Op: QRP (≤5 W)"},
         {"value": "MULTI",   "label": "Multi-Op (single transmitter)"},
         {"value": "MOBILE",  "label": "Mobile (independent of commercial power; non-prairie or QRP only)"},
-        {"value": "ROVER",   "label": "Rover (prairie only — moves between FEDs)"},
+        {"value": "ROVER",   "label": "Rover (prairie only - moves between FEDs)"},
         {"value": "CHECK",   "label": "Check Log"}
       ],
       "required": true,
@@ -141,7 +141,7 @@
     },
     "multipliers": {
       "type": "multsPerBand",
-      "description": "Multipliers count once per band. Non-prairie operators count the 65 FED codes (max 65 × 4 bands). Prairie operators count US states (50) + non-prairie Canadian provinces (10) + the 3 prairie provinces (MB/SK/AB — credited via FED → province aliasing on prairie-prairie QSOs, max 1 per band per prairie province) for a maximum of 63 mults per band (252 total). DC counts as MD via namedMultAliases.",
+      "description": "Multipliers count once per band. Non-prairie operators count the 65 FED codes (max 65 × 4 bands). Prairie operators count US states (50) + non-prairie Canadian provinces (10) + the 3 prairie provinces (MB/SK/AB - credited via FED → province aliasing on prairie-prairie QSOs, max 1 per band per prairie province) for a maximum of 63 mults per band (252 total). DC counts as MD via namedMultAliases.",
       "categories": ["namedMults"],
       "alaskaAndHawaiiCountDxcc": false,
       "usAndCanadaCountDxcc": false
@@ -150,7 +150,7 @@
   },
   "dupeChecking": {
     "type": "perBandAndMode",
-    "description": "A station may be worked once on CW and once on SSB on each of the four bands (max 8 QSOs with any one station). Duplicates earn no QSO credit but should NOT be removed from the log — they help with log checking. CW contacts must be made outside the phone sub-bands. Rovers and mobiles changing FED count as new stations and may be re-worked for additional points and mult credit."
+    "description": "A station may be worked once on CW and once on SSB on each of the four bands (max 8 QSOs with any one station). Duplicates earn no QSO credit but should NOT be removed from the log - they help with log checking. CW contacts must be made outside the phone sub-bands. Rovers and mobiles changing FED count as new stations and may be re-worked for additional points and mult credit."
   },
   "multAliases": [
     {

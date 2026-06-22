@@ -189,7 +189,7 @@ MainWindow::MainWindow(QWidget *parent)
     }
 
     // Initialize EADX-100 database (URE-curated entity list used by King of Spain
-    // and other URE contests). Optional — absence is logged but not fatal, since
+    // and other URE contests). Optional - absence is logged but not fatal, since
     // most contests don't use eadx100 as a multiplier category. Lives in the
     // bundled data directory (shipped with the app, not downloaded), unlike
     // cty.dat which is fetched at runtime to user data.
@@ -204,7 +204,7 @@ MainWindow::MainWindow(QWidget *parent)
             DebugLogger::instance().log("MainWindow", "Failed to load EADX-100 database");
         }
     } else {
-        DebugLogger::instance().log("MainWindow", "eadx100.json not found (optional — only required for URE contests)");
+        DebugLogger::instance().log("MainWindow", "eadx100.json not found (optional - only required for URE contests)");
     }
     
     setupUi();
@@ -322,7 +322,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     if (testIndex != -1) {
         m_testMode = true;
-        DebugLogger::instance().log("MainWindow", "Test mode enabled — skipping rig auto-connect and SO2R");
+        DebugLogger::instance().log("MainWindow", "Test mode enabled - skipping rig auto-connect and SO2R");
     }
 
     if (!m_testMode) {
@@ -378,7 +378,7 @@ MainWindow::MainWindow(QWidget *parent)
         }
     }
 
-    // Initialize Remote Control — HTTP server + snapshot. No-op at startup
+    // Initialize Remote Control - HTTP server + snapshot. No-op at startup
     // unless the user has enabled it in Preferences. Safe to construct
     // regardless; start() only binds the socket when enabled (TODO item 3).
     if (!m_testMode) {
@@ -427,7 +427,7 @@ MainWindow::MainWindow(QWidget *parent)
     // showEvent fires and overrides any move() we issued from a queued timer,
     // shoving us to its default spot (typically (0, top-of-workspace)) and that
     // wrong position is what gets saved on next close. Panel/dock state restore
-    // still happens in showEvent — it requires the widgets to exist and the
+    // still happens in showEvent - it requires the widgets to exist and the
     // window to be mapped.
     restoreWindowGeometry();
 
@@ -486,12 +486,12 @@ void MainWindow::closeEvent(QCloseEvent *event)
             event->ignore();
             return;
         } else {
-            // Discard — remove crash backup so it doesn't reappear
+            // Discard - remove crash backup so it doesn't reappear
             removeBackup();
         }
     }
 
-    // Don't save window/panel state in test-only mode — parallel test runs
+    // Don't save window/panel state in test-only mode - parallel test runs
     // would corrupt the user's settings file
     if (!m_testMode) {
         saveWindowGeometry();
@@ -845,7 +845,7 @@ void MainWindow::setupUi()
         });
     }
 
-    // Entry form at BOTTOM — Radio L
+    // Entry form at BOTTOM - Radio L
     QWidget *entryPanel = createEntryPanel(m_entryWidgets, QString());
 
     // Alias Radio L widgets to existing member pointers for backward compatibility
@@ -864,7 +864,7 @@ void MainWindow::setupUi()
 
     mainSplitter->addWidget(leftPanel);
 
-    // QSO entry as a bottom dock — floatable but cannot be dragged to the right dock area
+    // QSO entry as a bottom dock - floatable but cannot be dragged to the right dock area
     m_entryDock = new QDockWidget("QSO Entry", this);
     m_entryDock->setObjectName("entryDock");  // Required for saveState/restoreState
     m_entryDock->setWidget(entryPanel);
@@ -975,7 +975,7 @@ QWidget* MainWindow::createEntryPanel(EntryPanelWidgets& w, const QString& radio
     w.offButton = new QPushButton("OFF");
     w.offButton->setCheckable(true);
     w.offButton->setChecked(true);
-    w.offButton->setToolTip("Enter key sequences disabled — logs QSO directly");
+    w.offButton->setToolTip("Enter key sequences disabled - logs QSO directly");
     w.offButton->setFixedWidth(46);
     w.offButton->setFocusPolicy(Qt::NoFocus);
     buttonLayout->addWidget(w.offButton);
@@ -1157,11 +1157,11 @@ void MainWindow::setupDocks(QSplitter* mainSplitter)
     }
 
     // Spawn CW decoder widgets if an audio input device has been configured
-    // per radio (SPEC-005). Safe to call even when no device is configured —
+    // per radio (SPEC-005). Safe to call even when no device is configured -
     // the method is a no-op in that case.
     spawnOrRefreshCwDecoders();
 
-    // Install redock-on-minimize for all right-side docks — consistent with the
+    // Install redock-on-minimize for all right-side docks - consistent with the
     // entry dock behaviour (clicking the OS minimize button re-docks instead
     // of minimizing to the taskbar, which confuses users looking for the dock).
     installRedockOnMinimize(m_dxClusterDock);
@@ -1245,7 +1245,7 @@ void MainWindow::setupDocks(QSplitter* mainSplitter)
 
         if (floating) {
             // Defer one tick so the native QWindow is fully created, then connect directly
-            // to QWindow::visibilityChanged — this fires reliably for minimize on all platforms.
+            // to QWindow::visibilityChanged - this fires reliably for minimize on all platforms.
             QTimer::singleShot(0, this, [this]() {
                 if (!m_entryDock->isFloating()) return;
                 QWindow *win = m_entryDock->window()->windowHandle();
@@ -1260,7 +1260,7 @@ void MainWindow::setupDocks(QSplitter* mainSplitter)
         }
     });
 
-    // Re-show the entry dock whenever it is hidden — this fires when the user closes
+    // Re-show the entry dock whenever it is hidden - this fires when the user closes
     // the floating window via the OS title-bar X button.  We use a queued singleShot so
     // the close event finishes processing before we re-show.
     connect(m_entryDock, &QDockWidget::visibilityChanged, this, [this](bool visible) {
@@ -1463,7 +1463,7 @@ void MainWindow::setupMenus()
     m_bandMapWidgetAction->setChecked(false);  // Hidden by default
     connect(m_bandMapWidgetAction, &QAction::triggered, this, &MainWindow::onToggleBandMap);
 
-    // CW Decoder entries — one per radio. Always visible (so operators can
+    // CW Decoder entries - one per radio. Always visible (so operators can
     // discover the feature); if no audio device is configured, clicking opens
     // the Rig Connection Settings dialog so they can set one.
     auto makeDecoderAction = [this, windowMenu](const QString& label, bool right) {
@@ -1476,7 +1476,7 @@ void MainWindow::setupMenus()
                 w->setVisible(checked);
                 return;
             }
-            // No widget exists — operator hasn't configured an audio input yet.
+            // No widget exists - operator hasn't configured an audio input yet.
             // Uncheck immediately and prompt them to the settings dialog.
             QAction* self = right ? m_cwDecoderRightAction : m_cwDecoderLeftAction;
             if (self) self->setChecked(false);
@@ -1513,7 +1513,7 @@ void MainWindow::setupMenus()
     DebugLogger::instance().setFlrigDebugEnabled(flrigDebugEnabled);
     connect(m_flrigDebugAction, &QAction::triggered, this, &MainWindow::onToggleFlrigDebug);
     
-    // MainWindow and CWWindow debug logging are always enabled — too critical for triage
+    // MainWindow and CWWindow debug logging are always enabled - too critical for triage
 
     m_contestEngineDebugAction = debugMenu->addAction("Enable &ContestEngine Debug Logging");
     m_contestEngineDebugAction->setCheckable(true);
@@ -1678,7 +1678,7 @@ void MainWindow::promptForMissingUserPrompts()
 
         // Skip if already answered
         if (!m_contestEngine->getUserPromptValue(promptId).isEmpty()) continue;
-        // Skip non-required prompts that are missing — don't bother the user
+        // Skip non-required prompts that are missing - don't bother the user
         if (!required) continue;
         // Skip prompts with unmet visibleWhen conditions
         if (p.contains("visibleWhen")) {
@@ -1706,7 +1706,7 @@ void MainWindow::promptForMissingUserPrompts()
             bool ok = false;
             QString selectedLabel = QInputDialog::getItem(this,
                 tr("Contest Information"), question, labels, 0, false, &ok);
-            if (!ok) return;  // User cancelled — leave rest of prompts unset
+            if (!ok) return;  // User cancelled - leave rest of prompts unset
             int idx = labels.indexOf(selectedLabel);
             if (idx >= 0 && idx < values.size())
                 m_contestEngine->setUserPromptValue(promptId, values[idx]);
@@ -1755,7 +1755,7 @@ void MainWindow::promptForMissingUserPrompts()
 
     if (anyPrompted) {
         applyRestrictedModeFromUserPrompts();
-        // Refresh multiplier widget — effective list may depend on prompts (e.g. stationType)
+        // Refresh multiplier widget - effective list may depend on prompts (e.g. stationType)
         if (m_multiplierWidget && m_contestDefinition.contains("ui")) {
             if (m_contestDefinition["ui"].toObject()["showMultiplierPanel"].toBool(false))
                 m_multiplierWidget->setMultiplierList(m_contestEngine->getEffectiveNamedMultiplierList());
@@ -3151,7 +3151,7 @@ void MainWindow::onPreferences()
 {
     PreferencesDialog dialog(this);
 
-    // Wire settingsApplied() — fires on BOTH Apply and OK — to all the
+    // Wire settingsApplied() - fires on BOTH Apply and OK - to all the
     // post-save side-effects that used to run only after OK closed the
     // dialog. This means clicking Apply instantly restarts the Remote
     // Dashboard server, re-applies fonts, etc. without closing Prefs,
@@ -3200,7 +3200,7 @@ void MainWindow::onPreferences()
                     Settings::instance().setDxccCountry(entity.primaryPrefix);
             }
         }
-        // Sync session station info with updated preferences — only fill empty fields
+        // Sync session station info with updated preferences - only fill empty fields
         // so we don't overwrite per-session overrides the operator has already set
         if (m_sessionStationInfo && dialog.stationChanged()) {
             Settings &s = Settings::instance();
@@ -3321,7 +3321,7 @@ void MainWindow::onImportCallHistory()
             continue;
         }
 
-        // Data line — split by comma
+        // Data line - split by comma
         QStringList fields = line.split(',');
         for (QString& f : fields)
             f = f.trimmed();
@@ -3722,7 +3722,7 @@ void MainWindow::onCallChanged(const QString& text)
             QString("Pre-filled exchange from last QSO with %1").arg(callsign));
     }
     
-    // Check for dupe regardless of pre-fill success — use active radio's freq/mode
+    // Check for dupe regardless of pre-fill success - use active radio's freq/mode
     {
     bool isRight = m_so2rEnabled && m_activeRadio == ActiveRadio::Right;
     double activeFreq = isRight ? m_lastFrequencyR : m_lastFrequency;
@@ -3894,7 +3894,7 @@ void MainWindow::onLogQso()
                       (m_lastMode.contains("DIGI")) ? "+0" : "59";
     qso.setRstSent(rstSent);
     
-    // Always set serial number — used for QSO ordering even if not part of exchange
+    // Always set serial number - used for QSO ordering even if not part of exchange
     int nextSerial = m_qsoModel->count() + 1;
     QString serialSent = QString::number(nextSerial);
     qso.setExchangeField("SNs", serialSent);
@@ -4124,7 +4124,7 @@ void MainWindow::onLogQso()
     // Add the QSO first so it's included in score calculations
     m_qsoModel->addQso(qso);
 
-    // Reset QSY Back index — new QSO becomes the most recent
+    // Reset QSY Back index - new QSO becomes the most recent
     m_qsyBackIndex = -1;
 
     // Initialize backup on first logged QSO of the session; write on every QSO
@@ -4321,7 +4321,7 @@ void MainWindow::onRigBackendChanged(const QString& backend)
         m_rigClient = new FlrigClient(this);
     }
 
-    // Reconnect signals — use SIGNAL/SLOT macros for cross-class signal inheritance
+    // Reconnect signals - use SIGNAL/SLOT macros for cross-class signal inheritance
     connect(m_rigClient, SIGNAL(connected()), this, SLOT(onRigConnected()));
     connect(m_rigClient, SIGNAL(disconnected()), this, SLOT(onRigDisconnected()));
 
@@ -4467,7 +4467,7 @@ void MainWindow::onUpdateRigDisplay()
         if (m_bandMapWidget)
             m_bandMapWidget->setRigFrequency(freqKHz / 1000.0); // MHz
 
-        // Detect band change — update band map range and clear spots
+        // Detect band change - update band map range and clear spots
         if (m_contestEngine && m_bandMapWidget) {
             QString currentBand = m_contestEngine->getBandFromFrequency(freqKHz);
             if (!currentBand.isEmpty() && currentBand != m_lastBand) {
@@ -4873,7 +4873,7 @@ void MainWindow::onRecalculateScore()
     QList<QsoRecord> allQsos = m_qsoModel->getAllQsos();
     QString myCallsign = getSessionCallsign();
 
-    m_contestEngine->rescoreAll(allQsos, myCallsign);   // O(n) — no mid() copies
+    m_contestEngine->rescoreAll(allQsos, myCallsign);   // O(n) - no mid() copies
     m_qsoModel->replaceAll(allQsos);                    // single model reset, one repaint
 
     // Update score widget
@@ -5191,10 +5191,10 @@ void MainWindow::onOperatorCallDialog()
     auto *arrlEdit    = new QLineEdit(m_sessionStationInfo->arrlSection(), &dlg);
 
     cqZoneEdit->setRange(0, 40);
-    cqZoneEdit->setSpecialValueText("—");
+    cqZoneEdit->setSpecialValueText(" - ");
     cqZoneEdit->setValue(m_sessionStationInfo->cqZone());
     ituZoneEdit->setRange(0, 90);
-    ituZoneEdit->setSpecialValueText("—");
+    ituZoneEdit->setSpecialValueText(" - ");
     ituZoneEdit->setValue(m_sessionStationInfo->ituZone());
 
     // Enforce uppercase on fields that need it
@@ -5653,7 +5653,7 @@ void MainWindow::onQsyBack()
 
 void MainWindow::onToggleRunSP()
 {
-    // Cycle: Off → Run → SP → Off — applies to the active radio
+    // Cycle: Off → Run → SP → Off - applies to the active radio
     RunMode& mode = (m_so2rEnabled && m_activeRadio == ActiveRadio::Right) ? m_runModeR : m_runMode;
     RunMode next;
     if (mode == RunMode::Off)      next = RunMode::Run;
@@ -5761,7 +5761,7 @@ void MainWindow::onQsoEntryReturn()
             triggerMemoryByRole(MemoryRole::SPExchange);
             onLogQso();
         } else {
-            // Exchange field still empty — log directly (operator logged manually)
+            // Exchange field still empty - log directly (operator logged manually)
             onLogQso();
         }
     }
@@ -5968,7 +5968,7 @@ bool MainWindow::maybeSave()
         return false;
     }
 
-    // Discard — remove crash backup so it doesn't reappear next session
+    // Discard - remove crash backup so it doesn't reappear next session
     removeBackup();
     return true;
 }
@@ -6036,7 +6036,7 @@ void MainWindow::restoreWindowGeometry()
             move(safe.topLeft());
         }
     } else {
-        // No saved state — open at 50% of available screen, centered.
+        // No saved state - open at 50% of available screen, centered.
         QRect safe = safeFallbackRect();
         DebugLogger::instance().log("MainWindow",
             QString("No saved geometry state, using 50%% safe fallback: pos=(%1,%2) size=(%3x%4)")
@@ -6074,7 +6074,7 @@ void MainWindow::restoreColumnWidths()
 
 void MainWindow::onPropagationDataReceived(int sfi, int aIndex, int kIndex)
 {
-    // DX cluster propagation data — only use as fallback if NOAA hasn't provided data
+    // DX cluster propagation data - only use as fallback if NOAA hasn't provided data
     if (m_noaaPropagationReceived) return;
 
     QString propText = QString("SFI %1  A %2  K %3").arg(sfi).arg(aIndex).arg(kIndex);
@@ -6170,7 +6170,7 @@ void MainWindow::onDxSpotClicked(const QString& callsign, double frequency, cons
     // Set callsign in active radio's QSO entry field
     activeCallEdit()->setText(callsign.toUpper());
 
-    // Reset all exchange fields except CALL — restore RST defaults rather than leaving them blank
+    // Reset all exchange fields except CALL - restore RST defaults rather than leaving them blank
     auto& exchFields = activeExchangeFields();
     for (auto it = exchFields.begin(); it != exchFields.end(); ++it) {
         const QString& fieldName = it.key();
@@ -6558,7 +6558,7 @@ void MainWindow::restorePanelState()
         // Use version 0 for compatibility
         bool success = restoreState(dockState, 0);
 
-        // Re-apply corner ownership after restore — restoreState may reflow dock areas.
+        // Re-apply corner ownership after restore - restoreState may reflow dock areas.
         setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
         setCorner(Qt::TopRightCorner, Qt::RightDockWidgetArea);
 
@@ -6576,7 +6576,7 @@ void MainWindow::restorePanelState()
             DebugLogger::instance().log("MainWindow", "State restoration complete, save timer unblocked");
         });
 
-        // Override dock visibility AFTER restoreState — restoreState sets visibility
+        // Override dock visibility AFTER restoreState - restoreState sets visibility
         // from the binary blob which may be stale; the boolean settings are authoritative.
         if (m_dxClusterDock) m_dxClusterDock->setVisible(dxVisible);
         if (m_cwConsoleDock) m_cwConsoleDock->setVisible(cwVisible);
@@ -6621,7 +6621,7 @@ void MainWindow::restorePanelState()
         });
     } else {
         DebugLogger::instance().log("MainWindow", "No saved dock widget state found");
-        // No dock state blob — apply visibility from boolean settings directly
+        // No dock state blob - apply visibility from boolean settings directly
         if (m_dxClusterDock) m_dxClusterDock->setVisible(dxVisible);
         if (m_cwConsoleDock) m_cwConsoleDock->setVisible(cwVisible);
         // Unblock save timer after a brief delay for layout to settle
@@ -7038,7 +7038,7 @@ bool MainWindow::loadContestDefinition(const QString& filePath, bool restoreStat
     if (m_dxClusterPanel)
         m_dxClusterPanel->setBands(m_contestEngine->getAllowedBands());
 
-    // Notify the CW Decoder widgets so the "Practice — Contest Exchange"
+    // Notify the CW Decoder widgets so the "Practice - Contest Exchange"
     // source entry in the audio-device dropdown becomes selectable.
     if (m_cwDecoderLeft)  m_cwDecoderLeft->refreshPracticeContestAvailability();
     if (m_cwDecoderRight) m_cwDecoderRight->refreshPracticeContestAvailability();
@@ -7452,9 +7452,9 @@ void MainWindow::checkDataFileStaleness()
     // Build a description of what's stale
     QStringList staleFiles;
     if (ctyStal)
-        staleFiles << QString("DXCC database (cty.dat) — %1 days old").arg(ctyAge);
+        staleFiles << QString("DXCC database (cty.dat) - %1 days old").arg(ctyAge);
     if (scpStale)
-        staleFiles << QString("Super Check Partial (master.scp) — %1 days old").arg(scpAge);
+        staleFiles << QString("Super Check Partial (master.scp) - %1 days old").arg(scpAge);
 
     QMessageBox msgBox(this);
     msgBox.setWindowTitle("Data Files Out of Date");
@@ -7916,7 +7916,7 @@ void MainWindow::checkForCrashBackups()
     updateWindowTitle();
     onRecalculateScore();
     m_statusLabel->setText(
-        QString("Restored %1 QSOs from backup — please save your log").arg(restoredQsos.size()));
+        QString("Restored %1 QSOs from backup - please save your log").arg(restoredQsos.size()));
 
     // Delete all backup files now that we've restored
     for (const QString& path : bakPaths)
@@ -8280,7 +8280,7 @@ QString MainWindow::generateSummaryString()
             }
 
             // Automatic multipliers (e.g. WVQP credits "WV" to WV stations)
-            // are earned without a QSO — include them in the named-mult list
+            // are earned without a QSO - include them in the named-mult list
             // so the detail count matches the scoring summary.
             if (category == "named" || category == "namedMults") {
                 const QStringList autoMults = m_contestEngine->getAutomaticMultipliers();
@@ -8366,7 +8366,7 @@ QString MainWindow::generateSummaryString()
         } else if (multType == "multsPerMode") {
             // Breakdown by mode. Normalize the QSO's literal mode value to
             // the same {CW, SSB, DIGITAL} mode-categories the scoring engine
-            // uses (see ContestEngine::updateRunningScore) — otherwise SSB
+            // uses (see ContestEngine::updateRunningScore) - otherwise SSB
             // QSOs split into LSB / USB sections in the printout, where the
             // same multiplier (e.g. INMRN) appears under both because the
             // operator worked LSB on 80m AND USB on 20m, double-counting in
@@ -9042,7 +9042,7 @@ void MainWindow::switchActiveRadio()
     QString radioName = (m_activeRadio == ActiveRadio::Left) ? "Radio L" : "Radio R";
     QString switchKey = Settings::instance().getShortcut("switchRadio");
     if (switchKey.isEmpty()) switchKey = "`";
-    m_statusLabel->setText(QString("Active: %1 — %2 to switch").arg(radioName, switchKey));
+    m_statusLabel->setText(QString("Active: %1 - %2 to switch").arg(radioName, switchKey));
     DebugLogger::instance().log("MainWindow", QString("Switched active radio to %1").arg(radioName));
 }
 
@@ -9230,7 +9230,7 @@ void MainWindow::enableSo2r()
     // Relabel Radio L dock
     m_entryDock->setWindowTitle("Radio L");
 
-    // Stack both entry docks vertically — both always visible
+    // Stack both entry docks vertically - both always visible
     splitDockWidget(m_entryDock, m_entryDockR, Qt::Vertical);
 
     // Set active radio to Left and show indicator
@@ -9415,7 +9415,7 @@ void MainWindow::spawnOrRefreshCwDecoders()
         QAction* action = right ? m_cwDecoderRightAction : m_cwDecoderLeftAction;
 
         if (device.isEmpty()) {
-            // Operator has "(none)" — ensure no widget exists for this radio.
+            // Operator has "(none)" - ensure no widget exists for this radio.
             // The menu entry remains visible and active; clicking it prompts
             // the operator to configure an audio device (see setupMenus).
             if (slot) {
@@ -9433,10 +9433,10 @@ void MainWindow::spawnOrRefreshCwDecoders()
             slot = new CwDecoderWidget(
                 right ? clx::audio::RadioSide::Right : clx::audio::RadioSide::Left, this);
             // Hand the widget a non-owning ContestEngine pointer so the
-            // "Practice — Contest Exchange" source can pull the active
+            // "Practice - Contest Exchange" source can pull the active
             // contest's exchange format and named-mult values.
             slot->setContestEngine(m_contestEngine);
-            // Top dock area — sits above the QSO log. The TopRightCorner
+            // Top dock area - sits above the QSO log. The TopRightCorner
             // was assigned to the right dock area in setupUi so this does
             // not extend over DX Cluster / Band Map / etc.
             addDockWidget(Qt::TopDockWidgetArea, slot);
@@ -9500,7 +9500,7 @@ void MainWindow::onDecoderCallClicked(const QString& callsign, int binIndex)
     }
     if (!target) return;
 
-    // Preserve focus — do NOT call setFocus() (FR-022 / Principle III).
+    // Preserve focus - do NOT call setFocus() (FR-022 / Principle III).
     // setText fires the textChanged handler (onCallChanged), which runs
     // SCP / call-history / dupe check / exchange pre-fill. textEdited is
     // emitted explicitly for any handler that listens to it specifically.
@@ -9530,14 +9530,14 @@ void MainWindow::onDecoderRstClicked(const QString& rst, int binIndex)
     CwDecoderWidget* w = qobject_cast<CwDecoderWidget*>(sender());
     if (!w) {
         DebugLogger::instance().log("CwDecoder",
-            QString("onDecoderRstClicked('%1') — sender() is not a "
+            QString("onDecoderRstClicked('%1') - sender() is not a "
                     "CwDecoderWidget, ignoring").arg(rst));
         return;
     }
 
     const bool right = w->isRightRadio();
     // Radio L (default / non-SO2R) stores its exchange field pointers in
-    // the top-level m_exchangeFields map — only Radio R uses the struct
+    // the top-level m_exchangeFields map - only Radio R uses the struct
     // member m_entryWidgetsR.exchangeFields. Route to the right source.
     const auto& exchangeMap = right ? m_entryWidgetsR.exchangeFields
                                     : m_exchangeFields;
@@ -9548,7 +9548,7 @@ void MainWindow::onDecoderRstClicked(const QString& rst, int binIndex)
 
     if (!target) {
         DebugLogger::instance().log("CwDecoder",
-            QString("onDecoderRstClicked('%1') from %2 — no 'RSTr' exchange "
+            QString("onDecoderRstClicked('%1') from %2 - no 'RSTr' exchange "
                     "field in current contest (map has %3 keys); click has "
                     "nowhere to fill")
                 .arg(rst)
@@ -9596,7 +9596,7 @@ void MainWindow::notifyInternalCwSend(bool isRightRadio, int textChars, int send
 }
 
 // =======================================================================
-// Remote Control — HTTP server for LAN dashboards + minimal rig control.
+// Remote Control - HTTP server for LAN dashboards + minimal rig control.
 // See TODO item 3 for the full scope.
 // =======================================================================
 
@@ -9605,7 +9605,7 @@ QString MainWindow::ensureRemoteControlToken()
     Settings& s = Settings::instance();
     QString token = s.getRemoteControlToken();
     if (token.isEmpty()) {
-        // 128-bit hex token from QUuid, no dashes or braces — short enough
+        // 128-bit hex token from QUuid, no dashes or braces - short enough
         // to paste manually if needed, long enough that brute-forcing on
         // a LAN is not a realistic threat model.
         token = QUuid::createUuid().toString(QUuid::Id128);
@@ -9628,7 +9628,7 @@ void MainWindow::initRemoteControl()
     updateSnapshotStatus();
 
     // Lightweight 2-second refresh timer for state the snapshot doesn't
-    // naturally get pushed — current rig freq/mode and rate numbers.
+    // naturally get pushed - current rig freq/mode and rate numbers.
     // Score/mults/QSOs are pushed directly from their update sites so
     // the dashboard reflects them instantly.
     auto* refresh = new QTimer(this);
@@ -9686,7 +9686,7 @@ void MainWindow::registerRemoteRoutes()
         return o;
     };
 
-    // GET / — static mobile dashboard HTML, served from Qt resources.
+    // GET / - static mobile dashboard HTML, served from Qt resources.
     // Auth still applies: operator must hit the URL with ?token=<t>
     // (what the "Copy URL for Phone" button provides). The dashboard
     // then reads the token from window.location.search and appends it
@@ -9706,7 +9706,7 @@ void MainWindow::registerRemoteRoutes()
     m_httpServer->registerRoute("GET", "/",               dashboardHandler);
     m_httpServer->registerRoute("GET", "/dashboard.html", dashboardHandler);
 
-    // GET /api/status — "is CLX up and what's it doing?"
+    // GET /api/status - "is CLX up and what's it doing?"
     m_httpServer->registerRoute("GET", "/api/status",
         [this, jsonResp](const HttpRequest&) {
             const auto st = m_clxSnapshot->copy();
@@ -9723,7 +9723,7 @@ void MainWindow::registerRemoteRoutes()
             return jsonResp(j);
         });
 
-    // GET /api/score — score breakdown matching the score widget.
+    // GET /api/score - score breakdown matching the score widget.
     m_httpServer->registerRoute("GET", "/api/score",
         [this, jsonResp](const HttpRequest&) {
             const auto st = m_clxSnapshot->copy();
@@ -9748,7 +9748,7 @@ void MainWindow::registerRemoteRoutes()
             return jsonResp(j);
         });
 
-    // GET /api/rate — rate numbers.
+    // GET /api/rate - rate numbers.
     m_httpServer->registerRoute("GET", "/api/rate",
         [this, jsonResp](const HttpRequest&) {
             const auto st = m_clxSnapshot->copy();
@@ -9759,7 +9759,7 @@ void MainWindow::registerRemoteRoutes()
             return jsonResp(j);
         });
 
-    // GET /api/qsos?limit=N&offset=N — recent QSOs newest-first.
+    // GET /api/qsos?limit=N&offset=N - recent QSOs newest-first.
     m_httpServer->registerRoute("GET", "/api/qsos",
         [this, jsonResp](const HttpRequest& req) {
             const auto st = m_clxSnapshot->copy();
@@ -9795,7 +9795,7 @@ void MainWindow::registerRemoteRoutes()
             return jsonResp(j);
         });
 
-    // GET /api/rig — freq/mode/band per radio.
+    // GET /api/rig - freq/mode/band per radio.
     m_httpServer->registerRoute("GET", "/api/rig",
         [this, jsonResp, rigToJson](const HttpRequest&) {
             const auto st = m_clxSnapshot->copy();
@@ -9807,7 +9807,7 @@ void MainWindow::registerRemoteRoutes()
             return jsonResp(j);
         });
 
-    // GET /api/mults — worked named multipliers (states/sections/zones/etc).
+    // GET /api/mults - worked named multipliers (states/sections/zones/etc).
     m_httpServer->registerRoute("GET", "/api/mults",
         [this, jsonResp](const HttpRequest&) {
             const auto st = m_clxSnapshot->copy();
@@ -9819,7 +9819,7 @@ void MainWindow::registerRemoteRoutes()
             return jsonResp(j);
         });
 
-    // GET /api/propagation — cached NOAA SFI/A/K.
+    // GET /api/propagation - cached NOAA SFI/A/K.
     m_httpServer->registerRoute("GET", "/api/propagation",
         [this, jsonResp](const HttpRequest&) {
             const auto st = m_clxSnapshot->copy();
@@ -9836,15 +9836,15 @@ void MainWindow::registerRemoteRoutes()
     // ---------- V2 write endpoints (rig control) ----------
     //
     // Handlers run on the Qt main thread (HTTP server is event-loop-based).
-    // Direct calls to the rig backend are safe here — consistent with every
+    // Direct calls to the rig backend are safe here - consistent with every
     // other UI-driven rig call in MainWindow. Worst case a synchronous
     // flrig XML-RPC timeout (2s) briefly stalls UI; same exposure exists
     // for operator clicks today, so no regression.
     //
-    // Snapshot doesn't need explicit push — the 2-second refresh timer in
+    // Snapshot doesn't need explicit push - the 2-second refresh timer in
     // initRemoteControl() catches up the new rig state on the next tick.
 
-    // Shared body parser — returns 400 on malformed JSON, empty optional
+    // Shared body parser - returns 400 on malformed JSON, empty optional
     // means "use defaults or no field set".
     auto parseJsonBody = [jsonResp](const HttpRequest& req, QJsonObject& out) -> std::optional<HttpResponse> {
         if (req.body.isEmpty()) { out = QJsonObject{}; return std::nullopt; }
@@ -9879,7 +9879,7 @@ void MainWindow::registerRemoteRoutes()
         return true;
     };
 
-    // POST /api/rig/qsy — tune rig to {freq_hz, mode}. Either/both optional.
+    // POST /api/rig/qsy - tune rig to {freq_hz, mode}. Either/both optional.
     m_httpServer->registerRoute("POST", "/api/rig/qsy",
         [this, jsonResp, parseJsonBody, resolveRig](const HttpRequest& req) {
             QJsonObject body;
@@ -9917,11 +9917,11 @@ void MainWindow::registerRemoteRoutes()
             return jsonResp(j);
         });
 
-    // POST /api/rig/band — jump rig to the low edge of the named band.
+    // POST /api/rig/band - jump rig to the low edge of the named band.
     // Body: {radio: "L|R", band: "20m|40m|..."}. Useful for quick band
     // changes from a phone without having to know the exact frequency.
     auto bandToFreqHz = [](const QString& band) -> double {
-        // Low-edge anchors — operator fine-tunes from there. Matches the
+        // Low-edge anchors - operator fine-tunes from there. Matches the
         // band-edge constants in BandPlan::freq2Band().
         static const QHash<QString, double> t = {
             {"160m", 1800000}, {"80m", 3500000}, {"60m", 5330500},
@@ -9957,10 +9957,10 @@ void MainWindow::registerRemoteRoutes()
             return jsonResp(j);
         });
 
-    // POST /api/rig/run_mode — set Run/S&P/Off for the specified radio.
+    // POST /api/rig/run_mode - set Run/S&P/Off for the specified radio.
     // Body: {radio: "L|R", mode: "Run|S&P|Off"}.
     // Note: skips the modal "missing memory roles" validation that the UI
-    // button handlers run — a phone request shouldn't pop a dialog on the
+    // button handlers run - a phone request shouldn't pop a dialog on the
     // shack PC. Operator's responsibility to have memories set up; the
     // mode change takes effect either way, and F-key sends just fail silently
     // if roles aren't assigned (consistent with other headless invocations).
@@ -9997,7 +9997,7 @@ void MainWindow::registerRemoteRoutes()
         });
 }
 
-// ----- Snapshot update helpers — called from existing update sites -----
+// ----- Snapshot update helpers - called from existing update sites -----
 
 void MainWindow::updateSnapshotScore()
 {

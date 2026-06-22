@@ -2,7 +2,7 @@
 
 ContestLogX supports three rig control backends, selectable in **Rig → Rig Connection**.
 
-## Option A — flrig (recommended)
+## Option A - flrig (recommended)
 
 [flrig](https://www.w1hkj.org/) provides full rig control: frequency, mode, CW keying via cwio, PTT, power, and bandwidth. This is the recommended backend for CW operators.
 
@@ -21,7 +21,7 @@ curl -X POST http://localhost:12345/RPC2 \
   -d '<?xml version="1.0"?><methodCall><methodName>rig.get_vfo</methodName></methodCall>'
 ```
 
-## Option B — Hamlib (rigctld)
+## Option B - Hamlib (rigctld)
 
 [Hamlib](https://hamlib.github.io/) supports 400+ radio models via the `rigctld` network daemon. It provides frequency and mode control. CW keying and some other features depend on individual rig capabilities and are unavailable for most radios.
 
@@ -80,18 +80,18 @@ rigctl -m 17001 -r /dev/ttyUSB0 -s 9600 b "TEST"
 
 If the response is `RPRT -11` (Feature not available) or `RPRT -4` (Feature not implemented), CW keying is not supported for your rig. Use flrig for CW keying instead.
 
-## Option C — Mocked (testing)
+## Option C - Mocked (testing)
 
 The mocked backend simulates a radio without any real hardware. It is useful for:
 
-- **SO2R practice** — configure Radio R as mocked when you only have one physical radio
-- **UI testing** — verify QSO entry, CW memories, and freq/mode changes without a rig
-- **Demo/training** — show the application workflow without station equipment
+- **SO2R practice** - configure Radio R as mocked when you only have one physical radio
+- **UI testing** - verify QSO entry, CW memories, and freq/mode changes without a rig
+- **Demo/training** - show the application workflow without station equipment
 
 ### Setup
 
 1. **Rig → Rig Connection** → select **Mocked (testing)**.
-2. Click **Connect** — the simulated radio connects instantly.
+2. Click **Connect** - the simulated radio connects instantly.
 3. Default state: 14.200 MHz USB, 25 WPM, 100W.
 
 All commands (set frequency, set mode, CW keying, PTT, power, bandwidth) are accepted and the mocked radio returns the last-set values. The rig name shows as "Mocked Rig" in the status display.

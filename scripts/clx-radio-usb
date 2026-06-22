@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# clx-radio-usb — attach / detach the rig's USB devices to/from the QEMU/KVM
+# clx-radio-usb - attach / detach the rig's USB devices to/from the QEMU/KVM
 # Windows VM used for ContestLogX Windows-build testing.
 #
 # The two USB devices passed through together are:
@@ -74,15 +74,15 @@ device_attached() {
 do_attach() {
     local label="$1" vendor="$2" product="$3"
     if device_attached "$vendor" "$product"; then
-        echo "  $(c_dim "[skip]") $label — already attached"
+        echo "  $(c_dim "[skip]") $label - already attached"
         return 0
     fi
     local tmp; tmp=$(mktemp --suffix=.xml)
     emit_xml "$vendor" "$product" >"$tmp"
     if virsh attach-device "$VM" "$tmp" --live >/dev/null 2>&1; then
-        echo "  $(c_green "[ ok ]") $label — attached"
+        echo "  $(c_green "[ ok ]") $label - attached"
     else
-        echo "  $(c_red "[fail]") $label — attach failed; running attach again with output:"
+        echo "  $(c_red "[fail]") $label - attach failed; running attach again with output:"
         virsh attach-device "$VM" "$tmp" --live || true
     fi
     rm -f "$tmp"
@@ -91,15 +91,15 @@ do_attach() {
 do_detach() {
     local label="$1" vendor="$2" product="$3"
     if ! device_attached "$vendor" "$product"; then
-        echo "  $(c_dim "[skip]") $label — not currently attached"
+        echo "  $(c_dim "[skip]") $label - not currently attached"
         return 0
     fi
     local tmp; tmp=$(mktemp --suffix=.xml)
     emit_xml "$vendor" "$product" >"$tmp"
     if virsh detach-device "$VM" "$tmp" --live >/dev/null 2>&1; then
-        echo "  $(c_green "[ ok ]") $label — detached"
+        echo "  $(c_green "[ ok ]") $label - detached"
     else
-        echo "  $(c_red "[fail]") $label — detach failed; running detach again with output:"
+        echo "  $(c_red "[fail]") $label - detach failed; running detach again with output:"
         virsh detach-device "$VM" "$tmp" --live || true
     fi
     rm -f "$tmp"

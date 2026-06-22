@@ -33,7 +33,7 @@
 
 - The Assumptions & Decisions section deliberately names the chosen access approach (S3-compatible)
   and rejected alternatives. These are recorded as up-front product/architecture decisions per the
-  user's request, not as leaked implementation detail in the requirements themselves — the FRs and
+  user's request, not as leaked implementation detail in the requirements themselves - the FRs and
   Success Criteria remain technology-agnostic.
-- All items pass. Spec is ready for `/speckit.plan` (clarify is optional — the major ambiguities were
+- All items pass. Spec is ready for `/speckit.plan` (clarify is optional - the major ambiguities were
   resolved before spec creation via the decision questions).

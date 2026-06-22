@@ -4,7 +4,7 @@
     "abbreviation": "NEQP",
     "version": "1.0.0",
     "sponsor": "New England QSO Party Committee",
-    "description": "New England QSO Party — first full weekend of May, 20-hour contest. New England stations (CT/ME/MA/NH/RI/VT) work everyone; non-New England stations work New England only. Exchange is RST + 5-letter <state><county> code for New England (e.g., MAMID for Middlesex MA; CT uses Regional Councils of Government, e.g., CTCAP). All other US/Canada send RST + 2-letter state/province; DX sends DX. CW + SSB + Digital — Digital is scored at the CW point rate per the rules (2 pts).",
+    "description": "New England QSO Party - first full weekend of May, 20-hour contest. New England stations (CT/ME/MA/NH/RI/VT) work everyone; non-New England stations work New England only. Exchange is RST + 5-letter <state><county> code for New England (e.g., MAMID for Middlesex MA; CT uses Regional Councils of Government, e.g., CTCAP). All other US/Canada send RST + 2-letter state/province; DX sends DX. CW + SSB + Digital - Digital is scored at the CW point rate per the rules (2 pts).",
     "startDate": "First full weekend of May (2026: May 2-3)",
     "duration": 20,
     "offTimeGapMinutes": 0,
@@ -149,7 +149,7 @@
     },
     "multipliers": {
       "type": "multsOnce",
-      "description": "Multipliers count once for the contest (not per band or mode). Non-NE stations multiply by NE counties (max 68). NE stations multiply by US states (the 6 NE states themselves are not in the multiplier list — they're never received as 2-letter codes since other NE ops always send 5-letter <state><county> codes — so achievable max is 44 states) + 14 Canadian provinces (VO1 and VO2 separate per the rules) + DXCC entities (USA and Canada excluded — provinces handle Canada credit). DC counts as MD via the namedMultAliases unconditional remap.",
+      "description": "Multipliers count once for the contest (not per band or mode). Non-NE stations multiply by NE counties (max 68). NE stations multiply by US states (the 6 NE states themselves are not in the multiplier list - they're never received as 2-letter codes since other NE ops always send 5-letter <state><county> codes - so achievable max is 44 states) + 14 Canadian provinces (VO1 and VO2 separate per the rules) + DXCC entities (USA and Canada excluded - provinces handle Canada credit). DC counts as MD via the namedMultAliases unconditional remap.",
       "categories": ["namedMults", "dxcc"],
       "alaskaAndHawaiiCountDxcc": false,
       "usAndCanadaCountDxcc": false,

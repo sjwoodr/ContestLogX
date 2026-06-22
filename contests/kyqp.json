@@ -4,7 +4,7 @@
     "abbreviation": "KYQP",
     "version": "1.0.0",
     "sponsor": "Kentucky QSO Party",
-    "description": "Kentucky QSO Party — first Saturday in June, 12-hour contest. Kentucky stations work everyone; non-Kentucky stations work only Kentucky stations (QSOs between two non-KY stations do not count). Exchange is RS(T) + 3-letter Kentucky county abbreviation for KY stations, RS(T) + 2-letter state for non-KY USA stations (including DC), RS(T) + 2-letter province for Canada, or RS(T) + DX for everyone else. CW and Phone (SSB/FM) only — no digital, no repeaters. Phone QSO = 1 point, CW QSO = 2 points. Final score is QSO points x multipliers x power multiplier (High >100W ×1, Low ≤100W ×2, QRP ≤5W ×3). K4KCG is the bonus station — work it normally; the KYQP committee adds the 100-points-per-band/mode bonus automatically after the Cabrillo log is submitted, so ContestLogX does not track bonus points.",
+    "description": "Kentucky QSO Party - first Saturday in June, 12-hour contest. Kentucky stations work everyone; non-Kentucky stations work only Kentucky stations (QSOs between two non-KY stations do not count). Exchange is RS(T) + 3-letter Kentucky county abbreviation for KY stations, RS(T) + 2-letter state for non-KY USA stations (including DC), RS(T) + 2-letter province for Canada, or RS(T) + DX for everyone else. CW and Phone (SSB/FM) only - no digital, no repeaters. Phone QSO = 1 point, CW QSO = 2 points. Final score is QSO points x multipliers x power multiplier (High >100W ×1, Low ≤100W ×2, QRP ≤5W ×3). K4KCG is the bonus station - work it normally; the KYQP committee adds the 100-points-per-band/mode bonus automatically after the Cabrillo log is submitted, so ContestLogX does not track bonus points.",
     "startDate": "First Saturday in June (2026: June 6, 1300Z Sat to 0100Z Sun)",
     "duration": 12,
     "offTimeGapMinutes": 0,
@@ -105,9 +105,9 @@
       "question": "Select your power level (applies a final-score multiplier per KYQP rules)",
       "type": "select",
       "options": [
-        {"value": "HP",  "label": "High Power — more than 100 W — final score × 1"},
-        {"value": "LP",  "label": "Low Power — 100 W or less — final score × 2"},
-        {"value": "QRP", "label": "QRP — 5 W or less — final score × 3"}
+        {"value": "HP",  "label": "High Power - more than 100 W - final score × 1"},
+        {"value": "LP",  "label": "Low Power - 100 W or less - final score × 2"},
+        {"value": "QRP", "label": "QRP - 5 W or less - final score × 3"}
       ],
       "required": true,
       "storeInMeta": true,
@@ -164,7 +164,7 @@
     },
     "multipliers": {
       "type": "multsOnce",
-      "description": "Multipliers count once for the contest (not per band, not per mode). Non-KY stations multiply by KY counties only (max 120). KY stations multiply by KY counties (120) + 49 other US states + DC + 13 Canadian provinces. DX QSOs earn QSO points only — DX is not a multiplier for anyone.",
+      "description": "Multipliers count once for the contest (not per band, not per mode). Non-KY stations multiply by KY counties only (max 120). KY stations multiply by KY counties (120) + 49 other US states + DC + 13 Canadian provinces. DX QSOs earn QSO points only - DX is not a multiplier for anyone.",
       "categories": ["namedMults"],
       "alaskaAndHawaiiCountDxcc": false,
       "usAndCanadaCountDxcc": false
@@ -173,7 +173,7 @@
   },
   "dupeChecking": {
     "type": "perBandAndMode",
-    "description": "Work a station once per band, per mode, per county. KY Mobiles and Expeditions that move to a new county count as a new station and may be re-worked for additional QSO point and county multiplier credit. County-line operations: a KY Mobile/Expedition straddling a county line (e.g. exchange SCO/FAY) must be logged twice — once per county — as separate QSOs; the per-band-and-mode dupe check keyed by exchange allows this naturally. KY Fixed stations on a county line must pick a single county for the contest."
+    "description": "Work a station once per band, per mode, per county. KY Mobiles and Expeditions that move to a new county count as a new station and may be re-worked for additional QSO point and county multiplier credit. County-line operations: a KY Mobile/Expedition straddling a county line (e.g. exchange SCO/FAY) must be logged twice - once per county - as separate QSOs; the per-band-and-mode dupe check keyed by exchange allows this naturally. KY Fixed stations on a county line must pick a single county for the contest."
   },
   "logging": {
     "requiredFields": ["date", "time", "frequency", "mode", "callsign", "rstSent", "rstReceived", "exchSent", "exchReceived"],
@@ -213,7 +213,7 @@
     ],
     "exchangeValidation": {
       "type": "multiplier",
-      "description": "Exchange should be a 3-letter Kentucky county code for KY stations, a 2-letter US state code (DC allowed) or Canadian province code for non-KY W/VE, or DX for everyone outside USA/Canada. Kentucky itself is not a multiplier — KY-to-KY QSOs credit the county, not the state."
+      "description": "Exchange should be a 3-letter Kentucky county code for KY stations, a 2-letter US state code (DC allowed) or Canadian province code for non-KY W/VE, or DX for everyone outside USA/Canada. Kentucky itself is not a multiplier - KY-to-KY QSOs credit the county, not the state."
     },
     "receivedExchangeFilter": {
       "promptId": "stationType",

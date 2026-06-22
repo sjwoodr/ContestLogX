@@ -21,7 +21,7 @@ enum class RadioSide { Left, Right };
 
 // DSP constants used across the audio subsystem.
 //
-// The sample rate is now DYNAMIC — it comes from the device's preferred
+// The sample rate is now DYNAMIC - it comes from the device's preferred
 // format (e.g., 44100 or 48000 Hz) rather than a fixed 8 kHz with
 // nearest-neighbor decimation. The decimation path was catastrophically
 // aliasing above-4-kHz content (speaker hiss, harmonic distortion,
@@ -31,7 +31,7 @@ enum class RadioSide { Left, Right };
 //
 // kSampleRateHz is kept as the FALLBACK rate used only when a device
 // reports an unusable format. In practice, Qt6::Multimedia will always
-// give us a sane sample rate — typically 44100 or 48000 Hz.
+// give us a sane sample rate - typically 44100 or 48000 Hz.
 constexpr int kSampleRateHz    = 48000;    // default / preferred (device may override)
 constexpr int kBlockDurationMs = 10;       // DSP block size in ms
 constexpr int kRingBufferSeconds = 1;      // audio ring buffer size in seconds
@@ -52,7 +52,7 @@ constexpr float kDefaultSquelch = 0.10f;
 constexpr int kDefaultPttGraceMs = 250;
 constexpr int kMaxBinCount = 16;
 // Minimum bin spacing. At 8 kHz / 80-sample Goertzel, bin resolution is
-// 100 Hz, so spacings below that produce overlapping bins — but overlap is
+// 100 Hz, so spacings below that produce overlapping bins - but overlap is
 // not pathological (just redundant detection), so this floor is set just
 // low enough to reject configurations that produce effectively duplicate
 // bins without blocking legitimate narrow-passband use (e.g., 6 bins over

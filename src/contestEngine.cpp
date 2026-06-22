@@ -96,7 +96,7 @@ bool ContestEngine::loadContest(const QJsonObject& contestDef)
             }
         }
 
-        // Load namedMultAliases — unconditional 1:1 mapping (e.g., "5" → "05")
+        // Load namedMultAliases - unconditional 1:1 mapping (e.g., "5" → "05")
         if (validation.contains("namedMultAliases")) {
             QJsonObject aliasObj = validation["namedMultAliases"].toObject();
             for (auto it = aliasObj.begin(); it != aliasObj.end(); ++it) {
@@ -109,18 +109,18 @@ bool ContestEngine::loadContest(const QJsonObject& contestDef)
         DebugLogger::instance().log("ContestEngine", "No validation section found");
     }
 
-    // Load multAliases — maps received exchange values to a different mult value
+    // Load multAliases - maps received exchange values to a different mult value
     // based on the operator's userPrompt answer.
     //
     // Two trigger forms:
-    //   - promptValue (string)        — fires when getUserPromptValue(promptId) == promptValue
-    //   - promptValueIn (array)       — fires when getUserPromptValue(promptId) is in the array
+    //   - promptValue (string) - fires when getUserPromptValue(promptId) == promptValue
+    //   - promptValueIn (array) - fires when getUserPromptValue(promptId) is in the array
     //                                   (overrides promptValue if non-empty)
     //
     // Two mapping forms:
-    //   - mapsTo (string)             — replace rawMult with this fixed string
+    //   - mapsTo (string) - replace rawMult with this fixed string
     //                                   (e.g., FL counties → "FL" for in-state FL ops in FQP)
-    //   - mapByPrefix (int)           — take rawMult.left(N) as the mult
+    //   - mapByPrefix (int) - take rawMult.left(N) as the mult
     //                                   (e.g., 7QP 5-letter county codes → 2-char state prefix:
     //                                    WYALB → WY, ORDES → OR, AZAPH → AZ for 7th-area ops)
     //                                   Wins over mapsTo when both are present.
@@ -157,7 +157,7 @@ bool ContestEngine::loadContest(const QJsonObject& contestDef)
             QString("Loaded %1 mult alias rule(s)").arg(m_multAliases.size()));
     }
 
-    // Load bonusStations — array of groups, each with a point value and list of callsigns
+    // Load bonusStations - array of groups, each with a point value and list of callsigns
     m_bonusStationGroups.clear();
     if (contestDef.contains("bonusStations")) {
         QJsonArray groups = contestDef["bonusStations"].toArray();
@@ -287,7 +287,7 @@ void ContestEngine::cacheContestProperties()
     m_cachedDxccIsMult = m_cachedMultCategories.contains("dxcc");
     m_cachedEadx100IsMult = m_cachedMultCategories.contains("eadx100");
 
-    // Load optional eadx100Excludes — entity prefixes that should be skipped
+    // Load optional eadx100Excludes - entity prefixes that should be skipped
     // when crediting eadx100 mults (e.g., King of Spain excludes EA/EA6/EA8/EA9
     // because those entities are tracked via the namedMults province list,
     // not the EADX-100 country list).
@@ -606,7 +606,7 @@ bool ContestEngine::validateExchange(const QString& fieldName, const QString& va
                             QString("  '%1' is a valid named mult").arg(upper));
                         return true;
                     }
-                    // DXCC fallback — only for unrestricted operators (full namedMults).
+                    // DXCC fallback - only for unrestricted operators (full namedMults).
                     // Uses exact prefix lookup (not fuzzy callsign matching) so that
                     // strings like "MOO" don't accidentally match via prefix stripping.
                     if (effectiveMults == m_validMultipliers &&
@@ -1001,7 +1001,7 @@ int ContestEngine::calculatePoints(const QsoRecord& qso, const QString& myCallsi
                     }
                     // Generic callsign-match rule: check for a "<ruleName>Callsigns" array.
                     // Used by RAC Canada Day to identify the 15 RAC official stations
-                    // (VA2RAC, VE1RAC, ...) by full callsign rather than DXCC prefix —
+                    // (VA2RAC, VE1RAC, ...) by full callsign rather than DXCC prefix -
                     // these score 20 pts/QSO instead of the 10 pts a generic Canadian
                     // station earns. Wins over prefix-match when both are configured.
                     if (!ruleApplies) {
@@ -1021,11 +1021,11 @@ int ContestEngine::calculatePoints(const QsoRecord& qso, const QString& myCallsi
 
                 // Exchange-based rule matchers (IARU HF Championship: same ITU zone,
                 // HQ/official station). scoring.exchangeRules[rule] may contain:
-                //   "matchesPrompt": "<promptId>"  — applies when the received exchange
+                //   "matchesPrompt": "<promptId>" - applies when the received exchange
                 //       (EXCHr) equals the operator's own value for that userPrompt
                 //       (e.g. sameItuZone: received ITU zone == my zone). Numbers are
                 //       compared numerically so "08" matches "8".
-                //   "exchangeIsAlpha": true         — applies when the received exchange
+                //   "exchangeIsAlpha": true - applies when the received exchange
                 //       contains any letter (e.g. IARU HQ/official stations send a
                 //       society/official abbreviation like "ARRL"/"R2" instead of a
                 //       numeric zone). Zones are all-digit, so this cleanly separates them.
@@ -1304,12 +1304,12 @@ QList<ContestEngine::MultiplierInfo> ContestEngine::getMultipliersWithCategory(c
         bool shouldAddDxcc = false;
         if (!alreadyAddedDxcc) {
             if (multUpper == "AK" || multUpper == "HI") {
-                // AK/HI not counting as DXCC — skip
+                // AK/HI not counting as DXCC - skip
             } else if (!mult.isEmpty() && m_validMultipliers.contains(multUpper)) {
                 shouldAddDxcc = m_cachedUsAndCanadaCountDxcc;
             } else {
                 // Exchange not a named mult. If usAndCanadaCountDxcc is false, still check
-                // whether the callsign itself resolves to a US/Canada entity — e.g., a VE
+                // whether the callsign itself resolves to a US/Canada entity - e.g., a VE
                 // station sending power (not a state/province) in ARRL DX W/VE class.
                 if (!m_cachedUsAndCanadaCountDxcc) {
                     DxccEntity callEntity = dxccLookup(qso.getCall());
@@ -1335,10 +1335,10 @@ QList<ContestEngine::MultiplierInfo> ContestEngine::getMultipliersWithCategory(c
         }
     }
 
-    // EADX-100 multiplier — independent of dxcc/namedMults. Used by URE-sponsored
+    // EADX-100 multiplier - independent of dxcc/namedMults. Used by URE-sponsored
     // contests (King of Spain, etc.) that score against URE's curated entity list
     // rather than ARRL DXCC. Entries listed in eadx100Excludes are skipped (the
-    // contest tracks those via namedMults instead — KoS uses this to avoid double-
+    // contest tracks those via namedMults instead - KoS uses this to avoid double-
     // counting EA/EA6/EA8/EA9 since Spanish stations contribute province mults).
     if (m_cachedEadx100IsMult && m_eadxDatabase && m_eadxDatabase->isLoaded()) {
         QString eadxPrefix = m_eadxDatabase->getEntityPrefix(qso.getCall());
@@ -1548,7 +1548,7 @@ QStringList ContestEngine::getMultiplierCategories() const
 
 QStringList ContestEngine::getAutomaticMultipliers() const
 {
-    // Named multipliers the operator earns without an explicit exchange —
+    // Named multipliers the operator earns without an explicit exchange -
     // e.g. WVQP credits "WV" to a West Virginia station as its own state
     // multiplier (a WV station never receives "WV" in an exchange, since WV
     // stations send their county). Shape under scoring.multipliers:
@@ -1560,7 +1560,7 @@ QStringList ContestEngine::getAutomaticMultipliers() const
     // The rule whose key matches the operator's answer to <promptId> supplies
     // the named-mult values. When "requiresWorkedFrom" is set, the credit is
     // withheld until the operator has worked at least one named multiplier
-    // from that list — so "WV" is earned by working a WV station (which sends
+    // from that list - so "WV" is earned by working a WV station (which sends
     // a WV county, i.e. an inStateMult), not handed out unconditionally.
     QStringList result;
     if (!m_contestDef.contains("scoring"))
@@ -1577,11 +1577,11 @@ QStringList ContestEngine::getAutomaticMultipliers() const
     if (!rules.contains(promptValue))
         return result;
 
-    // Optional gate — only credit once the operator has worked a multiplier
+    // Optional gate - only credit once the operator has worked a multiplier
     // from the named source list. Evaluated against the worked-mult sets, so
     // this is only meaningful after updateRunningScore's QSO pass has run.
     // The per-band / per-mode / per-band-and-mode sets are keyed as
-    // "<mult>_<band>" / "<mult>_<mode>" / "<mult>_<band>_<mode>" — to test
+    // "<mult>_<band>" / "<mult>_<mode>" / "<mult>_<band>_<mode>" - to test
     // whether a recorded entry is an inStateMult we strip after the first
     // underscore. The contest-wide "once" set is checked first so multsOnce
     // contests don't pay for the parse loop.
@@ -1756,7 +1756,7 @@ QStringList ContestEngine::getEffectiveNamedMultiplierList() const
     }
 
     // Full namedMults path. If a multAlias is active for this operator, exclude the
-    // aliased-source values from the display — they map to something else and would
+    // aliased-source values from the display - they map to something else and would
     // just clutter the widget (e.g., FL counties shown to FL in-state ops who only
     // earn credit for the aliased "FL" state mult, not individual county entries;
     // 7QP 5-letter county codes shown to 7th-area ops who get prefix-aliased to
@@ -2232,7 +2232,7 @@ QString ContestEngine::applyMultAlias(const QString& rawMult) const
         }
 
         if (inSource) {
-            // mapByPrefix wins over mapsTo when present — extracts the
+            // mapByPrefix wins over mapsTo when present - extracts the
             // first N characters from rawMult (e.g., 7QP's 5-letter county
             // code WYALB with mapByPrefix=2 → WY).
             if (alias.mapByPrefix > 0 && rawMult.size() >= alias.mapByPrefix)
@@ -2979,20 +2979,20 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
                 .arg(m_runningScore.gridSquareMultCount));
     }
     
-    // Automatic multipliers — freebie named multipliers credited to the
+    // Automatic multipliers - freebie named multipliers credited to the
     // operator regardless of QSOs (e.g. WVQP credits "WV" to West Virginia
     // stations as a state multiplier; ACQP credits each AC operator's own
     // province per band where they worked any AC station; ALQP credits "AL"
     // to Alabama stations as a state mult on each mode where they worked
     // any AL station). Applied on top of QSO-earned named multipliers.
-    // Supported with multsOnce, multsPerBand, and multsPerMode — all have a
+    // Supported with multsOnce, multsPerBand, and multsPerMode - all have a
     // final-score formula of points × total mults.
     const QStringList autoMults = getAutomaticMultipliers();
     if (!autoMults.isEmpty()) {
         if (multType == "multsOnce") {
             for (const QString& am : autoMults) {
                 if (m_workedNamedMults.contains(am))
-                    continue;  // already earned via a QSO — do not double-count
+                    continue;  // already earned via a QSO - do not double-count
                 m_workedNamedMults.insert(am);
                 m_runningScore.namedMultCount++;
                 m_runningScore.multipliers++;
@@ -3009,7 +3009,7 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
             // confirmed at least one inStateMult was worked overall).
             QSet<QString> qualifyingBands;
             for (const QString& wk : m_workedNamedMultsPerBand) {
-                // wk is "mult_band" — split on the first underscore since
+                // wk is "mult_band" - split on the first underscore since
                 // the inStateMult values (NSANP, NBKGS, NL...) contain no
                 // underscores themselves.
                 int idx = wk.indexOf('_');
@@ -3050,7 +3050,7 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
             // sums those sets directly, not m_runningScore.multipliers.
             QSet<QString> qualifyingModes;
             for (const QString& wk : m_workedNamedMultsPerMode) {
-                // wk is "mult_mode" — inStateMult values contain no underscores
+                // wk is "mult_mode" - inStateMult values contain no underscores
                 int idx = wk.indexOf('_');
                 if (idx < 0) continue;
                 QString mult = wk.left(idx);
@@ -3087,7 +3087,7 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
         } else {
             DebugLogger::instance().log("ContestEngine",
                 QString("WARNING: automaticMultipliers is only supported with "
-                        "multsOnce / multsPerBand / multsPerMode — ignored for "
+                        "multsOnce / multsPerBand / multsPerMode - ignored for "
                         "multiplier type '%1'").arg(multType));
         }
     }
@@ -3282,7 +3282,7 @@ void ContestEngine::rescoreAll(QList<QsoRecord>& qsos, const QString& myCallsign
         // Register this QSO in the dupe tracking hash
         workedCalls[callUpper].insert(scopeKey);
 
-        // Points — updateRunningScore will re-derive this, but we set it here so
+        // Points - updateRunningScore will re-derive this, but we set it here so
         // the per-QSO column in the table is correct after replaceAll.
         qso.setPoints(calculatePoints(qso, myCallsign));
     }

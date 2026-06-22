@@ -64,8 +64,8 @@
       "question": "Are you a Russian or non-Russian station?",
       "type": "select",
       "options": [
-        {"value": "DX", "label": "Non-Russian (DX) — send RST + serial number"},
-        {"value": "UA", "label": "Russian — send RST + oblast code"}
+        {"value": "DX", "label": "Non-Russian (DX) - send RST + serial number"},
+        {"value": "UA", "label": "Russian - send RST + oblast code"}
       ],
       "required": true,
       "storeInMeta": true

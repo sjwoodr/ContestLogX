@@ -13,12 +13,12 @@
 
 A contest operator running Search & Pounce wants to see all active DX cluster spots
 for their current band laid out visually by frequency. Instead of scanning a table
-of rows, they can see the entire band at a glance — where activity is clustered,
+of rows, they can see the entire band at a glance - where activity is clustered,
 which portions of the band are quiet, and where specific stations are operating.
 
 **Why this priority**: This is the core value of the feature. Without the
 frequency-axis display, all other user stories are meaningless. It is also the
-minimum viable version of the band map — even without color coding or click-to-QSY,
+minimum viable version of the band map - even without color coding or click-to-QSY,
 operators benefit from the spatial overview.
 
 **Independent Test**: Open the band map panel with an active DX cluster connection
@@ -48,7 +48,7 @@ as labeled markers at the correct positions on the frequency axis.
 
 A contest operator wants to instantly know, from the band map, which spotted stations
 represent a new multiplier, which have already been worked, and which are unworked
-non-multipliers — so they can prioritize new multipliers without reading through
+non-multipliers - so they can prioritize new multipliers without reading through
 the full spot list.
 
 **Why this priority**: Color coding transforms the band map from a spatial index
@@ -142,7 +142,7 @@ sub-band so spot labels are readable without crowding when many stations are
 active in a narrow frequency range.
 
 **Why this priority**: Zoom/pan is a usability enhancement for crowded band
-conditions. The feature delivers value without it (P1–P4 complete), but
+conditions. The feature delivers value without it (P1-P4 complete), but
 readability degrades with 50+ spots compressed into a full-band view.
 
 **Independent Test**: With 20+ spots visible at full-band zoom, zoom in to a
@@ -170,14 +170,14 @@ zoomed view.
 ### Edge Cases
 
 - **No contest loaded**: Band map has no band range to display; shows "No contest
-  loaded" empty state — no error, no crash.
+  loaded" empty state - no error, no crash.
 - **Cluster disconnects while map is open**: Existing spots remain visible until
   expiry; new spots stop arriving; an indicator shows the cluster is not connected.
   On reconnect, all existing spots are cleared and the map starts fresh from
   newly arriving spots.
 - **Multiple spots for the same callsign at slightly different frequencies**: Each
   report is displayed as a distinct marker at its reported frequency.
-- **Duplicate spot — same callsign at the same frequency**: The existing marker's
+- **Duplicate spot - same callsign at the same frequency**: The existing marker's
   expiry timestamp is reset (refreshed); no second marker is added. One marker
   per callsign+frequency pair at any given time.
 - **Radio not connected on click-to-QSY**: Status message shown; no crash.
@@ -209,7 +209,7 @@ zoomed view.
   distinguishable without a legend.
 
 - **FR-005**: Contact status color MUST update in real time whenever the log
-  changes — a QSO is logged, edited, or deleted — affecting any visible spot
+  changes - a QSO is logged, edited, or deleted - affecting any visible spot
   (no manual refresh required). Status is also evaluated when a spot first arrives.
 
 - **FR-006**: Operators MUST be able to click a spot marker to QSY the active
@@ -299,12 +299,12 @@ zoomed view.
 
 ### Session 2026-03-21
 
-- Q: When the cluster sends a duplicate spot (same callsign, same frequency), should the band map update the existing marker or add a new one? → A: Update existing marker — reset its expiry timestamp; one marker per callsign+frequency pair.
-- Q: What triggers the band map to update when the operator changes bands? → A: Rig frequency polling — band derived from the radio's reported frequency (already polled for QSO entry).
-- Q: When should spot contact-status colors be re-evaluated? → A: Event-driven — on spot arrival, and re-evaluate all visible spot colors on any log change (QSO logged, edited, or deleted).
+- Q: When the cluster sends a duplicate spot (same callsign, same frequency), should the band map update the existing marker or add a new one? → A: Update existing marker - reset its expiry timestamp; one marker per callsign+frequency pair.
+- Q: What triggers the band map to update when the operator changes bands? → A: Rig frequency polling - band derived from the radio's reported frequency (already polled for QSO entry).
+- Q: When should spot contact-status colors be re-evaluated? → A: Event-driven - on spot arrival, and re-evaluate all visible spot colors on any log change (QSO logged, edited, or deleted).
 - Q: What is the primary zoom mechanism for the frequency axis? → A: Scroll wheel over the map + a visible zoom slider in the panel (for discoverability and accessibility).
 - Q: How is the spot's operating mode indicated on the marker? → A: Callsign only on the marker; mode (plus frequency, spotter, age) shown in a tooltip on hover.
-- Q: Does zoom/pan state persist across sessions or reset on band change? → A: No persistence — zoom and pan always reset to full-band default on band change and are not saved across sessions.
+- Q: Does zoom/pan state persist across sessions or reset on band change? → A: No persistence - zoom and pan always reset to full-band default on band change and are not saved across sessions.
 - Q: What is the maximum number of simultaneously stored spots and is it configurable? → A: Default 30 spots max, configurable via Preferences; oldest spot (by arrival time) is evicted when the limit is exceeded.
 - Q: When the cluster disconnects, do existing spots remain? When it reconnects, what happens? → A: On disconnect, existing spots remain visible until expiry. On reconnect, all spots are cleared and the map starts fresh from newly arriving spots.
 - Q: When the operator changes bands, are existing spots cleared or filtered? → A: All spots are cleared on band change; the map starts fresh for the new band.
@@ -320,7 +320,7 @@ zoomed view.
   existing contest scoring logic and is authoritative for the current log state.
 - The "active band" is derived from the rig's polled frequency (already polled
   for QSO entry). Band changes are detected automatically when the polled
-  frequency crosses into a different contest band segment — no separate event
+  frequency crosses into a different contest band segment - no separate event
   or manual band field change is required.
 - A duplicate cluster report (same callsign at the same frequency) refreshes the
   existing marker's expiry timestamp rather than adding a second marker. Multiple
@@ -331,5 +331,5 @@ zoomed view.
   architecturally precluded.
 - When the operator changes bands, all stored spots are cleared and the band map
   starts fresh for the new band. No spot data is carried over across band changes.
-- Zoom and pan state is ephemeral — it resets to full-band default on band change
+- Zoom and pan state is ephemeral - it resets to full-band default on band change
   and is not written to QSettings.

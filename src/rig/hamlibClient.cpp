@@ -9,7 +9,7 @@
 #include "debugLogger.h"
 
 // ============================================================================
-// HamlibWorker — runs on background thread, owns the socket
+// HamlibWorker - runs on background thread, owns the socket
 // ============================================================================
 
 HamlibWorker::HamlibWorker(QObject *parent)
@@ -75,7 +75,7 @@ void HamlibWorker::doPoll()
         if (!ok) freq = 0.0;
     }
 
-    // Get mode (only if freq succeeded — connection is alive)
+    // Get mode (only if freq succeeded - connection is alive)
     QString mode;
     if (freq > 0) {
         QString modeResp = sendCommand("m");
@@ -246,12 +246,12 @@ void HamlibWorker::doGetRigName()
 }
 
 // ============================================================================
-// HamlibClient — main thread facade, delegates to worker
+// HamlibClient - main thread facade, delegates to worker
 // ============================================================================
 
 HamlibClient::HamlibClient(QObject *parent)
     : RigInterface(parent)
-    , m_worker(new HamlibWorker())  // no parent — will be moved to thread
+    , m_worker(new HamlibWorker())  // no parent - will be moved to thread
     , m_cachedFreq(0.0)
     , m_cachedWpm(0)
     , m_connected(false)
@@ -388,7 +388,7 @@ bool HamlibClient::setPTT(bool enable)
     QMetaObject::invokeMethod(m_worker, "doSetPTT", Qt::QueuedConnection,
                               Q_ARG(bool, enable));
     // Fire pttStateChanged locally so CW decoder gating works for our own
-    // setPTT calls. Remote PTT (operator keying via mic) is not detected —
+    // setPTT calls. Remote PTT (operator keying via mic) is not detected -
     // the decoder's FR-019b fallback + the internal-send path (FR-019c) cover
     // ContestLogX-initiated sends regardless of backend PTT visibility.
     emit pttStateChanged(enable);
@@ -433,7 +433,7 @@ bool HamlibClient::setVFO(const QString& vfo)
 
 QString HamlibClient::getRigName()
 {
-    // Synchronous — only called from dialog, not polling
+    // Synchronous - only called from dialog, not polling
     QMetaObject::invokeMethod(m_worker, "doGetRigName", Qt::BlockingQueuedConnection);
     return m_worker->lastRigName();
 }

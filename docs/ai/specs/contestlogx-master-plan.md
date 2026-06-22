@@ -29,25 +29,25 @@ The feature cycle is decomposed into **7 specifications** across **4 dependency 
 
 | Tier | Specs | Purpose | Parallelization |
 |------|-------|---------|-----------------|
-| **1** | SPEC-001 | Visual Band Map — standalone DX spot visualization | ✅ Shipped |
-| **2** | SPEC-002 | SO2R Support — second radio rig control and focus switching | ✅ Shipped |
-| **2** | SPEC-005 | CW Decoder — audio-based Morse decode with QSO entry integration | Independent; can run any time |
-| **2** | SPEC-006 | Online Score Publishing — real-time posting to contestonlinescore.com | Independent; tasks ready |
-| **2** | SPEC-007 | Unify Station Config — migrate legacy stationClasses to userPrompts | Independent; spec draft only |
-| **3** | SPEC-003 | Network Foundation — internet-capable log sync across stations | Sequential after SPEC-002 |
-| **4** | SPEC-004 | Multi-Op Coordination — serial pool, band lockouts, station roles | Requires SPEC-003 |
+| **1** | SPEC-001 | Visual Band Map - standalone DX spot visualization | ✅ Shipped |
+| **2** | SPEC-002 | SO2R Support - second radio rig control and focus switching | ✅ Shipped |
+| **2** | SPEC-005 | CW Decoder - audio-based Morse decode with QSO entry integration | Independent; can run any time |
+| **2** | SPEC-006 | Online Score Publishing - real-time posting to contestonlinescore.com | Independent; tasks ready |
+| **2** | SPEC-007 | Unify Station Config - migrate legacy stationClasses to userPrompts | Independent; spec draft only |
+| **3** | SPEC-003 | Network Foundation - internet-capable log sync across stations | Sequential after SPEC-002 |
+| **4** | SPEC-004 | Multi-Op Coordination - serial pool, band lockouts, station roles | Requires SPEC-003 |
 
 **Current Execution Focus:** SPEC-005 (CW Decoder) and SPEC-006 (Online Scoring) are the next targets. SPEC-003 → SPEC-004 remain the path to networked multi-op.
 
 **Dependency Constraints:**
-- ✅ SPEC-001 had no dependencies — shipped as Visual Band Map (see `specs/001-band-map/`)
-- ✅ SPEC-002 shipped in v0.7.2 as full SO2R support (Radio L/R, backtick toggle, per-radio Run/S&P, mocked backend) — implemented pre-SDD, no `specs/` folder
+- ✅ SPEC-001 had no dependencies - shipped as Visual Band Map (see `specs/001-band-map/`)
+- ✅ SPEC-002 shipped in v0.7.2 as full SO2R support (Radio L/R, backtick toggle, per-radio Run/S&P, mocked backend) - implemented pre-SDD, no `specs/` folder
 - SPEC-003 has no dependency on SPEC-001 or SPEC-002, but is ordered after them so
   the radio control architecture is stable before networking is layered on
 - SPEC-004 requires SPEC-003 (needs the network layer and QSO sync infrastructure)
-- SPEC-005 has no dependencies on any other spec — truly independent audio subsystem
-- SPEC-006 has no dependencies — HTTP POST integration against an external service
-- SPEC-007 has no hard dependencies but touches contest JSON loading and setup UI — any station-class contest work should land after it if feasible
+- SPEC-005 has no dependencies on any other spec - truly independent audio subsystem
+- SPEC-006 has no dependencies - HTTP POST integration against an external service
+- SPEC-007 has no hard dependencies but touches contest JSON loading and setup UI - any station-class contest work should land after it if feasible
 
 ---
 
@@ -85,7 +85,7 @@ SPEC-003 (Network Foundation)        ┌─ SPEC-005 (CW Decoder)          ─ i
 
 **Status Legend:** ⏳ Pending | 🔄 In Progress | ✅ Complete | ⚠️ Blocked
 
-> **Numbering note:** Master-plan `SPEC-NNN` IDs are the stable roadmap identifiers. The `specs/NNN-name/` directories use SpecKit's default sequential naming and were numbered as work was started — so `specs/001-band-map/` → SPEC-001, `specs/002-unify-station-config/` → SPEC-007, `specs/003-online-scoring/` → SPEC-006. The two numbering schemes are not expected to align going forward.
+> **Numbering note:** Master-plan `SPEC-NNN` IDs are the stable roadmap identifiers. The `specs/NNN-name/` directories use SpecKit's default sequential naming and were numbered as work was started - so `specs/001-band-map/` → SPEC-001, `specs/002-unify-station-config/` → SPEC-007, `specs/003-online-scoring/` → SPEC-006. The two numbering schemes are not expected to align going forward.
 
 ---
 
@@ -93,14 +93,14 @@ SPEC-003 (Network Foundation)        ┌─ SPEC-005 (CW Decoder)          ─ i
 
 ### SPEC-001: Visual Band Map ✅ COMPLETE
 
-**Priority:** P1 | **Depends On:** None | **Enables:** SPEC-002 (band map shows both radios) | **Status:** Shipped — `specs/001-band-map/`
+**Priority:** P1 | **Depends On:** None | **Enables:** SPEC-002 (band map shows both radios) | **Status:** Shipped - `specs/001-band-map/`
 
 **Goal:** Add a dockable Band Map widget that displays DX cluster spots on a
 frequency-axis view for the operator's current band, with click-to-QSY.
 
 **Scope:**
 - New `BandMapWidget` QDockWidget showing a frequency axis spanning the current
-  contest band (e.g., 14.000–14.350 MHz for 20m), populated from the existing
+  contest band (e.g., 14.000-14.350 MHz for 20m), populated from the existing
   DX cluster spot stream
 - Spots rendered as labeled markers on the frequency axis: callsign + mode indicator
 - Color coding by status: new multiplier (distinct color), already-worked (muted),
@@ -118,7 +118,7 @@ frequency-axis view for the operator's current band, with click-to-QSY.
 **Out of Scope:**
 - Showing both radios' positions on the map (handled by SPEC-002)
 - Networked spot sharing (all spots come from the local DX cluster connection)
-- Waterfall or SDR integration — frequency-axis spot map only
+- Waterfall or SDR integration - frequency-axis spot map only
 
 **Key Decisions:**
 **Spot Source Decision (2026-03-21):** Band map consumes spots from the existing
@@ -126,10 +126,10 @@ frequency-axis view for the operator's current band, with click-to-QSY.
 This avoids a second telnet session and keeps spot state in one place.
 
 **Key Files:**
-- `src/ui/bandMapWidget.cpp` / `include/bandMapWidget.h` — new widget
-- `src/ui/dxClusterPanel.cpp` / `.h` — add `spotReceived(SpotData)` signal
-- `src/ui/mainWindow.cpp` — add dock, connect signals, QSY routing
-- `src/ui/mainWindow.h` — `m_bandMapWidget` member
+- `src/ui/bandMapWidget.cpp` / `include/bandMapWidget.h` - new widget
+- `src/ui/dxClusterPanel.cpp` / `.h` - add `spotReceived(SpotData)` signal
+- `src/ui/mainWindow.cpp` - add dock, connect signals, QSY routing
+- `src/ui/mainWindow.h` - `m_bandMapWidget` member
 
 ---
 
@@ -157,13 +157,13 @@ keying, and scoring routed to the active radio.
 - Band map (from SPEC-001) extended to show both radios' current frequencies as
   distinct markers (e.g., R1 in green, R2 in orange)
 - SO2R can be enabled/disabled in Preferences; when disabled, app behaves exactly
-  as today (single-radio mode) — no regression for non-SO2R operators
+  as today (single-radio mode) - no regression for non-SO2R operators
 - Radio 2 configuration and SO2R enable/disable persisted in application settings
 
 **Out of Scope:**
-- Automatic band switching or lockout between the two radios (SPEC-004 scope —
+- Automatic band switching or lockout between the two radios (SPEC-004 scope -
   that is for networked multi-op, but a future enhancement could apply it locally)
-- Audio routing / headphone switching — hardware concern, out of software scope
+- Audio routing / headphone switching - hardware concern, out of software scope
 - Support for more than two radios
 
 **Key Decisions:**
@@ -171,17 +171,17 @@ keying, and scoring routed to the active radio.
 instance (separate XML-RPC endpoint). This is the only viable path since ContestLogX
 delegates all CAT control to flrig. A `RigController` class will be extracted from
 the current monolithic flrig polling code to support N instances cleanly.
-Alternatives considered: single flrig instance with VFO A/B split — rejected because
+Alternatives considered: single flrig instance with VFO A/B split - rejected because
 flrig's VFO model doesn't map cleanly to independent-radio SO2R operation.
 
 **Key Files:**
-- `src/core/rigController.cpp` / `include/rigController.h` — extract from
+- `src/core/rigController.cpp` / `include/rigController.h` - extract from
   `mainWindow.cpp`; supports multiple instances
-- `src/ui/so2rFocusWidget.cpp` / `include/so2rFocusWidget.h` — R1/R2 indicator
-- `src/ui/mainWindow.cpp` — SO2R enable, focus switching, dual polling, keying
+- `src/ui/so2rFocusWidget.cpp` / `include/so2rFocusWidget.h` - R1/R2 indicator
+- `src/ui/mainWindow.cpp` - SO2R enable, focus switching, dual polling, keying
   routing
-- `src/ui/preferencesDialog.cpp` — Radio 2 host/port/enable settings
-- `include/mainWindow.h` — second `RigController*` member
+- `src/ui/preferencesDialog.cpp` - Radio 2 host/port/enable settings
+- `include/mainWindow.h` - second `RigController*` member
 
 ---
 
@@ -198,7 +198,7 @@ in real time, with connection management and reconnection handling.
   others connect as clients; all stations can initiate connections (server listens
   on a configurable port)
 - Internet-capable: must work across VLANs and NAT; no assumption of LAN multicast
-  or shared subnet — pure TCP connections to a known host:port
+  or shared subnet - pure TCP connections to a known host:port
 - QSO sync: when any station logs a QSO, it is broadcast to all connected stations
   and appended to their local log; the log view updates live
 - Shared dupe detection: dupe state is derived from the merged log across all
@@ -218,9 +218,9 @@ in real time, with connection management and reconnection handling.
 **Out of Scope:**
 - Serial number pool coordination (SPEC-004)
 - Band lockout enforcement (SPEC-004)
-- Encryption / authentication beyond station callsign identification — TLS and
+- Encryption / authentication beyond station callsign identification - TLS and
   auth tokens are a future hardening step; for now, assume trusted network
-- Log merging/conflict resolution for pre-existing logs — network sync applies only
+- Log merging/conflict resolution for pre-existing logs - network sync applies only
   to QSOs logged after connection is established
 
 **Key Decisions:**
@@ -236,11 +236,11 @@ configuration choice, not a hardware distinction.
 **Key Files:**
 - `src/network/networkServer.cpp` / `include/network/networkServer.h`
 - `src/network/networkClient.cpp` / `include/network/networkClient.h`
-- `src/network/networkProtocol.h` — message struct definitions, JSON serialization
-- `src/ui/networkStatusPanel.cpp` / `include/networkStatusPanel.h` — connected
+- `src/network/networkProtocol.h` - message struct definitions, JSON serialization
+- `src/ui/networkStatusPanel.cpp` / `include/networkStatusPanel.h` - connected
   stations list
-- `src/ui/mainWindow.cpp` — network enable, QSO broadcast hooks, score sync
-- `CMakeLists.txt` — Qt6::Network already a dependency; verify linkage
+- `src/ui/mainWindow.cpp` - network enable, QSO broadcast hooks, score sync
+- `CMakeLists.txt` - Qt6::Network already a dependency; verify linkage
 
 ---
 
@@ -275,7 +275,7 @@ and per-station operator identification in the log.
 **Out of Scope:**
 - Automated radio frequency control based on band lockout (operator still manually
   QSYs; software only warns)
-- Internet relay / cloud server hosting — the server role must be run by one of the
+- Internet relay / cloud server hosting - the server role must be run by one of the
   contest stations on a reachable IP
 
 **Key Decisions:**
@@ -283,7 +283,7 @@ and per-station operator identification in the log.
 numbers. Clients request the next SN via a `SN_REQUEST` message; server responds with
 `SN_GRANT`. If the client is disconnected, it may use a locally cached "hold" SN and
 reconcile on reconnect. This avoids gaps in serial sequences under brief disconnects.
-Alternatives considered: pre-allocated SN ranges per station — rejected because it
+Alternatives considered: pre-allocated SN ranges per station - rejected because it
 produces non-monotonic serials in the final log.
 
 **Band Lockout Decision (2026-03-21):** Advisory (warning) by default; strict
@@ -292,15 +292,15 @@ and operator etiquette vary; a warning is sufficient for most use cases and avoi
 frustrating operators during fast-paced contacts.
 
 **Key Files:**
-- `src/network/serialPool.cpp` / `include/network/serialPool.h` — server-side SN
+- `src/network/serialPool.cpp` / `include/network/serialPool.h` - server-side SN
   allocator
-- `src/network/bandLockout.cpp` / `include/network/bandLockout.h` — claim/release
+- `src/network/bandLockout.cpp` / `include/network/bandLockout.h` - claim/release
   and warning logic
-- `src/ui/multiOpStatusPanel.cpp` / `include/multiOpStatusPanel.h` — per-station
+- `src/ui/multiOpStatusPanel.cpp` / `include/multiOpStatusPanel.h` - per-station
   scores + roles
-- `src/ui/mainWindow.cpp` — SN request/grant flow, band claim on QSY, lockout
+- `src/ui/mainWindow.cpp` - SN request/grant flow, band claim on QSY, lockout
   warnings
-- `src/network/networkProtocol.h` — add SN_REQUEST, SN_GRANT, BAND_CLAIM,
+- `src/network/networkProtocol.h` - add SN_REQUEST, SN_GRANT, BAND_CLAIM,
   BAND_RELEASE message types
 
 ---
@@ -317,12 +317,12 @@ the decoded text with click-to-fill integration into the QSO entry panel.
 - New `CwDecoderWidget` QDockWidget with a scrolling decoded-text display and
   audio device selector (populated from Qt6::Multimedia `QMediaDevices`)
 - Audio capture via `QAudioSource` (Qt6::Multimedia) from the selected input
-  device — this is the system audio device the radio's audio output is routed to
+  device - this is the system audio device the radio's audio output is routed to
   (physical sound card or virtual audio cable, same as fldigi uses); ContestLogX
   does not access flrig's audio directly
 - DSP pipeline: Goertzel algorithm for efficient single-frequency CW tone detection;
   adaptive tone frequency tracking (operator can pin a frequency or let it track
-  automatically within a configurable window); configurable speed range (5–60 WPM)
+  automatically within a configurable window); configurable speed range (5-60 WPM)
   for timing calibration
 - Morse timing decoder: measures dot/dash lengths and inter-element/character/word
   gaps; adapts to the sender's speed automatically using a windowed dot-length
@@ -338,7 +338,7 @@ the decoded text with click-to-fill integration into the QSO entry panel.
   application settings; layout state persisted in QMainWindow saveState
 
 **Out of Scope:**
-- Decoding SSB voice (audio-to-text) — CW only
+- Decoding SSB voice (audio-to-text) - CW only
 - Sending CW via the decoder (decode only; keying is handled by the existing CW
   console and flrig)
 - RTTY or other digital mode decoding
@@ -359,14 +359,14 @@ tone presence/absence detection, Goertzel is appropriate. Speed range is user-
 configurable as a hint; the decoder adapts within that range automatically.
 
 **Key Files:**
-- `src/audio/cwAudioDecoder.cpp` / `include/audio/cwAudioDecoder.h` — DSP +
+- `src/audio/cwAudioDecoder.cpp` / `include/audio/cwAudioDecoder.h` - DSP +
   Morse timing engine (Goertzel + dot-length estimator)
-- `src/audio/audioCapture.cpp` / `include/audio/audioCapture.h` — `QAudioSource`
+- `src/audio/audioCapture.cpp` / `include/audio/audioCapture.h` - `QAudioSource`
   wrapper; emits `audioReady(QByteArray)` signal for decoder consumption
-- `src/ui/cwDecoderWidget.cpp` / `include/cwDecoderWidget.h` — dock widget,
+- `src/ui/cwDecoderWidget.cpp` / `include/cwDecoderWidget.h` - dock widget,
   scrolling text, device selector, clickable token detection
-- `src/ui/mainWindow.cpp` — add dock, wire click signals to QSO entry fields
-- `CMakeLists.txt` — add `Qt6::Multimedia` to target_link_libraries
+- `src/ui/mainWindow.cpp` - add dock, wire click signals to QSO entry fields
+- `CMakeLists.txt` - add `Qt6::Multimedia` to target_link_libraries
 
 ---
 
@@ -407,7 +407,7 @@ configurable as a hint; the decoder adapts within that range automatically.
 - Backward compatibility for already-saved CLX logs created under the old system
 
 **Out of Scope:**
-- Contest-specific rule redesigns — this is a refactor of the config mechanism, not a rule change
+- Contest-specific rule redesigns - this is a refactor of the config mechanism, not a rule change
 
 **Key Files:** `src/contestengine.cpp`, contest JSON loader, contest setup dialog, and any contest JSON files currently using `stationClasses` (ARRL DX, SPDX, and similar).
 
@@ -421,7 +421,7 @@ configurable as a hint; the decoder adapts within that range automatically.
 |----------|--------|
 | Rig control | flrig via XML-RPC (`QNetworkAccessManager` / `QXmlStreamReader`) |
 | DX cluster | Telnet via `QTcpSocket` in `DxClusterPanel` |
-| Qt6::Network | Already linked in `CMakeLists.txt` — available for TCP server/client |
+| Qt6::Network | Already linked in `CMakeLists.txt` - available for TCP server/client |
 | Build system | CMake + `Makefile` wrapper; `make` / `make test` / `make test-logs` |
 | Test framework | `scripts/run_log_tests.py` + `test_logs/automated_tests.json` |
 

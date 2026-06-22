@@ -75,8 +75,8 @@
       "question": "Are you a Missouri or non-MO station?",
       "type": "select",
       "options": [
-        {"value": "MO", "label": "Missouri (In-State) — send RST + MO county"},
-        {"value": "NON_MO", "label": "Non-Missouri (US/VE/DX) — send RST + state/province/DX"}
+        {"value": "MO", "label": "Missouri (In-State) - send RST + MO county"},
+        {"value": "NON_MO", "label": "Non-Missouri (US/VE/DX) - send RST + state/province/DX"}
       ],
       "required": true,
       "storeInMeta": true,
@@ -202,7 +202,7 @@
     ],
     "multipliers": {
       "type": "multsOnce",
-      "description": "MO counties (115), US states (49), Canadian provinces (13), and DX (1) — each counted once. Non-MO stations count MO counties only.",
+      "description": "MO counties (115), US states (49), Canadian provinces (13), and DX (1) - each counted once. Non-MO stations count MO counties only.",
       "categories": ["namedMults"],
       "stationClassMultipliers": {
         "MO": ["namedMults"],

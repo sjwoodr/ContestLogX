@@ -95,7 +95,7 @@ public slots:
     void doDisconnect();
     void doPoll();
 
-    // Setter commands — called via invokeMethod from main thread
+    // Setter commands - called via invokeMethod from main thread
     void doSetFrequency(double freqHz);
     void doSetMode(const QString& mode);
     void doSendCW(const QString& text);

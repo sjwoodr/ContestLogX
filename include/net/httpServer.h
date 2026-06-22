@@ -4,7 +4,7 @@
  *
  * Released under the MIT License. See LICENSE file for details.
  *
- * HttpServer — embedded HTTP/1.1 server for the Remote Control feature
+ * HttpServer - embedded HTTP/1.1 server for the Remote Control feature
  * (TODO item 3). Runs in the main Qt event loop on QTcpServer; each
  * connection is one short-lived request+response (close after response,
  * no keep-alive). Bodies are always JSON for /api/* routes; the root
@@ -53,7 +53,7 @@ struct HttpResponse {
     QHash<QString, QString> extraHeaders;
 };
 
-// Handler signature — simple synchronous request→response. Register via
+// Handler signature - simple synchronous request→response. Register via
 // registerRoute(). Handlers run on the Qt main thread so they can safely
 // read from the snapshot (which takes its own lock internally).
 using HttpHandler = std::function<HttpResponse(const HttpRequest&)>;
@@ -98,7 +98,7 @@ private slots:
 private:
     // Parse buffered bytes into HttpRequest. Returns false if more data
     // is needed (handler call deferred); true if a complete request was
-    // parsed (or malformed — in which case responds 400 immediately).
+    // parsed (or malformed - in which case responds 400 immediately).
     bool tryParseAndDispatch(QTcpSocket* socket, QByteArray& buf);
 
     HttpResponse authenticate(const HttpRequest& req);
@@ -118,7 +118,7 @@ private:
     friend uint qHash(const RouteKey& k, uint seed) noexcept;
     QHash<RouteKey, HttpHandler> m_routes;
 
-    // Per-socket read buffer — HTTP requests can arrive fragmented.
+    // Per-socket read buffer - HTTP requests can arrive fragmented.
     QHash<QTcpSocket*, QByteArray> m_socketBuffers;
 
     bool m_running = false;

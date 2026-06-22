@@ -24,7 +24,7 @@ Most contest loggers are Windows-only, closed-source, or locked to a fixed set o
 - CW keying via CAT with programmable memories (F1-F8)
 - SSB voice keyer with programmable memories
 - WPM speed control
-- QSY Back (Alt+B) — return to the frequency/mode of previous QSOs
+- QSY Back (Alt+B) - return to the frequency/mode of previous QSOs
 
 ### WSJT-X Integration
 - Receives QSO Logged messages from WSJT-X via UDP (port 2237)
@@ -33,7 +33,7 @@ Most contest loggers are Windows-only, closed-source, or locked to a fixed set o
 
 ### DX Cluster
 - Telnet connection to DX cluster servers
-- Spots table — click a spot to QSY and populate the callsign field
+- Spots table - click a spot to QSY and populate the callsign field
 - Console view with raw output and command input
 - Propagation data display (SFI/A/K indices)
 
@@ -59,10 +59,10 @@ Most contest loggers are Windows-only, closed-source, or locked to a fixed set o
 ### Cloud Storage (backup)
 - Automatic background backup of your logs to S3-compatible cloud storage
 - Supported providers: **FileLu** and **Amazon S3** (Dropbox, Google Drive, and iCloud Drive are listed but not implemented yet)
-- Logs always live locally — the local file is the primary copy; every save is mirrored to the cloud in the background, with sync status shown in the status bar
+- Logs always live locally - the local file is the primary copy; every save is mirrored to the cloud in the background, with sync status shown in the status bar
 - Open lets you pull a log down from the cloud, choosing where the local copy is saved
 - Configured under Preferences -> Cloud Storage (endpoint, region, bucket or `bucket/folder`, access/secret keys, with a Test connection button)
-- Built on Qt with AWS Signature V4 signing — no third-party SDK; credentials are stored obfuscated and never sent in plaintext or written to logs
+- Built on Qt with AWS Signature V4 signing - no third-party SDK; credentials are stored obfuscated and never sent in plaintext or written to logs
 
 ### Supported Contests
 | Contest | File |
@@ -143,8 +143,8 @@ make test-logs      # automated contest log validation
 
 On first run, ContestLogX will prompt you to download:
 
-- **cty.dat** — DXCC entity database from [Country Files](https://www.country-files.com/) by Jim Reisert AD1C
-- **master.scp** — Super Check Partial database from [supercheckpartial.com](https://supercheckpartial.com/) by Bruce Horn WA7BNM
+- **cty.dat** - DXCC entity database from [Country Files](https://www.country-files.com/) by Jim Reisert AD1C
+- **master.scp** - Super Check Partial database from [supercheckpartial.com](https://supercheckpartial.com/) by Bruce Horn WA7BNM
 
 These are stored in the user data directory (`~/.local/share/ContestLogX/` on Linux, `~/Library/Application Support/ContestLogX/` on macOS) and can be refreshed from the application menu.
 
@@ -159,12 +159,12 @@ See the [LICENSE](LICENSE) file for the full license text.
 
 ## Acknowledgments
 
-- **[flrig](http://www.w1hkj.com/flrig-help/)** by Dave Freese W1HKJ — rig control abstraction layer used for radio integration
-- **[QLog](https://github.com/foldynl/QLog)** by Ladislav Foldyna OK1MLG — open-source amateur radio logging application (GPL v3) that served as UI inspiration and a reference for flrig/CW integration
-- **[Country Files](https://www.country-files.com/)** by Jim Reisert AD1C — CTY.DAT DXCC country database
-- **[Super Check Partial](https://supercheckpartial.com/)** by Bruce Horn WA7BNM — MASTER.SCP callsign database used for partial callsign lookup during contest logging
-- **[WSJT-X](https://wsjt.sourceforge.io/)** by Joe Taylor K1JT et al. — digital mode software; ContestLogX implements the WSJT-X UDP protocol for QSO pre-fill integration
-- **[Qt](https://www.qt.io)** — cross-platform application framework, used under the GNU LGPL v3
+- **[flrig](http://www.w1hkj.com/flrig-help/)** by Dave Freese W1HKJ - rig control abstraction layer used for radio integration
+- **[QLog](https://github.com/foldynl/QLog)** by Ladislav Foldyna OK1MLG - open-source amateur radio logging application (GPL v3) that served as UI inspiration and a reference for flrig/CW integration
+- **[Country Files](https://www.country-files.com/)** by Jim Reisert AD1C - CTY.DAT DXCC country database
+- **[Super Check Partial](https://supercheckpartial.com/)** by Bruce Horn WA7BNM - MASTER.SCP callsign database used for partial callsign lookup during contest logging
+- **[WSJT-X](https://wsjt.sourceforge.io/)** by Joe Taylor K1JT et al. - digital mode software; ContestLogX implements the WSJT-X UDP protocol for QSO pre-fill integration
+- **[Qt](https://www.qt.io)** - cross-platform application framework, used under the GNU LGPL v3
 
 ---
 

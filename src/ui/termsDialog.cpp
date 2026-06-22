@@ -15,7 +15,7 @@
 TermsDialog::TermsDialog(QWidget* parent)
     : QDialog(parent)
 {
-    setWindowTitle("ContestLogX — Terms of Use");
+    setWindowTitle("ContestLogX - Terms of Use");
     setMinimumSize(560, 380);
     setWindowFlags(windowFlags() & ~Qt::WindowCloseButtonHint);
 

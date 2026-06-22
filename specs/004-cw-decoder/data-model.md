@@ -18,7 +18,7 @@ Represents the binding between a radio and a system audio input device, stored a
 | `radioSide` | `enum { Left, Right }` | The radio this binding is for. In non-SO2R mode, only `Left` is used. |
 | `deviceDescription` | `QString` | Human-readable device name (from `QAudioDevice::description()`). Empty string = "(none)" = decoder disabled for this radio. |
 | `muteDecoderOnPtt` | `bool` | Per-radio setting. Default `true`. When false, both PTT mute paths (FR-019a, FR-019c) are disabled for this radio. |
-| `decoderPttGraceMs` | `int` | Grace window in milliseconds added to the internal-send mute duration. Default `250`. Range 0–2000. |
+| `decoderPttGraceMs` | `int` | Grace window in milliseconds added to the internal-send mute duration. Default `250`. Range 0-2000. |
 
 **Persistence**: Stored in `QSettings` under `rig.left.*` and `rig.right.*` alongside the existing `backend / host / port` keys.
 
@@ -35,13 +35,13 @@ Represents a live multi-channel decoder running for a single radio. One instance
 |---|---|---|
 | `owningRadio` | `enum { Left, Right }` | Immutable once constructed; used for click-fill routing. |
 | `deviceDescription` | `QString` | Snapshot of the binding at session start. |
-| `passbandLowHz` | `int` | Lower edge of the frequency passband. Default `400`. Range 200–2500. |
+| `passbandLowHz` | `int` | Lower edge of the frequency passband. Default `400`. Range 200-2500. |
 | `passbandHighHz` | `int` | Upper edge. Default `1000`. Must exceed `passbandLowHz` by ≥ `binCount × 50` to satisfy DSP resolvability. |
-| `binCount` | `int` | Number of parallel Goertzel bins. Default `6`. Range 1–16. |
+| `binCount` | `int` | Number of parallel Goertzel bins. Default `6`. Range 1-16. |
 | `spotlightRowIndex` | `int` | `-1` = no spotlight; otherwise 0-based index into the bin array. |
-| `squelchThreshold` | `float` | Normalized signal-strength gate applied uniformly across all bins. Default `0.05`. Range 0.0–1.0. |
-| `wpmMin` | `int` | Lower bound for WPM estimator. Default `5`. Range 3–80. |
-| `wpmMax` | `int` | Upper bound. Default `60`. Range `wpmMin + 1` – 100. |
+| `squelchThreshold` | `float` | Normalized signal-strength gate applied uniformly across all bins. Default `0.05`. Range 0.0-1.0. |
+| `wpmMin` | `int` | Lower bound for WPM estimator. Default `5`. Range 3-80. |
+| `wpmMax` | `int` | Upper bound. Default `60`. Range `wpmMin + 1` - 100. |
 | `bins` | `QVector<BinChannel>` | The per-bin state; sized to `binCount` on session start and on every bin-config change. |
 | `muteState` | `MuteState` | TX-mute bookkeeping. |
 | `audioCapture` | `AudioCapture*` | The QAudioSource wrapper feeding this session. |
@@ -103,7 +103,7 @@ A single Goertzel-based decoder for one frequency bin within a `DecoderSession`.
 6. On character emission: re-scan the tail of `textBuffer` for new `DecodedToken` matches.
 7. If a new dot was measured: append to `dotLengthWindow`, recompute `currentWpm`, update `lockState`, emit `wpmUpdated(binIdx, currentWpm)` if changed.
 
-**Gating**: If `DecoderSession.muteState` is non-Idle, step 4 onward is skipped — the Goertzel recursion still runs (so state doesn't go stale when mute drops) but no characters are emitted, no timing is measured, no tokens are created.
+**Gating**: If `DecoderSession.muteState` is non-Idle, step 4 onward is skipped - the Goertzel recursion still runs (so state doesn't go stale when mute drops) but no characters are emitted, no timing is measured, no tokens are created.
 
 ---
 

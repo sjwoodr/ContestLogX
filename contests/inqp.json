@@ -4,7 +4,7 @@
     "abbreviation": "INQP",
     "version": "1.0.0",
     "sponsor": "Hoosier DX and Contest Club (HDXCC)",
-    "description": "Indiana state QSO party — Indiana stations work everyone, others work Indiana stations only. CW and Phone (no digital modes per sponsor rules).",
+    "description": "Indiana state QSO party - Indiana stations work everyone, others work Indiana stations only. CW and Phone (no digital modes per sponsor rules).",
     "startDate": "First full weekend of May, 1500 UTC Saturday to 0259 UTC Sunday (2026: May 2-3)",
     "duration": 12,
     "offTimeGapMinutes": 0,
@@ -81,10 +81,10 @@
         {"value": "SO_QRP",  "label": "Single Op: QRP (≤5W)"},
         {"value": "MS",      "label": "Multi-Op Single Transmitter"},
         {"value": "MM",      "label": "Multi-Op Multi-Transmitter"},
-        {"value": "MOB",     "label": "Mobile (Indiana stations only — operates from one or two counties at a time)"},
+        {"value": "MOB",     "label": "Mobile (Indiana stations only - operates from one or two counties at a time)"},
         {"value": "POR_SC",  "label": "Portable, Single County (Indiana stations only)"},
-        {"value": "POR_CL",  "label": "Portable, County Line (Indiana stations only — operate equally from both)"},
-        {"value": "ROV",     "label": "Rover (Indiana stations only — non-mobile antennas, multiple locations)"}
+        {"value": "POR_CL",  "label": "Portable, County Line (Indiana stations only - operate equally from both)"},
+        {"value": "ROV",     "label": "Rover (Indiana stations only - non-mobile antennas, multiple locations)"}
       ],
       "required": true,
       "storeInMeta": true,
@@ -162,7 +162,7 @@
   },
   "dupeChecking": {
     "type": "perBandAndMode",
-    "description": "A station may be worked once on CW and once on SSB per band — theoretically up to 12 times for a fixed station (6 bands × 2 modes). Indiana mobiles, rovers, and county-line portables may be re-worked from each new county. County-line contacts: log each county as a separate QSO with the same callsign, or one QSO with all counties noted; the per-band-and-mode dupe check by exchange code allows separate-QSO logging naturally."
+    "description": "A station may be worked once on CW and once on SSB per band - theoretically up to 12 times for a fixed station (6 bands × 2 modes). Indiana mobiles, rovers, and county-line portables may be re-worked from each new county. County-line contacts: log each county as a separate QSO with the same callsign, or one QSO with all counties noted; the per-band-and-mode dupe check by exchange code allows separate-QSO logging naturally."
   },
   "logging": {
     "requiredFields": ["date", "time", "frequency", "mode", "callsign", "rstSent", "rstReceived", "exchSent", "exchReceived"],

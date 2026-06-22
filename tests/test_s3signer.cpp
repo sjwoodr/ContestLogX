@@ -16,7 +16,7 @@
  * S3 test vectors. If these pass, the canonicalization and key derivation are
  * exact and real S3/FileLu requests will authenticate.
  *
- * Reference: AWS docs "Examples: Signature calculations" — GET Object and
+ * Reference: AWS docs "Examples: Signature calculations" - GET Object and
  * PUT Object examples (bucket "examplebucket", us-east-1, the well-known
  * AKIAIOSFODNN7EXAMPLE / wJalrX... credentials, date 2013-05-24).
  */

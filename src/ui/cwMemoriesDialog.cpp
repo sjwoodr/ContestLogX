@@ -100,7 +100,7 @@ void CwMemoriesDialog::setupUi()
         gridLayout->addWidget(m_textEdits[i], i + 1, 2);
 
         m_roleCombo[i] = new QComboBox(this);
-        m_roleCombo[i]->addItem("—",          static_cast<int>(MemoryRole::NoRole));
+        m_roleCombo[i]->addItem(" - ",          static_cast<int>(MemoryRole::NoRole));
         m_roleCombo[i]->addItem("CQ",         static_cast<int>(MemoryRole::CQ));
         m_roleCombo[i]->addItem("My Call",    static_cast<int>(MemoryRole::MyCall));
         m_roleCombo[i]->addItem("Run Exch",   static_cast<int>(MemoryRole::RunExchange));
@@ -206,7 +206,7 @@ void CwMemoriesDialog::onSave()
         return MemoryRole::NoRole;
     };
 
-    // Current UI state is the set being edited — make sure it's captured first
+    // Current UI state is the set being edited - make sure it's captured first
     QList<CwMemory> currentUi = getMemoriesFromUi();
     const QList<CwMemory>& stationMems = m_currentIsContest ? m_stationMemories : currentUi;
     const QList<CwMemory>& contestMems = m_currentIsContest ? currentUi : m_contestMemories;

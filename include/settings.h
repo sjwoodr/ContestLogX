@@ -32,7 +32,7 @@ public:
     // Override the directory where Settings reads/writes ContestLogX.json.
     // Must be called BEFORE the first Settings::instance() call (ideally
     // very early in main() right after CLI parsing). Used by the
-    // --config-dir flag to sandbox a CLX session — local smoke testing,
+    // --config-dir flag to sandbox a CLX session - local smoke testing,
     // running multiple CLX instances with different identities, etc.
     // Empty string clears the override (default location is used).
     static void setOverrideConfigDir(const QString& dir);
@@ -167,7 +167,7 @@ public:
     bool getRadioRMockedAutoConnect() const;
     void setRadioRMockedAutoConnect(bool autoConnect);
 
-    // CW Decoder — per-radio audio input + PTT mute settings (SPEC-005)
+    // CW Decoder - per-radio audio input + PTT mute settings (SPEC-005)
     QString getRadioLAudioInputDevice() const;
     void setRadioLAudioInputDevice(const QString& deviceDescription);
     bool getRadioLMuteDecoderOnPtt() const;
@@ -189,7 +189,7 @@ public:
     void setCwDecoderPassbandLowHz(bool right, int hz);
     int getCwDecoderPassbandHighHz(bool right) const;
     void setCwDecoderPassbandHighHz(bool right, int hz);
-    // Center frequency — derived passband = center ± (bins × 25). Replaces
+    // Center frequency - derived passband = center ± (bins × 25). Replaces
     // the two-spinbox passbandLow/High controls in the widget UI. If an
     // existing profile has passbandLow/High but no centerHz, the getter
     // migrates to (low+high)/2.
@@ -404,7 +404,7 @@ public:
     bool getForceX11() const;
     void setForceX11(bool enabled);
 
-    // Terms of use — version-based re-acceptance
+    // Terms of use - version-based re-acceptance
     int getTermsAcceptedVersion() const;
     void setTermsAcceptedVersion(int version);
 
@@ -412,7 +412,7 @@ public:
     QFont getPanelFont(const QString& panelKey) const;
     void setPanelFont(const QString& panelKey, const QFont& font);
 
-    // Remote Control — embedded HTTP server for LAN dashboards and minimal
+    // Remote Control - embedded HTTP server for LAN dashboards and minimal
     // rig control from mobile devices (TODO item 3). Off by default; when
     // enabled, binds according to getRemoteControlBindMode() and serves
     // read-only JSON endpoints plus a static dashboard page at /.

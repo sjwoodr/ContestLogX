@@ -94,13 +94,13 @@ void PreferencesDialog::setupUi()
 
     m_cqZoneSpinBox = new QSpinBox(this);
     m_cqZoneSpinBox->setRange(0, 40);
-    m_cqZoneSpinBox->setSpecialValueText("—");
+    m_cqZoneSpinBox->setSpecialValueText(" - ");
     m_cqZoneSpinBox->setValue(settings.getCqZone());
     stationLayout->addRow("CQ Zone:", m_cqZoneSpinBox);
 
     m_ituZoneSpinBox = new QSpinBox(this);
     m_ituZoneSpinBox->setRange(0, 90);
-    m_ituZoneSpinBox->setSpecialValueText("—");
+    m_ituZoneSpinBox->setSpecialValueText(" - ");
     m_ituZoneSpinBox->setValue(settings.getItuZone());
     stationLayout->addRow("ITU Zone:", m_ituZoneSpinBox);
 
@@ -388,7 +388,7 @@ void PreferencesDialog::setupUi()
     buildCloudProviderGroup(cloudVLayout, CloudProviderType::AwsS3,
                             "https://s3.us-east-1.amazonaws.com", "us-east-1");
 
-    // Stub providers — present but disabled and clearly marked
+    // Stub providers - present but disabled and clearly marked
     for (CloudProviderType stub : { CloudProviderType::Dropbox,
                                     CloudProviderType::GoogleDrive,
                                     CloudProviderType::ICloudDrive }) {
@@ -438,7 +438,7 @@ void PreferencesDialog::setupUi()
     }
     rcLayout->addRow("Bind to:", m_rcBindModeCombo);
 
-    // Token row — read-only display + Rotate button. Auto-generated on
+    // Token row - read-only display + Rotate button. Auto-generated on
     // first enable; rotating invalidates anything that had the old token
     // saved in a bookmark.
     m_rcTokenEdit = new QLineEdit;
@@ -453,7 +453,7 @@ void PreferencesDialog::setupUi()
     rcTokenRow->addWidget(m_rcRotateTokenButton);
     rcLayout->addRow("Auth token:", rcTokenRow);
 
-    // URL-for-phone helper — single-line read-only edit so long URLs
+    // URL-for-phone helper - single-line read-only edit so long URLs
     // (especially with "Any interface" + long token) don't wrap and
     // get clipped. QLineEdit scrolls horizontally and stays selectable.
     m_rcUrlLabel = new QLineEdit;
@@ -464,14 +464,14 @@ void PreferencesDialog::setupUi()
     rcUrlRow->addWidget(m_rcCopyUrlButton);
     rcLayout->addRow("Phone URL:", rcUrlRow);
 
-    // QR code — scan with a phone camera to open the URL with the token
+    // QR code - scan with a phone camera to open the URL with the token
     // pre-filled. Saves typing the IP, port, and token by hand.
     m_rcQrCode = new QrCodeWidget;
     rcLayout->addRow("Scan with phone:", m_rcQrCode);
 
     QLabel *rcNote = new QLabel(
         "Changes take effect after clicking OK; the server stops and restarts "
-        "with the new settings. Keep the token private — anyone on your LAN "
+        "with the new settings. Keep the token private - anyone on your LAN "
         "with the URL and token can view your session state.");
     rcNote->setWordWrap(true);
     rcNote->setStyleSheet("color: gray;");
@@ -503,7 +503,7 @@ void PreferencesDialog::setupUi()
     });
     connect(m_rcCopyUrlButton, &QPushButton::clicked, this, [this]() {
         const QString url = m_rcUrlLabel->text();
-        if (!url.isEmpty() && !url.startsWith(QLatin1String("—"))) {
+        if (!url.isEmpty() && !url.startsWith(QLatin1String(" - "))) {
             QGuiApplication::clipboard()->setText(url);
         }
     });
@@ -636,7 +636,7 @@ void PreferencesDialog::saveSettings()
         m_lookupChanged = true;
     }
 
-    // Online scoring — validate required fields if enabling
+    // Online scoring - validate required fields if enabling
     if (m_osEnabledCheck->isChecked()) {
         QStringList missing;
         if (m_osCallsignEdit->text().trimmed().isEmpty()) missing << "Online Scoring Callsign";
@@ -661,7 +661,7 @@ void PreferencesDialog::saveSettings()
     settings.setOnlineScoringInterval(m_osIntervalCombo->currentData().toInt());
     settings.setOnlineScoringPerQso(m_osPerQsoCheck->isChecked());
 
-    // Cloud storage — persist each functional provider's config. Warn (and
+    // Cloud storage - persist each functional provider's config. Warn (and
     // disable) if an enabled provider has a non-https endpoint (FR-019).
     for (const CloudProviderRow& row : m_cloudRows) {
         CloudProviderConfig cfg;
@@ -677,7 +677,7 @@ void PreferencesDialog::saveSettings()
         if (cfg.enabled && !cfg.s3.endpoint.startsWith("https://", Qt::CaseInsensitive)) {
             QMessageBox::warning(this, "Cloud Storage",
                 CloudProvider::displayName(row.type) +
-                " endpoint must use https:// — this provider was left disabled.");
+                " endpoint must use https:// - this provider was left disabled.");
             cfg.enabled = false;
             row.enabled->setChecked(false);
         }
@@ -689,7 +689,7 @@ void PreferencesDialog::saveSettings()
                      cfg.s3.endpoint, cfg.s3.bucket));
     }
 
-    // Remote Control — save config and emit a signal that MainWindow
+    // Remote Control - save config and emit a signal that MainWindow
     // can hook to restart the HTTP server with new settings. The server's
     // listener port / bind mode might have changed; easiest is to stop
     // and start it.
@@ -714,7 +714,7 @@ void PreferencesDialog::updateRemoteControlUrlLabel()
     const QString token = m_rcTokenEdit->text();
 
     // Pick a sensible address to surface in the URL. "lan" auto-detects
-    // the first non-loopback IPv4 — what a phone on the same Wi-Fi
+    // the first non-loopback IPv4 - what a phone on the same Wi-Fi
     // will reach. "localhost" is for testing on the same machine. "any"
     // shows both so the operator can tell their phone where to point.
     QString hostPart;
@@ -739,13 +739,13 @@ void PreferencesDialog::updateRemoteControlUrlLabel()
 
     if (!m_rcEnabledCheck->isChecked()) {
         m_rcUrlLabel->setText(
-            QStringLiteral("— (enable the server above to see the URL)"));
+            QStringLiteral(" - (enable the server above to see the URL)"));
         if (m_rcQrCode) m_rcQrCode->setData(QString());
         return;
     }
     if (token.isEmpty()) {
         m_rcUrlLabel->setText(
-            QStringLiteral("— (no token; check the checkbox to generate one)"));
+            QStringLiteral(" - (no token; check the checkbox to generate one)"));
         if (m_rcQrCode) m_rcQrCode->setData(QString());
         return;
     }
@@ -969,7 +969,7 @@ void PreferencesDialog::onTestOnlineScoring()
     }, Qt::SingleShotConnection);
 
     connect(m_osTestClient, &OnlineScoreClient::authFailed, this, [this]() {
-        m_osTestStatusLabel->setText("Authentication failed — check credentials");
+        m_osTestStatusLabel->setText("Authentication failed - check credentials");
         m_osTestStatusLabel->setStyleSheet("color: red;");
         m_osTestButton->setEnabled(true);
     }, Qt::SingleShotConnection);

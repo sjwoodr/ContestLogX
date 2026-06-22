@@ -76,8 +76,8 @@
       "question": "Are you a Czech/Slovak or DX station?",
       "type": "select",
       "options": [
-        {"value": "DX", "label": "DX (non-OK/OM) — send RST + serial number"},
-        {"value": "OK_OM", "label": "OK/OM (Czech/Slovak) — send RST + county code"}
+        {"value": "DX", "label": "DX (non-OK/OM) - send RST + serial number"},
+        {"value": "OK_OM", "label": "OK/OM (Czech/Slovak) - send RST + county code"}
       ],
       "required": true,
       "storeInMeta": true

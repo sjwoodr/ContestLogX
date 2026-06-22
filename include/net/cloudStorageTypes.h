@@ -21,11 +21,11 @@
  */
 
 enum class CloudProviderType {
-    FileLu,        // functional — S3-compatible "S5" object storage (s5lu.com)
-    AwsS3,         // functional — Amazon S3
-    Dropbox,       // stub — "Not implemented yet"
-    GoogleDrive,   // stub — "Not implemented yet"
-    ICloudDrive    // stub — "Not implemented yet"
+    FileLu,        // functional - S3-compatible "S5" object storage (s5lu.com)
+    AwsS3,         // functional - Amazon S3
+    Dropbox,       // stub - "Not implemented yet"
+    GoogleDrive,   // stub - "Not implemented yet"
+    ICloudDrive    // stub - "Not implemented yet"
 };
 
 namespace CloudProvider {

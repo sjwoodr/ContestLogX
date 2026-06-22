@@ -4,7 +4,7 @@
  *
  * Released under the MIT License. See LICENSE file for details.
  *
- * CwDecoderWidget — dockable multi-channel CW decoder panel (SPEC-005).
+ * CwDecoderWidget - dockable multi-channel CW decoder panel (SPEC-005).
  * One widget per radio bound to a specific RadioSide at construction time.
  */
 
@@ -67,7 +67,7 @@ public:
     void setContestEngine(ContestEngine* engine);
 
 public slots:
-    // Call after a contest is loaded or unloaded so the "Practice — Contest
+    // Call after a contest is loaded or unloaded so the "Practice - Contest
     // Exchange" audio-source entry is enabled/disabled to match.
     void refreshPracticeContestAvailability();
 
@@ -89,7 +89,7 @@ public slots:
 
 signals:
     // Emitted when the operator clicks a decoded CALL token. binIndex is
-    // informational — MainWindow routes to owningRadio's entry.
+    // informational - MainWindow routes to owningRadio's entry.
     void callClicked(const QString& callsign, int binIndex);
     void rstClicked(const QString& rst, int binIndex);
 
@@ -121,7 +121,7 @@ private:
     // OS-level microphone permission check used by beginDecoding() before
     // a real-device capture is started. Returns true if we already hold
     // permission and beginDecoding should continue immediately. Returns
-    // false if permission is denied or pending — the helper itself handles
+    // false if permission is denied or pending - the helper itself handles
     // user feedback (modal dialog on denial) and async retry on grant
     // (re-invokes beginDecoding with the same device when the OS responds).
     // Skipped for the practice virtual sources since they don't touch a

@@ -67,8 +67,8 @@
       "question": "Are you a North Dakota or non-ND station?",
       "type": "select",
       "options": [
-        {"value": "ND", "label": "North Dakota (In-State) — send RST + ND county"},
-        {"value": "NON_ND", "label": "Non-ND (US/VE/DX) — send RST + state/province/DX"}
+        {"value": "ND", "label": "North Dakota (In-State) - send RST + ND county"},
+        {"value": "NON_ND", "label": "Non-ND (US/VE/DX) - send RST + state/province/DX"}
       ],
       "required": true,
       "storeInMeta": true,

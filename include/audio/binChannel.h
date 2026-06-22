@@ -4,7 +4,7 @@
  *
  * Released under the MIT License. See LICENSE file for details.
  *
- * BinChannel — a single-frequency Goertzel tone detector + dot/dash classifier
+ * BinChannel - a single-frequency Goertzel tone detector + dot/dash classifier
  * + rolling-median WPM estimator + Morse decoder (SPEC-005). One instance per
  * decoder bin (row in the UI).
  */
@@ -51,7 +51,7 @@ public:
     LockState lockState() const { return m_lockState; }
     const QString& textBuffer() const { return m_textBuffer; }
 
-    // Diagnostic accessors — used by the worker's debug-gated periodic
+    // Diagnostic accessors - used by the worker's debug-gated periodic
     // stats logger to surface "is signal reaching this bin at all?"
     // without invasive logging on every block.
     double lastNormalizedMagnitude() const {
@@ -65,7 +65,7 @@ public:
     // bounding range). Does not reset the rolling window.
     void setWpmBounds(int wpmMin, int wpmMax);
 
-    // Set the word-gap multiplier — the factor applied to the bin's
+    // Set the word-gap multiplier - the factor applied to the bin's
     // current dot-length estimate to derive the fallback word-boundary
     // gap threshold (and the bootstrap default before adaptive analysis
     // has enough samples). Textbook CW spacing is 7×; tightly-sent
@@ -78,7 +78,7 @@ public:
     }
 
     // Clear ONLY the scrolling text buffer. Preserves Goertzel state,
-    // WPM estimator, and the in-progress Morse element buffer — decoding
+    // WPM estimator, and the in-progress Morse element buffer - decoding
     // continues without a re-convergence penalty (FR-012).
     void clearTextBuffer();
 
@@ -110,7 +110,7 @@ private:
     double m_centerFreqHz;
     int m_sampleRateHz;
 
-    // Goertzel state — reset at each block boundary.
+    // Goertzel state - reset at each block boundary.
     double m_coeff = 0.0;
     double m_sPrev = 0.0;
     double m_sPrev2 = 0.0;
@@ -125,7 +125,7 @@ private:
     int m_pendingBlocks = 0;        // how many blocks disagreeing with m_toneActive
     // Peak smoothed magnitude observed during the current tone-active run.
     // Used by the adaptive off-threshold so the Schmitt releases at a
-    // consistent fraction of the peak rather than a fraction of squelch —
+    // consistent fraction of the peak rather than a fraction of squelch -
     // which removes the block-quantization bias that made the WPM readout
     // consistently ~20% below the actual signal speed.
     double m_currentToneOnPeak = 0.0;
@@ -134,13 +134,13 @@ private:
     QString m_morseBuffer;           // ".-" etc.
 
     // Rolling window of RECENT ELEMENT DURATIONS (dot or dash, ms). The
-    // 25th percentile of this window is the dot-length estimate — this is
+    // 25th percentile of this window is the dot-length estimate - this is
     // robust even when the classifier is initially wrong, because dots are
     // always shorter than dashes (roughly 1:3), so the lower quartile
     // reliably points at the dot cluster once a few elements are seen.
     std::deque<int> m_recentElementMs;
 
-    // Rolling window of RECENT BOUNDARY GAPS (ms) — only gaps ≥ 2 dot-units
+    // Rolling window of RECENT BOUNDARY GAPS (ms) - only gaps ≥ 2 dot-units
     // (character or word boundaries). Used for adaptive word-gap
     // classification via "largest-jump" analysis.
     std::deque<int> m_recentBoundaryGaps;
