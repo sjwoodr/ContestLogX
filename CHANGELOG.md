@@ -2,6 +2,11 @@
 
 All notable changes to ContestLogX are documented in this file.
 
+## [0.9.5]
+
+### Contest Updates
+- RAC Canada Day: Sable Island (CY0) and St. Paul Island (CY9) stations now score 10 points as Canadian stations
+
 ## [0.9.4]
 
 ### Contest Updates

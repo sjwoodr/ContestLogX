@@ -172,7 +172,7 @@
       "VE6RAC", "VE7RAC", "VE8RAC", "VE9RAC", "VO1RAC", "VO2RAC",
       "VY0RAC", "VY1RAC", "VY2RAC"
     ],
-    "canadianStationPrefixes": ["VE"],
+    "canadianStationPrefixes": ["VE", "CY0", "CY9"],
     "multipliers": {
       "type": "multsPerBandAndMode",
       "description": "13 Canadian provinces/territories, each counted once per band per mode. Maximum 13 × 8 bands × 2 modes = 208 multiplier credits if every province is worked on every band/mode combination. Non-Canadian and VE0 contacts are points-only - they are not multipliers.",
