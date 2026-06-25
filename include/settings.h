@@ -214,6 +214,13 @@ public:
     void setCwKeyerSource(bool right, const QString& source);
     QString getCwKeyerPort(bool right) const;
     void setCwKeyerPort(bool right, const QString& port);
+    // Serial framing for the WinKeyer link. Defaults match the classic WinKey
+    // host spec / AtomKey: 1200 baud, 1 stop bit (8N1). A real USB WKmini may
+    // need different values, so they are user-configurable.
+    int  getCwKeyerBaud(bool right) const;
+    void setCwKeyerBaud(bool right, int baud);
+    int  getCwKeyerStopBits(bool right) const;
+    void setCwKeyerStopBits(bool right, int stopBits);
 
     // WSJT-X integration
     bool getWsjtxEnabled() const;

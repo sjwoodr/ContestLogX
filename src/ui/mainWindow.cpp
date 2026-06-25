@@ -8928,9 +8928,12 @@ void MainWindow::setupCwKeyers()
         }
         const QString source = settings.getCwKeyerSource(right);
         const QString port = settings.getCwKeyerPort(right);
+        const int baud = settings.getCwKeyerBaud(right);
+        const int stopBits = settings.getCwKeyerStopBits(right);
         DebugLogger::instance().log("MainWindow",
-            QString("setupCwKeyers %1: source=%2 port=%3")
-                .arg(right ? "R" : "L").arg(source, port));
+            QString("setupCwKeyers %1: source=%2 port=%3 baud=%4 stopBits=%5")
+                .arg(right ? "R" : "L").arg(source, port)
+                .arg(baud).arg(stopBits));
         if (source != "winkeyer" || port.isEmpty())
             return;
 
@@ -8948,7 +8951,7 @@ void MainWindow::setupCwKeyers()
             DebugLogger::instance().log("MainWindow",
                 QString("WinKeyer (%1) error: %2").arg(side, e));
         });
-        keyer->connectAsync(port);
+        keyer->connectAsync(port, baud, stopBits);
     };
 
     setup(m_winKeyerL, false);

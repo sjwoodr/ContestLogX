@@ -80,6 +80,8 @@ private:
         // CW Keyer (WinKeyer) - per-radio, independent of the rig backend
         QComboBox* keyerSourceCombo = nullptr;       // "rig" | "winkeyer"
         QComboBox* keyerPortCombo = nullptr;         // editable; QSerialPortInfo list
+        QComboBox* keyerBaudCombo = nullptr;         // serial baud (default 1200)
+        QComboBox* keyerStopBitsCombo = nullptr;     // stop bits (default 1 = 8N1)
         QPushButton* keyerRefreshButton = nullptr;
         QPushButton* keyerDetectButton = nullptr;
         QLabel* keyerStatusLabel = nullptr;

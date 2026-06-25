@@ -4,6 +4,10 @@ All notable changes to ContestLogX are documented in this file.
 
 ## [0.9.5]
 
+### CW Keying (WinKeyer)
+- The WinKeyer serial connection now has configurable Baud and Stop bits in Rig Control -> CW keyer. Defaults stay at 1200 baud / 1 stop bit (8N1), which matches the classic WinKey spec and the AtomKey test device, so existing setups are unchanged. USB keyers that expect different framing (a real K1EL WKmini wants 2 stop bits / 8N2) can now be set to match. The Detect keyer probe uses the selected values, so you can test a setting without restarting
+- Added diagnostic logging to the WinKeyer debug category: the Refresh button now logs every enumerated serial port with its location, description, manufacturer and USB VID:PID, and a failed host-open now logs whether the port could not be opened (busy/permissions) versus opened but got no handshake response (wrong baud/stop bits, or not a WinKeyer). This makes it possible to tell from the debug log why a keyer was not detected
+
 ### Contest Updates
 - RAC Canada Day: Sable Island (CY0) and St. Paul Island (CY9) stations now score 10 points as Canadian stations
 

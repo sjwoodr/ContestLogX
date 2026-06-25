@@ -11,6 +11,7 @@
 #include "hamlibClient.h"
 #include "mockedRigClient.h"
 #include "winKeyerClient.h"
+#include "debugLogger.h"
 #include <QSerialPortInfo>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -284,6 +285,26 @@ QWidget* RigControlDialog::createRadioPage(RadioWidgets& w)
     keyerPortRow->addWidget(w.keyerRefreshButton);
     keyerForm->addRow("Serial port:", keyerPortRow);
 
+    // Serial framing. Defaults (1200 / 1 stop bit = 8N1) match the classic
+    // WinKey spec and AtomKey; a real USB WKmini may need other values.
+    QHBoxLayout* keyerSerialRow = new QHBoxLayout();
+    w.keyerBaudCombo = new QComboBox(keyerGroup);
+    w.keyerBaudCombo->addItem("1200 (WinKey default)", 1200);
+    w.keyerBaudCombo->addItem("4800", 4800);
+    w.keyerBaudCombo->addItem("9600", 9600);
+    w.keyerBaudCombo->addItem("19200", 19200);
+    w.keyerBaudCombo->addItem("38400", 38400);
+    w.keyerStopBitsCombo = new QComboBox(keyerGroup);
+    w.keyerStopBitsCombo->addItem("1 (8N1)", 1);
+    w.keyerStopBitsCombo->addItem("2 (8N2)", 2);
+    keyerSerialRow->addWidget(new QLabel("Baud:", keyerGroup));
+    keyerSerialRow->addWidget(w.keyerBaudCombo);
+    keyerSerialRow->addSpacing(12);
+    keyerSerialRow->addWidget(new QLabel("Stop bits:", keyerGroup));
+    keyerSerialRow->addWidget(w.keyerStopBitsCombo);
+    keyerSerialRow->addStretch(1);
+    keyerForm->addRow("Serial params:", keyerSerialRow);
+
     QHBoxLayout* keyerDetectRow = new QHBoxLayout();
     w.keyerDetectButton = new QPushButton("Detect keyer", keyerGroup);
     w.keyerStatusLabel = new QLabel(QString(), keyerGroup);
@@ -450,6 +471,21 @@ void RigControlDialog::loadSettings(RadioWidgets& w)
         if (pi >= 0) w.keyerPortCombo->setCurrentIndex(pi);
         else if (!port.isEmpty()) w.keyerPortCombo->setEditText(port);
     }
+    if (w.keyerBaudCombo) {
+        const int baud = settings.getCwKeyerBaud(w.isRadioR);
+        int bi = w.keyerBaudCombo->findData(baud);
+        if (bi >= 0) {
+            w.keyerBaudCombo->setCurrentIndex(bi);
+        } else {                       // a custom baud not in the preset list
+            w.keyerBaudCombo->addItem(QString::number(baud), baud);
+            w.keyerBaudCombo->setCurrentIndex(w.keyerBaudCombo->count() - 1);
+        }
+    }
+    if (w.keyerStopBitsCombo) {
+        const int sb = settings.getCwKeyerStopBits(w.isRadioR);
+        int si = w.keyerStopBitsCombo->findData(sb);
+        w.keyerStopBitsCombo->setCurrentIndex(si >= 0 ? si : 0);
+    }
     onKeyerSourceChanged(w);  // enable/disable the WinKeyer rows for current source
 
     // Trigger UI update for current backend
@@ -525,6 +561,10 @@ void RigControlDialog::saveSettings(RadioWidgets& w)
         if (newPort.isEmpty()) newPort = w.keyerPortCombo->currentText().trimmed();
         settings.setCwKeyerSource(w.isRadioR, newSource);
         settings.setCwKeyerPort(w.isRadioR, newPort);
+        if (w.keyerBaudCombo)
+            settings.setCwKeyerBaud(w.isRadioR, w.keyerBaudCombo->currentData().toInt());
+        if (w.keyerStopBitsCombo)
+            settings.setCwKeyerStopBits(w.isRadioR, w.keyerStopBitsCombo->currentData().toInt());
     }
 }
 
@@ -533,11 +573,36 @@ void RigControlDialog::populateKeyerPorts(RadioWidgets& w)
     if (!w.keyerPortCombo) return;
     const QString current = w.keyerPortCombo->currentText();
     w.keyerPortCombo->clear();
-    for (const QSerialPortInfo& info : QSerialPortInfo::availablePorts()) {
+
+    // Log every serial port we enumerate (and its USB identity) so a user who
+    // can't get a keyer "detected" can tell from the debug log whether the
+    // device even appears here vs. appears-but-won't-handshake.
+    const QList<QSerialPortInfo> ports = QSerialPortInfo::availablePorts();
+    DebugLogger::instance().log("WinKeyer",
+        QString("Refresh: enumerated %1 serial port(s)").arg(ports.size()));
+    for (const QSerialPortInfo& info : ports) {
+        QString vidpid = "no USB id";
+        if (info.hasVendorIdentifier() && info.hasProductIdentifier()) {
+            vidpid = QString("VID:PID %1:%2")
+                .arg(info.vendorIdentifier(), 4, 16, QChar('0'))
+                .arg(info.productIdentifier(), 4, 16, QChar('0'));
+        }
+        DebugLogger::instance().log("WinKeyer",
+            QString("  port=%1 loc=%2 desc='%3' mfr='%4' %5")
+                .arg(info.portName(),
+                     info.systemLocation(),
+                     info.description(),
+                     info.manufacturer(),
+                     vidpid));
+
         const QString label = info.description().isEmpty()
             ? info.portName()
             : QString("%1 - %2").arg(info.portName(), info.description());
         w.keyerPortCombo->addItem(label, info.systemLocation());
+    }
+    if (ports.isEmpty()) {
+        DebugLogger::instance().log("WinKeyer",
+            "Refresh: no serial ports found (check cable/driver/permissions)");
     }
     if (!current.isEmpty()) {
         int idx = w.keyerPortCombo->findData(current);
@@ -551,6 +616,8 @@ void RigControlDialog::onKeyerSourceChanged(RadioWidgets& w)
     if (!w.keyerSourceCombo) return;
     const bool winkeyer = (w.keyerSourceCombo->currentData().toString() == "winkeyer");
     if (w.keyerPortCombo)        w.keyerPortCombo->setEnabled(winkeyer);
+    if (w.keyerBaudCombo)        w.keyerBaudCombo->setEnabled(winkeyer);
+    if (w.keyerStopBitsCombo)    w.keyerStopBitsCombo->setEnabled(winkeyer);
     if (w.keyerRefreshButton)    w.keyerRefreshButton->setEnabled(winkeyer);
     if (w.keyerDetectButton)     w.keyerDetectButton->setEnabled(winkeyer);
     if (!winkeyer && w.keyerStatusLabel) w.keyerStatusLabel->clear();
@@ -566,12 +633,15 @@ void RigControlDialog::onKeyerDetectClicked(RadioWidgets& w)
         return;
     }
 
+    const int baud = w.keyerBaudCombo ? w.keyerBaudCombo->currentData().toInt() : 1200;
+    const int stopBits = w.keyerStopBitsCombo ? w.keyerStopBitsCombo->currentData().toInt() : 1;
+
     w.keyerStatusLabel->setText("Detecting…");
     w.keyerDetectButton->setEnabled(false);
     QApplication::processEvents();
 
     WinKeyerClient probe;
-    if (probe.openPort(port)) {
+    if (probe.openPort(port, baud, stopBits)) {
         const int rev = probe.revision();
         w.keyerStatusLabel->setText(
             QString("<span style='color:green;'>WinKey detected, rev 0x%1 ✓</span>")
@@ -579,7 +649,7 @@ void RigControlDialog::onKeyerDetectClicked(RadioWidgets& w)
         probe.closePort();
     } else {
         w.keyerStatusLabel->setText(
-            "<span style='color:red;'>No WinKeyer response (check port)</span>");
+            "<span style='color:red;'>No WinKeyer response (check port/baud/stop bits)</span>");
     }
     w.keyerDetectButton->setEnabled(true);
 }

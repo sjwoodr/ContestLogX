@@ -23,8 +23,6 @@ namespace {
     inline bool isStatusByte(unsigned char b) { return (b & 0xC0) == 0xC0; }
     inline bool statusBusy(unsigned char b)   { return (b & 0x04) != 0; }
 
-    const int WK_BAUD = 1200;
-
     // ESP32-based clones (e.g. AtomKey) auto-reset when the port opens; give
     // the device time to boot before the handshake. Harmless for a real K1EL.
     const int WK_BOOT_MS      = 1600;
@@ -52,7 +50,7 @@ WinKeyerWorker::~WinKeyerWorker()
     }
 }
 
-void WinKeyerWorker::doOpen(const QString& portName)
+void WinKeyerWorker::doOpen(const QString& portName, int baud, int stopBits)
 {
     if (m_serial) {
         m_serial->close();
@@ -65,13 +63,17 @@ void WinKeyerWorker::doOpen(const QString& portName)
 
     m_serial = new QSerialPort(this);
     m_serial->setPortName(portName);
-    m_serial->setBaudRate(WK_BAUD);
+    m_serial->setBaudRate(baud > 0 ? baud : 1200);
     m_serial->setDataBits(QSerialPort::Data8);
     m_serial->setParity(QSerialPort::NoParity);
-    m_serial->setStopBits(QSerialPort::OneStop);
+    m_serial->setStopBits(stopBits == 2 ? QSerialPort::TwoStop : QSerialPort::OneStop);
     m_serial->setFlowControl(QSerialPort::NoFlowControl);
 
     if (!m_serial->open(QIODevice::ReadWrite)) {
+        DebugLogger::instance().log("WinKeyer",
+            QString("Host-open on %1 FAILED to open port: %2 "
+                    "(busy/in use, permissions, or gone)")
+                .arg(portName, m_serial->errorString()));
         emit serialError(QString("Cannot open %1: %2").arg(portName, m_serial->errorString()));
         delete m_serial;
         m_serial = nullptr;
@@ -95,6 +97,10 @@ void WinKeyerWorker::doOpen(const QString& portName)
     }
 
     if (rev < 0) {
+        DebugLogger::instance().log("WinKeyer",
+            QString("Host-open on %1: port opened but no handshake byte within %2 ms "
+                    "(device present but not answering, or wrong baud)")
+                .arg(portName).arg(WK_HANDSHAKE_MS));
         emit serialError("No response to WinKey host-open (wrong port, or not a WinKeyer?)");
         m_serial->close();
         delete m_serial;
@@ -229,12 +235,15 @@ WinKeyerClient::~WinKeyerClient()
     m_workerThread.wait(2000);
 }
 
-bool WinKeyerClient::openPort(const QString& portName)
+bool WinKeyerClient::openPort(const QString& portName, int baud, int stopBits)
 {
-    DebugLogger::instance().log("WinKeyer", QString("Opening keyer on %1").arg(portName));
+    DebugLogger::instance().log("WinKeyer",
+        QString("Opening keyer on %1 (%2 baud, %3 stop bit(s))")
+            .arg(portName).arg(baud).arg(stopBits));
 
     QMetaObject::invokeMethod(m_worker, "doOpen", Qt::BlockingQueuedConnection,
-                              Q_ARG(QString, portName));
+                              Q_ARG(QString, portName), Q_ARG(int, baud),
+                              Q_ARG(int, stopBits));
 
     // Worker has finished doOpen by the time the blocking call returns.
     {
@@ -248,17 +257,20 @@ bool WinKeyerClient::openPort(const QString& portName)
     return m_connected;
 }
 
-void WinKeyerClient::connectAsync(const QString& portName)
+void WinKeyerClient::connectAsync(const QString& portName, int baud, int stopBits)
 {
     {
         QMutexLocker lock(&m_mutex);
         m_portName = portName;
     }
-    DebugLogger::instance().log("WinKeyer", QString("Opening keyer (async) on %1").arg(portName));
+    DebugLogger::instance().log("WinKeyer",
+        QString("Opening keyer (async) on %1 (%2 baud, %3 stop bit(s))")
+            .arg(portName).arg(baud).arg(stopBits));
     // Non-blocking: doOpen (incl. the boot-wait) runs on the worker thread;
     // state + connected() are delivered via the openResult handler.
     QMetaObject::invokeMethod(m_worker, "doOpen", Qt::QueuedConnection,
-                              Q_ARG(QString, portName));
+                              Q_ARG(QString, portName), Q_ARG(int, baud),
+                              Q_ARG(int, stopBits));
 }
 
 void WinKeyerClient::closePort()

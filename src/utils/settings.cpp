@@ -765,6 +765,38 @@ void Settings::setCwKeyerPort(bool right, const QString& port)
     save();
 }
 
+int Settings::getCwKeyerBaud(bool right) const
+{
+    const QJsonObject keyer = m_settings["cwKeyer"].toObject();
+    return keyer[right ? "right" : "left"].toObject().value("baud").toInt(1200);
+}
+
+void Settings::setCwKeyerBaud(bool right, int baud)
+{
+    QJsonObject keyer = m_settings["cwKeyer"].toObject();
+    QJsonObject side = keyer[right ? "right" : "left"].toObject();
+    side["baud"] = baud;
+    keyer[right ? "right" : "left"] = side;
+    m_settings["cwKeyer"] = keyer;
+    save();
+}
+
+int Settings::getCwKeyerStopBits(bool right) const
+{
+    const QJsonObject keyer = m_settings["cwKeyer"].toObject();
+    return keyer[right ? "right" : "left"].toObject().value("stopBits").toInt(1);
+}
+
+void Settings::setCwKeyerStopBits(bool right, int stopBits)
+{
+    QJsonObject keyer = m_settings["cwKeyer"].toObject();
+    QJsonObject side = keyer[right ? "right" : "left"].toObject();
+    side["stopBits"] = stopBits;
+    keyer[right ? "right" : "left"] = side;
+    m_settings["cwKeyer"] = keyer;
+    save();
+}
+
 int Settings::getCwWpm() const
 {
     return m_settings["cw"].toObject()["wpm"].toInt(28);
