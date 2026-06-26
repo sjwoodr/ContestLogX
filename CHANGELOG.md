@@ -2,6 +2,8 @@
 
 All notable changes to ContestLogX are documented in this file.
 
+## [0.9.6]
+
 ## [0.9.5]
 
 ### CW Keying (WinKeyer)

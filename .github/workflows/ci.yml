@@ -31,7 +31,11 @@ jobs:
       - name: Download DXCC database (cty.dat)
         run: |
           mkdir -p ~/.local/share/ContestLogX
-          curl -s -L https://www.country-files.com/cty/cty.dat -o /tmp/cty.dat
+          # Retry/timeout so a flaky country-files.com response (curl exit 28,
+          # 5xx, etc.) doesn't fail the whole build on a transient hiccup.
+          curl -fsSL --retry 5 --retry-all-errors --retry-delay 5 \
+               --connect-timeout 15 --max-time 120 \
+               https://www.country-files.com/cty/cty.dat -o /tmp/cty.dat
           mv /tmp/cty.dat ~/.local/share/ContestLogX/cty.dat
           ls -lh ~/.local/share/ContestLogX/cty.dat
 
