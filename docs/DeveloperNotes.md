@@ -736,6 +736,13 @@ All logs now include these standard columns regardless of contest:
    - **NOTE:** CW sending speed via CAT may be independent of rig's keyer speed
      - We set the speed before sending, but rig may ignore for CAT CW
      - Focus is on sending CW text at specified WPM via cwio
+   - **SUPPORT NOTE (WinKeyer / external keyers):** an external keyer sends
+     fully-formed CW on the rig's KEY line, so the rig's CW key type must be set
+     to **Straight key**, not paddle/iambic, or the rig's own keyer re-times and
+     garbles it. On an IC-7300: Menu -> Set -> Connectors (CW) -> Key Type ->
+     Straight. Confirmed with a tester's WinKeyer Mini. Not a CLX setting - it's
+     on the radio - but it's a common "I configured the keyer but CW is garbled"
+     report.
 
 2. **CW Halt Button**
    - New "Halt" button stops CW sending in progress
