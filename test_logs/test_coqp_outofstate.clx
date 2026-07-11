@@ -1,0 +1,201 @@
+{
+  "contest": {
+    "categories": {
+      "userPrompt_stationType": "NON_CO",
+      "userPrompt_operatingClass": "OUT_STATE",
+      "userPrompt_powerCategory": "LOW",
+      "userPrompt_myExchange": "TN"
+    },
+    "contest_file": "coqp.json",
+    "mode": "",
+    "name": "Colorado QSO Party",
+    "type": "Colorado QSO Party",
+    "version": "1.0.0",
+    "year": 2026
+  },
+  "created": "2026-09-12T14:00:00Z",
+  "exchange_fields": [],
+  "format": "ContestLogX",
+  "format_version": "1.0",
+  "modified": "2026-09-12T20:00:00Z",
+  "qsos": [
+    {
+      "band": "20m",
+      "callsign": "XA2CC",
+      "duplicate": false,
+      "dxcc_count": 0,
+      "exchange_fields": {
+        "CALL": "XA2CC",
+        "EXCHr": "ADA",
+        "EXCHs": "TN",
+        "RSTr": "599",
+        "RSTs": "599",
+        "SNs": "1"
+      },
+      "frequency": 14045,
+      "grid_square_count": 0,
+      "id": 1,
+      "mode": "CW",
+      "multiplier_count": 0,
+      "points": 0,
+      "rst_received": "599",
+      "rst_sent": "599",
+      "serial": 1,
+      "timestamp": "2026-09-12T14:01:00Z"
+    },
+    {
+      "band": "20m",
+      "callsign": "HA8MU",
+      "duplicate": false,
+      "dxcc_count": 0,
+      "exchange_fields": {
+        "CALL": "HA8MU",
+        "EXCHr": "BOU",
+        "EXCHs": "TN",
+        "RSTr": "599",
+        "RSTs": "599",
+        "SNs": "2"
+      },
+      "frequency": 14046,
+      "grid_square_count": 0,
+      "id": 2,
+      "mode": "CW",
+      "multiplier_count": 0,
+      "points": 0,
+      "rst_received": "599",
+      "rst_sent": "599",
+      "serial": 2,
+      "timestamp": "2026-09-12T14:02:00Z"
+    },
+    {
+      "band": "20m",
+      "callsign": "XA3AD",
+      "duplicate": false,
+      "dxcc_count": 0,
+      "exchange_fields": {
+        "CALL": "XA3AD",
+        "EXCHr": "DEN",
+        "EXCHs": "TN",
+        "RSTr": "599",
+        "RSTs": "599",
+        "SNs": "3"
+      },
+      "frequency": 14047,
+      "grid_square_count": 0,
+      "id": 3,
+      "mode": "CW",
+      "multiplier_count": 0,
+      "points": 0,
+      "rst_received": "599",
+      "rst_sent": "599",
+      "serial": 3,
+      "timestamp": "2026-09-12T14:03:00Z"
+    },
+    {
+      "band": "20m",
+      "callsign": "I6FWA",
+      "duplicate": false,
+      "dxcc_count": 0,
+      "exchange_fields": {
+        "CALL": "I6FWA",
+        "EXCHr": "JEF",
+        "EXCHs": "TN",
+        "RSTr": "599",
+        "RSTs": "599",
+        "SNs": "4"
+      },
+      "frequency": 14048,
+      "grid_square_count": 0,
+      "id": 4,
+      "mode": "CW",
+      "multiplier_count": 0,
+      "points": 0,
+      "rst_received": "599",
+      "rst_sent": "599",
+      "serial": 4,
+      "timestamp": "2026-09-12T14:04:00Z"
+    },
+    {
+      "band": "20m",
+      "callsign": "XA2CC",
+      "duplicate": false,
+      "dxcc_count": 0,
+      "exchange_fields": {
+        "CALL": "XA2CC",
+        "EXCHr": "ADA",
+        "EXCHs": "TN",
+        "RSTr": "599",
+        "RSTs": "599",
+        "SNs": "5"
+      },
+      "frequency": 14045,
+      "grid_square_count": 0,
+      "id": 5,
+      "mode": "CW",
+      "multiplier_count": 0,
+      "points": 0,
+      "rst_received": "599",
+      "rst_sent": "599",
+      "serial": 5,
+      "timestamp": "2026-09-12T14:05:00Z"
+    },
+    {
+      "band": "20m",
+      "callsign": "V4DD",
+      "duplicate": false,
+      "dxcc_count": 0,
+      "exchange_fields": {
+        "CALL": "V4DD",
+        "EXCHr": "ADA",
+        "EXCHs": "TN",
+        "RSTr": "599",
+        "RSTs": "599",
+        "SNs": "6"
+      },
+      "frequency": 14250,
+      "grid_square_count": 0,
+      "id": 6,
+      "mode": "SSB",
+      "multiplier_count": 0,
+      "points": 0,
+      "rst_received": "599",
+      "rst_sent": "599",
+      "serial": 6,
+      "timestamp": "2026-09-12T14:06:00Z"
+    },
+    {
+      "band": "20m",
+      "callsign": "CE3IOV",
+      "duplicate": false,
+      "dxcc_count": 0,
+      "exchange_fields": {
+        "CALL": "CE3IOV",
+        "EXCHr": "BOU",
+        "EXCHs": "TN",
+        "RSTr": "599",
+        "RSTs": "599",
+        "SNs": "7"
+      },
+      "frequency": 14251,
+      "grid_square_count": 0,
+      "id": 7,
+      "mode": "SSB",
+      "multiplier_count": 0,
+      "points": 0,
+      "rst_received": "599",
+      "rst_sent": "599",
+      "serial": 7,
+      "timestamp": "2026-09-12T14:07:00Z"
+    }
+  ],
+  "statistics": {},
+  "station": {
+    "callsign": "K4TN",
+    "operator": "Steve",
+    "location": {
+      "state": "TN",
+      "cq_zone": 4,
+      "itu_zone": 8
+    }
+  }
+}

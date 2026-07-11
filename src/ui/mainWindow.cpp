@@ -71,6 +71,7 @@
 #include <QCheckBox>
 #include <QComboBox>
 #include <QMessageBox>
+#include <QPushButton>
 #include <QInputDialog>
 #include <QDialog>
 #include <QDialogButtonBox>
@@ -5510,8 +5511,20 @@ void MainWindow::onAbout()
         "<a href=\"https://www.gnu.org/licenses/lgpl-3.0.html\">GNU LGPL v3</a>.<br>"
         "Qt is a trademark of The Qt Company Ltd. "
         "Source: <a href=\"https://www.qt.io\">https://www.qt.io</a>"
+        "<br><br>"
+        "ContestLogX is free software. If you find it useful, please "
+        "consider supporting its development."
     );
+    // Donate button opens PayPal to send a contribution to the author.
+    QPushButton *donateButton = msgBox.addButton("Donate", QMessageBox::ActionRole);
+    msgBox.addButton(QMessageBox::Ok);
+    msgBox.setDefaultButton(QMessageBox::Ok);
     msgBox.exec();
+    if (msgBox.clickedButton() == donateButton) {
+        QDesktopServices::openUrl(QUrl(
+            "https://www.paypal.com/donate/?business=steve%40n9oh.com"
+            "&item_name=ContestLogX+Donation&currency_code=USD"));
+    }
 }
 
 // ---------------------------------------------------------------------------

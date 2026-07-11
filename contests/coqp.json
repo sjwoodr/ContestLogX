@@ -1,0 +1,330 @@
+{
+  "contest": {
+    "name": "Colorado QSO Party",
+    "abbreviation": "COQP",
+    "version": "1.0.0",
+    "sponsor": "Grand Mesa Contesters of Colorado",
+    "description": "Annual Colorado QSO Party held the second Saturday of September. Colorado stations work everyone for counties, states, provinces, and DX. Non-CO stations work CO stations only for the 64 Colorado counties. CW and Phone only, no digital.",
+    "startDate": "Second Saturday of September (2026: Sep 12, 1400Z - Sep 13, 0359Z)",
+    "duration": 14,
+    "offTimeGapMinutes": 0,
+    "modes": ["CW", "SSB"],
+    "bands": ["80m", "40m", "20m", "15m", "10m", "6m", "2m"],
+    "url": "https://coqp.contesting.com/",
+    "categories": {
+      "stations": ["FIXED", "MOBILE", "PORTABLE"],
+      "power": ["QRP", "LOW", "HIGH"],
+      "modes": ["MIXED", "CW", "PHONE"]
+    }
+  },
+  "frequencies": {
+    "80m": {
+      "start": 3500, "end": 4000,
+      "cw":    {"start": 3500, "end": 3600},
+      "phone": {"start": 3600, "end": 4000}
+    },
+    "40m": {
+      "start": 7000, "end": 7300,
+      "cw":    {"start": 7000, "end": 7125},
+      "phone": {"start": 7125, "end": 7300}
+    },
+    "20m": {
+      "start": 14000, "end": 14350,
+      "cw":    {"start": 14000, "end": 14150},
+      "phone": {"start": 14150, "end": 14350}
+    },
+    "15m": {
+      "start": 21000, "end": 21450,
+      "cw":    {"start": 21000, "end": 21200},
+      "phone": {"start": 21200, "end": 21450}
+    },
+    "10m": {
+      "start": 28000, "end": 29700,
+      "cw":    {"start": 28000, "end": 28300},
+      "phone": {"start": 28300, "end": 29700}
+    },
+    "6m": {
+      "start": 50000, "end": 54000,
+      "cw":    {"start": 50000, "end": 50100},
+      "phone": {"start": 50100, "end": 54000}
+    },
+    "2m": {
+      "start": 144000, "end": 148000,
+      "cw":    {"start": 144000, "end": 144100},
+      "phone": {"start": 144100, "end": 148000}
+    }
+  },
+  "stationClasses": {
+    "enabled": false
+  },
+  "userPrompts": [
+    {
+      "id": "stationType",
+      "question": "Are you a Colorado or non-CO station?",
+      "type": "select",
+      "options": [
+        {"value": "CO", "label": "Colorado (In-State) - send RST + CO county"},
+        {"value": "NON_CO", "label": "Non-Colorado (US/VE/DX) - send RST + state/province, or DX"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "CO stations work everyone. Non-CO stations work CO stations only."
+    },
+    {
+      "id": "myExchange",
+      "question": "Enter your exchange: CO county (3 letters), state/province (2 letters), or DX",
+      "type": "text",
+      "required": true,
+      "forceUppercase": true,
+      "storeInMeta": true,
+      "description": "3-letter county abbreviation for CO stations; 2-letter state/province for US/VE; the literal DX for stations outside the US/Canada.",
+      "exchangeFieldMapping": {
+        "myExchange": "EXCHs"
+      }
+    },
+    {
+      "id": "operatingClass",
+      "question": "Select your operating class",
+      "type": "select",
+      "options": [
+        {"value": "CO_FIXED",    "label": "CO: Fixed (single op or multi-single)"},
+        {"value": "CO_MOBILE",   "label": "CO: Mobile"},
+        {"value": "CO_PORTABLE", "label": "CO: Portable"},
+        {"value": "OUT_STATE",   "label": "Non-CO: Out-of-State / DX"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "CO Mobile and Portable stations earn a 500-point bonus per county activated (15+ QSOs required per county). Mobile and Portable may not use High Power."
+    },
+    {
+      "id": "powerCategory",
+      "question": "Select your power level",
+      "type": "select",
+      "options": [
+        {"value": "HIGH", "label": "High Power - more than 100 watts (Fixed/Out-of-State only)"},
+        {"value": "LOW",  "label": "Low Power - 100 watts or less"},
+        {"value": "QRP",  "label": "QRP - 5 watts or less"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "QRP: 5W or less. Low Power: 100W or less. High Power: greater than 100W. Mobile and Portable may not use High Power."
+    }
+  ],
+  "exchangeFields": {
+    "sent": [
+      {
+        "name": "RST",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report sent"
+      },
+      {
+        "name": "EXCHs",
+        "type": "string",
+        "required": true,
+        "description": "CO county (CO stations), state/province (US/VE), or DX"
+      }
+    ],
+    "received": [
+      {
+        "name": "RST",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report received"
+      },
+      {
+        "name": "EXCHr",
+        "type": "string",
+        "required": true,
+        "description": "CO county (from CO stations), state/province (US/VE), or DX. DC counts as MD."
+      }
+    ]
+  },
+  "qsoFields": [
+    {"name": "Date",      "column": "DATE",   "type": "date",   "format": "yyyy-MM-dd", "required": true},
+    {"name": "Time",      "column": "TIME",   "type": "time",   "format": "HH:mm:ss",   "required": true},
+    {"name": "Callsign",  "column": "CALL",   "type": "string", "required": true, "uppercase": true},
+    {"name": "Frequency", "column": "FREQ",   "type": "number", "unit": "kHz",    "required": true},
+    {"name": "Mode",      "column": "MODE",   "type": "enum",   "values": ["CW", "SSB"], "required": true},
+    {"name": "RST Sent",  "column": "RSTs",   "type": "string", "required": true, "default": "599"},
+    {"name": "RST Rcvd",  "column": "RSTr",   "type": "string", "required": true},
+    {"name": "Exch Sent", "column": "EXCHs",  "type": "string", "required": true, "description": "County/State/Province/DX"},
+    {"name": "Exch Rcvd", "column": "EXCHr",  "type": "string", "required": true, "description": "County/State/Province/DX"},
+    {"name": "Points",    "column": "POINTS", "type": "number", "calculated": true},
+    {"name": "Mult",      "column": "M",      "type": "string", "calculated": true}
+  ],
+  "scoring": {
+    "points": {
+      "cw":    2,
+      "phone": 2
+    },
+    "multipliers": {
+      "type": "multsPerMode",
+      "description": "Multipliers are per mode (CW / Phone), not per band. Non-CO stations: 64 CO counties only (max 64 per mode, 128 mixed). CO stations: 64 CO counties + 50 US states (incl. CO itself) + 13 Canadian provinces/territories + one DX multiplier (max 128 per mode). CO is never received as an exchange (CO ops always send a county), so CO is credited via automaticMultipliers on each mode where a CO station has been worked. DC counts as MD; AK and HI count only as state multipliers; USA and Canada do not count as DX.",
+      "categories": ["namedMults"],
+      "automaticMultipliers": {
+        "promptId": "stationType",
+        "rules": {
+          "CO": ["CO"]
+        },
+        "requiresWorkedFrom": "inStateMults"
+      }
+    },
+    "finalScore": "SUM(points) * SUM(multipliers)"
+  },
+  "dupeChecking": {
+    "type": "perBandAndMode",
+    "description": "A station may be worked once per mode per band. CO Mobiles changing counties count as a new station and may be re-worked. CW QSOs in CW segments only; phone QSOs in phone segments only - no cross-mode contacts. County-line operations must be logged as two entries, one per county."
+  },
+  "logging": {
+    "requiredFields": ["date", "time", "frequency", "mode", "callsign", "rstSent", "rstReceived", "exchSent", "exchReceived"],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "CO-QSO-PARTY",
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {rst_sent} {exch_sent} {call} {rst_rcvd} {exch_rcvd}",
+      "requiredHeaders": ["CONTEST", "CALLSIGN", "CATEGORY-OPERATOR", "CATEGORY-POWER", "CATEGORY-MODE", "CATEGORY-STATION", "CLAIMED-SCORE", "CREATED-BY", "NAME", "ADDRESS", "OPERATORS"]
+    }
+  },
+  "callHistory": {
+    "fieldsToSave": ["EXCHr"],
+    "description": "Save received exchange (county/state/province/DX) for future lookups"
+  },
+  "validation": {
+    "minimumQSOs": 1,
+    "maxOperatingTime": 14,
+    "offTimesRequired": false,
+    "namedMults": [
+      "ADA", "ALA", "ARA", "ARC", "BAC", "BEN", "BOU", "BRO", "CHA", "CHE",
+      "CLC", "CON", "COS", "CRO", "CUS", "DEL", "DEN", "DOL", "DOU", "EAG",
+      "ELP", "ELB", "FRE", "GAR", "GIL", "GRA", "GUN", "HIN", "HUE", "JAC",
+      "JEF", "KIO", "KIC", "LAK", "LAP", "LAR", "LAA", "LIN", "LOG", "MES",
+      "MIN", "MOF", "MON", "MOT", "MOR", "OTE", "OUR", "PAR", "PHI", "PIT",
+      "PRO", "PUE", "RIB", "RIG", "ROU", "SAG", "SAJ", "SAM", "SED", "SUM",
+      "TEL", "WAS", "WEL", "YUM",
+      "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL",
+      "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME",
+      "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ",
+      "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC",
+      "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY",
+      "AB", "BC", "MB", "NB", "NL", "NS", "NT", "NU", "ON", "PE", "QC", "SK", "YT",
+      "DX"
+    ],
+    "namedMultAliases": {
+      "DC": "MD"
+    },
+    "receivedExchangeFilter": {
+      "promptId": "stationType",
+      "rules": {
+        "NON_CO": "inStateMults"
+      }
+    },
+    "inStateMults": [
+      "ADA", "ALA", "ARA", "ARC", "BAC", "BEN", "BOU", "BRO", "CHA", "CHE",
+      "CLC", "CON", "COS", "CRO", "CUS", "DEL", "DEN", "DOL", "DOU", "EAG",
+      "ELP", "ELB", "FRE", "GAR", "GIL", "GRA", "GUN", "HIN", "HUE", "JAC",
+      "JEF", "KIO", "KIC", "LAK", "LAP", "LAR", "LAA", "LIN", "LOG", "MES",
+      "MIN", "MOF", "MON", "MOT", "MOR", "OTE", "OUR", "PAR", "PHI", "PIT",
+      "PRO", "PUE", "RIB", "RIG", "ROU", "SAG", "SAJ", "SAM", "SED", "SUM",
+      "TEL", "WAS", "WEL", "YUM"
+    ],
+    "namedMultsByStationClass": {
+      "NON_CO": [
+        "ADA", "ALA", "ARA", "ARC", "BAC", "BEN", "BOU", "BRO", "CHA", "CHE",
+        "CLC", "CON", "COS", "CRO", "CUS", "DEL", "DEN", "DOL", "DOU", "EAG",
+        "ELP", "ELB", "FRE", "GAR", "GIL", "GRA", "GUN", "HIN", "HUE", "JAC",
+        "JEF", "KIO", "KIC", "LAK", "LAP", "LAR", "LAA", "LIN", "LOG", "MES",
+        "MIN", "MOF", "MON", "MOT", "MOR", "OTE", "OUR", "PAR", "PHI", "PIT",
+        "PRO", "PUE", "RIB", "RIG", "ROU", "SAG", "SAJ", "SAM", "SED", "SUM",
+        "TEL", "WAS", "WEL", "YUM"
+      ]
+    },
+    "exchangeValidation": {
+      "type": "namedMultOnly",
+      "description": "CO county (3 letters), US state (2 letters, DC counts as MD), Canadian province/territory (2 letters), or DX. Non-CO stations: received exchange must be a valid CO county abbreviation."
+    }
+  },
+  "countyAbbreviations": {
+    "description": "Colorado County abbreviations (64 counties) per COQP rules",
+    "ADA": "Adams",
+    "ALA": "Alamosa",
+    "ARA": "Arapahoe",
+    "ARC": "Archuleta",
+    "BAC": "Baca",
+    "BEN": "Bent",
+    "BOU": "Boulder",
+    "BRO": "Broomfield",
+    "CHA": "Chaffee",
+    "CHE": "Cheyenne",
+    "CLC": "Clear Creek",
+    "CON": "Conejos",
+    "COS": "Costilla",
+    "CRO": "Crowley",
+    "CUS": "Custer",
+    "DEL": "Delta",
+    "DEN": "Denver",
+    "DOL": "Dolores",
+    "DOU": "Douglas",
+    "EAG": "Eagle",
+    "ELP": "El Paso",
+    "ELB": "Elbert",
+    "FRE": "Fremont",
+    "GAR": "Garfield",
+    "GIL": "Gilpin",
+    "GRA": "Grand",
+    "GUN": "Gunnison",
+    "HIN": "Hinsdale",
+    "HUE": "Huerfano",
+    "JAC": "Jackson",
+    "JEF": "Jefferson",
+    "KIO": "Kiowa",
+    "KIC": "Kit Carson",
+    "LAK": "Lake",
+    "LAP": "La Plata",
+    "LAR": "Larimer",
+    "LAA": "Las Animas",
+    "LIN": "Lincoln",
+    "LOG": "Logan",
+    "MES": "Mesa",
+    "MIN": "Mineral",
+    "MOF": "Moffat",
+    "MON": "Montezuma",
+    "MOT": "Montrose",
+    "MOR": "Morgan",
+    "OTE": "Otero",
+    "OUR": "Ouray",
+    "PAR": "Park",
+    "PHI": "Phillips",
+    "PIT": "Pitkin",
+    "PRO": "Prowers",
+    "PUE": "Pueblo",
+    "RIB": "Rio Blanco",
+    "RIG": "Rio Grande",
+    "ROU": "Routt",
+    "SAG": "Saguache",
+    "SAJ": "San Juan",
+    "SAM": "San Miguel",
+    "SED": "Sedgwick",
+    "SUM": "Summit",
+    "TEL": "Teller",
+    "WAS": "Washington",
+    "WEL": "Weld",
+    "YUM": "Yuma"
+  },
+  "ui": {
+    "showMultiplierPanel": true,
+    "logColumns": ["DATE", "TIME", "CALL", "FREQ", "MODE", "RSTs", "RSTr", "EXCHs", "EXCHr", "POINTS", "M", "COMMENT"],
+    "entryFields": ["CALL", "RSTr", "EXCHr"],
+    "fieldNavigation": {
+      "keys": "tab"
+    },
+    "bandMap": {
+      "enabled": true,
+      "bands": ["80m", "40m", "20m", "15m", "10m", "6m", "2m"]
+    },
+    "multiplierDisplay": {
+      "showCounties": true,
+      "showStates": true,
+      "showProvinces": true
+    }
+  }
+}
