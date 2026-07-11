@@ -103,7 +103,11 @@ jobs:
           retention-days: 1  # Intermediate - attached to Release by create-release job
 
   build-macos:
-    runs-on: macos-latest
+    # Pinned to macos-14: macos-latest moved to macOS 15, whose SDK removed
+    # the AGL framework that Qt 6.5's Qt6::Gui CMake config still links
+    # against (fixed upstream only in Qt 6.6+), breaking the link step with
+    # "ld: framework 'AGL' not found". macOS 14 still ships the AGL stub.
+    runs-on: macos-14
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: build-and-test
 
