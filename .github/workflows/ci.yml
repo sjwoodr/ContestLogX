@@ -249,9 +249,10 @@ jobs:
           echo "CHANGELOG_EOF" >> $GITHUB_OUTPUT
 
       - name: Create Release and Upload Assets
-        # TODO: softprops/action-gh-release is still on node20 (no v3 yet).
-        # Update when a node24-compatible version is released (before Sept 2026).
-        uses: softprops/action-gh-release@v2
+        # v3 moves the action runtime to Node 24 (v2 was Node 20, which GitHub
+        # now force-runs on Node 24 with a deprecation warning). v3.0.0 is a
+        # runtime-only major bump - no input or behavior changes.
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: v${{ steps.version.outputs.version }}
           name: Release ${{ steps.version.outputs.version }}

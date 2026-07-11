@@ -2,6 +2,11 @@
 
 All notable changes to ContestLogX are documented in this file.
 
+## [0.9.7]
+
+### Other Changes and Bugfixes
+- Fixed the macOS CI build, which broke when the GitHub runner image moved to macOS 15 and dropped the AGL framework that Qt 6.5 still links against
+
 ## [0.9.6]
 
 ### Contest Updates
