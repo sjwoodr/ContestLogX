@@ -1,0 +1,346 @@
+{
+  "contest": {
+    "name": "Ohio QSO Party",
+    "abbreviation": "OHQP",
+    "version": "1.0.0",
+    "sponsor": "Mad River Radio Club",
+    "description": "Annual Ohio QSO Party held the fourth Saturday of August, 1600Z Saturday to 0400Z Sunday. Ohio stations work everyone for counties, states, provinces, and DX. Non-Ohio stations work Ohio stations only, for the 88 Ohio counties. CW and Phone only, no digital.",
+    "startDate": "Fourth Saturday of August (2026: Aug 22, 1600Z - Aug 23, 0400Z)",
+    "duration": 12,
+    "offTimeGapMinutes": 0,
+    "modes": ["CW", "SSB"],
+    "bands": ["160m", "80m", "40m", "20m", "15m", "10m"],
+    "url": "https://www.ohqp.org/",
+    "categories": {
+      "stations": ["SINGLE_OP", "MULTI_OP", "EOC", "MOBILE", "ROVER"],
+      "power": ["QRP", "LOW", "HIGH"],
+      "modes": ["MIXED"]
+    }
+  },
+  "frequencies": {
+    "160m": {
+      "start": 1800, "end": 2000,
+      "cw":    {"start": 1800, "end": 1850},
+      "phone": {"start": 1850, "end": 2000}
+    },
+    "80m": {
+      "start": 3500, "end": 4000,
+      "cw":    {"start": 3500, "end": 3600},
+      "phone": {"start": 3600, "end": 4000}
+    },
+    "40m": {
+      "start": 7000, "end": 7300,
+      "cw":    {"start": 7000, "end": 7125},
+      "phone": {"start": 7125, "end": 7300}
+    },
+    "20m": {
+      "start": 14000, "end": 14350,
+      "cw":    {"start": 14000, "end": 14150},
+      "phone": {"start": 14150, "end": 14350}
+    },
+    "15m": {
+      "start": 21000, "end": 21450,
+      "cw":    {"start": 21000, "end": 21200},
+      "phone": {"start": 21200, "end": 21450}
+    },
+    "10m": {
+      "start": 28000, "end": 29700,
+      "cw":    {"start": 28000, "end": 28300},
+      "phone": {"start": 28300, "end": 29700}
+    }
+  },
+  "stationClasses": {
+    "enabled": false
+  },
+  "userPrompts": [
+    {
+      "id": "stationType",
+      "question": "Are you an Ohio or non-OH station?",
+      "type": "select",
+      "options": [
+        {"value": "OH", "label": "Ohio (In-State) - send RST + Ohio county"},
+        {"value": "NON_OH", "label": "Non-Ohio (US/VE/DX) - send RST + state/province, or DX"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "Ohio stations may work anyone. Non-Ohio stations may work Ohio stations only."
+    },
+    {
+      "id": "myExchange",
+      "question": "Enter your exchange: Ohio county (4 letters), state/province (2 letters), or DX",
+      "type": "text",
+      "required": true,
+      "forceUppercase": true,
+      "storeInMeta": true,
+      "description": "4-letter county abbreviation for Ohio stations (never OH or OHIO); 2-letter state/province for US/VE including KH6/KL7; the literal DX for stations outside the US/Canada.",
+      "exchangeFieldMapping": {
+        "myExchange": "EXCHs"
+      }
+    },
+    {
+      "id": "operatingClass",
+      "question": "Select your operating class",
+      "type": "select",
+      "options": [
+        {"value": "OH_SO_QRP",     "label": "OH: Single Op QRP (5W or less)"},
+        {"value": "OH_SO_LP",      "label": "OH: Single Op Low Power (100W or less)"},
+        {"value": "OH_SO_HP",      "label": "OH: Single Op High Power (over 100W)"},
+        {"value": "OH_MULTI",      "label": "OH: Multi-Operator (no power category)"},
+        {"value": "OH_EOC",        "label": "OH: Emergency Operations Center (Ohio only)"},
+        {"value": "OH_MOBILE",     "label": "OH: Mobile (100W max)"},
+        {"value": "OH_ROVER",      "label": "OH: Rover (100W max)"},
+        {"value": "NON_OH_SO_QRP", "label": "Non-OH: Single Op QRP (5W or less)"},
+        {"value": "NON_OH_SO_LP",  "label": "Non-OH: Single Op Low Power (100W or less)"},
+        {"value": "NON_OH_SO_HP",  "label": "Non-OH: Single Op High Power (over 100W)"},
+        {"value": "NON_OH_MULTI",  "label": "Non-OH: Multi-Operator (no power category)"},
+        {"value": "NON_OH_MOBILE", "label": "Non-OH: Mobile (100W max)"},
+        {"value": "NON_OH_ROVER",  "label": "Non-OH: Rover (100W max)"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "Only single-operator entries are categorized by power. All entries are classified as mixed mode. EOC is an Ohio-only category. Mobile and Rover stations that change county (Ohio) or state/province (others) may be worked again for QSO and multiplier credit."
+    }
+  ],
+  "exchangeFields": {
+    "sent": [
+      {
+        "name": "RST",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report sent"
+      },
+      {
+        "name": "EXCHs",
+        "type": "string",
+        "required": true,
+        "description": "Ohio county (Ohio stations), state/province (US/VE), or DX"
+      }
+    ],
+    "received": [
+      {
+        "name": "RST",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report received"
+      },
+      {
+        "name": "EXCHr",
+        "type": "string",
+        "required": true,
+        "description": "Ohio county (from Ohio stations), state/province (US/VE), or DX"
+      }
+    ]
+  },
+  "qsoFields": [
+    {"name": "Date",      "column": "DATE",   "type": "date",   "format": "yyyy-MM-dd", "required": true},
+    {"name": "Time",      "column": "TIME",   "type": "time",   "format": "HH:mm:ss",   "required": true},
+    {"name": "Callsign",  "column": "CALL",   "type": "string", "required": true, "uppercase": true},
+    {"name": "Frequency", "column": "FREQ",   "type": "number", "unit": "kHz",    "required": true},
+    {"name": "Mode",      "column": "MODE",   "type": "enum",   "values": ["CW", "SSB"], "required": true},
+    {"name": "RST Sent",  "column": "RSTs",   "type": "string", "required": true, "default": "599"},
+    {"name": "RST Rcvd",  "column": "RSTr",   "type": "string", "required": true},
+    {"name": "Exch Sent", "column": "EXCHs",  "type": "string", "required": true, "description": "County/State/Province/DX"},
+    {"name": "Exch Rcvd", "column": "EXCHr",  "type": "string", "required": true, "description": "County/State/Province/DX"},
+    {"name": "Points",    "column": "POINTS", "type": "number", "calculated": true},
+    {"name": "Mult",      "column": "M",      "type": "string", "calculated": true}
+  ],
+  "scoring": {
+    "points": {
+      "cw":    2,
+      "phone": 1
+    },
+    "multipliers": {
+      "type": "multsPerMode",
+      "description": "Multipliers are counted once per mode - the same multiplier worked on both CW and Phone counts twice. Non-Ohio stations: the 88 Ohio counties only (max 88 per mode). Ohio stations: 88 Ohio counties + 49 states (Ohio itself is not a multiplier) + Washington DC + 11 Canadian provinces/territories + one DX multiplier = 150 per mode. Ohio is never received as an exchange because Ohio ops always send a county abbreviation.",
+      "categories": ["namedMults"]
+    },
+    "finalScore": "SUM(points) * SUM(multipliers)"
+  },
+  "dupeChecking": {
+    "type": "perBandAndMode",
+    "description": "A station may be worked once per mode on each band - 12 times total across the 6 bands and 2 modes. No cross-mode contacts; CW QSOs belong in the CW segments only. Mobile and Rover stations that move to a new county/state/province count as a new station and may be worked again."
+  },
+  "logging": {
+    "requiredFields": ["date", "time", "frequency", "mode", "callsign", "rstSent", "rstReceived", "exchSent", "exchReceived"],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "OH-QSO-PARTY",
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {rst_sent} {exch_sent} {call} {rst_rcvd} {exch_rcvd}",
+      "requiredHeaders": ["CONTEST", "CALLSIGN", "LOCATION", "CATEGORY-OPERATOR", "CATEGORY-POWER", "CATEGORY-MODE", "CATEGORY-STATION", "CLAIMED-SCORE", "CREATED-BY", "NAME", "ADDRESS", "CLUB", "OPERATORS", "SOAPBOX"],
+      "notes": "OHQP does not permit the CATEGORY-TRANSMITTER tag - there is no multi category that depends on transmitter count. Call, location, category, and club are collected on the OHQP web upload page rather than read from the header. SOAPBOX tags are extracted for the results writeup."
+    }
+  },
+  "callHistory": {
+    "fieldsToSave": ["EXCHr"],
+    "description": "Save received exchange (county/state/province/DX) for future lookups"
+  },
+  "validation": {
+    "minimumQSOs": 1,
+    "maxOperatingTime": 12,
+    "offTimesRequired": false,
+    "namedMults": [
+      "ADAM", "ALLE", "ASHL", "ASHT", "ATHE", "AUGL", "BELM", "BROW", "BUTL", "CARR",
+      "CHAM", "CLAR", "CLER", "CLIN", "COLU", "COSH", "CRAW", "CUYA", "DARK", "DEFI",
+      "DELA", "ERIE", "FAIR", "FAYE", "FRAN", "FULT", "GALL", "GEAU", "GREE", "GUER",
+      "HAMI", "HANC", "HARD", "HARR", "HENR", "HIGH", "HOCK", "HOLM", "HURO", "JACK",
+      "JEFF", "KNOX", "LAKE", "LAWR", "LICK", "LOGA", "LORA", "LUCA", "MADI", "MAHO",
+      "MARI", "MEDI", "MEIG", "MERC", "MIAM", "MONR", "MONT", "MORG", "MORR", "MUSK",
+      "NOBL", "OTTA", "PAUL", "PERR", "PICK", "PIKE", "PORT", "PREB", "PUTN", "RICH",
+      "ROSS", "SAND", "SCIO", "SENE", "SHEL", "STAR", "SUMM", "TRUM", "TUSC", "UNIO",
+      "VANW", "VINT", "WARR", "WASH", "WAYN", "WILL", "WOOD", "WYAN",
+      "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DC", "DE", "FL",
+      "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME",
+      "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ",
+      "NM", "NY", "NC", "ND", "OK", "OR", "PA", "RI", "SC",
+      "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY",
+      "NL", "PE", "NS", "NB", "QC", "ON", "MB", "SK", "AB", "BC", "NT",
+      "DX"
+    ],
+    "namedMultAliases": {
+      "YT": "NT",
+      "NU": "NT"
+    },
+    "receivedExchangeFilter": {
+      "promptId": "stationType",
+      "rules": {
+        "NON_OH": "inStateMults"
+      }
+    },
+    "inStateMults": [
+      "ADAM", "ALLE", "ASHL", "ASHT", "ATHE", "AUGL", "BELM", "BROW", "BUTL", "CARR",
+      "CHAM", "CLAR", "CLER", "CLIN", "COLU", "COSH", "CRAW", "CUYA", "DARK", "DEFI",
+      "DELA", "ERIE", "FAIR", "FAYE", "FRAN", "FULT", "GALL", "GEAU", "GREE", "GUER",
+      "HAMI", "HANC", "HARD", "HARR", "HENR", "HIGH", "HOCK", "HOLM", "HURO", "JACK",
+      "JEFF", "KNOX", "LAKE", "LAWR", "LICK", "LOGA", "LORA", "LUCA", "MADI", "MAHO",
+      "MARI", "MEDI", "MEIG", "MERC", "MIAM", "MONR", "MONT", "MORG", "MORR", "MUSK",
+      "NOBL", "OTTA", "PAUL", "PERR", "PICK", "PIKE", "PORT", "PREB", "PUTN", "RICH",
+      "ROSS", "SAND", "SCIO", "SENE", "SHEL", "STAR", "SUMM", "TRUM", "TUSC", "UNIO",
+      "VANW", "VINT", "WARR", "WASH", "WAYN", "WILL", "WOOD", "WYAN"
+    ],
+    "namedMultsByStationClass": {
+      "NON_OH": [
+        "ADAM", "ALLE", "ASHL", "ASHT", "ATHE", "AUGL", "BELM", "BROW", "BUTL", "CARR",
+        "CHAM", "CLAR", "CLER", "CLIN", "COLU", "COSH", "CRAW", "CUYA", "DARK", "DEFI",
+        "DELA", "ERIE", "FAIR", "FAYE", "FRAN", "FULT", "GALL", "GEAU", "GREE", "GUER",
+        "HAMI", "HANC", "HARD", "HARR", "HENR", "HIGH", "HOCK", "HOLM", "HURO", "JACK",
+        "JEFF", "KNOX", "LAKE", "LAWR", "LICK", "LOGA", "LORA", "LUCA", "MADI", "MAHO",
+        "MARI", "MEDI", "MEIG", "MERC", "MIAM", "MONR", "MONT", "MORG", "MORR", "MUSK",
+        "NOBL", "OTTA", "PAUL", "PERR", "PICK", "PIKE", "PORT", "PREB", "PUTN", "RICH",
+        "ROSS", "SAND", "SCIO", "SENE", "SHEL", "STAR", "SUMM", "TRUM", "TUSC", "UNIO",
+        "VANW", "VINT", "WARR", "WASH", "WAYN", "WILL", "WOOD", "WYAN"
+      ]
+    },
+    "exchangeValidation": {
+      "type": "namedMultOnly",
+      "description": "Ohio county (4 letters), US state or DC (2 letters), Canadian province/territory (2 letters; YT and NU are logged as NT), or DX. Non-Ohio stations: the received exchange must be a valid Ohio county abbreviation."
+    }
+  },
+  "countyAbbreviations": {
+    "description": "Ohio county abbreviations (88 counties) per OHQP rules",
+    "ADAM": "Adams",
+    "ALLE": "Allen",
+    "ASHL": "Ashland",
+    "ASHT": "Ashtabula",
+    "ATHE": "Athens",
+    "AUGL": "Auglaize",
+    "BELM": "Belmont",
+    "BROW": "Brown",
+    "BUTL": "Butler",
+    "CARR": "Carroll",
+    "CHAM": "Champaign",
+    "CLAR": "Clark",
+    "CLER": "Clermont",
+    "CLIN": "Clinton",
+    "COLU": "Columbiana",
+    "COSH": "Coshocton",
+    "CRAW": "Crawford",
+    "CUYA": "Cuyahoga",
+    "DARK": "Darke",
+    "DEFI": "Defiance",
+    "DELA": "Delaware",
+    "ERIE": "Erie",
+    "FAIR": "Fairfield",
+    "FAYE": "Fayette",
+    "FRAN": "Franklin",
+    "FULT": "Fulton",
+    "GALL": "Gallia",
+    "GEAU": "Geauga",
+    "GREE": "Greene",
+    "GUER": "Guernsey",
+    "HAMI": "Hamilton",
+    "HANC": "Hancock",
+    "HARD": "Hardin",
+    "HARR": "Harrison",
+    "HENR": "Henry",
+    "HIGH": "Highland",
+    "HOCK": "Hocking",
+    "HOLM": "Holmes",
+    "HURO": "Huron",
+    "JACK": "Jackson",
+    "JEFF": "Jefferson",
+    "KNOX": "Knox",
+    "LAKE": "Lake",
+    "LAWR": "Lawrence",
+    "LICK": "Licking",
+    "LOGA": "Logan",
+    "LORA": "Lorain",
+    "LUCA": "Lucas",
+    "MADI": "Madison",
+    "MAHO": "Mahoning",
+    "MARI": "Marion",
+    "MEDI": "Medina",
+    "MEIG": "Meigs",
+    "MERC": "Mercer",
+    "MIAM": "Miami",
+    "MONR": "Monroe",
+    "MONT": "Montgomery",
+    "MORG": "Morgan",
+    "MORR": "Morrow",
+    "MUSK": "Muskingum",
+    "NOBL": "Noble",
+    "OTTA": "Ottawa",
+    "PAUL": "Paulding",
+    "PERR": "Perry",
+    "PICK": "Pickaway",
+    "PIKE": "Pike",
+    "PORT": "Portage",
+    "PREB": "Preble",
+    "PUTN": "Putnam",
+    "RICH": "Richland",
+    "ROSS": "Ross",
+    "SAND": "Sandusky",
+    "SCIO": "Scioto",
+    "SENE": "Seneca",
+    "SHEL": "Shelby",
+    "STAR": "Stark",
+    "SUMM": "Summit",
+    "TRUM": "Trumbull",
+    "TUSC": "Tuscarawas",
+    "UNIO": "Union",
+    "VANW": "Van Wert",
+    "VINT": "Vinton",
+    "WARR": "Warren",
+    "WASH": "Washington",
+    "WAYN": "Wayne",
+    "WILL": "Williams",
+    "WOOD": "Wood",
+    "WYAN": "Wyandot"
+  },
+  "ui": {
+    "showMultiplierPanel": true,
+    "logColumns": ["DATE", "TIME", "CALL", "FREQ", "MODE", "RSTs", "RSTr", "EXCHs", "EXCHr", "POINTS", "M", "COMMENT"],
+    "entryFields": ["CALL", "RSTr", "EXCHr"],
+    "fieldNavigation": {
+      "keys": "tab"
+    },
+    "bandMap": {
+      "enabled": true,
+      "bands": ["160m", "80m", "40m", "20m", "15m", "10m"]
+    },
+    "multiplierDisplay": {
+      "showCounties": true,
+      "showStates": true,
+      "showProvinces": true
+    }
+  }
+}

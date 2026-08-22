@@ -404,6 +404,16 @@
       "name": "COQP Out-of-State TN op (7 QSOs incl 1 dupe, multsPerMode CO counties only, same county on CW and SSB counts twice)",
       "log_file": "test_coqp_outofstate.clx",
       "expected_score": 72
+    },
+    {
+      "name": "OHQP In-State OH op FRAN (15 QSOs incl 1 dupe, multsPerMode counties+states+DC+prov+DX, CW=2/SSB=1 pts, single DX mult, YT aliases to NT)",
+      "log_file": "test_ohqp_instate.clx",
+      "expected_score": 299
+    },
+    {
+      "name": "OHQP Out-of-State TN op (11 QSOs incl 1 dupe, multsPerMode OH counties only, same county on CW and SSB counts twice)",
+      "log_file": "test_ohqp_outofstate.clx",
+      "expected_score": 144
     }
   ]
 }
