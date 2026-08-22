@@ -78,6 +78,7 @@ Most contest loggers are Windows-only, closed-source, or locked to a fixed set o
 | Florida QSO Party | `fqp.json` |
 | General DXCC | `general_dxcc.json` |
 | Georgia QSO Party | `gaqp.json` |
+| Hawaii QSO Party | `hiqp.json` |
 | Japan International DX Contest (JIDX) | `jidx.json` |
 | Kentucky QSO Party | `kyqp.json` |
 | Louisiana QSO Party | `laqp.json` |

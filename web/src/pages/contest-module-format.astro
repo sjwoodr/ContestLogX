@@ -441,6 +441,32 @@ import Layout from '../layouts/Layout.astro';
             </tbody>
           </table>
 
+          <p class="opacity-80 mb-2">
+            <code>type</code> sets the scope for every operator. When the two sides of a contest count on
+            <strong>different</strong> scopes, add an optional <code>stationClassMultTypes</code> object that
+            overrides <code>type</code> per station class. It resolves from the formal station class first,
+            then from any <code>userPrompts</code> answer whose value matches a key - the same resolution
+            <code>stationClassMultipliers</code> uses for categories. Unmatched operators keep the plain
+            <code>type</code>.
+          </p>
+          <pre class="rounded p-4 text-sm overflow-x-auto mb-4" style="background-color: #0d1117; color: #e6edf3;">{`"multipliers": {
+  "type": "multsPerBand",
+  "stationClassMultTypes": {
+    "HI":     "multsOnce",
+    "NON_HI": "multsPerBand"
+  },
+  "stationClassMultipliers": {
+    "HI":     ["namedMults", "dxcc"],
+    "NON_HI": ["namedMults"]
+  }
+}`}</pre>
+          <p class="opacity-80 mb-4">
+            The Hawaii QSO Party uses this: non-Hawaii stations count the 14 Hawaii districts
+            <strong>per band</strong> (max 84), while Hawaii stations count districts, states, provinces and
+            DXCC entities <strong>once</strong> for the contest. Pair it with <code>stationClassMultipliers</code>
+            when the categories differ too, as above.
+          </p>
+
           <table class="w-full text-sm opacity-80 mb-4">
             <thead><tr class="text-left border-b" style="border-color: #30363d;">
               <th class="pb-2 pr-4">category</th><th class="pb-2">Description</th>

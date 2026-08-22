@@ -1,0 +1,249 @@
+{
+  "contest": {
+    "name": "Hawaii QSO Party",
+    "abbreviation": "HIQP",
+    "version": "1.0.0",
+    "sponsor": "Hawaii QSO Party",
+    "description": "Annual Hawaii QSO Party, a 36-hour event starting the fourth Saturday of August (1600Z Saturday to 0400Z Monday). Hawaii stations work everyone for districts, states, provinces, and DXCC entities counted once. Non-Hawaii stations work Hawaii stations only, for the 14 Hawaii districts counted per band. CW, SSB, and digital.",
+    "startDate": "Fourth Saturday of August (2026: Aug 22 1600Z - Aug 24 0359Z)",
+    "duration": 36,
+    "offTimeGapMinutes": 0,
+    "modes": ["CW", "SSB", "DIGITAL"],
+    "bands": ["160m", "80m", "40m", "20m", "15m", "10m"],
+    "url": "https://www.hiqsoparty.org/",
+    "categories": {
+      "stations": ["SINGLE_OP", "MULTI_MULTI"],
+      "power": ["QRP", "LOW", "HIGH"],
+      "modes": ["MIXED"]
+    }
+  },
+  "frequencies": {
+    "160m": {
+      "start": 1800, "end": 2000,
+      "cw":    {"start": 1800, "end": 1843},
+      "phone": {"start": 1843, "end": 2000}
+    },
+    "80m": {
+      "start": 3500, "end": 4000,
+      "cw":    {"start": 3500, "end": 3600},
+      "phone": {"start": 3600, "end": 4000}
+    },
+    "40m": {
+      "start": 7000, "end": 7300,
+      "cw":    {"start": 7000, "end": 7125},
+      "phone": {"start": 7125, "end": 7300}
+    },
+    "20m": {
+      "start": 14000, "end": 14350,
+      "cw":    {"start": 14000, "end": 14150},
+      "phone": {"start": 14150, "end": 14350}
+    },
+    "15m": {
+      "start": 21000, "end": 21450,
+      "cw":    {"start": 21000, "end": 21200},
+      "phone": {"start": 21200, "end": 21450}
+    },
+    "10m": {
+      "start": 28000, "end": 29700,
+      "cw":    {"start": 28000, "end": 28300},
+      "phone": {"start": 28300, "end": 29700}
+    }
+  },
+  "stationClasses": {
+    "enabled": false
+  },
+  "userPrompts": [
+    {
+      "id": "stationType",
+      "question": "Are you a Hawaii or non-HI station?",
+      "type": "select",
+      "options": [
+        {"value": "HI", "label": "Hawaii (In-State) - send RST + Hawaii district"},
+        {"value": "NON_HI", "label": "Non-Hawaii (US/VE/DX) - send RST + state/province, or DX"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "Hawaii stations work everyone. Non-Hawaii stations work Hawaii stations only. This answer also selects the multiplier scope: Hawaii stations count multipliers once for the contest, non-Hawaii stations count the 14 districts per band."
+    },
+    {
+      "id": "myExchange",
+      "question": "Enter your exchange: Hawaii district (3 letters), state/province (2 letters), or DX",
+      "type": "text",
+      "required": true,
+      "forceUppercase": true,
+      "storeInMeta": true,
+      "description": "3-letter district abbreviation for Hawaii stations (never HI); 2-letter state/province for US/VE; the literal DX for stations outside the US/Canada. If operating remotely, send the QTH of the transmitting radio, not your home QTH.",
+      "exchangeFieldMapping": {
+        "myExchange": "EXCHs"
+      }
+    },
+    {
+      "id": "operatingClass",
+      "question": "Select your operating class",
+      "type": "select",
+      "options": [
+        {"value": "SO_QRP", "label": "Single Op QRP (5W or less)"},
+        {"value": "SO_LP",  "label": "Single Op Low Power (100W or less)"},
+        {"value": "SO_HP",  "label": "Single Op High Power (over 100W, legal limit)"},
+        {"value": "MM_LP",  "label": "Multi-Op Multi-Station Low Power (100W max)"},
+        {"value": "MM_HP",  "label": "Multi-Op Multi-Station High Power (legal limit)"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "Multi-operator entries are always multi-station. Cabrillo CATEGORY-TRANSMITTER records how many radios were operated at the same time."
+    }
+  ],
+  "exchangeFields": {
+    "sent": [
+      {
+        "name": "RST",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report sent (or signal-to-noise for WSJT digital modes)"
+      },
+      {
+        "name": "EXCHs",
+        "type": "string",
+        "required": true,
+        "description": "Hawaii district (Hawaii stations), state/province (US/VE), or DX"
+      }
+    ],
+    "received": [
+      {
+        "name": "RST",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report received (or signal-to-noise for WSJT digital modes)"
+      },
+      {
+        "name": "EXCHr",
+        "type": "string",
+        "required": true,
+        "description": "Hawaii district (from Hawaii stations), state/province (US/VE), DX, or a 4-character grid square on digital modes that cannot send a QTH name"
+      }
+    ]
+  },
+  "qsoFields": [
+    {"name": "Date",      "column": "DATE",   "type": "date",   "format": "yyyy-MM-dd", "required": true},
+    {"name": "Time",      "column": "TIME",   "type": "time",   "format": "HH:mm:ss",   "required": true},
+    {"name": "Callsign",  "column": "CALL",   "type": "string", "required": true, "uppercase": true},
+    {"name": "Frequency", "column": "FREQ",   "type": "number", "unit": "kHz",    "required": true},
+    {"name": "Mode",      "column": "MODE",   "type": "enum",   "values": ["CW", "SSB", "DIGITAL"], "required": true},
+    {"name": "RST Sent",  "column": "RSTs",   "type": "string", "required": true, "default": "599"},
+    {"name": "RST Rcvd",  "column": "RSTr",   "type": "string", "required": true},
+    {"name": "Exch Sent", "column": "EXCHs",  "type": "string", "required": true, "description": "District/State/Province/DX"},
+    {"name": "Exch Rcvd", "column": "EXCHr",  "type": "string", "required": true, "description": "District/State/Province/DX/Grid"},
+    {"name": "Points",    "column": "POINTS", "type": "number", "calculated": true},
+    {"name": "Mult",      "column": "M",      "type": "string", "calculated": true}
+  ],
+  "scoring": {
+    "points": {
+      "cw":      3,
+      "phone":   2,
+      "digital": 3
+    },
+    "multipliers": {
+      "type": "multsPerBand",
+      "description": "The multiplier SCOPE differs by station type, which is why stationClassMultTypes is used. Non-Hawaii stations: the 14 Hawaii districts counted PER BAND, maximum 84 (6 bands x 14 districts). Hawaii stations: 14 districts + 49 US states + DC + 13 Canadian provinces/territories + DXCC entities, counted ONCE for the contest, not per band. HI is never received as an exchange because Hawaii ops always send a district abbreviation, so it is not in the mult list. USA/Canada and Alaska/Hawaii are excluded from DXCC credit so a US or VE station counts only via its state/province and a Hawaii station only via its district.",
+      "categories": ["namedMults"],
+      "stationClassMultTypes": {
+        "HI": "multsOnce",
+        "NON_HI": "multsPerBand"
+      },
+      "stationClassMultipliers": {
+        "HI": ["namedMults", "dxcc"],
+        "NON_HI": ["namedMults"]
+      },
+      "alaskaAndHawaiiCountDxcc": false,
+      "usAndCanadaCountDxcc": false
+    },
+    "finalScore": "SUM(points) * SUM(multipliers)"
+  },
+  "dupeChecking": {
+    "type": "perBandAndMode",
+    "description": "A station may be worked once per band per mode - three times per band, once each on CW, SSB, and digital. All digital modes (RTTY, PSK, FT8, FT4, VarAC, Winlink P2P, etc.) count as the single mode DIGITAL, so a station worked on RTTY may not be worked again on FT8 on the same band."
+  },
+  "logging": {
+    "requiredFields": ["date", "time", "frequency", "mode", "callsign", "rstSent", "rstReceived", "exchSent", "exchReceived"],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "HI-QSO-PARTY",
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {rst_sent} {exch_sent} {call} {rst_rcvd} {exch_rcvd}",
+      "requiredHeaders": ["CONTEST", "CALLSIGN", "CATEGORY-OPERATOR", "CATEGORY-TRANSMITTER", "CATEGORY-POWER", "CATEGORY-BAND", "EMAIL", "NAME", "ADDRESS", "ADDRESS-CITY", "ADDRESS-STATE-PROVINCE", "ADDRESS-POSTALCODE", "ADDRESS-COUNTRY", "GRID-LOCATOR", "SOAPBOX"],
+      "notes": "CATEGORY-OPERATOR is SINGLE-OP or MULTI-OP only. CATEGORY-TRANSMITTER is the number of radios operated at the same time (ONE, TWO, ...). CATEGORY-BAND is ALL or a single band. The sent QTH must be the QTH of the transmitting radio - remote operators must give the remote radio's location in SOAPBOX and file a separate log per remote site."
+    }
+  },
+  "callHistory": {
+    "fieldsToSave": ["EXCHr"],
+    "description": "Save received exchange (district/state/province/DX) for future lookups"
+  },
+  "validation": {
+    "minimumQSOs": 1,
+    "maxOperatingTime": 36,
+    "offTimesRequired": false,
+    "namedMults": [
+      "KAU", "NII", "KAL", "LNI", "MAU", "MOL", "HON", "LHN", "PRL", "WHN",
+      "HIL", "KOH", "KON", "VOL",
+      "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DC", "DE", "FL",
+      "GA", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME",
+      "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ",
+      "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC",
+      "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY",
+      "AB", "BC", "MB", "NB", "NL", "NS", "NT", "NU", "ON", "PE", "QC", "SK", "YT"
+    ],
+    "receivedExchangeFilter": {
+      "promptId": "stationType",
+      "rules": {
+        "NON_HI": "inStateMults"
+      }
+    },
+    "inStateMults": [
+      "KAU", "NII", "KAL", "LNI", "MAU", "MOL", "HON", "LHN", "PRL", "WHN",
+      "HIL", "KOH", "KON", "VOL"
+    ],
+    "namedMultsByStationClass": {
+      "NON_HI": [
+        "KAU", "NII", "KAL", "LNI", "MAU", "MOL", "HON", "LHN", "PRL", "WHN",
+        "HIL", "KOH", "KON", "VOL"
+      ]
+    },
+    "exchangeValidation": {
+      "type": "multiplier",
+      "description": "Hawaii district (3 letters), US state or DC (2 letters), Canadian province (2 letters), DX, or a 4-character grid square on digital modes. Validation is permissive because the rules explicitly allow a grid square when the mode cannot send a QTH name; a grid earns no multiplier in the app because a grid does not resolve to a single district - the sponsor's log checking assigns the most likely multiplier."
+    }
+  },
+  "districtAbbreviations": {
+    "description": "Hawaii QSO Party district multipliers (14), grouped by county",
+    "KAU": "Kauai (Kauai County)",
+    "NII": "Niihau (Kauai County)",
+    "KAL": "Kalawao (Kalawao County)",
+    "LNI": "Lanai (Maui County)",
+    "MAU": "Maui (Maui County)",
+    "MOL": "Molokai (Maui County)",
+    "HON": "Honolulu (Honolulu County, Oahu)",
+    "LHN": "Leeward (Honolulu County, Oahu)",
+    "PRL": "Pearl Harbor Area (Honolulu County, Oahu)",
+    "WHN": "Windward (Honolulu County, Oahu)",
+    "HIL": "Hilo (Hawaii County)",
+    "KOH": "Kohala (Hawaii County)",
+    "KON": "Kona (Hawaii County)",
+    "VOL": "Volcano Park (Hawaii County)"
+  },
+  "ui": {
+    "showMultiplierPanel": true,
+    "logColumns": ["DATE", "TIME", "CALL", "FREQ", "MODE", "RSTs", "RSTr", "EXCHs", "EXCHr", "POINTS", "M", "COMMENT"],
+    "entryFields": ["CALL", "RSTr", "EXCHr"],
+    "fieldNavigation": {
+      "keys": "tab"
+    },
+    "bandMap": {
+      "enabled": true,
+      "bands": ["160m", "80m", "40m", "20m", "15m", "10m"]
+    },
+    "multiplierDisplay": {
+      "showCounties": true,
+      "showStates": true,
+      "showProvinces": true
+    }
+  }
+}

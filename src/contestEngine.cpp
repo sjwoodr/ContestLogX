@@ -241,6 +241,27 @@ void ContestEngine::cacheContestProperties()
             QJsonObject mults = scoring["multipliers"].toObject();
             m_cachedMultType = mults["type"].toString("multsOnce");
 
+            // Optional per-station-class multiplier SCOPE override. Mirrors the
+            // stationClassMultipliers resolution below, which varies the mult
+            // *categories* by class; this varies the *scope* (once/perBand/...).
+            // Needed where the two sides of a contest count on different scopes -
+            // HIQP: non-HI stations count the 14 districts per band, HI stations
+            // count districts + states + provinces + DXCC once only.
+            // Resolves from m_stationClass first, then from userPrompt values.
+            if (mults.contains("stationClassMultTypes")) {
+                QJsonObject scTypes = mults["stationClassMultTypes"].toObject();
+                if (!m_stationClass.isEmpty() && scTypes.contains(m_stationClass)) {
+                    m_cachedMultType = scTypes[m_stationClass].toString(m_cachedMultType);
+                } else {
+                    for (const QString& scKey : scTypes.keys()) {
+                        if (m_userPromptValues.values().contains(scKey)) {
+                            m_cachedMultType = scTypes[scKey].toString(m_cachedMultType);
+                            break;
+                        }
+                    }
+                }
+            }
+
             m_cachedAkHiCountDxcc       = mults["alaskaAndHawaiiCountDxcc"].toBool(true);
             m_cachedUsAndCanadaCountDxcc = mults["usAndCanadaCountDxcc"].toBool(true);
             m_cachedIncludeWaeEntities  = mults["includeWaeEntities"].toBool(false);

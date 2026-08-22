@@ -378,6 +378,32 @@ The IARU HF World Championship uses this: `sameItuZone` (received ITU zone equal
 | `multsPerBandAndMode` | Each multiplier counted once per band/mode combination |
 | `objectiveMultipliers` | Score multiplied by user-selected objectives (Winter Field Day) |
 
+`type` sets the scope for every operator. When the two sides of a contest count
+on **different** scopes, add an optional `stationClassMultTypes` object that
+overrides `type` per station class. It resolves from the formal station class
+first, then from any `userPrompts` answer whose value matches a key - the same
+resolution `stationClassMultipliers` uses for categories. Unmatched operators
+keep the plain `type`.
+
+```json
+"multipliers": {
+  "type": "multsPerBand",
+  "stationClassMultTypes": {
+    "HI":     "multsOnce",
+    "NON_HI": "multsPerBand"
+  },
+  "stationClassMultipliers": {
+    "HI":     ["namedMults", "dxcc"],
+    "NON_HI": ["namedMults"]
+  }
+}
+```
+
+The Hawaii QSO Party uses this: non-Hawaii stations count the 14 Hawaii
+districts **per band** (max 84), while Hawaii stations count districts, states,
+provinces and DXCC entities **once** for the contest. Pair it with
+`stationClassMultipliers` when the categories differ too, as above.
+
 **multiplier categories:**
 
 | category | Description |

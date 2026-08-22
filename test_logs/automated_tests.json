@@ -414,6 +414,16 @@
       "name": "OHQP Out-of-State TN op (11 QSOs incl 1 dupe, multsPerMode OH counties only, same county on CW and SSB counts twice)",
       "log_file": "test_ohqp_outofstate.clx",
       "expected_score": 144
+    },
+    {
+      "name": "HIQP In-State HI op HON (11 QSOs incl 1 dupe, multsOnce via stationClassMultTypes: districts+states+prov once, NOT per band, plus DXCC entities; US/VE and AK/HI suppressed from DXCC)",
+      "log_file": "test_hiqp_instate.clx",
+      "expected_score": 224
+    },
+    {
+      "name": "HIQP Out-of-State KS op (9 QSOs incl 1 dupe, multsPerBand HI districts only, same district on one band via 2 modes counts once, new band re-credits)",
+      "log_file": "test_hiqp_outofstate.clx",
+      "expected_score": 154
     }
   ]
 }

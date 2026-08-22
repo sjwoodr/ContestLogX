@@ -4,6 +4,12 @@ All notable changes to ContestLogX are documented in this file.
 
 ## [0.9.8]
 
+### Contest Updates
+- Added the Hawaii QSO Party (HIQP)
+
+### Contest Engine Changes
+- Added `stationClassMultTypes`, which lets a contest set a different multiplier scope for each side of the contest. Needed by the Hawaii QSO Party, where non-Hawaii stations count the 14 Hawaii districts per band (max 84) while Hawaii stations count districts, states, provinces and DXCC entities once for the whole contest. Previously the scope was a single contest-wide setting, so one side or the other would have scored wrong
+
 ## [0.9.7]
 
 ### Contest Updates
