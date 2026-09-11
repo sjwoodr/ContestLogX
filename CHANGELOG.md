@@ -2,6 +2,15 @@
 
 All notable changes to ContestLogX are documented in this file.
 
+## [0.9.9]
+
+### Contest Updates
+- Added the ARRL November Sweepstakes (ARRL SS), CW and Phone weekends. Enter the full five-part exchange - serial number, precedence, check and section - with 2 points per QSO and the 85 ARRL/RAC sections as multipliers, counted once for the contest. A station worked on one band is a dupe on every other band, and retired Canadian abbreviations (NT, GTA, PEI) are accepted for TER, GH and PE. Precedence, check and section are saved to call history, so a station you have worked before pre-fills everything but the serial number
+
+### Contest Engine Changes
+- A contest definition can now put a `pattern` regex on any exchange field, which the entry form enforces when a QSO is logged. Sweepstakes uses it to catch a mistyped precedence or check at the point of entry instead of at log submission
+- Cabrillo QSO templates can now reference a contest's own exchange fields by name, so a contest with an exchange that does not fit the standard RST-plus-exchange shape no longer needs a code change to export correctly
+
 ## [0.9.8]
 
 ### Contest Updates

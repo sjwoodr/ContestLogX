@@ -453,6 +453,28 @@ QString ContestEngine::getFieldLabel(const QString& fieldName) const
     return labels.value(fieldName, fieldName);
 }
 
+// Returns the exchangeFields entry (sent or received) whose "name" matches
+// fieldName, or an empty object when the contest has no such field. Received
+// fields are searched first so a contest that reuses one name on both sides
+// (several do, e.g. "RST") gets the received definition, which is the side
+// the operator types and the only side that is validated.
+QJsonObject ContestEngine::getExchangeFieldDef(const QString& fieldName) const
+{
+    if (!m_contestDef.contains("exchangeFields"))
+        return QJsonObject();
+
+    QJsonObject exchangeFields = m_contestDef["exchangeFields"].toObject();
+    for (const QString& side : {QStringLiteral("received"), QStringLiteral("sent")}) {
+        if (!exchangeFields.contains(side)) continue;
+        for (const QJsonValue& val : exchangeFields[side].toArray()) {
+            QJsonObject fieldObj = val.toObject();
+            if (fieldObj["name"].toString() == fieldName)
+                return fieldObj;
+        }
+    }
+    return QJsonObject();
+}
+
 QString ContestEngine::getFieldType(const QString& fieldName) const
 {
     // Check exchangeFields first (new format)
@@ -534,6 +556,31 @@ bool ContestEngine::validateExchange(const QString& fieldName, const QString& va
         }
     }
     
+    // Optional per-field regex from the exchangeFields entry, e.g. ARRL SS
+    // precedence "^[QABUMS]$" or check "^[0-9]{2}$". Applies to any field type
+    // and runs before the type-specific rules so a contest can constrain a
+    // plain string field without needing a dedicated type. Entry fields are
+    // force-uppercased by the UI, so write patterns in upper case.
+    QJsonObject fieldDef = getExchangeFieldDef(fieldName);
+    if (fieldDef.contains("pattern")) {
+        QString pattern = fieldDef["pattern"].toString();
+        QRegularExpression re(pattern);
+        if (re.isValid()) {
+            if (!re.match(value).hasMatch()) {
+                errorMsg = QString("Invalid %1: %2").arg(getFieldLabel(fieldName), value);
+                DebugLogger::instance().log("ContestEngine",
+                    QString("  Pattern '%1' rejected value '%2'").arg(pattern, value));
+                return false;
+            }
+            DebugLogger::instance().log("ContestEngine",
+                QString("  Pattern '%1' matched value '%2'").arg(pattern, value));
+        } else {
+            DebugLogger::instance().log("ContestEngine",
+                QString("  WARNING: field '%1' has an invalid pattern '%2' - not enforced")
+                    .arg(fieldName, pattern));
+        }
+    }
+
     QString type = getFieldType(fieldName);
     DebugLogger::instance().log("ContestEngine", 
         QString("  Field type: %1").arg(type));

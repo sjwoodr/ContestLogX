@@ -1,0 +1,237 @@
+{
+  "contest": {
+    "categories": {
+      "userPrompt_contestMode": "SSB",
+      "userPrompt_limitedAntennas": "NONE",
+      "userPrompt_myCheck": "79",
+      "userPrompt_mySection": "IN",
+      "userPrompt_operatingCategory": "A",
+      "userPrompt_powerCategory": "LP"
+    },
+    "contest_file": "arrl_ss.json",
+    "mode": "SSB",
+    "name": "ARRL November Sweepstakes",
+    "type": "ARRL November Sweepstakes",
+    "version": "1.0.0",
+    "year": 2026
+  },
+  "created": "2026-11-21T21:00:00Z",
+  "exchange_fields": [],
+  "format": "ContestLogX",
+  "format_version": "1.0",
+  "modified": "2026-11-22T02:00:00Z",
+  "qsos": [
+    {
+      "band": "20m",
+      "callsign": "N3JJV",
+      "duplicate": false,
+      "dxcc_count": 0,
+      "exchange_fields": {
+        "CALL": "N3JJV",
+        "CHKr": "83",
+        "CHKs": "79",
+        "EXCHr": "ENY",
+        "EXCHs": "IN",
+        "PRECr": "A",
+        "PRECs": "A",
+        "SNr": "4",
+        "SNs": "1"
+      },
+      "frequency": 14250,
+      "grid_square_count": 0,
+      "id": 1,
+      "mode": "SSB",
+      "multiplier_count": 0,
+      "points": 0,
+      "serial": 1,
+      "timestamp": "2026-11-21T21:02:00Z"
+    },
+    {
+      "band": "20m",
+      "callsign": "W8OI",
+      "duplicate": false,
+      "dxcc_count": 0,
+      "exchange_fields": {
+        "CALL": "W8OI",
+        "CHKr": "70",
+        "CHKs": "79",
+        "EXCHr": "MI",
+        "EXCHs": "IN",
+        "PRECr": "B",
+        "PRECs": "A",
+        "SNr": "12",
+        "SNs": "2"
+      },
+      "frequency": 14255,
+      "grid_square_count": 0,
+      "id": 2,
+      "mode": "SSB",
+      "multiplier_count": 0,
+      "points": 0,
+      "serial": 2,
+      "timestamp": "2026-11-21T21:09:00Z"
+    },
+    {
+      "band": "20m",
+      "callsign": "K9WP",
+      "duplicate": false,
+      "dxcc_count": 0,
+      "exchange_fields": {
+        "CALL": "K9WP",
+        "CHKr": "06",
+        "CHKs": "79",
+        "EXCHr": "WI",
+        "EXCHs": "IN",
+        "PRECr": "Q",
+        "PRECs": "A",
+        "SNr": "1",
+        "SNs": "3"
+      },
+      "frequency": 14260,
+      "grid_square_count": 0,
+      "id": 3,
+      "mode": "SSB",
+      "multiplier_count": 0,
+      "points": 0,
+      "serial": 3,
+      "timestamp": "2026-11-21T21:17:00Z"
+    },
+    {
+      "band": "20m",
+      "callsign": "K6JH",
+      "duplicate": false,
+      "dxcc_count": 0,
+      "exchange_fields": {
+        "CALL": "K6JH",
+        "CHKr": "58",
+        "CHKs": "79",
+        "EXCHr": "ORG",
+        "EXCHs": "IN",
+        "PRECr": "U",
+        "PRECs": "A",
+        "SNr": "30",
+        "SNs": "4"
+      },
+      "frequency": 14265,
+      "grid_square_count": 0,
+      "id": 4,
+      "mode": "SSB",
+      "multiplier_count": 0,
+      "points": 0,
+      "serial": 4,
+      "timestamp": "2026-11-21T21:26:00Z"
+    },
+    {
+      "band": "40m",
+      "callsign": "N7L",
+      "duplicate": false,
+      "dxcc_count": 0,
+      "exchange_fields": {
+        "CALL": "N7L",
+        "CHKr": "92",
+        "CHKs": "79",
+        "EXCHr": "AZ",
+        "EXCHs": "IN",
+        "PRECr": "A",
+        "PRECs": "A",
+        "SNr": "8",
+        "SNs": "5"
+      },
+      "frequency": 7210,
+      "grid_square_count": 0,
+      "id": 5,
+      "mode": "SSB",
+      "multiplier_count": 0,
+      "points": 0,
+      "serial": 5,
+      "timestamp": "2026-11-21T22:01:00Z"
+    },
+    {
+      "band": "40m",
+      "callsign": "W8OI",
+      "duplicate": false,
+      "dxcc_count": 0,
+      "exchange_fields": {
+        "CALL": "W8OI",
+        "CHKr": "70",
+        "CHKs": "79",
+        "EXCHr": "MI",
+        "EXCHs": "IN",
+        "PRECr": "B",
+        "PRECs": "A",
+        "SNr": "19",
+        "SNs": "6"
+      },
+      "frequency": 7215,
+      "grid_square_count": 0,
+      "id": 6,
+      "mode": "SSB",
+      "multiplier_count": 0,
+      "points": 0,
+      "serial": 6,
+      "timestamp": "2026-11-21T22:09:00Z"
+    },
+    {
+      "band": "40m",
+      "callsign": "VE9VS",
+      "duplicate": false,
+      "dxcc_count": 0,
+      "exchange_fields": {
+        "CALL": "VE9VS",
+        "CHKr": "44",
+        "CHKs": "79",
+        "EXCHr": "NB",
+        "EXCHs": "IN",
+        "PRECr": "M",
+        "PRECs": "A",
+        "SNr": "5",
+        "SNs": "7"
+      },
+      "frequency": 7220,
+      "grid_square_count": 0,
+      "id": 7,
+      "mode": "SSB",
+      "multiplier_count": 0,
+      "points": 0,
+      "serial": 7,
+      "timestamp": "2026-11-21T22:17:00Z"
+    },
+    {
+      "band": "15m",
+      "callsign": "K7KL",
+      "duplicate": false,
+      "dxcc_count": 0,
+      "exchange_fields": {
+        "CALL": "K7KL",
+        "CHKr": "97",
+        "CHKs": "79",
+        "EXCHr": "EWA",
+        "EXCHs": "IN",
+        "PRECr": "A",
+        "PRECs": "A",
+        "SNr": "16",
+        "SNs": "8"
+      },
+      "frequency": 21310,
+      "grid_square_count": 0,
+      "id": 8,
+      "mode": "SSB",
+      "multiplier_count": 0,
+      "points": 0,
+      "serial": 8,
+      "timestamp": "2026-11-21T22:52:00Z"
+    }
+  ],
+  "station": {
+    "callsign": "N9OH",
+    "equipment": {
+      "power": 100
+    },
+    "location": {
+      "grid": "EM69",
+      "state": "IN"
+    },
+    "operator": "Steve Woodruff"
+  },
+  "statistics": {}
+}

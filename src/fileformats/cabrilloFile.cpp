@@ -340,7 +340,26 @@ QString CabrilloFile::generateQsoLine(const QsoRecord& qso, const QString& qsoTe
     line.replace("{CATr}", qso.getExchangeField("CATr"));
     line.replace("{LOCr}", qso.getExchangeField("LOCr"));
 
-    return line;
+    // Any placeholder still unresolved is treated as an exchange field name and
+    // filled from the QSO's exchange map, the same convention the explicit
+    // {GRIDs}/{CATr}/{LOCr} replacements above already follow. This is what lets
+    // a contest name its own exchange fields in the template without a code
+    // change - ARRL SS sends {PRECs}/{CHKs} and receives {PRECr}/{CHKr}.
+    // An unknown name resolves to an empty string rather than being left as
+    // literal braces in the submitted log.
+    static const QRegularExpression placeholderRe(QStringLiteral("\\{([A-Za-z0-9_]+)\\}"));
+    QString resolved;
+    qsizetype pos = 0;
+    QRegularExpressionMatchIterator it = placeholderRe.globalMatch(line);
+    while (it.hasNext()) {
+        QRegularExpressionMatch m = it.next();
+        resolved += line.mid(pos, m.capturedStart() - pos);
+        resolved += qso.getExchangeField(m.captured(1));
+        pos = m.capturedEnd();
+    }
+    resolved += line.mid(pos);
+
+    return resolved;
 }
 
 QString CabrilloFile::formatFrequency(double freqKhz)

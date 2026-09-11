@@ -1,0 +1,331 @@
+{
+  "contest": {
+    "name": "ARRL November Sweepstakes",
+    "abbreviation": "ARRL-SS",
+    "version": "1.0.0",
+    "sponsor": "ARRL",
+    "description": "ARRL November Sweepstakes. W/VE stations work other W/VE stations for a five-part exchange (serial number, precedence, callsign, check, ARRL/RAC section). 2 points per QSO, multiplied by the 85 ARRL/RAC sections worked. CW weekend is the first full weekend in November, Phone the third. Each station may be worked only once, regardless of band.",
+    "startDate": "CW: First full weekend in November; Phone: Third full weekend in November (2100Z Saturday - 0259Z Monday)",
+    "duration": 30,
+    "offTimeGapMinutes": 30,
+    "modes": ["CW", "SSB"],
+    "bands": ["160m", "80m", "40m", "20m", "15m", "10m"],
+    "url": "https://contests.arrl.org/ContestRules/SS-Rules.pdf",
+    "categories": {
+      "power": ["HIGH", "LOW", "QRP"],
+      "stations": ["SINGLE_OP", "SINGLE_OP_UNLIMITED", "MULTI_SINGLE", "SCHOOL_CLUB"],
+      "modes": ["CW", "SSB"]
+    }
+  },
+  "contestOnlineScore": {
+    "contestId": "ARRL-SS-CW",
+    "contestIdMapping": {
+      "contestMode": {
+        "CW": "ARRL-SS-CW",
+        "SSB": "ARRL-SS-SSB"
+      }
+    },
+    "mult1Name": "Sections",
+    "mult1Attribute": "section"
+  },
+  "frequencies": {
+    "160m": {
+      "start": 1800, "end": 2000,
+      "cw":    {"start": 1800, "end": 1900},
+      "phone": {"start": 1900, "end": 2000}
+    },
+    "80m": {
+      "start": 3500, "end": 4000,
+      "cw":    {"start": 3500, "end": 3600},
+      "phone": {"start": 3600, "end": 4000}
+    },
+    "40m": {
+      "start": 7000, "end": 7300,
+      "cw":    {"start": 7000, "end": 7125},
+      "phone": {"start": 7125, "end": 7300}
+    },
+    "20m": {
+      "start": 14000, "end": 14350,
+      "cw":    {"start": 14000, "end": 14150},
+      "phone": {"start": 14150, "end": 14350}
+    },
+    "15m": {
+      "start": 21000, "end": 21450,
+      "cw":    {"start": 21000, "end": 21200},
+      "phone": {"start": 21200, "end": 21450}
+    },
+    "10m": {
+      "start": 28000, "end": 29700,
+      "cw":    {"start": 28000, "end": 28300},
+      "phone": {"start": 28300, "end": 29700}
+    }
+  },
+  "stationClasses": {
+    "enabled": false
+  },
+  "userPrompts": [
+    {
+      "id": "contestMode",
+      "question": "Which contest weekend are you entering?",
+      "type": "select",
+      "options": [
+        {"value": "CW",  "label": "CW (first full weekend in November)"},
+        {"value": "SSB", "label": "Phone (third full weekend in November)"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "restrictMode": true,
+      "description": "CW and Phone are separate contest weekends with separate logs and results. Only the selected mode may be used."
+    },
+    {
+      "id": "operatingCategory",
+      "question": "Select your category - this letter is your precedence",
+      "type": "select",
+      "options": [
+        {"value": "Q", "label": "Q - Single Operator, QRP"},
+        {"value": "A", "label": "A - Single Operator, Low Power"},
+        {"value": "B", "label": "B - Single Operator, High Power"},
+        {"value": "U", "label": "U - Single Operator Unlimited (QRP, Low or High Power)"},
+        {"value": "M", "label": "M - Multioperator, Single Transmitter (Low or High Power)"},
+        {"value": "S", "label": "S - School Club"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "The precedence sent in every exchange. Single Operator Unlimited is always U and Multioperator always M, whatever the power level, so answer the power question as well.",
+      "exchangeFieldMapping": {
+        "operatingCategory": "PRECs"
+      }
+    },
+    {
+      "id": "powerCategory",
+      "question": "Select your power category",
+      "type": "select",
+      "options": [
+        {"value": "HP",  "label": "High Power (up to 1500W)"},
+        {"value": "LP",  "label": "Low Power (up to 100W)"},
+        {"value": "QRP", "label": "QRP (5W or less)"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "Used for the Cabrillo CATEGORY-POWER header. It is not part of the on-air exchange, but it must agree with precedence Q, A or B."
+    },
+    {
+      "id": "myCheck",
+      "question": "Enter your check (last two digits of the year first licensed)",
+      "type": "text",
+      "required": true,
+      "storeInMeta": true,
+      "description": "Two digits, e.g. 79 for 1979 or 04 for 2004. The same check must be sent throughout the contest.",
+      "exchangeFieldMapping": {
+        "myCheck": "CHKs"
+      }
+    },
+    {
+      "id": "mySection",
+      "question": "Enter your ARRL or RAC section abbreviation",
+      "type": "text",
+      "required": true,
+      "forceUppercase": true,
+      "storeInMeta": true,
+      "description": "One of the 85 ARRL/RAC sections, e.g. IN, SCV, EMA, ONS. If operating remotely, send the section of the transmitting station.",
+      "exchangeFieldMapping": {
+        "mySection": "EXCHs"
+      }
+    },
+    {
+      "id": "limitedAntennas",
+      "question": "Are you entering the Limited Antennas overlay?",
+      "type": "select",
+      "options": [
+        {"value": "NONE",              "label": "No overlay"},
+        {"value": "LIMITED-ANTENNAS",  "label": "Limited Antennas overlay"}
+      ],
+      "required": false,
+      "storeInMeta": true,
+      "description": "Single-element antennas only - a single vertical, end-fed wire, or a single dipole no more than 50 feet high. Available to Single Operator and Single Operator Unlimited entries only."
+    }
+  ],
+  "exchangeFields": {
+    "sent": [
+      {
+        "name": "SNs",
+        "type": "serial",
+        "required": true,
+        "description": "Serial number sent - a consecutive contact number starting with 1"
+      },
+      {
+        "name": "PRECs",
+        "type": "string",
+        "required": true,
+        "pattern": "^[QABUMS]$",
+        "description": "Precedence sent - Q, A, B, U, M or S"
+      },
+      {
+        "name": "CHKs",
+        "type": "string",
+        "required": true,
+        "pattern": "^[0-9]{2}$",
+        "description": "Check sent - last two digits of the year first licensed"
+      },
+      {
+        "name": "EXCHs",
+        "type": "string",
+        "required": true,
+        "description": "ARRL/RAC section sent"
+      }
+    ],
+    "received": [
+      {
+        "name": "SNr",
+        "type": "serial",
+        "required": true,
+        "description": "Serial number received"
+      },
+      {
+        "name": "PRECr",
+        "type": "string",
+        "required": true,
+        "pattern": "^[QABUMS]$",
+        "description": "Precedence received - Q, A, B, U, M or S"
+      },
+      {
+        "name": "CHKr",
+        "type": "string",
+        "required": true,
+        "pattern": "^[0-9]{2}$",
+        "description": "Check received - last two digits of the year the worked station was first licensed"
+      },
+      {
+        "name": "EXCHr",
+        "type": "string",
+        "required": true,
+        "description": "ARRL/RAC section received - the multiplier"
+      }
+    ]
+  },
+  "qsoFields": [
+    {"name": "Date",      "column": "DATE",   "type": "date",   "format": "yyyy-MM-dd", "required": true},
+    {"name": "Time",      "column": "TIME",   "type": "time",   "format": "HH:mm:ss",   "required": true},
+    {"name": "Callsign",  "column": "CALL",   "type": "string", "required": true, "uppercase": true},
+    {"name": "Frequency", "column": "FREQ",   "type": "number", "unit": "kHz", "required": true},
+    {"name": "Mode",      "column": "MODE",   "type": "enum",   "values": ["CW", "SSB"], "required": true},
+    {"name": "Nr Sent",   "column": "SNs",    "type": "number", "required": true},
+    {"name": "Prec Sent", "column": "PRECs",  "type": "string", "required": true},
+    {"name": "Chk Sent",  "column": "CHKs",   "type": "string", "required": true},
+    {"name": "Sec Sent",  "column": "EXCHs",  "type": "string", "required": true, "description": "ARRL/RAC section sent"},
+    {"name": "Nr Rcvd",   "column": "SNr",    "type": "number", "required": true},
+    {"name": "Prec Rcvd", "column": "PRECr",  "type": "string", "required": true},
+    {"name": "Chk Rcvd",  "column": "CHKr",   "type": "string", "required": true},
+    {"name": "Sec Rcvd",  "column": "EXCHr",  "type": "string", "required": true, "description": "ARRL/RAC section received"},
+    {"name": "Points",    "column": "POINTS", "type": "number", "calculated": true},
+    {"name": "Mult",      "column": "M",      "type": "string", "calculated": true}
+  ],
+  "scoring": {
+    "points": {
+      "__comment": "Every contact is worth 2 points regardless of band or mode. perQso is the value the engine uses; cw and phone repeat it so the fallback path used when the DXCC database is unavailable also scores 2.",
+      "perQso": 2,
+      "cw": 2,
+      "phone": 2
+    },
+    "multipliers": {
+      "__comment": "The 85 ARRL/RAC sections, counted once for the contest - NOT per band. A clean sweep is all 85. There is no DXCC or zone multiplier in Sweepstakes.",
+      "type": "multsOnce",
+      "description": "ARRL and RAC sections worked, counted once each for the whole contest",
+      "categories": ["namedMults"]
+    },
+    "finalScore": "SUM(points) * SUM(multipliers)"
+  },
+  "dupeChecking": {
+    "type": "overall",
+    "description": "Each station may be worked only once for the whole contest, regardless of band. A second contact on another band is a dupe."
+  },
+  "logging": {
+    "requiredFields": ["date", "time", "frequency", "mode", "callsign", "serialSent", "precedenceSent", "checkSent", "sectionSent", "serialReceived", "precedenceReceived", "checkReceived", "sectionReceived"],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "ARRL-SS-CW",
+      "contestMapping": {
+        "CW": "ARRL-SS-CW",
+        "SSB": "ARRL-SS-SSB"
+      },
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {SNs} {PRECs} {mycall} {CHKs} {EXCHs} {SNr} {PRECr} {call} {CHKr} {EXCHr}",
+      "requiredHeaders": ["CONTEST", "CALLSIGN", "LOCATION", "CATEGORY-ASSISTED", "CATEGORY-BAND", "CATEGORY-MODE", "CATEGORY-OPERATOR", "CATEGORY-POWER", "CATEGORY-TRANSMITTER", "CATEGORY-OVERLAY", "CLAIMED-SCORE", "CLUB", "CREATED-BY", "NAME", "ADDRESS", "ADDRESS-CITY", "ADDRESS-STATE-PROVINCE", "ADDRESS-POSTALCODE", "ADDRESS-COUNTRY", "EMAIL", "OPERATORS", "SOAPBOX"],
+      "notes": "Both halves of the exchange carry a callsign: the sent block uses your call and the received block the worked station's call. CATEGORY-OVERLAY is LIMITED-ANTENNAS for the overlay entry."
+    }
+  },
+  "callHistory": {
+    "fieldsToSave": ["PRECr", "CHKr", "EXCHr"],
+    "description": "Precedence, check and section never change during the contest, so saving all three lets a known call pre-fill everything but the serial number"
+  },
+  "validation": {
+    "minimumQSOs": 1,
+    "maxOperatingTime": 24,
+    "offTimesRequired": true,
+    "__comment_namedMults": "The 85 ARRL/RAC sections from the ARRL Contest Multipliers List (updated 6/2024): 10 US call areas plus 14 Canadian sections. AK, PAC, PR and VI are sections in Sweepstakes, so KL7/KH6/KP4/KP2 and the Pacific possessions are all valid contacts. Because only these 85 values validate as a received section, a DX station cannot be logged at all - which is how rule 2.1 (W/VE stations may only contact other W/VE stations) is enforced.",
+    "namedMults": [
+      "CT", "EMA", "ME", "NH", "RI", "VT", "WMA",
+      "ENY", "NLI", "NNJ", "NNY", "SNJ", "WNY",
+      "DE", "EPA", "MDC", "WPA",
+      "AL", "GA", "KY", "NC", "NFL", "SC", "SFL", "TN", "VA", "WCF", "PR", "VI",
+      "AR", "LA", "MS", "NM", "NTX", "OK", "STX", "WTX",
+      "EB", "LAX", "ORG", "SB", "SCV", "SDG", "SF", "SJV", "SV", "PAC",
+      "AK", "AZ", "EWA", "ID", "MT", "NV", "OR", "UT", "WWA", "WY",
+      "MI", "OH", "WV",
+      "IL", "IN", "WI",
+      "CO", "IA", "KS", "MN", "MO", "NE", "ND", "SD",
+      "AB", "BC", "GH", "MB", "NB", "NL", "NS", "ONE", "ONN", "ONS", "PE", "QC", "SK", "TER"
+    ],
+    "__comment_namedMultAliases": "Retired RAC abbreviations still sent on the air. NT became TER and GTA became GH when RAC reorganized effective 1 January 2023; PEI is an old spelling of PE. MAR is deliberately absent - it was split into NB, NS and PE, so it cannot be resolved to one section.",
+    "namedMultAliases": {
+      "NT": "TER",
+      "GTA": "GH",
+      "PEI": "PE"
+    },
+    "exchangeValidation": {
+      "type": "namedMultOnly",
+      "description": "The received section must be one of the 85 ARRL/RAC sections (or a retired abbreviation listed in namedMultAliases). Anything else is rejected, including DX stations, which have no section."
+    }
+  },
+  "sectionAbbreviations": {
+    "description": "ARRL/RAC section multipliers (85), grouped as printed in the ARRL Contest Multipliers List",
+    "CT": "Connecticut", "EMA": "Eastern Massachusetts", "ME": "Maine", "NH": "New Hampshire",
+    "RI": "Rhode Island", "VT": "Vermont", "WMA": "Western Massachusetts",
+    "ENY": "Eastern New York", "NLI": "NYC / Long Island", "NNJ": "Northern New Jersey",
+    "NNY": "Northern New York", "SNJ": "Southern New Jersey", "WNY": "Western New York",
+    "DE": "Delaware", "EPA": "Eastern Pennsylvania", "MDC": "Maryland - DC", "WPA": "Western Pennsylvania",
+    "AL": "Alabama", "GA": "Georgia", "KY": "Kentucky", "NC": "North Carolina",
+    "NFL": "Northern Florida", "SC": "South Carolina", "SFL": "Southern Florida", "TN": "Tennessee",
+    "VA": "Virginia", "WCF": "West Central Florida", "PR": "Puerto Rico", "VI": "US Virgin Islands",
+    "AR": "Arkansas", "LA": "Louisiana", "MS": "Mississippi", "NM": "New Mexico",
+    "NTX": "North Texas", "OK": "Oklahoma", "STX": "South Texas", "WTX": "West Texas",
+    "EB": "East Bay", "LAX": "Los Angeles", "ORG": "Orange", "SB": "Santa Barbara",
+    "SCV": "Santa Clara Valley", "SDG": "San Diego", "SF": "San Francisco",
+    "SJV": "San Joaquin Valley", "SV": "Sacramento Valley", "PAC": "Pacific",
+    "AK": "Alaska", "AZ": "Arizona", "EWA": "Eastern Washington", "ID": "Idaho",
+    "MT": "Montana", "NV": "Nevada", "OR": "Oregon", "UT": "Utah",
+    "WWA": "Western Washington", "WY": "Wyoming",
+    "MI": "Michigan", "OH": "Ohio", "WV": "West Virginia",
+    "IL": "Illinois", "IN": "Indiana", "WI": "Wisconsin",
+    "CO": "Colorado", "IA": "Iowa", "KS": "Kansas", "MN": "Minnesota",
+    "MO": "Missouri", "NE": "Nebraska", "ND": "North Dakota", "SD": "South Dakota",
+    "AB": "Alberta", "BC": "British Columbia", "GH": "Golden Horseshoe", "MB": "Manitoba",
+    "NB": "New Brunswick", "NL": "Newfoundland/Labrador", "NS": "Nova Scotia",
+    "ONE": "Ontario East", "ONN": "Ontario North", "ONS": "Ontario South",
+    "PE": "Prince Edward Island", "QC": "Quebec", "SK": "Saskatchewan", "TER": "Territories"
+  },
+  "ui": {
+    "showMultiplierPanel": true,
+    "logColumns": ["DATE", "TIME", "CALL", "FREQ", "MODE", "SNs", "PRECs", "CHKs", "EXCHs", "SNr", "PRECr", "CHKr", "EXCHr", "POINTS", "M", "COMMENT"],
+    "entryFields": ["CALL", "SNr", "PRECr", "CHKr", "EXCHr"],
+    "fieldNavigation": {
+      "keys": "tab"
+    },
+    "bandMap": {
+      "enabled": true,
+      "bands": ["160m", "80m", "40m", "20m", "15m", "10m"]
+    },
+    "multiplierDisplay": {
+      "showSections": true
+    }
+  }
+}

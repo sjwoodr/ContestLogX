@@ -71,6 +71,7 @@ Most contest loggers are Windows-only, closed-source, or locked to a fixed set o
 | ARRL 10 Meter | `arrl_10m.json` |
 | ARRL DX | `arrl_dx.json` |
 | ARRL Field Day | `field_day.json` |
+| ARRL November Sweepstakes | `arrl_ss.json` |
 | ARRL VHF | `arrl_vhf.json` |
 | Colorado QSO Party | `coqp.json` |
 | CWops Mini-CWT | `cwops_cwt.json` |
@@ -171,4 +172,4 @@ See the [LICENSE](LICENSE) file for the full license text.
 
 ---
 
-**[contestlogx.com](https://contestlogx.com)** | **ContestLogX v0.9.8** | *Copyright (c) 2025-2026 Steve Woodruff, N9OH*
+**[contestlogx.com](https://contestlogx.com)** | **ContestLogX v0.9.9** | *Copyright (c) 2025-2026 Steve Woodruff, N9OH*

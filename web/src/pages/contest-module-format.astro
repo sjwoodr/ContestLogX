@@ -321,13 +321,21 @@ import Layout from '../layouts/Layout.astro';
               <li><code>GRIDs</code> / <code>GRIDr</code> - Maidenhead grid square</li>
               <li><code>CATs</code> / <code>CATr</code> - category/class</li>
               <li><code>LOCs</code> / <code>LOCr</code> - location identifier</li>
+              <li><code>PRECs</code> / <code>PRECr</code> - precedence (ARRL Sweepstakes)</li>
+              <li><code>CHKs</code> / <code>CHKr</code> - check, year first licensed (ARRL Sweepstakes)</li>
               <li><code>EXCH</code> - single exchange field (no sent/rcvd variant)</li>
             </ul>
           </div>
+          <p class="opacity-80 mb-2 mt-4 text-sm">A received field's <code>name</code> must match the name used in <code>ui.entryFields</code>, or the field will not be validated when a QSO is logged. <code>RST</code> and <code>EXCH</code> are the two exceptions - they map to the record's RST-received and exchange-received values automatically.</p>
 
           <h3 class="text-lg font-semibold mb-2 mt-4">Field types</h3>
-          <p class="opacity-80 text-sm"><code>"rst"</code> - RST field with default 599 (or 59 for SSB); <code>"string"</code> - general text field.
-          The <code>validation</code> property accepts a regex string applied to input.</p>
+          <p class="opacity-80 text-sm"><code>"rst"</code> - RST field with default 599 (or 59 for SSB); <code>"serial"</code> - serial number, must be numeric; <code>"multiplier"</code> - must match an entry in <code>validation.namedMults</code>; <code>"string"</code> - general text field.</p>
+
+          <h3 class="text-lg font-semibold mb-2 mt-4">pattern (per-field regex)</h3>
+          <p class="opacity-80 mb-2 text-sm"><code>pattern</code> is a regex the field's value must match. It applies to any field type and is checked before the type-specific rules, so a plain string field can be constrained without needing a dedicated type:</p>
+          <pre class="rounded p-4 text-sm overflow-x-auto mb-2" style="background-color: #0d1117; color: #e6edf3;">{`{"name": "PRECr", "type": "string", "required": true, "pattern": "^[QABUMS]$"},
+{"name": "CHKr",  "type": "string", "required": true, "pattern": "^[0-9]{2}$"}`}</pre>
+          <p class="opacity-80 text-sm">Entry fields are force-uppercased by the UI, so write patterns in upper case. An empty value is governed by <code>required</code>, not by <code>pattern</code>, and an invalid regex is logged and skipped rather than rejecting every entry. Some older definitions carry a <code>validation</code> regex on a field instead; that key is <strong>not</strong> enforced and is descriptive only.</p>
         </section>
 
         <!-- qsoFields -->
@@ -575,8 +583,13 @@ import Layout from '../layouts/Layout.astro';
 }`}</pre>
           <p class="opacity-80 text-sm">
             Use <code>contestMapping</code> when the Cabrillo contest name varies by mode (e.g., NAQP-CW vs NAQP-SSB).
-            The <code>qsoTemplate</code> tokens reference field names from <code>qsoFields</code>.
           </p>
+
+          <h3 class="text-lg font-semibold mb-2 mt-4">qsoTemplate tokens</h3>
+          <p class="opacity-80 mb-2 text-sm">Built-in tokens: <code>{"{freq}"}</code>, <code>{"{mode}"}</code>, <code>{"{date}"}</code>, <code>{"{time}"}</code>, <code>{"{mycall}"}</code>, <code>{"{call}"}</code>, <code>{"{rst_sent}"}</code>, <code>{"{rst_rcvd}"}</code>, <code>{"{exch_sent}"}</code>, <code>{"{exch_rcvd}"}</code>, <code>{"{name_sent}"}</code>, <code>{"{name_rcvd}"}</code>, <code>{"{sn_sent}"}</code>, <code>{"{sn_rcvd}"}</code>.</p>
+          <p class="opacity-80 mb-2 text-sm">Any other token is treated as an <strong>exchange field name</strong> and filled from the QSO's exchange map, so a contest can put its own fields in the template without a code change. ARRL Sweepstakes uses this for its five-part exchange:</p>
+          <pre class="rounded p-4 text-sm overflow-x-auto mb-2" style="background-color: #0d1117; color: #e6edf3;">{`"qsoTemplate": "QSO: {freq} {mode} {date} {time} {SNs} {PRECs} {mycall} {CHKs} {EXCHs} {SNr} {PRECr} {call} {CHKr} {EXCHr}"`}</pre>
+          <p class="opacity-80 text-sm">Token names are case-sensitive and must match the exchange field exactly. A token naming a field the QSO does not carry resolves to an empty string, so a typo silently drops a column rather than leaving literal braces in the log - check the exported file when adding a new template.</p>
         </section>
 
         <!-- callHistory -->

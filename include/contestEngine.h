@@ -202,6 +202,7 @@ private:
     bool validateGridSquare(const QString& value) const;
     bool validateRSTReport(const QString& value) const;
     bool isFieldRequired(const QString& fieldName) const;
+    QJsonObject getExchangeFieldDef(const QString& fieldName) const;
     
     QString extractMultiplier(const QsoRecord& qso) const;
     QString applyMultAlias(const QString& rawMult) const;

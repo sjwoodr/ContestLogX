@@ -44,6 +44,13 @@ add_clx_test(test_s3signer test_s3signer.cpp
 add_clx_test(test_dupecheck test_dupecheck.cpp
     ${CMAKE_SOURCE_DIR}/src/core/qsoRecord.cpp)
 
+# Cabrillo export tests (QSO-line template placeholder resolution)
+add_clx_test(test_cabrillo test_cabrillo.cpp
+    ${CMAKE_SOURCE_DIR}/src/fileformats/cabrilloFile.cpp
+    ${CMAKE_SOURCE_DIR}/src/core/qsoRecord.cpp
+    ${CMAKE_SOURCE_DIR}/src/utils/bandPlan.cpp)
+target_compile_definitions(test_cabrillo PRIVATE CLX_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
+
 # TODO: Portable Callsigns tests
 # test_portable_callsigns.cpp provides comprehensive unit tests for:
 #   - US portable operation (/P, /MM, /AE, /AG, /M suffixes)

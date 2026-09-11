@@ -228,14 +228,40 @@ Exchange field names use a 3-5 letter code with an `s` (sent) or `r` (received) 
 - `GRIDs` / `GRIDr` - Maidenhead grid square
 - `CATs` / `CATr` - category/class
 - `LOCs` / `LOCr` - location identifier
+- `PRECs` / `PRECr` - precedence (ARRL Sweepstakes)
+- `CHKs` / `CHKr` - check, the year first licensed (ARRL Sweepstakes)
 - `EXCH` - single exchange field (no sent/rcvd variant)
+
+A received field's `name` must match the name used in `ui.entryFields`, or the
+field will not be validated when a QSO is logged. `RST` and `EXCH` are the two
+exceptions - they are mapped to the record's RST-received and
+exchange-received values automatically.
 
 ### Field types
 
 - `"rst"` - RST field with default 599 (or 59 for SSB)
+- `"serial"` - serial number; must be numeric
+- `"multiplier"` - must match an entry in `validation.namedMults`
 - `"string"` - general text field
 
-The `validation` property accepts a regex string applied to input.
+### pattern (per-field regex)
+
+`pattern` is a regex the field's value must match. It applies to any field
+type and is checked before the type-specific rules, so a plain string field can
+be constrained without needing a dedicated type:
+
+```json
+{"name": "PRECr", "type": "string", "required": true, "pattern": "^[QABUMS]$"},
+{"name": "CHKr",  "type": "string", "required": true, "pattern": "^[0-9]{2}$"}
+```
+
+Entry fields are force-uppercased by the UI, so write patterns in upper case.
+An empty value is governed by `required`, not by `pattern`, and an invalid
+regex is logged and skipped rather than rejecting every entry.
+
+Note: some older definitions carry a `validation` regex on a field instead.
+That key is **not** enforced - it is descriptive only. Use `pattern` for a
+regex that should actually be applied.
 
 ---
 
@@ -510,7 +536,26 @@ Controls Cabrillo export. The `qsoTemplate` uses `{token}` placeholders filled a
 }
 ```
 
-Use `contestMapping` when the Cabrillo contest name varies by mode (e.g., NAQP-CW vs NAQP-SSB). The `qsoTemplate` tokens reference field names from `qsoFields`.
+Use `contestMapping` when the Cabrillo contest name varies by mode (e.g., NAQP-CW vs NAQP-SSB).
+
+### qsoTemplate tokens
+
+Built-in tokens: `{freq}`, `{mode}`, `{date}`, `{time}`, `{mycall}`, `{call}`,
+`{rst_sent}`, `{rst_rcvd}`, `{exch_sent}`, `{exch_rcvd}`, `{name_sent}`,
+`{name_rcvd}`, `{sn_sent}`, `{sn_rcvd}`.
+
+Any other token is treated as an **exchange field name** and filled from the
+QSO's exchange map, so a contest can put its own fields in the template without
+a code change. ARRL Sweepstakes uses this for its five-part exchange:
+
+```json
+"qsoTemplate": "QSO: {freq} {mode} {date} {time} {SNs} {PRECs} {mycall} {CHKs} {EXCHs} {SNr} {PRECr} {call} {CHKr} {EXCHr}"
+```
+
+Token names are case-sensitive and must match the exchange field exactly. A
+token naming a field the QSO does not carry resolves to an empty string, so a
+typo silently drops a column rather than leaving literal braces in the log -
+check the exported file when adding a new template.
 
 ---
 

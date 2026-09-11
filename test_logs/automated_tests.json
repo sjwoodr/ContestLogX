@@ -424,6 +424,16 @@
       "name": "HIQP Out-of-State KS op (9 QSOs incl 1 dupe, multsPerBand HI districts only, same district on one band via 2 modes counts once, new band re-credits)",
       "log_file": "test_hiqp_outofstate.clx",
       "expected_score": 154
+    },
+    {
+      "name": "ARRL SS CW N9OH IN op (14 QSOs incl 1 dupe worked on another band, multsOnce sections never re-credit per band, NT aliases to TER)",
+      "log_file": "test_arrl_ss_cw.clx",
+      "expected_score": 312
+    },
+    {
+      "name": "ARRL SS Phone N9OH IN op (8 QSOs incl 1 dupe, 2 points per QSO on phone, 7 sections once for the contest)",
+      "log_file": "test_arrl_ss_phone.clx",
+      "expected_score": 98
     }
   ]
 }
