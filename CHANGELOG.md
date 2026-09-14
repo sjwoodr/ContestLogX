@@ -4,6 +4,12 @@ All notable changes to ContestLogX are documented in this file.
 
 ## [0.9.10]
 
+### Other Changes and Bugfixes
+- Fixed rig modes that name the sideband being rejected as invalid. A Yaesu reports CW as "CW-U" or "CW-L", RTTY as "RTTY-L" or "RTTY-U" and data as "DATA-L" or "DATA-U", and CLX refused to log the QSO with "Invalid mode CW-U". Those names, along with the reverse (CW-R), narrow (FM-N) and packet (PKTUSB) variants other rigs report, are now treated as the mode they are. Thanks K8VA for the report
+- A digital QSO now logs in any contest that accepts digital, whatever name the contest gives the mode. Previously only the rig's data-over-SSB modes were matched, so a rig sitting in RTTY could not be logged in a contest that lists its digital mode as DIGITAL
+- The F-key memories, Run/S&P automation and the auto-filled RST now pick CW rather than phone when the rig reports a CW sideband variant. Same cause as above - the mode did not read as "CW", so CLX fell through to the SSB side
+- Editing a QSO logged in a mode the Edit QSO dropdown does not list no longer silently changes it to LSB
+
 ## [0.9.9]
 
 ### Contest Updates

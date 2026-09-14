@@ -75,6 +75,7 @@ set(SOURCES
     src/utils/debugLogger.cpp
     src/utils/bandPlan.cpp
     src/utils/callsignUtils.cpp
+    src/utils/modeUtils.cpp
     src/utils/ttsManager.cpp
     src/utils/piperManager.cpp
     src/database/dxccDatabase.cpp
@@ -155,6 +156,7 @@ set(HEADERS
      include/piperManager.h
      src/utils/bandPlan.h
      src/utils/callsignUtils.h
+     src/utils/modeUtils.h
      include/dxccDatabase.h
      include/eadxDatabase.h
      include/qrzcqApi.h

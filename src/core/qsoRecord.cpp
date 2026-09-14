@@ -6,6 +6,7 @@
  */
 
 #include "qsoRecord.h"
+#include "../utils/modeUtils.h"
 #include <QDebug>
 
 QsoRecord::QsoRecord()
@@ -110,7 +111,11 @@ void QsoRecord::setRxFrequency(const QString& rxFreq)
 
 void QsoRecord::setMode(const QString& mode)
 {
-    m_mode = mode;
+    // Single choke point for every mode that reaches a logged QSO - rig poll,
+    // freq/mode dialog, CLX/ADIF load, WSJT-X. Rig sideband variants such as
+    // "CW-U" are folded to the canonical mode here so scoring, dupe checking
+    // and Cabrillo export never have to know about them.
+    m_mode = ModeUtils::normalizeMode(mode);
 }
 
 void QsoRecord::setBand(unsigned char band)

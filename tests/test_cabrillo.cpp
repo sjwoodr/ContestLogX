@@ -29,6 +29,7 @@ private slots:
     void initTestCase();
 
     void exportsArrlSsQsoLine();
+    void exportsRigCwVariantAsCw();
     void mapsCabrilloContestNameToMode();
     void resolvesUnknownPlaceholderToEmpty();
     void leavesClassicTemplatesUnchanged();
@@ -118,6 +119,23 @@ void TestCabrillo::exportsArrlSsQsoLine()
     // No placeholder may survive into a submitted log.
     QVERIFY2(!qsoLine.contains('{') && !qsoLine.contains('}'),
              qPrintable("unresolved placeholder in: " + qsoLine));
+}
+
+// A Yaesu reports CW as "CW-U", and that is what reaches the QSO when the
+// mode comes from the rig poll. The submitted log must still say CW.
+void TestCabrillo::exportsRigCwVariantAsCw()
+{
+    for (const QString& rigMode : {"CW-U", "CW-L", "CWR"}) {
+        QsoRecord qso = makeSsQso();
+        qso.setMode(rigMode);
+
+        QString qsoLine;
+        for (const QString& l : exportLines(m_ssDef, {qso}, "N9OH", "CW")) {
+            if (l.startsWith("QSO:")) { qsoLine = l; break; }
+        }
+        QVERIFY2(!qsoLine.isEmpty(), qPrintable(QString("no QSO: line for %1").arg(rigMode)));
+        QCOMPARE(qsoLine, QStringLiteral("QSO:  7040 CW 2026-11-07 2145 3 A N9OH 79 IN 52 B K1UI 72 CT"));
+    }
 }
 
 void TestCabrillo::mapsCabrilloContestNameToMode()

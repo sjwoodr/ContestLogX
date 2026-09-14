@@ -8,6 +8,7 @@
 #include "contestEngine.h"
 #include "debugLogger.h"
 #include "utils/callsignUtils.h"
+#include "utils/modeUtils.h"
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QRegularExpression>
@@ -979,13 +980,12 @@ int ContestEngine::calculatePoints(const QsoRecord& qso, const QString& myCallsi
                 }
             }
             
-            QString mode = qso.getMode().toUpper();
+            QString mode = ModeUtils::normalizeMode(qso.getMode());
 
             // Normalize mode names
             if (mode == "SSB" || mode == "USB" || mode == "LSB" || mode == "FM") {
                 mode = "SSB";
-            } else if (mode == "RTTY" || mode == "PSK" || mode == "FT8" || mode == "FT4" ||
-                       mode == "DIGI" || mode == "DIGITAL" || mode == "USB-D" || mode == "LSB-D") {
+            } else if (ModeUtils::isDigital(mode)) {
                 mode = "DIGITAL";
             }
 
@@ -2059,7 +2059,7 @@ bool ContestEngine::isValidMode(const QString& mode) const
         return true;  // No restrictions
     }
     
-    QString upperMode = mode.toUpper();
+    QString upperMode = ModeUtils::normalizeMode(mode);
     
     // Direct match
     if (allowed.contains(upperMode)) {
@@ -2071,8 +2071,9 @@ bool ContestEngine::isValidMode(const QString& mode) const
         return true;
     }
 
-    // If any digital mode is allowed, accept USB-D, LSB-D, DIGI, DIGITAL
-    if (upperMode == "USB-D" || upperMode == "LSB-D" || upperMode == "DIGI" || upperMode == "DIGITAL") {
+    // Any data mode counts for a contest that allows digital, whatever name
+    // the contest gives it (DIGITAL, RTTY, FT8, ...)
+    if (ModeUtils::isDigital(upperMode)) {
         for (const QString& a : allowed) {
             if (a == "RTTY" || a == "FT8" || a == "FT4" || a == "DIGI" || a == "DIGITAL" || a == "PSK") {
                 return true;
@@ -2318,7 +2319,7 @@ int ContestEngine::getPointsForMode(const QString& mode) const
         if (scoring.contains("points")) {
             QJsonObject points = scoring["points"].toObject();
             
-            QString modeUpper = mode.toUpper();
+            QString modeUpper = ModeUtils::normalizeMode(mode);
             if (modeUpper == "CW" && points.contains("cw")) {
                 return points["cw"].toInt();
             } else if ((modeUpper == "SSB" || modeUpper == "USB" || modeUpper == "LSB") 
@@ -2748,18 +2749,16 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
             band = freqToBand(freq);
         }
         
-        QString mode = qso.getMode().toUpper();
+        QString mode = ModeUtils::normalizeMode(qso.getMode());
         
         // Normalize mode for counting
         QString modeCategory;
         if (mode == "CW") {
             modeCategory = "CW";
-        } else if (mode == "SSB" || mode == "USB" || mode == "LSB" || mode == "FM" || mode == "AM") {
-            modeCategory = "SSB";
-        } else if (mode == "RTTY" || mode == "PSK" || mode == "FT8" || mode == "FT4" || mode == "DIGITAL") {
+        } else if (ModeUtils::isDigital(mode)) {
             modeCategory = "DIGITAL";
         } else {
-            modeCategory = "SSB"; // Default unknown modes to SSB
+            modeCategory = "SSB"; // Phone, and anything unrecognized
         }
         
         // Calculate points for this QSO

@@ -6,6 +6,7 @@
  */
 
 #include "freqModeDialog.h"
+#include "../utils/modeUtils.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QFormLayout>
@@ -36,7 +37,7 @@ void FreqModeDialog::setupUi()
     
     // Mode selector
     m_modeCombo = new QComboBox(this);
-    m_modeCombo->addItems({"LSB", "USB", "CW", "FM", "AM", "RTTY", "DIG"});
+    m_modeCombo->addItems({"LSB", "USB", "CW", "FM", "AM", "RTTY", "DIGITAL"});
     formLayout->addRow("Mode:", m_modeCombo);
     
     mainLayout->addLayout(formLayout);
@@ -64,11 +65,16 @@ void FreqModeDialog::setFrequency(double freqKhz)
 
 void FreqModeDialog::setMode(const QString& mode)
 {
-    m_mode = mode;
-    int index = m_modeCombo->findText(mode, Qt::MatchFixedString);
-    if (index >= 0) {
-        m_modeCombo->setCurrentIndex(index);
+    m_mode = ModeUtils::normalizeMode(mode);
+    int index = m_modeCombo->findText(m_mode, Qt::MatchFixedString);
+    if (index < 0) {
+        // A mode the list does not carry (USB-D, FT8, ...). Add it rather
+        // than leaving the combo on LSB, which would silently change the
+        // operating mode when the dialog is accepted.
+        m_modeCombo->addItem(m_mode);
+        index = m_modeCombo->count() - 1;
     }
+    m_modeCombo->setCurrentIndex(index);
 }
 
 double FreqModeDialog::frequency() const

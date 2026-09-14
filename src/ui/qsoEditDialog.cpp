@@ -48,7 +48,12 @@ void QsoEditDialog::setupUi()
     formLayout->addRow("Frequency (kHz):", m_freqEdit);
 
     m_modeEdit = new QComboBox();
-    m_modeEdit->addItems({"LSB", "USB", "CW", "RTTY", "FT8", "PSK31", "FT4", "JS8", "DIGI"});
+    m_modeEdit->addItems({"LSB", "USB", "CW", "RTTY", "FT8", "PSK31", "FT4", "JS8", "DIGITAL"});
+    // A QSO logged in a mode the list does not carry (USB-D, FM, ...) must
+    // still round-trip: setCurrentText on a read-only combo is a no-op when
+    // the text is absent, which would silently rewrite the QSO to LSB.
+    if (m_modeEdit->findText(m_originalQso.getMode(), Qt::MatchFixedString) < 0)
+        m_modeEdit->addItem(m_originalQso.getMode());
     m_modeEdit->setCurrentText(m_originalQso.getMode());
     formLayout->addRow("Mode:", m_modeEdit);
 

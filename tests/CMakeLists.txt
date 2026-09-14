@@ -22,7 +22,8 @@ endfunction()
 
 # QsoRecord tests
 add_clx_test(test_qsorecord test_qsorecord.cpp 
-    ${CMAKE_SOURCE_DIR}/src/core/qsoRecord.cpp)
+    ${CMAKE_SOURCE_DIR}/src/core/qsoRecord.cpp
+    ${CMAKE_SOURCE_DIR}/src/utils/modeUtils.cpp)
 
 # Settings tests
 add_clx_test(test_settings test_settings.cpp
@@ -36,19 +37,26 @@ add_clx_test(test_callsignutils test_callsignutils.cpp
 add_clx_test(test_bandplan test_bandplan.cpp
     ${CMAKE_SOURCE_DIR}/src/utils/bandPlan.cpp)
 
+# ModeUtils tests (rig mode aliases: CW-U/CW-L -> CW, DATA-U -> USB-D, ...)
+add_clx_test(test_modeutils test_modeutils.cpp
+    ${CMAKE_SOURCE_DIR}/src/utils/modeUtils.cpp
+    ${CMAKE_SOURCE_DIR}/src/core/qsoRecord.cpp)
+
 # S3 SigV4 signer tests (validates against AWS published test vectors)
 add_clx_test(test_s3signer test_s3signer.cpp
     ${CMAKE_SOURCE_DIR}/src/net/s3Signer.cpp)
 
 # Dupe Checking tests
 add_clx_test(test_dupecheck test_dupecheck.cpp
-    ${CMAKE_SOURCE_DIR}/src/core/qsoRecord.cpp)
+    ${CMAKE_SOURCE_DIR}/src/core/qsoRecord.cpp
+    ${CMAKE_SOURCE_DIR}/src/utils/modeUtils.cpp)
 
 # Cabrillo export tests (QSO-line template placeholder resolution)
 add_clx_test(test_cabrillo test_cabrillo.cpp
     ${CMAKE_SOURCE_DIR}/src/fileformats/cabrilloFile.cpp
     ${CMAKE_SOURCE_DIR}/src/core/qsoRecord.cpp
-    ${CMAKE_SOURCE_DIR}/src/utils/bandPlan.cpp)
+    ${CMAKE_SOURCE_DIR}/src/utils/bandPlan.cpp
+    ${CMAKE_SOURCE_DIR}/src/utils/modeUtils.cpp)
 target_compile_definitions(test_cabrillo PRIVATE CLX_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
 
 # TODO: Portable Callsigns tests

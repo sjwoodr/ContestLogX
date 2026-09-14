@@ -37,6 +37,7 @@
 #include "superCheckPartial.h"
 #include "ttsManager.h"
 #include "../utils/bandPlan.h"
+#include "../utils/modeUtils.h"
 #include "debugLogger.h"
 #include "debugLogViewer.h"
 #include "dxccDatabase.h"
@@ -553,13 +554,13 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
                     default: break;
                 }
                 if (fKeyIndex >= 0) {
-                    QString mode = m_lastMode.toUpper();
+                    QString mode = ModeUtils::normalizeMode(m_lastMode);
                     DebugLogger::instance().log("MainWindow",
                         QString("Hardware Function key F%1 pressed (eventFilter), current mode: %2").arg(fKeyIndex + 1).arg(mode));
-                    if ((mode == "CW" || mode == "CWR") && m_cwConsole) {
+                    if (mode == "CW" && m_cwConsole) {
                         m_cwConsole->onMemoryButton(fKeyIndex);
                         return true;
-                    } else if ((mode == "USB" || mode == "LSB") && m_ssbMemoriesWidget) {
+                    } else if ((mode == "USB" || mode == "LSB" || mode == "SSB") && m_ssbMemoriesWidget) {
                         m_ssbMemoriesWidget->triggerMemory(fKeyIndex);
                         return true;
                     }
@@ -3478,11 +3479,11 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
         }
 
         if (fKeyIndex >= 0) {
-            QString mode = m_lastMode.toUpper();
+            QString mode = ModeUtils::normalizeMode(m_lastMode);
             DebugLogger::instance().log("MainWindow",
                 QString("Hardware Function key F%1 pressed, current mode: %2").arg(fKeyIndex + 1).arg(mode));
 
-            if (mode == "CW" || mode == "CWR") {
+            if (mode == "CW") {
                 // Trigger CW memory
                 if (m_cwConsole) {
                     DebugLogger::instance().log("MainWindow",
@@ -3492,7 +3493,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
                 } else {
                     DebugLogger::instance().log("MainWindow", "CW console not available");
                 }
-            } else if (mode == "USB" || mode == "LSB") {
+            } else if (mode == "USB" || mode == "LSB" || mode == "SSB") {
                 // Trigger SSB memory
                 if (m_ssbMemoriesWidget) {
                     DebugLogger::instance().log("MainWindow",
@@ -3841,14 +3842,16 @@ void MainWindow::onLogQso()
             modeValid = (mode == "LSB" || mode == "USB");
         }
 
-        // If any digital mode is allowed, accept USB-D and LSB-D (rig data modes)
+        // Any data mode satisfies a contest that allows digital, but contests
+        // and rigs spell it differently (DIGITAL vs USB-D vs RTTY), so log it
+        // under the contest's own name.
         // Prefer DIGITAL over RTTY since rigs have a separate RTTY mode
-        if (!modeValid && (mode == "USB-D" || mode == "LSB-D")) {
+        if (!modeValid && ModeUtils::isDigital(mode)) {
             QStringList digiPreference = {"DIGI", "DIGITAL", "FT8", "FT4", "RTTY", "PSK", "JT65"};
             for (const QString& preferred : digiPreference) {
                 if (allowedModes.contains(preferred)) {
                     modeValid = true;
-                    mode = preferred;
+                    mode = ModeUtils::normalizeMode(preferred);
                     qso.setMode(mode);
                     DebugLogger::instance().log("MainWindow",
                         QString("Mapped rig data mode to contest mode: %1").arg(mode));
@@ -4489,17 +4492,14 @@ void MainWindow::onUpdateRigDisplay()
         }
     }
     
-    // Update mode if changed
-    if (!mode.isEmpty() && mode != m_lastMode) {
-        // Map common mode names
-        QString mappedMode = mode;
-        if (mode == "SSB" || mode == "PKTUSB") mappedMode = "USB";
-        else if (mode == "PKTLSB") mappedMode = "LSB";
-        else if (mode == "RTTY" || mode == "RTTYR") mappedMode = "DIG";
-
+    // Update mode if changed. Rigs name the sideband as well as the mode
+    // ("CW-U" on a Yaesu, "RTTY-L", "DATA-U"), so fold the reported mode to
+    // its canonical CLX name before anything downstream compares strings.
+    const QString mappedMode = ModeUtils::normalizeMode(mode);
+    if (!mappedMode.isEmpty() && mappedMode != m_lastMode) {
         QString oldMode = m_lastMode;
         m_lastMode = mappedMode;
-        DebugLogger::instance().log("MainWindow", QString("Updated mode to %1").arg(mappedMode));
+        DebugLogger::instance().log("MainWindow", QString("Updated mode to %1 (rig reported %2)").arg(mappedMode, mode));
 
         // Refresh RST pre-fills if the RST default changed (CW/RTTY use 599, others 59)
         updateRstDefaults(oldMode, mappedMode, m_exchangeFields);
@@ -4515,7 +4515,7 @@ void MainWindow::onUpdateRigDisplay()
     if (freq > 0) {
         m_freqModeButton->setText(QString("%1 %2")
             .arg(freq / 1000.0, 0, 'f', 1)
-            .arg(!mode.isEmpty() ? mode : m_lastMode));
+            .arg(!mappedMode.isEmpty() ? mappedMode : m_lastMode));
     }
 }
 
@@ -4686,6 +4686,7 @@ void MainWindow::onWsjtxQsoReceived(const WsjtxQsoData& data)
             mode = "DIGI";
         }
         QString oldMode = m_lastMode;
+        mode = ModeUtils::normalizeMode(mode);
         m_lastMode = mode;
 
         // Update the frequency/mode button directly
@@ -5573,8 +5574,8 @@ bool MainWindow::validateRunSPRoles(RunMode mode)
 {
     if (mode == RunMode::Off) return true;
 
-    QString currentMode = m_lastMode.toUpper();
-    bool isCw = (currentMode == "CW" || currentMode == "CWR");
+    QString currentMode = ModeUtils::normalizeMode(m_lastMode);
+    bool isCw = (currentMode == "CW");
     QString memType = isCw ? "CW" : "SSB";
 
     QList<MemoryRole> required;
@@ -5697,8 +5698,8 @@ int MainWindow::findMemoryIndexByRole(MemoryRole role) const
     const QList<SsbMemory>& ssbMems = m_useContestMemories ? m_contestSsbMemories
                                                            : Settings::instance().getSsbMemories();
 
-    QString mode = m_lastMode.toUpper();
-    bool isCw = (mode == "CW" || mode == "CWR");
+    QString mode = ModeUtils::normalizeMode(m_lastMode);
+    bool isCw = (mode == "CW");
 
     if (isCw) {
         for (int i = 0; i < cwMems.size(); ++i)
@@ -5719,8 +5720,8 @@ void MainWindow::triggerMemoryByRole(MemoryRole role)
         return;
     }
 
-    QString mode = m_lastMode.toUpper();
-    if (mode == "CW" || mode == "CWR") {
+    QString mode = ModeUtils::normalizeMode(m_lastMode);
+    if (mode == "CW") {
         if (m_cwConsole)
             m_cwConsole->onMemoryButton(idx);
     } else {
@@ -6229,12 +6230,12 @@ void MainWindow::onDxSpotClicked(const QString& callsign, double frequency, cons
     // Update active radio's local display immediately
     if (m_so2rEnabled && m_activeRadio == ActiveRadio::Right) {
         m_lastFrequencyR = frequency;
-        if (!mode.isEmpty()) m_lastModeR = mode;
+        if (!mode.isEmpty()) m_lastModeR = ModeUtils::normalizeMode(mode);
         if (m_entryWidgetsR.freqModeButton)
             m_entryWidgetsR.freqModeButton->setText(QString("%1 %2").arg(frequency, 0, 'f', 1).arg(m_lastModeR));
     } else {
         m_lastFrequency = frequency;
-        if (!mode.isEmpty()) m_lastMode = mode;
+        if (!mode.isEmpty()) m_lastMode = ModeUtils::normalizeMode(mode);
         m_freqModeButton->setText(QString("%1 %2").arg(frequency, 0, 'f', 1).arg(m_lastMode));
     }
 
@@ -8387,10 +8388,10 @@ QString MainWindow::generateSummaryString()
             // it once. Keeps display consistent with score regardless of the
             // contest's mode mix.
             auto normalizeMode = [](const QString& m) -> QString {
-                const QString u = m.toUpper();
+                const QString u = ModeUtils::normalizeMode(m);
                 if (u == "CW") return "CW";
+                if (ModeUtils::isDigital(u)) return "DIGITAL";
                 if (u == "SSB" || u == "USB" || u == "LSB" || u == "FM" || u == "AM") return "SSB";
-                if (u == "RTTY" || u == "PSK" || u == "FT8" || u == "FT4" || u == "DIGITAL") return "DIGITAL";
                 return u;
             };
 
@@ -8994,7 +8995,11 @@ double MainWindow::activeFrequency() const
 
 QString MainWindow::activeMode() const
 {
-    return (m_so2rEnabled && m_activeRadio == ActiveRadio::Right) ? m_lastModeR : m_lastMode;
+    // Normalized on the way out as well as on the way in, so a mode that
+    // arrived from somewhere other than the rig poll (a DX spot, a restored
+    // setting) can never reach dupe checking or logging as "CW-U".
+    return ModeUtils::normalizeMode(
+        (m_so2rEnabled && m_activeRadio == ActiveRadio::Right) ? m_lastModeR : m_lastMode);
 }
 
 int MainWindow::activeWpm() const
@@ -9386,7 +9391,7 @@ void MainWindow::onUpdateRigDisplayR()
 
     double freqHz = m_rigClientR->getFrequency();
     double freqKHz = freqHz / 1000.0;
-    QString mode = m_rigClientR->getMode();
+    QString mode = ModeUtils::normalizeMode(m_rigClientR->getMode());
     int wpm = m_rigClientR->getCWSpeed();
 
     m_lastFrequencyR = freqKHz;
@@ -10083,7 +10088,7 @@ void MainWindow::updateSnapshotRig(bool rightRadio)
     r.connected  = rig->isConnected();
     const double freqHz = rig->getFrequency();
     r.freqHz     = static_cast<qint64>(freqHz);
-    r.mode       = rig->getMode();
+    r.mode       = ModeUtils::normalizeMode(rig->getMode());   // dashboard shows what the log will record
     r.band       = BandPlan::freq2Band(freqHz / 1000.0);   // freq2Band takes kHz
     r.pttActive  = false;   // tracked via pttStateChanged signal; wire up later if needed
     const RunMode rm = rightRadio ? m_runModeR : m_runMode;
