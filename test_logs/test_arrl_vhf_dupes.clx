@@ -1,0 +1,125 @@
+{
+ "format": "ContestLogX",
+ "format_version": "1.0",
+ "created": "2026-06-13T18:00:00Z",
+ "modified": "2026-06-13T18:10:00Z",
+ "contest": {
+  "name": "ARRL VHF Contest",
+  "type": "ARRL VHF Contest",
+  "contest_file": "arrl_vhf.json",
+  "mode": "",
+  "version": "1.0.0",
+  "year": 2026,
+  "categories": {
+   "userPrompt_contestMonth": "june",
+   "userPrompt_myGridSquare": "FN42"
+  }
+ },
+ "station": {
+  "callsign": "AD1TOX",
+  "operator": "STEVE"
+ },
+ "statistics": {},
+ "qsos": [
+  {
+   "id": 1,
+   "serial": 1,
+   "timestamp": "2026-06-13T18:01:00Z",
+   "frequency": 50150,
+   "band": "6m",
+   "mode": "USB",
+   "callsign": "W9NE",
+   "duplicate": false,
+   "rst_sent": "59",
+   "rst_received": "59",
+   "exchange_fields": {
+    "CALL": "W9NE",
+    "RSTs": "59",
+    "RSTr": "59",
+    "GRIDs": "FN42",
+    "GRIDr": "EN61"
+   },
+   "points": 0
+  },
+  {
+   "id": 2,
+   "serial": 2,
+   "timestamp": "2026-06-13T18:02:00Z",
+   "frequency": 144200,
+   "band": "2m",
+   "mode": "USB",
+   "callsign": "W9NE",
+   "duplicate": false,
+   "rst_sent": "59",
+   "rst_received": "59",
+   "exchange_fields": {
+    "CALL": "W9NE",
+    "RSTs": "59",
+    "RSTr": "59",
+    "GRIDs": "FN42",
+    "GRIDr": "EN61"
+   },
+   "points": 0
+  },
+  {
+   "id": 3,
+   "serial": 3,
+   "timestamp": "2026-06-13T18:03:00Z",
+   "frequency": 50150,
+   "band": "6m",
+   "mode": "USB",
+   "callsign": "N9EZRA/R",
+   "duplicate": false,
+   "rst_sent": "59",
+   "rst_received": "59",
+   "exchange_fields": {
+    "CALL": "N9EZRA/R",
+    "RSTs": "59",
+    "RSTr": "59",
+    "GRIDs": "FN42",
+    "GRIDr": "EM69"
+   },
+   "points": 0
+  },
+  {
+   "id": 4,
+   "serial": 4,
+   "timestamp": "2026-06-13T18:04:00Z",
+   "frequency": 50150,
+   "band": "6m",
+   "mode": "USB",
+   "callsign": "N9EZRA/R",
+   "duplicate": false,
+   "rst_sent": "59",
+   "rst_received": "59",
+   "exchange_fields": {
+    "CALL": "N9EZRA/R",
+    "RSTs": "59",
+    "RSTr": "59",
+    "GRIDs": "FN42",
+    "GRIDr": "EN60"
+   },
+   "points": 0
+  },
+  {
+   "id": 5,
+   "serial": 5,
+   "timestamp": "2026-06-13T18:05:00Z",
+   "frequency": 50150,
+   "band": "6m",
+   "mode": "USB",
+   "callsign": "W9NE",
+   "duplicate": false,
+   "rst_sent": "59",
+   "rst_received": "59",
+   "exchange_fields": {
+    "CALL": "W9NE",
+    "RSTs": "59",
+    "RSTr": "59",
+    "GRIDs": "FN42",
+    "GRIDr": "EN61"
+   },
+   "points": 0
+  }
+ ]
+}

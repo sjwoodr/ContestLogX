@@ -1,0 +1,185 @@
+{
+ "format": "ContestLogX",
+ "format_version": "1.0",
+ "created": "2026-07-04T14:01:00Z",
+ "modified": "2026-07-04T14:10:00Z",
+ "contest": {
+  "name": "CQ World-Wide VHF Contest",
+  "abbreviation": "CQWW-VHF",
+  "contest_file": "cqww_vhf.json",
+  "version": "1.0.0",
+  "year": 2026,
+  "categories": {
+   "userPrompt_contestMode": "ANALOG",
+   "userPrompt_myGridSquare": "FN42",
+   "userPrompt_operatingCategory": "SO-LP"
+  }
+ },
+ "station": {
+  "callsign": "AD1TOX",
+  "operator": "STEVE"
+ },
+ "statistics": {},
+ "qsos": [
+  {
+   "id": 1,
+   "serial": 1,
+   "timestamp": "2026-07-04T14:01:00Z",
+   "frequency": 50150,
+   "band": "6m",
+   "mode": "SSB",
+   "callsign": "W9NE",
+   "duplicate": false,
+   "exchange_fields": {
+    "CALL": "W9NE",
+    "GRIDs": "FN42",
+    "GRIDr": "EN61"
+   },
+   "points": 0
+  },
+  {
+   "id": 2,
+   "serial": 2,
+   "timestamp": "2026-07-04T14:02:00Z",
+   "frequency": 50150,
+   "band": "6m",
+   "mode": "SSB",
+   "callsign": "N7WDT",
+   "duplicate": false,
+   "exchange_fields": {
+    "CALL": "N7WDT",
+    "GRIDs": "FN42",
+    "GRIDr": "DM43"
+   },
+   "points": 0
+  },
+  {
+   "id": 3,
+   "serial": 3,
+   "timestamp": "2026-07-04T14:03:00Z",
+   "frequency": 50150,
+   "band": "6m",
+   "mode": "SSB",
+   "callsign": "K8KT",
+   "duplicate": false,
+   "exchange_fields": {
+    "CALL": "K8KT",
+    "GRIDs": "FN42",
+    "GRIDr": "EN80AB"
+   },
+   "points": 0
+  },
+  {
+   "id": 4,
+   "serial": 4,
+   "timestamp": "2026-07-04T14:04:00Z",
+   "frequency": 50150,
+   "band": "6m",
+   "mode": "SSB",
+   "callsign": "AE4NOQ",
+   "duplicate": false,
+   "exchange_fields": {
+    "CALL": "AE4NOQ",
+    "GRIDs": "FN42",
+    "GRIDr": "EN80"
+   },
+   "points": 0
+  },
+  {
+   "id": 5,
+   "serial": 5,
+   "timestamp": "2026-07-04T14:05:00Z",
+   "frequency": 50150,
+   "band": "6m",
+   "mode": "SSB",
+   "callsign": "W9NE",
+   "duplicate": false,
+   "exchange_fields": {
+    "CALL": "W9NE",
+    "GRIDs": "FN42",
+    "GRIDr": "EN61"
+   },
+   "points": 0
+  },
+  {
+   "id": 6,
+   "serial": 6,
+   "timestamp": "2026-07-04T14:06:00Z",
+   "frequency": 50090,
+   "band": "6m",
+   "mode": "CW",
+   "callsign": "XE3KWA",
+   "duplicate": false,
+   "exchange_fields": {
+    "CALL": "XE3KWA",
+    "GRIDs": "FN42",
+    "GRIDr": "EK09"
+   },
+   "points": 0
+  },
+  {
+   "id": 7,
+   "serial": 7,
+   "timestamp": "2026-07-04T14:07:00Z",
+   "frequency": 146550,
+   "band": "2m",
+   "mode": "FM",
+   "callsign": "W9NE",
+   "duplicate": false,
+   "exchange_fields": {
+    "CALL": "W9NE",
+    "GRIDs": "FN42",
+    "GRIDr": "EN61"
+   },
+   "points": 0
+  },
+  {
+   "id": 8,
+   "serial": 8,
+   "timestamp": "2026-07-04T14:08:00Z",
+   "frequency": 146550,
+   "band": "2m",
+   "mode": "FM",
+   "callsign": "W8EE",
+   "duplicate": false,
+   "exchange_fields": {
+    "CALL": "W8EE",
+    "GRIDs": "FN42",
+    "GRIDr": "FN42"
+   },
+   "points": 0
+  },
+  {
+   "id": 9,
+   "serial": 9,
+   "timestamp": "2026-07-04T14:09:00Z",
+   "frequency": 50150,
+   "band": "6m",
+   "mode": "SSB",
+   "callsign": "N9EZRA/R",
+   "duplicate": false,
+   "exchange_fields": {
+    "CALL": "N9EZRA/R",
+    "GRIDs": "FN42",
+    "GRIDr": "EM69"
+   },
+   "points": 0
+  },
+  {
+   "id": 10,
+   "serial": 10,
+   "timestamp": "2026-07-04T14:10:00Z",
+   "frequency": 50150,
+   "band": "6m",
+   "mode": "SSB",
+   "callsign": "N9EZRA/R",
+   "duplicate": false,
+   "exchange_fields": {
+    "CALL": "N9EZRA/R",
+    "GRIDs": "FN42",
+    "GRIDr": "EN60"
+   },
+   "points": 0
+  }
+ ]
+}

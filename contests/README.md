@@ -315,6 +315,17 @@ Adds CQ zones 1-40 as a multiplier category. The zone is read from its own recei
 }
 ```
 
+**Rover Grid Multipliers (`gridSquareRover`):**
+For grid-square contests where a rover's multipliers count again from each grid it activates (CQ WW VHF). When the named prompt has one of the listed values, each grid mult is tracked per the operator's own grid (`GRIDs`), shown as `EN61@EN52`. Grid mults always compare on the 4-character locator.
+
+```json
+"multipliers": {
+  "type": "multsPerBand",
+  "categories": ["gridSquares"],
+  "gridSquareRover": {"promptId": "operatingCategory", "values": ["ROVER"]}
+}
+```
+
 **Capped Multipliers (`maxScoredMultipliers`):**
 Caps how many multipliers count toward the score. Every multiplier worked is still tracked and shown, but the score uses at most this many. CQP uses 58: a California station can work 63 states and provinces, but only 58 count.
 

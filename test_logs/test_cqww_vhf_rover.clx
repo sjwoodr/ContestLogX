@@ -1,0 +1,121 @@
+{
+ "format": "ContestLogX",
+ "format_version": "1.0",
+ "created": "2026-07-18T14:01:00Z",
+ "modified": "2026-07-18T14:06:00Z",
+ "contest": {
+  "name": "CQ World-Wide VHF Contest",
+  "abbreviation": "CQWW-VHF",
+  "contest_file": "cqww_vhf.json",
+  "version": "1.0.0",
+  "year": 2026,
+  "categories": {
+   "userPrompt_contestMode": "DIGITAL",
+   "userPrompt_myGridSquare": "EN52",
+   "userPrompt_operatingCategory": "ROVER"
+  }
+ },
+ "station": {
+  "callsign": "N7WDT/R",
+  "operator": "STEVE"
+ },
+ "statistics": {},
+ "qsos": [
+  {
+   "id": 1,
+   "serial": 1,
+   "timestamp": "2026-07-18T14:01:00Z",
+   "frequency": 50313,
+   "band": "6m",
+   "mode": "FT8",
+   "callsign": "W9NE",
+   "duplicate": false,
+   "exchange_fields": {
+    "CALL": "W9NE",
+    "GRIDs": "EN52",
+    "GRIDr": "EN61"
+   },
+   "points": 0
+  },
+  {
+   "id": 2,
+   "serial": 2,
+   "timestamp": "2026-07-18T14:02:00Z",
+   "frequency": 50313,
+   "band": "6m",
+   "mode": "FT8",
+   "callsign": "AD1TOX",
+   "duplicate": false,
+   "exchange_fields": {
+    "CALL": "AD1TOX",
+    "GRIDs": "EN52",
+    "GRIDr": "FN42"
+   },
+   "points": 0
+  },
+  {
+   "id": 3,
+   "serial": 3,
+   "timestamp": "2026-07-18T14:03:00Z",
+   "frequency": 144174,
+   "band": "2m",
+   "mode": "FT8",
+   "callsign": "W9NE",
+   "duplicate": false,
+   "exchange_fields": {
+    "CALL": "W9NE",
+    "GRIDs": "EN52",
+    "GRIDr": "EN61"
+   },
+   "points": 0
+  },
+  {
+   "id": 4,
+   "serial": 4,
+   "timestamp": "2026-07-18T14:04:00Z",
+   "frequency": 50313,
+   "band": "6m",
+   "mode": "FT8",
+   "callsign": "W9NE",
+   "duplicate": false,
+   "exchange_fields": {
+    "CALL": "W9NE",
+    "GRIDs": "EN51",
+    "GRIDr": "EN61"
+   },
+   "points": 0
+  },
+  {
+   "id": 5,
+   "serial": 5,
+   "timestamp": "2026-07-18T14:05:00Z",
+   "frequency": 50313,
+   "band": "6m",
+   "mode": "FT8",
+   "callsign": "AE4NOQ",
+   "duplicate": false,
+   "exchange_fields": {
+    "CALL": "AE4NOQ",
+    "GRIDs": "EN51",
+    "GRIDr": "EM73"
+   },
+   "points": 0
+  },
+  {
+   "id": 6,
+   "serial": 6,
+   "timestamp": "2026-07-18T14:06:00Z",
+   "frequency": 50313,
+   "band": "6m",
+   "mode": "FT8",
+   "callsign": "AE4NOQ",
+   "duplicate": false,
+   "exchange_fields": {
+    "CALL": "AE4NOQ",
+    "GRIDs": "EN51",
+    "GRIDr": "EM73"
+   },
+   "points": 0
+  }
+ ]
+}

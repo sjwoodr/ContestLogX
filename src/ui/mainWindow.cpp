@@ -3873,11 +3873,33 @@ void MainWindow::onLogQso()
     // If this log was loaded from a file, check if the mode is restricted to the original mode
     QString restrictedMode = m_contestEngine->getRestrictedMode();
     if (!restrictedMode.isEmpty()) {
-        bool modeMatches = mode.toUpper() == restrictedMode.toUpper();
+        // The restricting prompt option may list several modes, e.g. the CQ WW
+        // VHF analog weekend {"value": "ANALOG", "modes": ["CW", "SSB", "FM"]}.
+        // Without a list the option value itself is the one allowed mode.
+        QStringList allowed{restrictedMode.toUpper()};
+        for (const QJsonValue& pv : m_contestDefinition["userPrompts"].toArray()) {
+            const QJsonObject p = pv.toObject();
+            if (!p["restrictMode"].toBool(false)) continue;
+            for (const QJsonValue& ov : p["options"].toArray()) {
+                const QJsonObject o = ov.toObject();
+                if (o["value"].toString() == restrictedMode && o.contains("modes")) {
+                    allowed.clear();
+                    for (const QJsonValue& m : o["modes"].toArray())
+                        allowed.append(m.toString().toUpper());
+                }
+            }
+        }
 
-        // If the restricted mode is SSB, also allow LSB and USB
-        if (!modeMatches && restrictedMode.toUpper() == "SSB") {
-            modeMatches = (mode == "LSB" || mode == "USB");
+        const QString normalized = ModeUtils::normalizeMode(mode);
+        bool modeMatches = allowed.contains(normalized);
+
+        // If SSB is allowed, also allow LSB and USB
+        if (!modeMatches && allowed.contains("SSB")) {
+            modeMatches = (normalized == "LSB" || normalized == "USB");
+        }
+        // DIGITAL covers every data mode (FT8, FT4, MSK144, ...)
+        if (!modeMatches && allowed.contains("DIGITAL")) {
+            modeMatches = ModeUtils::isDigital(normalized);
         }
 
         if (!modeMatches) {

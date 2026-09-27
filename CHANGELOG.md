@@ -9,14 +9,18 @@ All notable changes to ContestLogX are documented in this file.
 - Added the CQ World Wide RTTY DX Contest. Exchange is RST and CQ zone, plus state or Canadian call area for stations in the continental USA and Canada. QSOs are worth 1 point in your own country, 2 on your own continent and 3 otherwise. Multipliers are CQ zones, countries (including the WAE list) and W/VE QTHs (48 states, DC and 14 Canadian call areas), counted per band. Zone and QTH are saved to call history
 - Added the CQ World-Wide DX Contest, SSB and CW weekends. Exchange is RS(T) and CQ zone. QSOs are worth 3 points with another continent, 1 point with another country on your own continent (2 points within North America) and 0 points in your own country, which still count for multipliers. Multipliers are CQ zones and countries (including the WAE list), counted per band
 - Added the CQ World Wide 160-Meter Contest, CW and SSB weekends. Exchange is RS(T) plus state, Canadian province, or CQ zone for DX stations. QSOs are worth 2 points in your own country, 5 on your own continent and 10 otherwise; maritime mobile contacts are 5 points with no multiplier. Multipliers are US states and DC, the 14 Canadian areas (VO1 and VO2 count separately) and DX countries including the WAE list, each counted once. Call-area forms such as VE3 or VY2 are accepted for the province
-
-### Other Changes and Bugfixes
-- A maritime mobile (/MM) contact no longer counts as a DXCC country multiplier in any contest
-- A valid QSO worth 0 points is no longer dropped from the Cabrillo export or from the summary sheet's multiplier details. Dupes and out-of-band QSOs are still left out
+- Added the CQ World-Wide VHF Contest, both the SSB/CW/FM weekend and the Digital weekend. Exchange is the 4-character grid locator. QSOs are 1 point on 6m and 2 points on 2m, and grids count as multipliers per band. A rover that moves is a new station, and a rover's own multipliers start over in each new grid
 
 ### Contest Engine Changes
+- A mode-restricted contest weekend can now allow a group of modes, such as SSB, CW and FM together, or any digital mode
 - CQ zones are now a multiplier type. The zone comes from its own exchange field, so one QSO can count as a zone, a country and a state at the same time, as it does in CQ WW RTTY
 - A contest can now cap how many multipliers count toward the score (`maxScoredMultipliers`). Every multiplier worked is still tracked, and the score panel and summary sheet show both the worked count and the capped count
+
+### Other Changes and Bugfixes
+- Fixed ARRL VHF marking a station worked on a second band as a dupe. A station can now be worked once per band, and a rover can be worked again from each new grid it moves to
+- Grid multipliers now compare on the 4-character grid, so EN52AB and EN52 are the same multiplier
+- A maritime mobile (/MM) contact no longer counts as a DXCC country multiplier in any contest
+- A valid QSO worth 0 points is no longer dropped from the Cabrillo export or from the summary sheet's multiplier details. Dupes and out-of-band QSOs are still left out
 
 ## [0.9.11]
 

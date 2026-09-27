@@ -78,6 +78,7 @@ Most contest loggers are Windows-only, closed-source, or locked to a fixed set o
 | CQ World Wide 160-Meter Contest (CW and SSB) | `cq160.json` |
 | CQ World Wide RTTY DX Contest | `cqww_rtty.json` |
 | CQ World-Wide DX Contest (CW and SSB) | `cqww.json` |
+| CQ World-Wide VHF Contest | `cqww_vhf.json` |
 | CWops Mini-CWT | `cwops_cwt.json` |
 | EU DX Contest | `eudx.json` |
 | Florida QSO Party | `fqp.json` |

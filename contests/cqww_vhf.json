@@ -1,0 +1,341 @@
+{
+  "contest": {
+    "name": "CQ World-Wide VHF Contest",
+    "abbreviation": "CQWW-VHF",
+    "version": "1.0.0",
+    "sponsor": "CQ Magazine",
+    "description": "6 and 2 meters, 24 hours. The SSB/CW/FM weekend is the first full weekend of July and the Digital weekend two weeks later, scored as separate contests. Exchange is the 4-character Maidenhead grid (no signal report). 1 point per QSO on 6m, 2 points on 2m. Multipliers are grids per band. A rover in a new grid is a new station, and a rover's own grids each start a new set of multipliers.",
+    "startDate": "SSB/CW/FM: 1400 UTC Saturday July 4 - 1400 UTC Sunday July 5, 2026; Digital: 1400 UTC Saturday July 18 - 1400 UTC Sunday July 19, 2026",
+    "duration": 24,
+    "offTimeGapMinutes": 0,
+    "modes": [
+      "CW",
+      "SSB",
+      "FM",
+      "DIGITAL"
+    ],
+    "bands": [
+      "6m",
+      "2m"
+    ],
+    "url": "https://cqww-vhf.com/rules.htm",
+    "categories": {
+      "stations": [
+        "SINGLE_OP",
+        "HILLTOPPER",
+        "ROVER",
+        "MULTI_OP"
+      ],
+      "power": [
+        "HIGH",
+        "LOW",
+        "QRP"
+      ],
+      "modes": [
+        "MIXED",
+        "DIGI"
+      ]
+    }
+  },
+  "frequencies": {
+    "6m": {
+      "start": 50000,
+      "end": 54000,
+      "cw": {
+        "start": 50000,
+        "end": 54000
+      },
+      "phone": {
+        "start": 50000,
+        "end": 54000
+      },
+      "digital": {
+        "start": 50000,
+        "end": 54000
+      }
+    },
+    "2m": {
+      "start": 144000,
+      "end": 148000,
+      "cw": {
+        "start": 144000,
+        "end": 148000
+      },
+      "phone": {
+        "start": 144000,
+        "end": 148000
+      },
+      "digital": {
+        "start": 144000,
+        "end": 148000
+      }
+    }
+  },
+  "stationClasses": {
+    "enabled": false
+  },
+  "userPrompts": [
+    {
+      "id": "contestMode",
+      "question": "Which contest weekend are you entering?",
+      "type": "select",
+      "options": [
+        {
+          "value": "ANALOG",
+          "label": "SSB/CW/FM (first full weekend of July)",
+          "modes": [
+            "CW",
+            "SSB",
+            "FM"
+          ]
+        },
+        {
+          "value": "DIGITAL",
+          "label": "Digital - FT8, FT4, MSK144, Q65, etc. (two weeks later)",
+          "modes": [
+            "DIGITAL"
+          ]
+        }
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "restrictMode": true,
+      "description": "The two weekends are separate contests with separate logs. Only analog modes may be used on the SSB/CW/FM weekend and only digital modes on the Digital weekend."
+    },
+    {
+      "id": "myGridSquare",
+      "question": "Enter your 4-character grid locator (e.g. EN52)",
+      "type": "text",
+      "required": true,
+      "forceUppercase": true,
+      "storeInMeta": true,
+      "description": "Rovers: change this in Contest Setup each time you move to a new grid. Every station becomes workable again and your multipliers start a new set for the new grid."
+    },
+    {
+      "id": "operatingCategory",
+      "question": "Select your operating category",
+      "type": "select",
+      "options": [
+        {
+          "value": "SO-HP",
+          "label": "Single Operator - High Power (1500W)"
+        },
+        {
+          "value": "SO-LP",
+          "label": "Single Operator - Low Power (100W)"
+        },
+        {
+          "value": "SO-QRP",
+          "label": "Single Operator - QRP (10W)"
+        },
+        {
+          "value": "HILLTOPPER",
+          "label": "Hilltopper - single-op portable, 6 continuous hours, 100W"
+        },
+        {
+          "value": "ROVER",
+          "label": "Rover - no more than two operators, signs /R"
+        },
+        {
+          "value": "MULTI-OP",
+          "label": "Multi-Op - one signal per band"
+        },
+        {
+          "value": "CHECKLOG",
+          "label": "Checklog"
+        }
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "Single operators may enter all band or a single band (set CATEGORY-BAND in the Cabrillo export). Spotting assistance is allowed in every category."
+    }
+  ],
+  "exchangeFields": {
+    "sent": [
+      {
+        "name": "GRIDs",
+        "type": "string",
+        "required": true,
+        "description": "Your 4-character grid locator"
+      }
+    ],
+    "received": [
+      {
+        "name": "GRIDr",
+        "type": "string",
+        "required": true,
+        "pattern": "^[A-R]{2}[0-9]{2}$",
+        "description": "4-character grid locator received"
+      }
+    ]
+  },
+  "qsoFields": [
+    {
+      "name": "Date",
+      "column": "DATE",
+      "type": "date",
+      "format": "yyyy-MM-dd",
+      "required": true
+    },
+    {
+      "name": "Time",
+      "column": "TIME",
+      "type": "time",
+      "format": "HH:mm:ss",
+      "required": true
+    },
+    {
+      "name": "Callsign",
+      "column": "CALL",
+      "type": "string",
+      "required": true,
+      "uppercase": true
+    },
+    {
+      "name": "Frequency",
+      "column": "FREQ",
+      "type": "number",
+      "unit": "kHz",
+      "required": true
+    },
+    {
+      "name": "Mode",
+      "column": "MODE",
+      "type": "enum",
+      "values": [
+        "CW",
+        "SSB",
+        "FM",
+        "DIGITAL"
+      ],
+      "required": true
+    },
+    {
+      "name": "Grid Sent",
+      "column": "GRIDs",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "Grid Rcvd",
+      "column": "GRIDr",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "Points",
+      "column": "POINTS",
+      "type": "number",
+      "calculated": true
+    },
+    {
+      "name": "Mult",
+      "column": "M",
+      "type": "string",
+      "calculated": true
+    }
+  ],
+  "scoring": {
+    "points": {
+      "__comment": "1 point per QSO on 6m, 2 points on 2m, any mode.",
+      "byBand": {
+        "6m": 1,
+        "2m": 2
+      }
+    },
+    "multipliers": {
+      "__comment": "Grids per band (4 characters). gridSquareRover: for a Rover the grid mults count again from each grid the rover activates - tracked as <grid>@<own grid>.",
+      "type": "multsPerBand",
+      "description": "Each 4-character grid locator worked on each band",
+      "categories": [
+        "gridSquares"
+      ],
+      "gridSquareRover": {
+        "promptId": "operatingCategory",
+        "values": [
+          "ROVER"
+        ]
+      }
+    },
+    "finalScore": "SUM(points) * SUM(gridSquareMultipliers)"
+  },
+  "dupeChecking": {
+    "type": "perBandAndGridSquare",
+    "description": "Each station once per band. A rover that moves to a new grid is a new station, and so is every station a rover works after moving."
+  },
+  "logging": {
+    "requiredFields": [
+      "date",
+      "time",
+      "frequency",
+      "mode",
+      "callsign",
+      "gridSent",
+      "gridReceived"
+    ],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "CQ-VHF",
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {GRIDs} {call} {GRIDr}",
+      "requiredHeaders": [
+        "CONTEST",
+        "CALLSIGN",
+        "LOCATION",
+        "GRID-LOCATOR",
+        "CATEGORY-OPERATOR",
+        "CATEGORY-BAND",
+        "CATEGORY-MODE",
+        "CATEGORY-POWER",
+        "CATEGORY-STATION",
+        "CLAIMED-SCORE",
+        "CLUB",
+        "CREATED-BY",
+        "NAME",
+        "ADDRESS",
+        "EMAIL",
+        "OPERATORS",
+        "SOAPBOX"
+      ],
+      "notes": "US stations set LOCATION to their state. Mode field is CW, PH or FM on the SSB/CW weekend and DG on the Digital weekend. No signal report in the QSO line."
+    }
+  },
+  "callHistory": {
+    "fieldsToSave": [
+      "GRIDr"
+    ],
+    "description": "Save grid locator for future autofill"
+  },
+  "validation": {
+    "minimumQSOs": 1,
+    "maxOperatingTime": 24,
+    "offTimesRequired": false
+  },
+  "ui": {
+    "logColumns": [
+      "DATE",
+      "TIME",
+      "CALL",
+      "FREQ",
+      "MODE",
+      "GRIDs",
+      "GRIDr",
+      "POINTS",
+      "M",
+      "COMMENT"
+    ],
+    "entryFields": [
+      "CALL",
+      "GRIDr"
+    ],
+    "fieldNavigation": {
+      "keys": "tab"
+    },
+    "bandMap": {
+      "enabled": true,
+      "bands": [
+        "6m",
+        "2m"
+      ]
+    }
+  }
+}

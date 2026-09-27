@@ -258,6 +258,14 @@ private:
     // entities earn a "<tag><digit>" call-area mult instead of the DXCC mult.
     QHash<QString, QString> m_cachedCallAreaEntities;
     QString m_cachedCqZoneField = QStringLiteral("ZONEr");  // exchange field holding the received CQ zone
+    // gridSquareRover: when the operator is a rover (per this prompt), grid
+    // mults are tracked per own grid - each grid activated starts a new set.
+    QString m_cachedRoverPromptId;
+    QStringList m_cachedRoverValues;
+    bool isRoverOperator() const;
+    // Scope key for dupe checking: two QSOs with the same call are dupes when
+    // their keys match. Shared by isDupe, getDupeReason and rescoreAll.
+    QString dupeScopeKey(const QsoRecord& qso, const QString& dupeScope) const;
     int m_cachedMaxScoredMults = 0;  // 0 = no cap (CQP counts at most 58)
     int capScoredMults(int mults) const;
     void cacheContestProperties();

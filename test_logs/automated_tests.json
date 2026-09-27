@@ -81,6 +81,11 @@
       "expected_score": 14040
     },
     {
+      "name": "ARRL VHF (June) dupe scope: same station on 6m then 2m is NOT a dupe, rover N9EZRA/R workable again from a new grid, same station and grid on the same band IS a dupe (5 QSOs, 4 pts x 4 grids)",
+      "log_file": "test_arrl_vhf_dupes.clx",
+      "expected_score": 16
+    },
+    {
       "name": "Winter Field Day",
       "log_file": "test_wfd_mixed_log.clx",
       "expected_score": 658
@@ -484,6 +489,16 @@
       "name": "CQ 160 SSB DX op DJ8WG zone 14 (10 QSOs incl 1 dupe, own country 2 pts, EU 5 pts, NA/AS 10 pts, states and provinces are mults for DX too, VO1 maps to NF)",
       "log_file": "test_cq160_ssb.clx",
       "expected_score": 576
+    },
+    {
+      "name": "CQ WW VHF fixed op AD1TOX FN42 SSB/CW/FM weekend (10 QSOs incl 1 dupe, 1 pt 6m / 2 pts 2m, grids per band, 6-char EN80AB is the same mult as EN80, same station re-credited on 2m, rover N9EZRA/R workable again from a new grid)",
+      "log_file": "test_cqww_vhf_fixed.clx",
+      "expected_score": 88
+    },
+    {
+      "name": "CQ WW VHF rover N7WDT/R Digital weekend (6 FT8 QSOs incl 1 dupe, stations workable again after the rover moves EN52 -> EN51, grid mults count again per own grid)",
+      "log_file": "test_cqww_vhf_rover.clx",
+      "expected_score": 30
     }
   ]
 }

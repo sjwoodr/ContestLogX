@@ -275,6 +275,15 @@ void ContestEngine::cacheContestProperties()
             // California stations can work 63 states/provinces but only 58 count.
             m_cachedMaxScoredMults = mults["maxScoredMultipliers"].toInt(0);
 
+            m_cachedRoverPromptId.clear();
+            m_cachedRoverValues.clear();
+            if (mults.contains("gridSquareRover")) {
+                QJsonObject rv = mults["gridSquareRover"].toObject();
+                m_cachedRoverPromptId = rv["promptId"].toString();
+                for (const QJsonValue& v : rv["values"].toArray())
+                    m_cachedRoverValues.append(v.toString());
+            }
+
             // cqZones category reads the received zone from its own exchange
             // field, so a QSO can earn a zone AND a named mult (CQ WW RTTY:
             // zone + W/VE QTH) - named mults only ever come from EXCHr.
@@ -389,6 +398,7 @@ void ContestEngine::cacheContestProperties()
             else if (t == "perBandAndMode") m_cachedDupeScope = "per_band_mode";
             else if (t == "perMode")        m_cachedDupeScope = "per_mode";
             else if (t == "overall")        m_cachedDupeScope = "overall";
+            else if (t == "perBandAndGridSquare") m_cachedDupeScope = "per_band_grid";
         } else if (dcv.isString()) {
             m_cachedDupeScope = dcv.toString();
         }
@@ -801,22 +811,9 @@ bool ContestEngine::isDupe(const QsoRecord& qso, const QList<QsoRecord>& existin
             continue;
         }
         
-        if (existing.getCall().toUpper() == qso.getCall().toUpper()) {
-            if (dupeScope == "overall") {
-                return true;
-            } else if (dupeScope == "per_band") {
-                if (existing.getBand() == qso.getBand()) {
-                    return true;
-                }
-            } else if (dupeScope == "per_mode") {
-                if (existing.getMode() == qso.getMode()) {
-                    return true;
-                }
-            } else if (dupeScope == "per_band_mode") {
-                if (existing.getBand() == qso.getBand() && existing.getMode() == qso.getMode()) {
-                    return true;
-                }
-            }
+        if (existing.getCall().toUpper() == qso.getCall().toUpper()
+                && dupeScopeKey(existing, dupeScope) == dupeScopeKey(qso, dupeScope)) {
+            return true;
         }
     }
     
@@ -848,22 +845,13 @@ QString ContestEngine::getDupeReason(const QsoRecord& qso, const QList<QsoRecord
             continue;
         }
         
-        if (existing.getCall().toUpper() == qso.getCall().toUpper()) {
-            if (dupeScope == "overall") {
-                return "contest";
-            } else if (dupeScope == "per_band") {
-                if (existing.getBand() == qso.getBand()) {
-                    return "band";
-                }
-            } else if (dupeScope == "per_mode") {
-                if (existing.getMode() == qso.getMode()) {
-                    return "mode";
-                }
-            } else if (dupeScope == "per_band_mode") {
-                if (existing.getBand() == qso.getBand() && existing.getMode() == qso.getMode()) {
-                    return "band/mode";
-                }
-            }
+        if (existing.getCall().toUpper() == qso.getCall().toUpper()
+                && dupeScopeKey(existing, dupeScope) == dupeScopeKey(qso, dupeScope)) {
+            if (dupeScope == "per_band")       return "band";
+            if (dupeScope == "per_mode")       return "mode";
+            if (dupeScope == "per_band_mode")  return "band/mode";
+            if (dupeScope == "per_band_grid")  return "band/grid";
+            return "contest";
         }
     }
     
@@ -1584,6 +1572,14 @@ QList<ContestEngine::MultiplierInfo> ContestEngine::getMultipliersWithCategory(c
         if (!gridSquare.isEmpty()) {
             // Validate grid square format (basic: should be 4-6 characters)
             if (gridSquare.length() >= 4) {
+                // The multiplier is the 4-character grid; a 6-character locator
+                // (EM15ab) is the same mult as EM15.
+                gridSquare = gridSquare.left(4);
+                // A rover's grids count again from each grid it activates (CQ WW
+                // VHF): track the mult per own grid, e.g. "EM15@EN52".
+                const QString ownGrid = qso.getExchangeField("GRIDs").left(4).toUpper();
+                if (isRoverOperator() && !ownGrid.isEmpty())
+                    gridSquare += "@" + ownGrid;
                 result.append({gridSquare, "gridSquares"});
                 DebugLogger::instance().log("ContestEngine", 
                     QString("  Found grid square multiplier '%1'").arg(gridSquare));
@@ -1657,6 +1653,26 @@ DxccEntity ContestEngine::dxccLookup(const QString& call) const
     DxccEntity entity = m_dxccDatabase->lookupCallsign(call);
     m_dxccCache.insert(call, entity);
     return entity;
+}
+
+QString ContestEngine::dupeScopeKey(const QsoRecord& qso, const QString& dupeScope) const
+{
+    if (dupeScope == "per_band")      return qso.getBand();
+    if (dupeScope == "per_mode")      return qso.getMode();
+    if (dupeScope == "per_band_mode") return qso.getBand() + "_" + qso.getMode();
+    if (dupeScope == "per_band_grid") {
+        // VHF: once per band, but a rover in a new grid is a new station -
+        // theirs (GRIDr) or ours (GRIDs). Grids compare on 4 characters.
+        return qso.getBand() + "_" + qso.getExchangeField("GRIDr").left(4).toUpper()
+               + "_" + qso.getExchangeField("GRIDs").left(4).toUpper();
+    }
+    return QString();  // overall
+}
+
+bool ContestEngine::isRoverOperator() const
+{
+    return !m_cachedRoverPromptId.isEmpty()
+           && m_cachedRoverValues.contains(getUserPromptValue(m_cachedRoverPromptId));
 }
 
 int ContestEngine::capScoredMults(int mults) const
@@ -3414,11 +3430,7 @@ void ContestEngine::rescoreAll(QList<QsoRecord>& qsos, const QString& myCallsign
 
         // O(1) dupe check against the incremental hash
         const QString callUpper = qso.getCall().toUpper();
-        QString scopeKey;
-        if (dupeScope == "per_band")           scopeKey = qso.getBand();
-        else if (dupeScope == "per_mode")      scopeKey = qso.getMode();
-        else if (dupeScope == "per_band_mode") scopeKey = qso.getBand() + "_" + qso.getMode();
-        // "overall" keeps scopeKey as ""
+        const QString scopeKey = dupeScopeKey(qso, dupeScope);
 
         const bool isDupe = workedCalls.contains(callUpper)
                             && workedCalls[callUpper].contains(scopeKey);
@@ -3433,6 +3445,7 @@ void ContestEngine::rescoreAll(QList<QsoRecord>& qsos, const QString& myCallsign
             else if (dupeScope == "per_band")   reason = "band";
             else if (dupeScope == "per_mode")   reason = "mode";
             else if (dupeScope == "per_band_mode") reason = "band/mode";
+            else if (dupeScope == "per_band_grid") reason = "band/grid";
             qso.setComment(QString("Duplicate contact for %1").arg(reason));
             continue;
         }
