@@ -125,6 +125,7 @@ public:
         int objectiveMultiplierCount = 0;  // Objective Multiplier count for WFD-style contests
         int dxccCount = 0;        // Total unique DXCC entities worked (for info)
         int scoreMultiplier = 1;  // Power/category multiplier applied to contestScore (e.g., ×3 QRP)
+        int maxScoredMults = 0;   // Cap on mults counted toward the score (0 = none, CQP = 58)
         int bonusPoints = 0;
         int contestScore = 0;
         QMap<QString, int> objectiveMultiplierDetails;  // Maps OM code to point value (e.g., "ALT_POWER" -> 1)
@@ -255,6 +256,8 @@ private:
     // DXCC primary prefix -> call-area tag (e.g. "K" -> "W"). QSOs with these
     // entities earn a "<tag><digit>" call-area mult instead of the DXCC mult.
     QHash<QString, QString> m_cachedCallAreaEntities;
+    int m_cachedMaxScoredMults = 0;  // 0 = no cap (CQP counts at most 58)
+    int capScoredMults(int mults) const;
     void cacheContestProperties();
 
     // DXCC lookup cache - keyed by callsign, avoids repeated database scans per scoring pass

@@ -304,6 +304,17 @@ Some contests count certain countries by call area rather than as one DXCC entit
 }
 ```
 
+**Capped Multipliers (`maxScoredMultipliers`):**
+Caps how many multipliers count toward the score. Every multiplier worked is still tracked and shown, but the score uses at most this many. CQP uses 58: a California station can work 63 states and provinces, but only 58 count.
+
+```json
+"multipliers": {
+  "type": "multsOnce",
+  "categories": ["namedMults"],
+  "maxScoredMultipliers": 58
+}
+```
+
 **Multiplier Types:**
 The `type` field determines how multipliers are counted:
 - `multsOnce`: Each multiplier counts only once (e.g., work OH once for entire contest)

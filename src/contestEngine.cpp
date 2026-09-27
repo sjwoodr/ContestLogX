@@ -271,6 +271,10 @@ void ContestEngine::cacheContestProperties()
             // prefix to a call-area tag: {"JA": "JA", "K": "W", "VE": "VE", "VK": "VK"}.
             // A QSO with one of those entities earns "<tag><digit>" (W4, JA1, ...)
             // in the namedCallPrefixes bucket instead of the DXCC entity mult.
+            // Optional cap on the multipliers counted toward the score. CQP:
+            // California stations can work 63 states/provinces but only 58 count.
+            m_cachedMaxScoredMults = mults["maxScoredMultipliers"].toInt(0);
+
             m_cachedCallAreaEntities.clear();
             if (mults.contains("callAreaEntities")) {
                 QJsonObject areas = mults["callAreaEntities"].toObject();
@@ -1624,6 +1628,17 @@ DxccEntity ContestEngine::dxccLookup(const QString& call) const
     DxccEntity entity = m_dxccDatabase->lookupCallsign(call);
     m_dxccCache.insert(call, entity);
     return entity;
+}
+
+int ContestEngine::capScoredMults(int mults) const
+{
+    if (m_cachedMaxScoredMults > 0 && mults > m_cachedMaxScoredMults) {
+        DebugLogger::instance().log("ContestEngine",
+            QString("  %1 multipliers worked, %2 counted toward the score (maxScoredMultipliers)")
+                .arg(mults).arg(m_cachedMaxScoredMults));
+        return m_cachedMaxScoredMults;
+    }
+    return mults;
 }
 
 QString ContestEngine::buildMultTrackingKey(const QString& multValue, const QString& band, const QString& mode) const
@@ -3226,6 +3241,7 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
     }
     
     QStringList multCategories = getMultiplierCategories();
+    m_runningScore.maxScoredMults = m_cachedMaxScoredMults;
     
     // Skip score calculation if already handled by objectiveMultipliers
     if (multType == "objectiveMultipliers") {
@@ -3238,7 +3254,7 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
         // For multsPerMode: multipliers are counted per mode, but final score is points × total_mults
         // Total points = sum of all points
         // Total mults = sum of unique mults across all modes
-        int totalMults = cwMultipliers.size() + ssbMultipliers.size() + digitalMultipliers.size();
+        int totalMults = capScoredMults(cwMultipliers.size() + ssbMultipliers.size() + digitalMultipliers.size());
         m_runningScore.contestScore = (m_runningScore.contactScore * totalMults) + m_runningScore.bonusPoints;
         
         if (verbose) {
@@ -3251,7 +3267,7 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
     } else if (multType == "multsPerBandAndMode") {
         // For multsPerBandAndMode: multipliers counted per band/mode combo, but final score is points × total_mults
         // Total mults = count of unique mult_band_mode combinations
-        int totalMults = multPerBandAndMode.size();
+        int totalMults = capScoredMults(multPerBandAndMode.size());
         m_runningScore.contestScore = (m_runningScore.contactScore * totalMults) + m_runningScore.bonusPoints;
         
         if (verbose) {
@@ -3261,7 +3277,7 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
         }
     } else if (!multCategories.isEmpty()) {
         // For multsOnce and multsPerBand: use simple points × mults formula
-        int totalMultipliers = m_runningScore.namedMultCount + m_runningScore.dxccMultCount + m_runningScore.ituRegionMultCount + m_runningScore.namedCallPrefixCount + m_runningScore.gridSquareMultCount;
+        int totalMultipliers = capScoredMults(m_runningScore.namedMultCount + m_runningScore.dxccMultCount + m_runningScore.ituRegionMultCount + m_runningScore.namedCallPrefixCount + m_runningScore.gridSquareMultCount);
         m_runningScore.contestScore = (m_runningScore.contactScore * totalMultipliers) + m_runningScore.bonusPoints;
     } else if (m_runningScore.multipliers > 0) {
         // Traditional scoring: points * mults

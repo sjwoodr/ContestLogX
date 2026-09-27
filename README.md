@@ -73,6 +73,7 @@ Most contest loggers are Windows-only, closed-source, or locked to a fixed set o
 | ARRL Field Day | `field_day.json` |
 | ARRL November Sweepstakes | `arrl_ss.json` |
 | ARRL VHF | `arrl_vhf.json` |
+| California QSO Party | `cqp.json` |
 | Colorado QSO Party | `coqp.json` |
 | CWops Mini-CWT | `cwops_cwt.json` |
 | EU DX Contest | `eudx.json` |

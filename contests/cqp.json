@@ -1,0 +1,640 @@
+{
+  "contest": {
+    "name": "California QSO Party",
+    "abbreviation": "CQP",
+    "version": "1.0.0",
+    "sponsor": "Northern California Contest Club (NCCC)",
+    "description": "Annual California state QSO party. Non-CA stations work California stations in as many of the 58 CA counties as possible. CA stations work everyone. Exchange is serial number + CA county (CA stations) or state/province/DX (everyone else). 3 points per QSO on CW and Phone; multipliers count once for the contest, 58 maximum.",
+    "startDate": "First full weekend of October (2026: October 3-4, 1600 UTC Sat - 2200 UTC Sun)",
+    "duration": 30,
+    "offTimeGapMinutes": 15,
+    "modes": [
+      "CW",
+      "SSB"
+    ],
+    "bands": [
+      "160m",
+      "80m",
+      "40m",
+      "20m",
+      "15m",
+      "10m"
+    ],
+    "url": "https://cqp.org/Rules.html",
+    "categories": {
+      "stations": [
+        "SINGLE_OP",
+        "SINGLE_OP_ASSISTED",
+        "MULTI_SINGLE",
+        "MULTI_TWO",
+        "MULTI_MULTI"
+      ],
+      "power": [
+        "HIGH",
+        "LOW",
+        "QRP"
+      ],
+      "modes": [
+        "MIXED",
+        "CW",
+        "PHONE"
+      ]
+    }
+  },
+  "frequencies": {
+    "160m": {
+      "start": 1800,
+      "end": 2000,
+      "cw": {
+        "start": 1800,
+        "end": 2000
+      },
+      "phone": {
+        "start": 1800,
+        "end": 2000
+      }
+    },
+    "80m": {
+      "start": 3500,
+      "end": 4000,
+      "cw": {
+        "start": 3500,
+        "end": 3600
+      },
+      "phone": {
+        "start": 3600,
+        "end": 4000
+      }
+    },
+    "40m": {
+      "start": 7000,
+      "end": 7300,
+      "cw": {
+        "start": 7000,
+        "end": 7125
+      },
+      "phone": {
+        "start": 7125,
+        "end": 7300
+      }
+    },
+    "20m": {
+      "start": 14000,
+      "end": 14350,
+      "cw": {
+        "start": 14000,
+        "end": 14150
+      },
+      "phone": {
+        "start": 14150,
+        "end": 14350
+      }
+    },
+    "15m": {
+      "start": 21000,
+      "end": 21450,
+      "cw": {
+        "start": 21000,
+        "end": 21200
+      },
+      "phone": {
+        "start": 21200,
+        "end": 21450
+      }
+    },
+    "10m": {
+      "start": 28000,
+      "end": 29700,
+      "cw": {
+        "start": 28000,
+        "end": 28300
+      },
+      "phone": {
+        "start": 28300,
+        "end": 29700
+      }
+    }
+  },
+  "stationClasses": {
+    "enabled": false
+  },
+  "userPrompts": [
+    {
+      "id": "stationType",
+      "question": "Select your station location",
+      "type": "select",
+      "options": [
+        {
+          "value": "CA",
+          "label": "California - send your 4-letter CA county abbreviation"
+        },
+        {
+          "value": "NONCA",
+          "label": "Outside California - send your state, province or DX"
+        }
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "CA stations work everyone and count states and provinces. Everyone else works CA stations only and counts CA counties."
+    },
+    {
+      "id": "myExchange",
+      "question": "Enter your QTH (CA county e.g. SCLA, state e.g. IN, province e.g. ON, or DX)",
+      "type": "text",
+      "required": true,
+      "forceUppercase": true,
+      "storeInMeta": true,
+      "description": "CA stations: 4-letter county abbreviation. US/Canada: 2-letter state or province. Everyone else: DX. Maryland and DC both send MD.",
+      "exchangeFieldMapping": {
+        "myExchange": "EXCHs"
+      }
+    },
+    {
+      "id": "operatingCategory",
+      "question": "Select your operating category",
+      "type": "select",
+      "options": [
+        {
+          "value": "SO",
+          "label": "Single Operator (no spotting assistance) - 24 hours max"
+        },
+        {
+          "value": "SOA",
+          "label": "Single Operator Assisted - 24 hours max"
+        },
+        {
+          "value": "MS",
+          "label": "Multi-Single - 30 hours"
+        },
+        {
+          "value": "M2",
+          "label": "Multi-Two - 30 hours"
+        },
+        {
+          "value": "MM",
+          "label": "Multi-Multi - 30 hours"
+        }
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "Single operators may operate 24 of the 30 hours, with off-times of at least 15 minutes. Expedition, county-line, mobile, YL, youth and new-contester awards are claimed with SOAPBOX lines in the Cabrillo header."
+    },
+    {
+      "id": "powerCategory",
+      "question": "Select your power category",
+      "type": "select",
+      "options": [
+        {
+          "value": "HP",
+          "label": "High Power (more than 100W)"
+        },
+        {
+          "value": "LP",
+          "label": "Low Power (100W or less)"
+        },
+        {
+          "value": "QRP",
+          "label": "QRP (5W or less)"
+        }
+      ],
+      "required": true,
+      "storeInMeta": true
+    }
+  ],
+  "exchangeFields": {
+    "sent": [
+      {
+        "name": "SNs",
+        "type": "serial",
+        "required": true,
+        "description": "QSO number sent, starting at 1"
+      },
+      {
+        "name": "EXCHs",
+        "type": "string",
+        "required": true,
+        "description": "CA county (CA stations) or state/province/DX"
+      }
+    ],
+    "received": [
+      {
+        "name": "SNr",
+        "type": "serial",
+        "required": true,
+        "description": "QSO number received"
+      },
+      {
+        "name": "EXCHr",
+        "type": "string",
+        "required": true,
+        "description": "CA county (from CA stations) or state/province/DX (from everyone else)"
+      }
+    ]
+  },
+  "qsoFields": [
+    {
+      "name": "Date",
+      "column": "DATE",
+      "type": "date",
+      "format": "yyyy-MM-dd",
+      "required": true
+    },
+    {
+      "name": "Time",
+      "column": "TIME",
+      "type": "time",
+      "format": "HH:mm:ss",
+      "required": true
+    },
+    {
+      "name": "Callsign",
+      "column": "CALL",
+      "type": "string",
+      "required": true,
+      "uppercase": true
+    },
+    {
+      "name": "Frequency",
+      "column": "FREQ",
+      "type": "number",
+      "unit": "kHz",
+      "required": true
+    },
+    {
+      "name": "Mode",
+      "column": "MODE",
+      "type": "enum",
+      "values": [
+        "CW",
+        "SSB"
+      ],
+      "required": true
+    },
+    {
+      "name": "Nr Sent",
+      "column": "SNs",
+      "type": "number",
+      "required": true
+    },
+    {
+      "name": "QTH Sent",
+      "column": "EXCHs",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "Nr Rcvd",
+      "column": "SNr",
+      "type": "number",
+      "required": true
+    },
+    {
+      "name": "QTH Rcvd",
+      "column": "EXCHr",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "Points",
+      "column": "POINTS",
+      "type": "number",
+      "calculated": true
+    },
+    {
+      "name": "Mult",
+      "column": "M",
+      "type": "string",
+      "calculated": true
+    }
+  ],
+  "scoring": {
+    "points": {
+      "__comment": "3 points per QSO on both CW and Phone (Phone went from 2 to 3 points in 2026). perQso is the value the engine uses; cw and phone repeat it for the fallback path.",
+      "perQso": 3,
+      "cw": 3,
+      "phone": 3
+    },
+    "multipliers": {
+      "__comment": "Non-CA: the 58 CA counties. CA: the 50 states and 13 provinces/territories, 63 possible but at most 58 count toward the score. The first CA county worked counts as the CA state mult (multAliases). DX counts for QSO points only.",
+      "type": "multsOnce",
+      "description": "Non-CA: CA counties. CA: US states and Canadian provinces/territories. Counted once each for the contest, 58 maximum",
+      "categories": [
+        "namedMults"
+      ],
+      "maxScoredMultipliers": 58,
+      "namedMultsLabels": {
+        "CA": "States/Provinces",
+        "NONCA": "CA Counties"
+      }
+    },
+    "finalScore": "SUM(points) * MIN(SUM(multipliers), 58)"
+  },
+  "multAliases": [
+    {
+      "promptId": "stationType",
+      "promptValue": "CA",
+      "sourceList": "inStateMults",
+      "mapsTo": "CA",
+      "comment": "A CA station counts every CA county it works as the single CA state multiplier."
+    },
+    {
+      "promptId": "stationType",
+      "promptValue": "CA",
+      "sourceValues": [
+        "DX"
+      ],
+      "mapsTo": "__CQPDX__",
+      "comment": "DX is a valid exchange worth QSO points but is not a multiplier. The sentinel is not in namedMults, so no mult is credited."
+    }
+  ],
+  "dupeChecking": {
+    "type": "perBandAndMode",
+    "description": "Each station may be worked once on CW and once on Phone on each band (12 QSOs max). CA mobiles that change counties are new stations and may be worked again."
+  },
+  "logging": {
+    "requiredFields": [
+      "date",
+      "time",
+      "frequency",
+      "mode",
+      "callsign",
+      "serialSent",
+      "exchSent",
+      "serialReceived",
+      "exchReceived"
+    ],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "CA-QSO-PARTY",
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {SNs} {EXCHs} {call} {SNr} {EXCHr}",
+      "requiredHeaders": [
+        "CONTEST",
+        "CALLSIGN",
+        "LOCATION",
+        "CATEGORY-ASSISTED",
+        "CATEGORY-OPERATOR",
+        "CATEGORY-POWER",
+        "CATEGORY-STATION",
+        "CATEGORY-TRANSMITTER",
+        "CLAIMED-SCORE",
+        "CLUB",
+        "CREATED-BY",
+        "NAME",
+        "ADDRESS",
+        "EMAIL",
+        "OPERATORS",
+        "SOAPBOX"
+      ],
+      "notes": "CQP has no RST. Award categories go in SOAPBOX lines: EXPEDITION, COUNTY-LINE EXPEDITION, ONE-DAY EXPEDITION, MOBILE, YL, YOUTH, NEW CONTESTER."
+    }
+  },
+  "callHistory": {
+    "fieldsToSave": [
+      "EXCHr"
+    ],
+    "description": "Save county/state/province/DX for future autofill"
+  },
+  "validation": {
+    "minimumQSOs": 1,
+    "maxOperatingTime": 30,
+    "offTimesRequired": false,
+    "namedMults": [
+      "ALAM",
+      "ALPI",
+      "AMAD",
+      "BUTT",
+      "CALA",
+      "COLU",
+      "CCOS",
+      "DELN",
+      "ELDO",
+      "FRES",
+      "GLEN",
+      "HUMB",
+      "IMPE",
+      "INYO",
+      "KERN",
+      "KING",
+      "LAKE",
+      "LASS",
+      "LANG",
+      "MADE",
+      "MARN",
+      "MARP",
+      "MEND",
+      "MERC",
+      "MODO",
+      "MONO",
+      "MONT",
+      "NAPA",
+      "NEVA",
+      "ORAN",
+      "PLAC",
+      "PLUM",
+      "RIVE",
+      "SACR",
+      "SBEN",
+      "SBER",
+      "SDIE",
+      "SFRA",
+      "SJOA",
+      "SLUI",
+      "SMAT",
+      "SBAR",
+      "SCLA",
+      "SCRU",
+      "SHAS",
+      "SIER",
+      "SISK",
+      "SOLA",
+      "SONO",
+      "STAN",
+      "SUTT",
+      "TEHA",
+      "TRIN",
+      "TULA",
+      "TUOL",
+      "VENT",
+      "YOLO",
+      "YUBA",
+      "AL",
+      "AK",
+      "AZ",
+      "AR",
+      "CA",
+      "CO",
+      "CT",
+      "DE",
+      "FL",
+      "GA",
+      "HI",
+      "ID",
+      "IL",
+      "IN",
+      "IA",
+      "KS",
+      "KY",
+      "LA",
+      "ME",
+      "MD",
+      "MA",
+      "MI",
+      "MN",
+      "MS",
+      "MO",
+      "MT",
+      "NE",
+      "NV",
+      "NH",
+      "NJ",
+      "NM",
+      "NY",
+      "NC",
+      "ND",
+      "OH",
+      "OK",
+      "OR",
+      "PA",
+      "RI",
+      "SC",
+      "SD",
+      "TN",
+      "TX",
+      "UT",
+      "VT",
+      "VA",
+      "WA",
+      "WV",
+      "WI",
+      "WY",
+      "AB",
+      "BC",
+      "MB",
+      "NB",
+      "NL",
+      "NS",
+      "NT",
+      "NU",
+      "ON",
+      "PE",
+      "QC",
+      "SK",
+      "YT",
+      "DX"
+    ],
+    "inStateMults": [
+      "ALAM",
+      "ALPI",
+      "AMAD",
+      "BUTT",
+      "CALA",
+      "COLU",
+      "CCOS",
+      "DELN",
+      "ELDO",
+      "FRES",
+      "GLEN",
+      "HUMB",
+      "IMPE",
+      "INYO",
+      "KERN",
+      "KING",
+      "LAKE",
+      "LASS",
+      "LANG",
+      "MADE",
+      "MARN",
+      "MARP",
+      "MEND",
+      "MERC",
+      "MODO",
+      "MONO",
+      "MONT",
+      "NAPA",
+      "NEVA",
+      "ORAN",
+      "PLAC",
+      "PLUM",
+      "RIVE",
+      "SACR",
+      "SBEN",
+      "SBER",
+      "SDIE",
+      "SFRA",
+      "SJOA",
+      "SLUI",
+      "SMAT",
+      "SBAR",
+      "SCLA",
+      "SCRU",
+      "SHAS",
+      "SIER",
+      "SISK",
+      "SOLA",
+      "SONO",
+      "STAN",
+      "SUTT",
+      "TEHA",
+      "TRIN",
+      "TULA",
+      "TUOL",
+      "VENT",
+      "YOLO",
+      "YUBA"
+    ],
+    "namedMultAliases": {
+      "DC": "MD"
+    },
+    "exchangeValidation": {
+      "type": "namedMultOnly",
+      "description": "CA stations: CA county, US state, Canadian province/territory or DX (DC is accepted and logged as MD). Non-CA stations: the received exchange must be a CA county."
+    },
+    "receivedExchangeFilter": {
+      "promptId": "stationType",
+      "rules": {
+        "NONCA": "inStateMults"
+      }
+    }
+  },
+  "ui": {
+    "showMultiplierPanel": true,
+    "logColumns": [
+      "DATE",
+      "TIME",
+      "CALL",
+      "FREQ",
+      "MODE",
+      "SNs",
+      "EXCHs",
+      "SNr",
+      "EXCHr",
+      "POINTS",
+      "M",
+      "COMMENT"
+    ],
+    "entryFields": [
+      "CALL",
+      "SNr",
+      "EXCHr"
+    ],
+    "fieldNavigation": {
+      "keys": "tab"
+    },
+    "bandMap": {
+      "enabled": true,
+      "bands": [
+        "160m",
+        "80m",
+        "40m",
+        "20m",
+        "15m",
+        "10m"
+      ]
+    },
+    "multiplierDisplay": {
+      "showCounties": true,
+      "showStates": true,
+      "showProvinces": true
+    }
+  }
+}

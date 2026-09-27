@@ -504,6 +504,14 @@ import Layout from '../layouts/Layout.astro';
   "callAreaEntities": {"JA": "JA", "K": "W", "VE": "VE", "VK": "VK"}
 }`}</pre>
 
+          <h3 class="text-lg font-semibold mb-2 mt-4">maxScoredMultipliers</h3>
+          <p class="opacity-80 mb-2">
+            An optional integer inside <code>multipliers</code> that caps how many multipliers count
+            toward the score. Every multiplier worked is still tracked and shown; the score uses at most
+            this many. The California QSO Party uses 58: a California station can work 63 states and
+            provinces, but only 58 count.
+          </p>
+
           <h3 class="text-lg font-semibold mb-2 mt-4">automaticMultipliers</h3>
           <p class="opacity-80 mb-2">
             An optional object inside <code>multipliers</code> that credits a named multiplier the

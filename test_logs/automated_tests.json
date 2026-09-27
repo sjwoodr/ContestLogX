@@ -444,6 +444,16 @@
       "name": "JARL WW RTTY - JA op JH3TC (18 QSOs incl 1 dupe, JA-JA counts 2 pts, JH8WSP/1 counts as JA1, W and VK call areas, G/GW/EA/I/HL DXCC mults, per-band re-credit on 10m)",
       "log_file": "test_jarl_rtty_ja.clx",
       "expected_score": 704
+    },
+    {
+      "name": "CQP CA op W6CTM SCLA (67 QSOs incl 1 dupe, 3 pts CW and SSB, multsOnce all 50 states + 13 provinces = 63 worked but capped at 58 by maxScoredMultipliers, first CA county counts as CA, DC counts as MD, DX earns points only, same call on SSB counts)",
+      "log_file": "test_cqp_ca.clx",
+      "expected_score": 11484
+    },
+    {
+      "name": "CQP Non-CA op N0FXO IN (13 QSOs incl 1 dupe, 3 pts per QSO, 10 CA counties once for the contest - a county on a new band or mode earns points but no new mult, MARN and MARP distinct)",
+      "log_file": "test_cqp_nonca.clx",
+      "expected_score": 360
     }
   ]
 }

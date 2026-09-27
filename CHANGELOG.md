@@ -4,6 +4,12 @@ All notable changes to ContestLogX are documented in this file.
 
 ## [0.9.12]
 
+### Contest Updates
+- Added the California QSO Party (CQP). The exchange is a serial number plus your California county, or state, province or DX if you are outside California. Every QSO is worth 3 points on CW and Phone (Phone went from 2 to 3 points in 2026), and a station can be worked once per band per mode. Stations outside California count the 58 CA counties. California stations count states and provinces, up to 58 of the 63: the first CA county worked counts as California, DC counts as MD, and DX QSOs earn points but no multiplier
+
+### Contest Engine Changes
+- A contest can now cap how many multipliers count toward the score (`maxScoredMultipliers`). Every multiplier worked is still tracked, and the score panel and summary sheet show both the worked count and the capped count
+
 ## [0.9.11]
 
 ### Contest Updates

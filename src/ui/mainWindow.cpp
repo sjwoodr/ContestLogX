@@ -8111,7 +8111,10 @@ QString MainWindow::generateSummaryString()
         out << "\n";
     }
     
-    // Show the scoring calculation
+    // Show the scoring calculation. A contest may cap the mults that count
+    // toward the score (CQP: 58) - show the capped figure the score used.
+    const int scoredMults = (score.maxScoredMults > 0 && score.multipliers > score.maxScoredMults)
+                            ? score.maxScoredMults : score.multipliers;
     if (multType == "objectiveMultipliers") {
         int omTotal = score.objectiveMultiplierCount;
         out << "Score Calculation:\n";
@@ -8122,7 +8125,9 @@ QString MainWindow::generateSummaryString()
         out << " = " << score.contestScore << "\n";
     } else if (multTypes.size() == 1) {
         out << "Score Calculation:\n";
-        out << "  " << score.contactScore << " points × " << score.multipliers << " multipliers";
+        out << "  " << score.contactScore << " points × " << scoredMults << " multipliers";
+        if (scoredMults < score.multipliers)
+            out << " (" << score.multipliers << " worked, " << scoredMults << " max)";
         if (score.scoreMultiplier > 1) {
             out << " × " << score.scoreMultiplier << " (power)";
         }
@@ -8132,8 +8137,10 @@ QString MainWindow::generateSummaryString()
         out << " = " << score.contestScore << "\n";
     } else if (multTypes.size() > 1) {
         out << "Score Calculation:\n";
-        out << "  " << score.contactScore << " points × " << score.multipliers << " multipliers";
+        out << "  " << score.contactScore << " points × " << scoredMults << " multipliers";
         out << " (" << multTypes.join(" + ") << ")";
+        if (scoredMults < score.multipliers)
+            out << " (" << score.multipliers << " worked, " << scoredMults << " max)";
         if (score.scoreMultiplier > 1) {
             out << " × " << score.scoreMultiplier << " (power)";
         }
