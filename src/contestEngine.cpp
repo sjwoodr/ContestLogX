@@ -399,6 +399,7 @@ void ContestEngine::cacheContestProperties()
             else if (t == "perMode")        m_cachedDupeScope = "per_mode";
             else if (t == "overall")        m_cachedDupeScope = "overall";
             else if (t == "perBandAndGridSquare") m_cachedDupeScope = "per_band_grid";
+            else if (t == "perBandModeAndExchange") m_cachedDupeScope = "per_band_mode_exch";
         } else if (dcv.isString()) {
             m_cachedDupeScope = dcv.toString();
         }
@@ -851,6 +852,7 @@ QString ContestEngine::getDupeReason(const QsoRecord& qso, const QList<QsoRecord
             if (dupeScope == "per_mode")       return "mode";
             if (dupeScope == "per_band_mode")  return "band/mode";
             if (dupeScope == "per_band_grid")  return "band/grid";
+            if (dupeScope == "per_band_mode_exch") return "band/mode/county";
             return "contest";
         }
     }
@@ -1621,6 +1623,13 @@ QString ContestEngine::dupeScopeKey(const QsoRecord& qso, const QString& dupeSco
         // theirs (GRIDr) or ours (GRIDs). Grids compare on 4 characters.
         return qso.getBand() + "_" + qso.getExchangeField("GRIDr").left(4).toUpper()
                + "_" + qso.getExchangeField("GRIDs").left(4).toUpper();
+    }
+    if (dupeScope == "per_band_mode_exch") {
+        // QSO parties: once per band per mode per county. A county-line or
+        // mobile station sending a different county (EXCHr) is a new QSO, and
+        // so is every QSO after our own mobile moves county (EXCHs).
+        return qso.getBand() + "_" + qso.getMode() + "_" + qso.getExchangeField("EXCHr").toUpper()
+               + "_" + qso.getExchangeField("EXCHs").toUpper();
     }
     return QString();  // overall
 }
@@ -3441,6 +3450,7 @@ void ContestEngine::rescoreAll(QList<QsoRecord>& qsos, const QString& myCallsign
             else if (dupeScope == "per_mode")   reason = "mode";
             else if (dupeScope == "per_band_mode") reason = "band/mode";
             else if (dupeScope == "per_band_grid") reason = "band/grid";
+            else if (dupeScope == "per_band_mode_exch") reason = "band/mode/county";
             qso.setComment(QString("Duplicate contact for %1").arg(reason));
             continue;
         }

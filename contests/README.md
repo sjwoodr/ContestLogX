@@ -338,6 +338,9 @@ Contacts that an operator's class may not score. Keys are station class ids or u
 
 ARRL DX uses the prefix form (W/VE may not work W/VE); the Oceania DX Contest uses `notContinent:OC` (stations outside Oceania score only with Oceania).
 
+**Dupe Scope per County (`dupeChecking.type: "perBandModeAndExchange"`):**
+For QSO parties that allow a station once per band per mode *per county*: the dupe key is band + mode + received exchange + sent exchange. A county-line station logged under each county, or a mobile that changes county, is a new QSO, and so is every QSO after your own mobile moves county (change your exchange in Contest Setup). Used by AZQP.
+
 **Capped Multipliers (`maxScoredMultipliers`):**
 Caps how many multipliers count toward the score. Every multiplier worked is still tracked and shown, but the score uses at most this many. CQP uses 58: a California station can work 63 states and provinces, but only 58 count.
 

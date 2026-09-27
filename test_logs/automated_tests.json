@@ -509,6 +509,16 @@
       "name": "OCDX SSB Oceania op VK2QRB (10 QSOs incl 1 dupe, OC works everyone, K8KT/4 counts as prefix K4, per-band prefix re-credit on 15m)",
       "log_file": "test_ocdx_oc.clx",
       "expected_score": 99
+    },
+    {
+      "name": "AZQP AZ op N7WDT MCP (15 QSOs incl 1 dupe, CW 2 / Phone 1, multsPerMode states+provinces+DXCC, DC counts as MD, AZ county counts as AZ, K7A +100 once, county-line mobile W8EE/M logged under two counties is not a dupe)",
+      "log_file": "test_azqp_az.clx",
+      "expected_score": 334
+    },
+    {
+      "name": "AZQP non-AZ op W9NE IN (9 QSOs incl 1 dupe, AZ counties per band per mode, county-line mobile logged twice, mobile AE4NOQ re-worked from a new county, K7A +100 once)",
+      "log_file": "test_azqp_nonaz.clx",
+      "expected_score": 205
     }
   ]
 }

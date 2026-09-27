@@ -1,0 +1,574 @@
+{
+  "contest": {
+    "name": "Arizona QSO Party",
+    "abbreviation": "AZQP",
+    "version": "1.0.0",
+    "sponsor": "Arizona QSO Party (azqp.org)",
+    "description": "Second Saturday of October, 1500Z to 0500Z. Arizona stations work everyone; stations outside Arizona work Arizona stations. Exchange is RS(T) + AZ county (AZ stations), state/province (W/VE) or DXCC prefix (DX). CW 2 points, Phone 1 point. AZ stations count 50 states (DC = MD), 13 Canadian provinces/territories and DXCC entities per mode; everyone else counts the 15 AZ counties per band per mode. One-time 100-point bonus for working K7A.",
+    "startDate": "Second Saturday of October (2026: October 10, 1500Z - October 11, 0500Z)",
+    "duration": 14,
+    "offTimeGapMinutes": 0,
+    "modes": [
+      "CW",
+      "SSB"
+    ],
+    "bands": [
+      "160m",
+      "80m",
+      "40m",
+      "20m",
+      "15m",
+      "10m"
+    ],
+    "url": "https://www.azqp.org/",
+    "categories": {
+      "stations": [
+        "SINGLE_OP",
+        "MULTI_ONE",
+        "MULTI_UNLIMITED",
+        "MOBILE",
+        "EXPEDITION"
+      ],
+      "power": [
+        "HIGH",
+        "LOW",
+        "QRP"
+      ],
+      "modes": [
+        "MIXED",
+        "CW",
+        "PHONE"
+      ]
+    }
+  },
+  "frequencies": {
+    "160m": {
+      "start": 1800,
+      "end": 2000,
+      "cw": {
+        "start": 1800,
+        "end": 1850
+      },
+      "phone": {
+        "start": 1840,
+        "end": 2000
+      }
+    },
+    "80m": {
+      "start": 3500,
+      "end": 4000,
+      "cw": {
+        "start": 3500,
+        "end": 3600
+      },
+      "phone": {
+        "start": 3600,
+        "end": 4000
+      }
+    },
+    "40m": {
+      "start": 7000,
+      "end": 7300,
+      "cw": {
+        "start": 7000,
+        "end": 7125
+      },
+      "phone": {
+        "start": 7125,
+        "end": 7300
+      }
+    },
+    "20m": {
+      "start": 14000,
+      "end": 14350,
+      "cw": {
+        "start": 14000,
+        "end": 14150
+      },
+      "phone": {
+        "start": 14150,
+        "end": 14350
+      }
+    },
+    "15m": {
+      "start": 21000,
+      "end": 21450,
+      "cw": {
+        "start": 21000,
+        "end": 21200
+      },
+      "phone": {
+        "start": 21200,
+        "end": 21450
+      }
+    },
+    "10m": {
+      "start": 28000,
+      "end": 29700,
+      "cw": {
+        "start": 28000,
+        "end": 28300
+      },
+      "phone": {
+        "start": 28300,
+        "end": 29700
+      }
+    }
+  },
+  "stationClasses": {
+    "enabled": false
+  },
+  "userPrompts": [
+    {
+      "id": "stationType",
+      "question": "Select your station location",
+      "type": "select",
+      "options": [
+        {
+          "value": "AZ",
+          "label": "Arizona - send your AZ county abbreviation"
+        },
+        {
+          "value": "WVE",
+          "label": "W/VE (US or Canada outside Arizona) - send state or province"
+        },
+        {
+          "value": "DX",
+          "label": "DX (outside US/Canada) - send your DXCC prefix"
+        }
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "Arizona stations work everyone and count states, provinces and DXCC per mode. Everyone else works Arizona stations and counts AZ counties per band per mode."
+    },
+    {
+      "id": "myExchange",
+      "question": "Enter your exchange (AZ county e.g. MCP, state e.g. IN, province e.g. ON, or DXCC prefix e.g. DL)",
+      "type": "text",
+      "required": true,
+      "forceUppercase": true,
+      "storeInMeta": true,
+      "description": "AZ counties: APH CHS CNO GLA GHM GLE LPZ MCP MHV NVO PMA PNL SCZ YVP YMA. Mobiles and expeditions: change this in Contest Setup when you move to a new county - every station can then be worked again.",
+      "exchangeFieldMapping": {
+        "myExchange": "EXCHs"
+      }
+    },
+    {
+      "id": "operatingCategory",
+      "question": "Select your entry category",
+      "type": "select",
+      "options": [
+        {
+          "value": "SO-HP",
+          "label": "Single-Op High Power (>100W)"
+        },
+        {
+          "value": "SO-LP",
+          "label": "Single-Op Low Power (100W or less)"
+        },
+        {
+          "value": "SO-QRP",
+          "label": "Single-Op QRP (5W or less)"
+        },
+        {
+          "value": "M1-HP",
+          "label": "Multi-Op One Transmitter High Power"
+        },
+        {
+          "value": "M1-LP",
+          "label": "Multi-Op One Transmitter Low Power"
+        },
+        {
+          "value": "MULTI-UNLIMITED",
+          "label": "Multi-Op Unlimited Transmitters"
+        },
+        {
+          "value": "MOBILE",
+          "label": "Mobile (AZ)"
+        },
+        {
+          "value": "EXPEDITION-SO",
+          "label": "Expedition Single-Op (AZ, county-line or single county)"
+        },
+        {
+          "value": "EXPEDITION-MO",
+          "label": "Expedition Multi-Op (AZ, county-line or single county)"
+        }
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "Single-Op entries may be Mixed, CW or Phone (set CATEGORY-MODE in the Cabrillo export). Spotting and self-spotting are allowed in all categories."
+    }
+  ],
+  "exchangeFields": {
+    "sent": [
+      {
+        "name": "RSTs",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report sent"
+      },
+      {
+        "name": "EXCHs",
+        "type": "string",
+        "required": true,
+        "description": "AZ county, state/province, or DXCC prefix"
+      }
+    ],
+    "received": [
+      {
+        "name": "RSTr",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report received"
+      },
+      {
+        "name": "EXCHr",
+        "type": "string",
+        "required": true,
+        "description": "AZ county (from AZ stations), state/province (W/VE) or DXCC prefix (DX)"
+      }
+    ]
+  },
+  "qsoFields": [
+    {
+      "name": "Date",
+      "column": "DATE",
+      "type": "date",
+      "format": "yyyy-MM-dd",
+      "required": true
+    },
+    {
+      "name": "Time",
+      "column": "TIME",
+      "type": "time",
+      "format": "HH:mm:ss",
+      "required": true
+    },
+    {
+      "name": "Callsign",
+      "column": "CALL",
+      "type": "string",
+      "required": true,
+      "uppercase": true
+    },
+    {
+      "name": "Frequency",
+      "column": "FREQ",
+      "type": "number",
+      "unit": "kHz",
+      "required": true
+    },
+    {
+      "name": "Mode",
+      "column": "MODE",
+      "type": "enum",
+      "values": [
+        "CW",
+        "SSB"
+      ],
+      "required": true
+    },
+    {
+      "name": "RST Sent",
+      "column": "RSTs",
+      "type": "string",
+      "required": true,
+      "default": "599"
+    },
+    {
+      "name": "RST Rcvd",
+      "column": "RSTr",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "Exch Sent",
+      "column": "EXCHs",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "Exch Rcvd",
+      "column": "EXCHr",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "Points",
+      "column": "POINTS",
+      "type": "number",
+      "calculated": true
+    },
+    {
+      "name": "Mult",
+      "column": "M",
+      "type": "string",
+      "calculated": true
+    }
+  ],
+  "scoring": {
+    "points": {
+      "__comment": "CW 2 points, Phone 1 point.",
+      "cw": 2,
+      "phone": 1
+    },
+    "multipliers": {
+      "__comment": "AZ stations: 50 states (first AZ county = AZ, DC = MD), 13 provinces/territories and DXCC entities, counted once per mode. Non-AZ stations: 15 AZ counties counted once per band per mode (max 180). US/Canada and AK/HI count only as their state/province, never as DXCC.",
+      "type": "multsPerMode",
+      "description": "AZ: states, provinces and DXCC per mode. Non-AZ: AZ counties per band per mode",
+      "categories": [
+        "namedMults"
+      ],
+      "stationClassMultTypes": {
+        "AZ": "multsPerMode",
+        "WVE": "multsPerBandAndMode",
+        "DX": "multsPerBandAndMode"
+      },
+      "stationClassMultipliers": {
+        "AZ": [
+          "namedMults",
+          "dxcc"
+        ],
+        "WVE": [
+          "namedMults"
+        ],
+        "DX": [
+          "namedMults"
+        ]
+      },
+      "namedMultsLabels": {
+        "AZ": "States/Provinces",
+        "WVE": "AZ Counties",
+        "DX": "AZ Counties"
+      },
+      "alaskaAndHawaiiCountDxcc": false,
+      "usAndCanadaCountDxcc": false
+    },
+    "finalScore": "SUM(points) * SUM(multipliers) + SUM(bonus)"
+  },
+  "bonusStations": [
+    {
+      "name": "K7A",
+      "pointsEach": 100,
+      "type": "bonusOnce",
+      "stations": [
+        "K7A"
+      ],
+      "note": "One-time 100-point bonus for a QSO with K7A on any band or mode. Further K7A QSOs count normally but earn no more bonus."
+    }
+  ],
+  "multAliases": [
+    {
+      "promptId": "stationType",
+      "promptValue": "AZ",
+      "sourceList": "inStateMults",
+      "mapsTo": "AZ",
+      "comment": "An AZ station counts every AZ county it works as the single AZ state multiplier."
+    }
+  ],
+  "dupeChecking": {
+    "type": "perBandModeAndExchange",
+    "description": "Once per band per mode per AZ county. A county-line station logged under each county, and a mobile that changes county, are new QSOs; so is every QSO after your own mobile moves county."
+  },
+  "logging": {
+    "requiredFields": [
+      "date",
+      "time",
+      "frequency",
+      "mode",
+      "callsign",
+      "rstSent",
+      "rstReceived",
+      "exchSent",
+      "exchReceived"
+    ],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "AZ-QSO-PARTY",
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {rst_sent} {exch_sent} {call} {rst_rcvd} {exch_rcvd}",
+      "requiredHeaders": [
+        "CONTEST",
+        "CALLSIGN",
+        "LOCATION",
+        "CATEGORY-OPERATOR",
+        "CATEGORY-POWER",
+        "CATEGORY-MODE",
+        "CATEGORY-STATION",
+        "CATEGORY-TRANSMITTER",
+        "CLAIMED-SCORE",
+        "CLUB",
+        "CREATED-BY",
+        "NAME",
+        "ADDRESS",
+        "EMAIL",
+        "OPERATORS",
+        "SOAPBOX"
+      ]
+    }
+  },
+  "callHistory": {
+    "fieldsToSave": [
+      "EXCHr"
+    ],
+    "description": "Save county/state/province/DXCC prefix for future autofill"
+  },
+  "validation": {
+    "minimumQSOs": 1,
+    "maxOperatingTime": 14,
+    "offTimesRequired": false,
+    "namedMults": [
+      "APH",
+      "CHS",
+      "CNO",
+      "GLA",
+      "GHM",
+      "GLE",
+      "LPZ",
+      "MCP",
+      "MHV",
+      "NVO",
+      "PMA",
+      "PNL",
+      "SCZ",
+      "YVP",
+      "YMA",
+      "AL",
+      "AK",
+      "AZ",
+      "AR",
+      "CA",
+      "CO",
+      "CT",
+      "DE",
+      "FL",
+      "GA",
+      "HI",
+      "ID",
+      "IL",
+      "IN",
+      "IA",
+      "KS",
+      "KY",
+      "LA",
+      "ME",
+      "MD",
+      "MA",
+      "MI",
+      "MN",
+      "MS",
+      "MO",
+      "MT",
+      "NE",
+      "NV",
+      "NH",
+      "NJ",
+      "NM",
+      "NY",
+      "NC",
+      "ND",
+      "OH",
+      "OK",
+      "OR",
+      "PA",
+      "RI",
+      "SC",
+      "SD",
+      "TN",
+      "TX",
+      "UT",
+      "VT",
+      "VA",
+      "WA",
+      "WV",
+      "WI",
+      "WY",
+      "NS",
+      "QC",
+      "ON",
+      "MB",
+      "SK",
+      "AB",
+      "BC",
+      "NT",
+      "NB",
+      "NL",
+      "NU",
+      "YT",
+      "PE"
+    ],
+    "inStateMults": [
+      "APH",
+      "CHS",
+      "CNO",
+      "GLA",
+      "GHM",
+      "GLE",
+      "LPZ",
+      "MCP",
+      "MHV",
+      "NVO",
+      "PMA",
+      "PNL",
+      "SCZ",
+      "YVP",
+      "YMA"
+    ],
+    "namedMultAliases": {
+      "DC": "MD"
+    },
+    "exchangeValidation": {
+      "type": "namedMultOrDxcc",
+      "description": "AZ stations: AZ county, state, DC, province or DXCC prefix. Non-AZ stations: the received exchange must be an AZ county."
+    },
+    "receivedExchangeFilter": {
+      "promptId": "stationType",
+      "rules": {
+        "WVE": "inStateMults",
+        "DX": "inStateMults"
+      }
+    }
+  },
+  "ui": {
+    "showMultiplierPanel": true,
+    "logColumns": [
+      "DATE",
+      "TIME",
+      "CALL",
+      "FREQ",
+      "MODE",
+      "RSTs",
+      "RSTr",
+      "EXCHs",
+      "EXCHr",
+      "POINTS",
+      "M",
+      "COMMENT"
+    ],
+    "entryFields": [
+      "CALL",
+      "RSTr",
+      "EXCHr"
+    ],
+    "fieldNavigation": {
+      "keys": "tab"
+    },
+    "bandMap": {
+      "enabled": true,
+      "bands": [
+        "160m",
+        "80m",
+        "40m",
+        "20m",
+        "15m",
+        "10m"
+      ]
+    },
+    "multiplierDisplay": {
+      "showCounties": true,
+      "showStates": true,
+      "showProvinces": true,
+      "showDXCC": true
+    }
+  }
+}

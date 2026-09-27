@@ -68,6 +68,7 @@ Most contest loggers are Windows-only, closed-source, or locked to a fixed set o
 | Contest | File |
 |---------|------|
 | Alabama QSO Party | `alqp.json` |
+| Arizona QSO Party | `azqp.json` |
 | ARRL 10 Meter | `arrl_10m.json` |
 | ARRL DX | `arrl_dx.json` |
 | ARRL Field Day | `field_day.json` |
