@@ -1,0 +1,227 @@
+{
+ "format": "ContestLogX",
+ "format_version": "1.0",
+ "created": "2026-11-28T00:01:00Z",
+ "modified": "2026-11-28T00:10:00Z",
+ "contest": {
+  "name": "CQ World-Wide DX Contest",
+  "abbreviation": "CQWW",
+  "mode": "CW",
+  "contest_file": "cqww.json",
+  "version": "1.0.0",
+  "year": 2026,
+  "categories": {
+   "userPrompt_contestMode": "CW",
+   "userPrompt_myZone": "04",
+   "userPrompt_operatingCategory": "SO",
+   "userPrompt_powerCategory": "LP"
+  }
+ },
+ "station": {
+  "callsign": "W9NE",
+  "operator": "STEVE"
+ },
+ "statistics": {},
+ "qsos": [
+  {
+   "id": 1,
+   "serial": 1,
+   "timestamp": "2026-11-28T00:01:00Z",
+   "frequency": 14025,
+   "band": "20m",
+   "mode": "CW",
+   "callsign": "AD1TOX",
+   "duplicate": false,
+   "rst_sent": "599",
+   "rst_received": "599",
+   "exchange_fields": {
+    "CALL": "AD1TOX",
+    "RSTs": "599",
+    "RSTr": "599",
+    "ZONEs": "04",
+    "ZONEr": "05"
+   },
+   "points": 0
+  },
+  {
+   "id": 2,
+   "serial": 2,
+   "timestamp": "2026-11-28T00:02:00Z",
+   "frequency": 14025,
+   "band": "20m",
+   "mode": "CW",
+   "callsign": "AE4NOQ",
+   "duplicate": false,
+   "rst_sent": "599",
+   "rst_received": "599",
+   "exchange_fields": {
+    "CALL": "AE4NOQ",
+    "RSTs": "599",
+    "RSTr": "599",
+    "ZONEs": "04",
+    "ZONEr": "05"
+   },
+   "points": 0
+  },
+  {
+   "id": 3,
+   "serial": 3,
+   "timestamp": "2026-11-28T00:03:00Z",
+   "frequency": 14025,
+   "band": "20m",
+   "mode": "CW",
+   "callsign": "VO1TW",
+   "duplicate": false,
+   "rst_sent": "599",
+   "rst_received": "599",
+   "exchange_fields": {
+    "CALL": "VO1TW",
+    "RSTs": "599",
+    "RSTr": "599",
+    "ZONEs": "04",
+    "ZONEr": "05"
+   },
+   "points": 0
+  },
+  {
+   "id": 4,
+   "serial": 4,
+   "timestamp": "2026-11-28T00:04:00Z",
+   "frequency": 14025,
+   "band": "20m",
+   "mode": "CW",
+   "callsign": "XE3KWA",
+   "duplicate": false,
+   "rst_sent": "599",
+   "rst_received": "599",
+   "exchange_fields": {
+    "CALL": "XE3KWA",
+    "RSTs": "599",
+    "RSTr": "599",
+    "ZONEs": "04",
+    "ZONEr": "06"
+   },
+   "points": 0
+  },
+  {
+   "id": 5,
+   "serial": 5,
+   "timestamp": "2026-11-28T00:05:00Z",
+   "frequency": 14025,
+   "band": "20m",
+   "mode": "CW",
+   "callsign": "DL4EX",
+   "duplicate": false,
+   "rst_sent": "599",
+   "rst_received": "599",
+   "exchange_fields": {
+    "CALL": "DL4EX",
+    "RSTs": "599",
+    "RSTr": "599",
+    "ZONEs": "04",
+    "ZONEr": "14"
+   },
+   "points": 0
+  },
+  {
+   "id": 6,
+   "serial": 6,
+   "timestamp": "2026-11-28T00:06:00Z",
+   "frequency": 14025,
+   "band": "20m",
+   "mode": "CW",
+   "callsign": "DK8HN",
+   "duplicate": false,
+   "rst_sent": "599",
+   "rst_received": "599",
+   "exchange_fields": {
+    "CALL": "DK8HN",
+    "RSTs": "599",
+    "RSTr": "599",
+    "ZONEs": "04",
+    "ZONEr": "14"
+   },
+   "points": 0
+  },
+  {
+   "id": 7,
+   "serial": 7,
+   "timestamp": "2026-11-28T00:07:00Z",
+   "frequency": 14025,
+   "band": "20m",
+   "mode": "CW",
+   "callsign": "JR9YP",
+   "duplicate": false,
+   "rst_sent": "599",
+   "rst_received": "599",
+   "exchange_fields": {
+    "CALL": "JR9YP",
+    "RSTs": "599",
+    "RSTr": "599",
+    "ZONEs": "04",
+    "ZONEr": "25"
+   },
+   "points": 0
+  },
+  {
+   "id": 8,
+   "serial": 8,
+   "timestamp": "2026-11-28T00:08:00Z",
+   "frequency": 14025,
+   "band": "20m",
+   "mode": "CW",
+   "callsign": "AD1TOX",
+   "duplicate": false,
+   "rst_sent": "599",
+   "rst_received": "599",
+   "exchange_fields": {
+    "CALL": "AD1TOX",
+    "RSTs": "599",
+    "RSTr": "599",
+    "ZONEs": "04",
+    "ZONEr": "05"
+   },
+   "points": 0
+  },
+  {
+   "id": 9,
+   "serial": 9,
+   "timestamp": "2026-11-28T00:09:00Z",
+   "frequency": 7025,
+   "band": "40m",
+   "mode": "CW",
+   "callsign": "AD1TOX",
+   "duplicate": false,
+   "rst_sent": "599",
+   "rst_received": "599",
+   "exchange_fields": {
+    "CALL": "AD1TOX",
+    "RSTs": "599",
+    "RSTr": "599",
+    "ZONEs": "04",
+    "ZONEr": "05"
+   },
+   "points": 0
+  },
+  {
+   "id": 10,
+   "serial": 10,
+   "timestamp": "2026-11-28T00:10:00Z",
+   "frequency": 7025,
+   "band": "40m",
+   "mode": "CW",
+   "callsign": "DL4EX",
+   "duplicate": false,
+   "rst_sent": "599",
+   "rst_received": "599",
+   "exchange_fields": {
+    "CALL": "DL4EX",
+    "RSTs": "599",
+    "RSTr": "599",
+    "ZONEs": "04",
+    "ZONEr": "14"
+   },
+   "points": 0
+  }
+ ]
+}

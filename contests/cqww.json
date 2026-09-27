@@ -1,0 +1,456 @@
+{
+  "contest": {
+    "name": "CQ World-Wide DX Contest",
+    "abbreviation": "CQWW",
+    "version": "1.0.0",
+    "sponsor": "CQ Magazine",
+    "description": "The largest DX contest. SSB is the last full weekend of October, CW the last full weekend of November, scored as separate contests. Everyone works everyone. Exchange is RS(T) + CQ zone. 3 points different continent, 1 point same continent different country (2 points within North America), 0 points same country. Multipliers per band: CQ zones and countries (DXCC + WAE).",
+    "startDate": "SSB: last full weekend of October (2026: October 24-25); CW: last full weekend of November (2026: November 28-29). 0000 UTC Sat - 2359 UTC Sun",
+    "duration": 48,
+    "offTimeGapMinutes": 60,
+    "modes": [
+      "CW",
+      "SSB"
+    ],
+    "bands": [
+      "160m",
+      "80m",
+      "40m",
+      "20m",
+      "15m",
+      "10m"
+    ],
+    "url": "https://www.cqww.com/rules.htm",
+    "categories": {
+      "stations": [
+        "SINGLE_OP",
+        "SINGLE_OP_ASSISTED",
+        "MULTI_SINGLE",
+        "MULTI_TWO",
+        "MULTI_MULTI",
+        "MULTI_DISTRIBUTED"
+      ],
+      "power": [
+        "HIGH",
+        "LOW",
+        "QRP"
+      ],
+      "modes": [
+        "CW",
+        "SSB"
+      ]
+    }
+  },
+  "frequencies": {
+    "160m": {
+      "start": 1800,
+      "end": 2000,
+      "cw": {
+        "start": 1800,
+        "end": 1850
+      },
+      "phone": {
+        "start": 1840,
+        "end": 2000
+      }
+    },
+    "80m": {
+      "start": 3500,
+      "end": 4000,
+      "cw": {
+        "start": 3500,
+        "end": 3600
+      },
+      "phone": {
+        "start": 3600,
+        "end": 4000
+      }
+    },
+    "40m": {
+      "start": 7000,
+      "end": 7300,
+      "cw": {
+        "start": 7000,
+        "end": 7125
+      },
+      "phone": {
+        "start": 7050,
+        "end": 7300
+      }
+    },
+    "20m": {
+      "start": 14000,
+      "end": 14350,
+      "cw": {
+        "start": 14000,
+        "end": 14150
+      },
+      "phone": {
+        "start": 14100,
+        "end": 14350
+      }
+    },
+    "15m": {
+      "start": 21000,
+      "end": 21450,
+      "cw": {
+        "start": 21000,
+        "end": 21200
+      },
+      "phone": {
+        "start": 21150,
+        "end": 21450
+      }
+    },
+    "10m": {
+      "start": 28000,
+      "end": 29700,
+      "cw": {
+        "start": 28000,
+        "end": 28300
+      },
+      "phone": {
+        "start": 28300,
+        "end": 29700
+      }
+    }
+  },
+  "stationClasses": {
+    "enabled": false
+  },
+  "userPrompts": [
+    {
+      "id": "contestMode",
+      "question": "Which contest weekend are you entering?",
+      "type": "select",
+      "options": [
+        {
+          "value": "SSB",
+          "label": "SSB (last full weekend of October)"
+        },
+        {
+          "value": "CW",
+          "label": "CW (last full weekend of November)"
+        }
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "restrictMode": true,
+      "description": "SSB and CW are separate contests with separate logs and results. Only the selected mode may be used."
+    },
+    {
+      "id": "myZone",
+      "question": "Enter your CQ zone (1-40)",
+      "type": "text",
+      "required": true,
+      "storeInMeta": true,
+      "description": "Continental USA is zones 3, 4 and 5; most of Europe is 14, 15, 16 and 20; Japan is 25.",
+      "exchangeFieldMapping": {
+        "myZone": "ZONEs"
+      }
+    },
+    {
+      "id": "operatingCategory",
+      "question": "Select your operating category",
+      "type": "select",
+      "options": [
+        {
+          "value": "SO",
+          "label": "Single Operator (no QSO finding assistance)"
+        },
+        {
+          "value": "SOA",
+          "label": "Single Operator Assisted"
+        },
+        {
+          "value": "MS",
+          "label": "Multi-Single"
+        },
+        {
+          "value": "M2",
+          "label": "Multi-Two"
+        },
+        {
+          "value": "MM",
+          "label": "Multi-Multi"
+        },
+        {
+          "value": "MD",
+          "label": "Multi-Distributed"
+        },
+        {
+          "value": "CHECKLOG",
+          "label": "Checklog"
+        }
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "Single operators may enter all band or a single band (set CATEGORY-BAND in the Cabrillo export). Overlays CLASSIC, ROOKIE and YOUTH are also set in the Cabrillo export."
+    },
+    {
+      "id": "powerCategory",
+      "question": "Select your power category",
+      "type": "select",
+      "options": [
+        {
+          "value": "HP",
+          "label": "High Power (1500W or less)"
+        },
+        {
+          "value": "LP",
+          "label": "Low Power (100W or less)"
+        },
+        {
+          "value": "QRP",
+          "label": "QRP (5W or less)"
+        }
+      ],
+      "required": true,
+      "storeInMeta": true
+    }
+  ],
+  "exchangeFields": {
+    "sent": [
+      {
+        "name": "RST",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report sent (599 CW / 59 SSB)"
+      },
+      {
+        "name": "ZONEs",
+        "type": "string",
+        "required": true,
+        "description": "Your CQ zone"
+      }
+    ],
+    "received": [
+      {
+        "name": "RST",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report received"
+      },
+      {
+        "name": "ZONEr",
+        "type": "string",
+        "required": true,
+        "pattern": "^(0?[1-9]|[1-3][0-9]|40)$",
+        "description": "CQ zone received (1-40)"
+      }
+    ]
+  },
+  "qsoFields": [
+    {
+      "name": "Date",
+      "column": "DATE",
+      "type": "date",
+      "format": "yyyy-MM-dd",
+      "required": true
+    },
+    {
+      "name": "Time",
+      "column": "TIME",
+      "type": "time",
+      "format": "HH:mm:ss",
+      "required": true
+    },
+    {
+      "name": "Callsign",
+      "column": "CALL",
+      "type": "string",
+      "required": true,
+      "uppercase": true
+    },
+    {
+      "name": "Frequency",
+      "column": "FREQ",
+      "type": "number",
+      "unit": "kHz",
+      "required": true
+    },
+    {
+      "name": "Mode",
+      "column": "MODE",
+      "type": "enum",
+      "values": [
+        "CW",
+        "SSB"
+      ],
+      "required": true
+    },
+    {
+      "name": "RST Sent",
+      "column": "RSTs",
+      "type": "string",
+      "required": true,
+      "default": "599"
+    },
+    {
+      "name": "RST Rcvd",
+      "column": "RSTr",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "Zone Sent",
+      "column": "ZONEs",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "Zone Rcvd",
+      "column": "ZONEr",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "Points",
+      "column": "POINTS",
+      "type": "number",
+      "calculated": true
+    },
+    {
+      "name": "Mult",
+      "column": "M",
+      "type": "string",
+      "calculated": true
+    }
+  ],
+  "scoring": {
+    "points": {
+      "__comment": "0 points same country (still counts for mults), 2 points different countries both in North America, 1 point same continent otherwise, 3 points different continent. Same on CW and SSB.",
+      "sameDxccEntity": {
+        "CW": 0,
+        "SSB": 0
+      },
+      "bothInNA": {
+        "CW": 2,
+        "SSB": 2
+      },
+      "sameContinent": {
+        "CW": 1,
+        "SSB": 1
+      },
+      "differentContinent": {
+        "CW": 3,
+        "SSB": 3
+      }
+    },
+    "precedence": [
+      "sameDxccEntity",
+      "bothInNA",
+      "sameContinent",
+      "differentContinent"
+    ],
+    "multipliers": {
+      "__comment": "Per band: CQ zones (from ZONEr) and countries (DXCC + WAE list, which includes IG9/IH9). Maritime mobile counts for a zone only.",
+      "type": "multsPerBand",
+      "description": "CQ zones and countries, each counted once per band",
+      "categories": [
+        "dxcc",
+        "cqZones"
+      ],
+      "cqZoneField": "ZONEr",
+      "includeWaeEntities": true
+    },
+    "finalScore": "SUM(points) * (cqZones + dxccMultipliers)"
+  },
+  "dupeChecking": {
+    "type": "perBand",
+    "description": "A station may be worked once on each band"
+  },
+  "logging": {
+    "requiredFields": [
+      "date",
+      "time",
+      "frequency",
+      "mode",
+      "callsign",
+      "rstSent",
+      "rstReceived",
+      "exchSent",
+      "exchReceived"
+    ],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "CQ-WW-SSB",
+      "contestMapping": {
+        "SSB": "CQ-WW-SSB",
+        "CW": "CQ-WW-CW"
+      },
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {rst_sent} {ZONEs} {call} {rst_rcvd} {ZONEr}",
+      "requiredHeaders": [
+        "CONTEST",
+        "CALLSIGN",
+        "LOCATION",
+        "CATEGORY-OPERATOR",
+        "CATEGORY-ASSISTED",
+        "CATEGORY-BAND",
+        "CATEGORY-MODE",
+        "CATEGORY-POWER",
+        "CATEGORY-TRANSMITTER",
+        "CATEGORY-OVERLAY",
+        "CLAIMED-SCORE",
+        "CLUB",
+        "CREATED-BY",
+        "NAME",
+        "ADDRESS",
+        "EMAIL",
+        "OPERATORS",
+        "SOAPBOX"
+      ],
+      "notes": "LOCATION is the US state for US stations, DX for everyone else. Rookies give their first-licensed date and youth their birth year in SOAPBOX."
+    }
+  },
+  "callHistory": {
+    "fieldsToSave": [
+      "ZONEr"
+    ],
+    "description": "Save CQ zone for future autofill"
+  },
+  "validation": {
+    "minimumQSOs": 1,
+    "maxOperatingTime": 48,
+    "offTimesRequired": false
+  },
+  "ui": {
+    "logColumns": [
+      "DATE",
+      "TIME",
+      "CALL",
+      "FREQ",
+      "MODE",
+      "RSTs",
+      "RSTr",
+      "ZONEs",
+      "ZONEr",
+      "POINTS",
+      "M",
+      "COMMENT"
+    ],
+    "entryFields": [
+      "CALL",
+      "RSTr",
+      "ZONEr"
+    ],
+    "fieldNavigation": {
+      "keys": "tab"
+    },
+    "bandMap": {
+      "enabled": true,
+      "bands": [
+        "160m",
+        "80m",
+        "40m",
+        "20m",
+        "15m",
+        "10m"
+      ]
+    },
+    "multiplierDisplay": {
+      "showDXCC": true,
+      "showZones": true
+    }
+  }
+}

@@ -1,0 +1,227 @@
+{
+ "format": "ContestLogX",
+ "format_version": "1.0",
+ "created": "2026-10-24T00:01:00Z",
+ "modified": "2026-10-24T00:10:00Z",
+ "contest": {
+  "name": "CQ World-Wide DX Contest",
+  "abbreviation": "CQWW",
+  "mode": "SSB",
+  "contest_file": "cqww.json",
+  "version": "1.0.0",
+  "year": 2026,
+  "categories": {
+   "userPrompt_contestMode": "SSB",
+   "userPrompt_myZone": "14",
+   "userPrompt_operatingCategory": "SO",
+   "userPrompt_powerCategory": "LP"
+  }
+ },
+ "station": {
+  "callsign": "DJ8WG",
+  "operator": "STEVE"
+ },
+ "statistics": {},
+ "qsos": [
+  {
+   "id": 1,
+   "serial": 1,
+   "timestamp": "2026-10-24T00:01:00Z",
+   "frequency": 14250,
+   "band": "20m",
+   "mode": "SSB",
+   "callsign": "DL0TW",
+   "duplicate": false,
+   "rst_sent": "59",
+   "rst_received": "59",
+   "exchange_fields": {
+    "CALL": "DL0TW",
+    "RSTs": "59",
+    "RSTr": "59",
+    "ZONEs": "14",
+    "ZONEr": "14"
+   },
+   "points": 0
+  },
+  {
+   "id": 2,
+   "serial": 2,
+   "timestamp": "2026-10-24T00:02:00Z",
+   "frequency": 14250,
+   "band": "20m",
+   "mode": "SSB",
+   "callsign": "F8SWE",
+   "duplicate": false,
+   "rst_sent": "59",
+   "rst_received": "59",
+   "exchange_fields": {
+    "CALL": "F8SWE",
+    "RSTs": "59",
+    "RSTr": "59",
+    "ZONEs": "14",
+    "ZONEr": "14"
+   },
+   "points": 0
+  },
+  {
+   "id": 3,
+   "serial": 3,
+   "timestamp": "2026-10-24T00:03:00Z",
+   "frequency": 14250,
+   "band": "20m",
+   "mode": "SSB",
+   "callsign": "AD1TOX",
+   "duplicate": false,
+   "rst_sent": "59",
+   "rst_received": "59",
+   "exchange_fields": {
+    "CALL": "AD1TOX",
+    "RSTs": "59",
+    "RSTr": "59",
+    "ZONEs": "14",
+    "ZONEr": "05"
+   },
+   "points": 0
+  },
+  {
+   "id": 4,
+   "serial": 4,
+   "timestamp": "2026-10-24T00:04:00Z",
+   "frequency": 14250,
+   "band": "20m",
+   "mode": "SSB",
+   "callsign": "VO1TW",
+   "duplicate": false,
+   "rst_sent": "59",
+   "rst_received": "59",
+   "exchange_fields": {
+    "CALL": "VO1TW",
+    "RSTs": "59",
+    "RSTr": "59",
+    "ZONEs": "14",
+    "ZONEr": "05"
+   },
+   "points": 0
+  },
+  {
+   "id": 5,
+   "serial": 5,
+   "timestamp": "2026-10-24T00:05:00Z",
+   "frequency": 14250,
+   "band": "20m",
+   "mode": "SSB",
+   "callsign": "JA5SU",
+   "duplicate": false,
+   "rst_sent": "59",
+   "rst_received": "59",
+   "exchange_fields": {
+    "CALL": "JA5SU",
+    "RSTs": "59",
+    "RSTr": "59",
+    "ZONEs": "14",
+    "ZONEr": "25"
+   },
+   "points": 0
+  },
+  {
+   "id": 6,
+   "serial": 6,
+   "timestamp": "2026-10-24T00:06:00Z",
+   "frequency": 14250,
+   "band": "20m",
+   "mode": "SSB",
+   "callsign": "F0AK",
+   "duplicate": false,
+   "rst_sent": "59",
+   "rst_received": "59",
+   "exchange_fields": {
+    "CALL": "F0AK",
+    "RSTs": "59",
+    "RSTr": "59",
+    "ZONEs": "14",
+    "ZONEr": "14"
+   },
+   "points": 0
+  },
+  {
+   "id": 7,
+   "serial": 7,
+   "timestamp": "2026-10-24T00:07:00Z",
+   "frequency": 14250,
+   "band": "20m",
+   "mode": "SSB",
+   "callsign": "N7WDT",
+   "duplicate": false,
+   "rst_sent": "59",
+   "rst_received": "59",
+   "exchange_fields": {
+    "CALL": "N7WDT",
+    "RSTs": "59",
+    "RSTr": "59",
+    "ZONEs": "14",
+    "ZONEr": "03"
+   },
+   "points": 0
+  },
+  {
+   "id": 8,
+   "serial": 8,
+   "timestamp": "2026-10-24T00:08:00Z",
+   "frequency": 21300,
+   "band": "15m",
+   "mode": "SSB",
+   "callsign": "F6AUK",
+   "duplicate": false,
+   "rst_sent": "59",
+   "rst_received": "59",
+   "exchange_fields": {
+    "CALL": "F6AUK",
+    "RSTs": "59",
+    "RSTr": "59",
+    "ZONEs": "14",
+    "ZONEr": "14"
+   },
+   "points": 0
+  },
+  {
+   "id": 9,
+   "serial": 9,
+   "timestamp": "2026-10-24T00:09:00Z",
+   "frequency": 21300,
+   "band": "15m",
+   "mode": "SSB",
+   "callsign": "F6AUK",
+   "duplicate": false,
+   "rst_sent": "59",
+   "rst_received": "59",
+   "exchange_fields": {
+    "CALL": "F6AUK",
+    "RSTs": "59",
+    "RSTr": "59",
+    "ZONEs": "14",
+    "ZONEr": "14"
+   },
+   "points": 0
+  },
+  {
+   "id": 10,
+   "serial": 10,
+   "timestamp": "2026-10-24T00:10:00Z",
+   "frequency": 21300,
+   "band": "15m",
+   "mode": "SSB",
+   "callsign": "K8KT",
+   "duplicate": false,
+   "rst_sent": "59",
+   "rst_received": "59",
+   "exchange_fields": {
+    "CALL": "K8KT",
+    "RSTs": "59",
+    "RSTr": "59",
+    "ZONEs": "14",
+    "ZONEr": "5"
+   },
+   "points": 0
+  }
+ ]
+}

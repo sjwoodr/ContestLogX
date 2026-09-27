@@ -34,6 +34,7 @@ private slots:
     void resolvesUnknownPlaceholderToEmpty();
     void leavesClassicTemplatesUnchanged();
     void exportsCqwwRttyQsoLine();
+    void exportsZeroPointCqwwQso();
 
 private:
     QStringList exportLines(const QJsonObject& contestDef,
@@ -226,6 +227,42 @@ void TestCabrillo::exportsCqwwRttyQsoLine()
     }
     QCOMPARE(qsoLine,
              QStringLiteral("QSO: 14085 RY 2026-09-26 0007 N9OH 599 04 IN DL4EX 599 14 DX"));
+}
+
+// CQ WW: a same-country QSO is worth 0 points but is a valid contact that
+// counts for mults, so it must be in the submitted log. Dupes stay out. The
+// CONTEST header follows the selected weekend.
+void TestCabrillo::exportsZeroPointCqwwQso()
+{
+    const QString path = QStringLiteral(CLX_SOURCE_DIR "/contests/cqww.json");
+    QFile f(path);
+    QVERIFY2(f.open(QIODevice::ReadOnly), qPrintable("cannot open " + path));
+    const QJsonObject def = QJsonDocument::fromJson(f.readAll()).object();
+    QVERIFY(!def.isEmpty());
+
+    auto make = [](const QString& call, bool dupe) {
+        QsoRecord qso;
+        qso.setCall(call);
+        QDateTime dt = QDateTime::fromString("2026-11-28T00:01:00", Qt::ISODate);
+        dt.setTimeSpec(Qt::UTC);
+        qso.setDateTime(dt);
+        qso.setFrequency("14025");
+        qso.setMode("CW");
+        qso.setRstSent("599");
+        qso.setRstReceived("599");
+        qso.setExchangeField("ZONEs", "04");
+        qso.setExchangeField("ZONEr", "05");
+        qso.setPoints(0);   // same country
+        qso.setDupe(dupe);
+        return qso;
+    };
+
+    const QStringList lines = exportLines(def, {make("K1UI", false), make("K1UI", true)}, "N9OH", "CW");
+    QVERIFY(lines.contains(QStringLiteral("CONTEST: CQ-WW-CW")));
+    QStringList qsoLines;
+    for (const QString& l : lines)
+        if (l.startsWith("QSO:")) qsoLines << l;
+    QCOMPARE(qsoLines, QStringList{QStringLiteral("QSO: 14025 CW 2026-11-28 0001 N9OH 599 04 K1UI 599 05")});
 }
 
 QTEST_MAIN(TestCabrillo)

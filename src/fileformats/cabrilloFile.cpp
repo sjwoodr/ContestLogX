@@ -214,7 +214,9 @@ bool CabrilloFile::exportToFile(const QString& filename,
 
     // Write QSOs
     for (const QsoRecord& qso : qsos) {
-        if (qso.getPoints() == 0) continue; // Skip invalid QSOs
+        // Skip dupes and out-of-band QSOs. Not points == 0: a CQ WW same-country
+        // QSO is worth 0 points but is a valid contact that counts for mults.
+        if (qso.isDupe() || qso.isOutOfBand()) continue;
         stream << generateQsoLine(qso, qsoTemplate) << "\n";
     }
 

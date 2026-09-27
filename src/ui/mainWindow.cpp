@@ -8257,7 +8257,7 @@ QString MainWindow::generateSummaryString()
 
             for (int i = 0; i < m_qsoModel->rowCount(); ++i) {
                 QsoRecord qso = m_qsoModel->getQso(i);
-                if (qso.getPoints() == 0) continue;
+                if (qso.isDupe() || qso.isOutOfBand()) continue;  // 0-point QSOs can still carry mults (CQ WW same country)
                 workedCalls.insert(qso.getCall().toUpper());
             }
 
@@ -8295,7 +8295,7 @@ QString MainWindow::generateSummaryString()
 
             for (int i = 0; i < m_qsoModel->rowCount(); ++i) {
                 QsoRecord qso = m_qsoModel->getQso(i);
-                if (qso.getPoints() == 0) continue;
+                if (qso.isDupe() || qso.isOutOfBand()) continue;  // 0-point QSOs can still carry mults (CQ WW same country)
                 QList<ContestEngine::MultiplierInfo> mults = m_contestEngine->getMultipliersWithCategory(qso);
 
                 for (const ContestEngine::MultiplierInfo& mult : mults) {
@@ -8338,7 +8338,7 @@ QString MainWindow::generateSummaryString()
 
             for (int i = 0; i < m_qsoModel->rowCount(); ++i) {
                 QsoRecord qso = m_qsoModel->getQso(i);
-                if (qso.getPoints() == 0) continue;
+                if (qso.isDupe() || qso.isOutOfBand()) continue;  // 0-point QSOs can still carry mults (CQ WW same country)
                 QString band = qso.getBand();
                 QList<ContestEngine::MultiplierInfo> mults = m_contestEngine->getMultipliersWithCategory(qso);
 
@@ -8410,7 +8410,7 @@ QString MainWindow::generateSummaryString()
 
             for (int i = 0; i < m_qsoModel->rowCount(); ++i) {
                 QsoRecord qso = m_qsoModel->getQso(i);
-                if (qso.getPoints() == 0) continue;
+                if (qso.isDupe() || qso.isOutOfBand()) continue;  // 0-point QSOs can still carry mults (CQ WW same country)
                 QString mode = normalizeMode(qso.getMode());
                 QList<ContestEngine::MultiplierInfo> mults = m_contestEngine->getMultipliersWithCategory(qso);
 
@@ -8466,7 +8466,7 @@ QString MainWindow::generateSummaryString()
 
             for (int i = 0; i < m_qsoModel->rowCount(); ++i) {
                 QsoRecord qso = m_qsoModel->getQso(i);
-                if (qso.getPoints() == 0) continue;
+                if (qso.isDupe() || qso.isOutOfBand()) continue;  // 0-point QSOs can still carry mults (CQ WW same country)
                 QString band = qso.getBand();
                 QString mode = qso.getMode();
                 QString key = band + "/" + mode;

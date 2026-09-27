@@ -464,6 +464,16 @@
       "name": "CQ WW RTTY DX op DJ8WG zone 14 (10 QSOs incl 1 dupe, own country 1 pt, EU 2 pts, other continents 3 pts, zone 5 and 05 are the same mult, per-band re-credit on 40m)",
       "log_file": "test_cqww_rtty_dx.clx",
       "expected_score": 330
+    },
+    {
+      "name": "CQ WW CW W op W9NE zone 4 (10 QSOs incl 1 dupe, same country 0 pts but still earns zone and country mults, NA-NA different country 2 pts, other continents 3 pts, multsPerBand zones + countries)",
+      "log_file": "test_cqww_cw.clx",
+      "expected_score": 208
+    },
+    {
+      "name": "CQ WW SSB DX op DJ8WG zone 14 (10 QSOs incl 1 dupe, own country 0 pts with mults, same continent 1 pt, other continents 3 pts, zone 5 and 05 are the same mult, per-band re-credit on 15m)",
+      "log_file": "test_cqww_ssb.clx",
+      "expected_score": 234
     }
   ]
 }
