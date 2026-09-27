@@ -1,0 +1,339 @@
+{
+  "contest": {
+    "name": "Zombie Shuffle",
+    "abbreviation": "ZOMBIE",
+    "version": "1.0.0",
+    "sponsor": "NA5N / N0QT (QRP)",
+    "description": "QRP CW fun event on the Friday before Halloween, 1500 local time to local midnight (9 hours). CW only, 5 watts or less, 80-10m (no WARC). Exchange is RST, SPC (state/province/country), Zombie number and Zombie name. Per band, (QSOs + bonus stations) x the sum of the Zombie numbers worked on that band; 10m and 15m are one band. Bonus stations send 3333. Add the 666-point Crummy Band bonus. A station may be worked again on a band every two hours (Rebirth Rule).",
+    "startDate": "Friday before Halloween (2025: October 24), 1500 local time to local midnight",
+    "duration": 9,
+    "offTimeGapMinutes": 0,
+    "modes": [
+      "CW"
+    ],
+    "bands": [
+      "80m",
+      "40m",
+      "20m",
+      "15m",
+      "10m"
+    ],
+    "url": "https://www.zianet.com/qrp/ZOMBIE/pg.html",
+    "sponsorEmail": "owner@lazure.net",
+    "categories": {
+      "stations": [
+        "SINGLE_OP"
+      ],
+      "power": [
+        "QRP"
+      ],
+      "modes": [
+        "CW"
+      ]
+    }
+  },
+  "frequencies": {
+    "80m": {
+      "start": 3500,
+      "end": 4000,
+      "cw": {
+        "start": 3500,
+        "end": 4000
+      }
+    },
+    "40m": {
+      "start": 7000,
+      "end": 7300,
+      "cw": {
+        "start": 7000,
+        "end": 7300
+      }
+    },
+    "20m": {
+      "start": 14000,
+      "end": 14350,
+      "cw": {
+        "start": 14000,
+        "end": 14350
+      }
+    },
+    "15m": {
+      "start": 21000,
+      "end": 21450,
+      "cw": {
+        "start": 21000,
+        "end": 21450
+      }
+    },
+    "10m": {
+      "start": 28000,
+      "end": 29700,
+      "cw": {
+        "start": 28000,
+        "end": 29700
+      }
+    }
+  },
+  "stationClasses": {
+    "enabled": false
+  },
+  "userPrompts": [
+    {
+      "id": "mySpc",
+      "question": "Enter your SPC (state, province or country, e.g. KS, ONT, Transylvania)",
+      "type": "text",
+      "required": true,
+      "forceUppercase": true,
+      "storeInMeta": true,
+      "exchangeFieldMapping": {
+        "mySpc": "EXCHs"
+      }
+    },
+    {
+      "id": "myZombieNumber",
+      "question": "Enter your Zombie number (or your 3-digit area code)",
+      "type": "text",
+      "required": true,
+      "storeInMeta": true,
+      "description": "Bonus stations send 3333.",
+      "exchangeFieldMapping": {
+        "myZombieNumber": "ZNUMs"
+      }
+    },
+    {
+      "id": "myZombieName",
+      "question": "Enter your Zombie name (something spooky or goofy - ELVIRA is welcome)",
+      "type": "text",
+      "required": true,
+      "forceUppercase": true,
+      "storeInMeta": true,
+      "exchangeFieldMapping": {
+        "myZombieName": "NAMEs"
+      }
+    }
+  ],
+  "exchangeFields": {
+    "sent": [
+      {
+        "name": "RSTs",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report sent (honest reports appreciated)"
+      },
+      {
+        "name": "EXCHs",
+        "type": "string",
+        "required": true,
+        "description": "Your SPC"
+      },
+      {
+        "name": "ZNUMs",
+        "type": "string",
+        "required": true,
+        "description": "Your Zombie number"
+      },
+      {
+        "name": "NAMEs",
+        "type": "string",
+        "required": true,
+        "description": "Your Zombie name"
+      }
+    ],
+    "received": [
+      {
+        "name": "RSTr",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report received"
+      },
+      {
+        "name": "EXCHr",
+        "type": "string",
+        "required": true,
+        "description": "SPC - state, province or country (free text)"
+      },
+      {
+        "name": "ZNUMr",
+        "type": "string",
+        "required": true,
+        "pattern": "^[0-9]{1,6}$",
+        "description": "Zombie number (3333 = bonus station)"
+      },
+      {
+        "name": "NAMEr",
+        "type": "string",
+        "required": true,
+        "description": "Zombie name"
+      }
+    ]
+  },
+  "qsoFields": [
+    {
+      "name": "Date",
+      "column": "DATE",
+      "type": "date",
+      "format": "yyyy-MM-dd",
+      "required": true
+    },
+    {
+      "name": "Time",
+      "column": "TIME",
+      "type": "time",
+      "format": "HH:mm:ss",
+      "required": true
+    },
+    {
+      "name": "Callsign",
+      "column": "CALL",
+      "type": "string",
+      "required": true,
+      "uppercase": true
+    },
+    {
+      "name": "Frequency",
+      "column": "FREQ",
+      "type": "number",
+      "unit": "kHz",
+      "required": true
+    },
+    {
+      "name": "Mode",
+      "column": "MODE",
+      "type": "enum",
+      "values": [
+        "CW"
+      ],
+      "required": true
+    },
+    {
+      "name": "RST Sent",
+      "column": "RSTs",
+      "type": "string",
+      "required": true,
+      "default": "599"
+    },
+    {
+      "name": "RST Rcvd",
+      "column": "RSTr",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "SPC Rcvd",
+      "column": "EXCHr",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "Zombie #",
+      "column": "ZNUMr",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "Zombie Name",
+      "column": "NAMEr",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "Points",
+      "column": "POINTS",
+      "type": "number",
+      "calculated": true
+    }
+  ],
+  "scoring": {
+    "points": {
+      "__comment": "Each valid QSO counts 1 toward its band's QSO count.",
+      "perQso": 1,
+      "cw": 1
+    },
+    "multipliers": {
+      "__comment": "NA5N summary sheet: band score = (QSOs + bonus stations worked) x (sum of Zombie numbers worked on the band). Bonus stations send 3333, which counts in the sum and as a bonus station. 10m and 15m are scored together.",
+      "type": "exchangeSumPerBand",
+      "description": "Per band: (QSOs + bonus stations) x sum of Zombie numbers",
+      "field": "ZNUMr",
+      "bonusValue": "3333",
+      "bandGroups": {
+        "10m": "10/15M",
+        "15m": "10/15M"
+      }
+    },
+    "flatBonus": 666,
+    "finalScore": "SUM over bands of (QSOs + bonus) * SUM(Zombie numbers) + 666 Crummy Band bonus"
+  },
+  "dupeChecking": {
+    "type": "perBand",
+    "rebirthMinutes": 120,
+    "description": "Rebirth Rule: the same station may be worked again on a band every two hours"
+  },
+  "logging": {
+    "requiredFields": [
+      "date",
+      "time",
+      "frequency",
+      "mode",
+      "callsign",
+      "rstSent",
+      "rstReceived",
+      "exchSent",
+      "exchReceived"
+    ],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "ZOMBIE-SHUFFLE",
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {rst_sent} {EXCHs} {ZNUMs} {NAMEs} {call} {rst_rcvd} {EXCHr} {ZNUMr} {NAMEr}",
+      "notes": "No log is required - email the NA5N summary sheet (per-band QSOs, bonus stations and sum of Zombie numbers; ContestLogX's summary sheet shows them) to na5n@zianet.com with Zombie in the subject."
+    }
+  },
+  "callHistory": {
+    "fieldsToSave": [
+      "EXCHr",
+      "ZNUMr",
+      "NAMEr"
+    ],
+    "description": "Zombies tend to rise with the same number and name"
+  },
+  "validation": {
+    "minimumQSOs": 1,
+    "maxOperatingTime": 9,
+    "offTimesRequired": false
+  },
+  "ui": {
+    "logColumns": [
+      "DATE",
+      "TIME",
+      "CALL",
+      "FREQ",
+      "MODE",
+      "RSTs",
+      "RSTr",
+      "EXCHr",
+      "ZNUMr",
+      "NAMEr",
+      "POINTS",
+      "COMMENT"
+    ],
+    "entryFields": [
+      "CALL",
+      "RSTr",
+      "EXCHr",
+      "ZNUMr",
+      "NAMEr"
+    ],
+    "fieldNavigation": {
+      "keys": "tab"
+    },
+    "bandMap": {
+      "enabled": true,
+      "bands": [
+        "80m",
+        "40m",
+        "20m",
+        "15m",
+        "10m"
+      ]
+    }
+  }
+}

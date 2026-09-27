@@ -124,7 +124,7 @@ Open/save contest logs to S3-compatible cloud storage in addition to the local f
 ## Contest Definition Format (contests/*.json)
 
 JSON files defining contest rules. Key sections:
-- **metadata** - name, version, description, sponsor, bands, modes, url
+- **metadata** (`contest` object) - name, version, description, sponsor, bands, modes, url, sponsorEmail
 - **frequencies** - band frequency allocations with mode sub-ranges
 - **stationClasses** - operating categories (SOLP, SOHP, SO3B) with exchange requirements
 - **exchangeFields** - sent/received field definitions
@@ -134,6 +134,12 @@ JSON files defining contest rules. Key sections:
 - **validation** - rules, namedMults array, namedCallPrefixes array, gridSquareFormat
 - **dupeChecking** - overall, perBand, perMode, perBandAndMode, perBandAndGridSquare
 - **userPrompts** - optional inputs collected during contest setup (saved to CLX file)
+
+**Required metadata for every new contest definition.** The `contest` object MUST include both:
+- `url` - the contest's website (rules page)
+- `sponsorEmail` - contact email for the sponsor / contest committee
+
+Do not guess either value. If the rules provided don't give the website or a sponsor contact email, ask the user for it before committing the new contest. Existing definitions predating this rule may lack `sponsorEmail`; add it when a definition is next touched and the address is known.
 
 **`CHANGELOG.md` is the authoritative engine evolution log.** Every contest-definition format extension (`automaticMultipliers`, `stationClassMultipliers`, `multAliases` / `namedMultAliases`, `wpxPrefix`, `eadx100`, `byBand`, `bothInXX`, `<ruleName>Callsigns`, etc.) is described under "Contest Engine Changes" in the release that introduced it. When trying to understand why a config field exists or what scopes it supports, search CHANGELOG before reading the engine.
 

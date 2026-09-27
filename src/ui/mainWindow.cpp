@@ -8143,6 +8143,19 @@ QString MainWindow::generateSummaryString()
         out << "\n";
     }
     
+    if (multType == "exchangeSumPerBand") {
+        out << "\n";
+        out << "BAND SCORES  (QSOs + bonus stations) x sum of Zombie numbers\n";
+        out << "-" << QString("-").repeated(63) << "-" << "\n";
+        for (const auto& row : score.exchangeSumBands) {
+            out << "  " << row.group.leftJustified(8) << "(" << row.qsos << " + " << row.bonusQsos << ") x "
+                << row.fieldSum << " = " << row.score << "\n";
+        }
+        if (score.bonusPoints > 0)
+            out << "  " << QString("Bonus").leftJustified(8) << score.bonusPoints << "\n";
+        out << "\n";
+    }
+
     // Show the scoring calculation. A contest may cap the mults that count
     // toward the score (CQP: 58) - show the capped figure the score used.
     const int scoredMults = (score.maxScoredMults > 0 && score.multipliers > score.maxScoredMults)

@@ -128,6 +128,10 @@ public:
         int scoreMultiplier = 1;  // Power/category multiplier applied to contestScore (e.g., ×3 QRP)
         int maxScoredMults = 0;   // Cap on mults counted toward the score (0 = none, CQP = 58)
         int maxDxccMults = 0;     // Cap on DXCC mults counted (0 = none, ILQP = 5); dxccMultCount stays the worked count
+        // exchangeSumPerBand scoring (Zombie Shuffle): one row per band group,
+        // score = (qsos + bonusQsos) * fieldSum.
+        struct ExchangeSumBand { QString group; int qsos = 0; int bonusQsos = 0; qint64 fieldSum = 0; qint64 score = 0; };
+        QList<ExchangeSumBand> exchangeSumBands;
         int bonusPoints = 0;
         int contestScore = 0;
         QMap<QString, int> objectiveMultiplierDetails;  // Maps OM code to point value (e.g., "ALT_POWER" -> 1)
@@ -282,6 +286,8 @@ private:
     int m_cachedMaxDxccMults = 0;         // multipliers.maxDxccMultipliers: cap on DXCC mults (ILQP: 5), 0 = none
     bool m_cachedDupeCwDigitalSame = false;  // dupeChecking.cwDigitalSameMode (ILQP: phone vs CW/digital)
     QStringList m_cachedExcludedModes;    // contest.excludedModes: never valid (ILQP: FT8, FT4)
+    int m_cachedDupeRebirthMinutes = 0;   // dupeChecking.rebirthMinutes: re-workable after this long (Zombie Shuffle: 120)
+    int m_cachedFlatBonus = 0;            // scoring.flatBonus added to every score (Zombie Shuffle: 666)
     int m_cachedMaxScoredMults = 0;  // 0 = no cap (CQP counts at most 58)
     int capScoredMults(int mults) const;
     void cacheContestProperties();

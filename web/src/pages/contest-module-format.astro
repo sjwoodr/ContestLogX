@@ -78,6 +78,7 @@ import Layout from '../layouts/Layout.astro';
   "modes":              ["CW", "SSB", "RTTY"],
   "bands":              ["160m", "80m", "40m", "20m", "15m", "10m"],
   "url":                "https://www.ncjweb.com/naqp.html",
+  "sponsorEmail":       "contest@example.org",
   "categories": {
     "mode":     ["CW", "SSB", "RTTY"],
     "stations": ["SINGLE_OP", "MULTI_OP"],
@@ -100,6 +101,7 @@ import Layout from '../layouts/Layout.astro';
               <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">modes</td><td class="pr-4">array</td><td><code>"CW"</code>, <code>"SSB"</code>, <code>"RTTY"</code>, <code>"DIGITAL"</code>, <code>"FM"</code>, <code>"FT8"</code>, <code>"FT4"</code></td></tr>
               <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">bands</td><td class="pr-4">array</td><td>HF: <code>"160m"</code>…<code>"6m"</code>; VHF/UHF: <code>"2m"</code>, <code>"70cm"</code>, etc.</td></tr>
               <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">url</td><td class="pr-4">string</td><td>Official contest rules URL</td></tr>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">sponsorEmail</td><td class="pr-4">string</td><td>Contact email for the sponsor / contest committee</td></tr>
               <tr><td class="py-2 pr-4 font-mono">categories</td><td class="pr-4">object</td><td>Informational only; does not affect scoring logic</td></tr>
             </tbody>
           </table>

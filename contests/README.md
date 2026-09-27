@@ -31,6 +31,7 @@ Each contest is defined in a JSON file with the following structure:
   "modes": ["CW", "SSB", "DIGITAL"],
   "bands": ["10m", "15m", "20m"],
   "url": "https://contest-rules-url.com",
+  "sponsorEmail": "contest@example.org",
   "categories": {
     "power": ["HIGH", "LOW", "QRP"],
     "modes": ["CW", "SSB", "MIXED"],
@@ -38,6 +39,9 @@ Each contest is defined in a JSON file with the following structure:
   }
 }
 ```
+
+- **url** - the contest's website (rules page)
+- **sponsorEmail** - contact email for the sponsor / contest committee
 
 ### Frequencies Section
 
@@ -356,6 +360,12 @@ By default `scoreMultiplier` multiplies the whole score. With `"appliesTo": "qso
 - `multipliers.namedMultsRequireWveCallsign` - a state/province/county mult is only credited when the callsign is in the US (K, KL7, KH6) or Canada. For QSO parties where DX stations send their DXCC prefix, so a prefix that looks like a state (PA = Netherlands, CO = Cuba) counts as the country, not the state.
 - `dupeChecking.cwDigitalSameMode` - with `perBandModeAndExchange`, CW and digital are one mode for dupes (ILQP: phone vs CW/digital).
 - `contest.excludedModes` - modes that earn no credit even though the contest allows digital (ILQP: `["FT8", "FT4"]`). They are rejected at entry and marked invalid on rescore.
+
+**Re-work After a Time Window (`dupeChecking.rebirthMinutes`):**
+Lets a station be worked again once this many minutes have passed since the last counted QSO in the same dupe scope (band, band/mode, ...). Works with any dupe `type`. The Zombie Shuffle uses `{"type": "perBand", "rebirthMinutes": 120}`.
+
+**Exchange-Sum Scoring (`multipliers.type: "exchangeSumPerBand"`) and `scoring.flatBonus`:**
+Per band group, (QSO points + QSOs whose `field` equals `bonusValue`) x the sum of the numeric `field` values worked on that band; the band scores are added, then `scoring.flatBonus`. `bandGroups` combines bands into one group. Used only by the Zombie Shuffle (`field: "ZNUMr"`, `bonusValue: "3333"`, 10m + 15m grouped, flat bonus 666).
 
 **Capped Multipliers (`maxScoredMultipliers`):**
 Caps how many multipliers count toward the score. Every multiplier worked is still tracked and shown, but the score uses at most this many. CQP uses 58: a California station can work 63 states and provinces, but only 58 count.

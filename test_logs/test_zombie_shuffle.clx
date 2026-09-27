@@ -1,0 +1,241 @@
+{
+ "format": "ContestLogX",
+ "format_version": "1.0",
+ "created": "2026-10-30T20:00:00Z",
+ "modified": "2026-10-30T22:30:00Z",
+ "contest": {
+  "name": "Zombie Shuffle",
+  "abbreviation": "ZOMBIE",
+  "contest_file": "zombie_shuffle.json",
+  "version": "1.0.0",
+  "year": 2026,
+  "categories": {
+   "userPrompt_mySpc": "IN",
+   "userPrompt_myZombieNumber": "317",
+   "userPrompt_myZombieName": "MUMMY"
+  }
+ },
+ "station": {
+  "callsign": "W9NE",
+  "operator": "STEVE"
+ },
+ "statistics": {},
+ "qsos": [
+  {
+   "id": 1,
+   "serial": 1,
+   "timestamp": "2026-10-30T20:00:00Z",
+   "frequency": 14060,
+   "band": "20m",
+   "mode": "CW",
+   "callsign": "AD1TOX",
+   "duplicate": false,
+   "rst_sent": "599",
+   "rst_received": "599",
+   "exchange_fields": {
+    "CALL": "AD1TOX",
+    "RSTs": "599",
+    "RSTr": "599",
+    "EXCHs": "IN",
+    "ZNUMs": "317",
+    "NAMEs": "MUMMY",
+    "EXCHr": "MA",
+    "ZNUMr": "1027",
+    "NAMEr": "ELVIRA"
+   },
+   "points": 0
+  },
+  {
+   "id": 2,
+   "serial": 2,
+   "timestamp": "2026-10-30T20:05:00Z",
+   "frequency": 14060,
+   "band": "20m",
+   "mode": "CW",
+   "callsign": "AE4NOQ",
+   "duplicate": false,
+   "rst_sent": "599",
+   "rst_received": "599",
+   "exchange_fields": {
+    "CALL": "AE4NOQ",
+    "RSTs": "599",
+    "RSTr": "599",
+    "EXCHs": "IN",
+    "ZNUMs": "317",
+    "NAMEs": "MUMMY",
+    "EXCHr": "NC",
+    "ZNUMr": "919",
+    "NAMEr": "IGOR"
+   },
+   "points": 0
+  },
+  {
+   "id": 3,
+   "serial": 3,
+   "timestamp": "2026-10-30T20:10:00Z",
+   "frequency": 14060,
+   "band": "20m",
+   "mode": "CW",
+   "callsign": "K8KT",
+   "duplicate": false,
+   "rst_sent": "599",
+   "rst_received": "599",
+   "exchange_fields": {
+    "CALL": "K8KT",
+    "RSTs": "599",
+    "RSTr": "599",
+    "EXCHs": "IN",
+    "ZNUMs": "317",
+    "NAMEs": "MUMMY",
+    "EXCHr": "AR",
+    "ZNUMr": "3333",
+    "NAMEr": "IGOR"
+   },
+   "points": 0
+  },
+  {
+   "id": 4,
+   "serial": 4,
+   "timestamp": "2026-10-30T20:30:00Z",
+   "frequency": 14060,
+   "band": "20m",
+   "mode": "CW",
+   "callsign": "AD1TOX",
+   "duplicate": false,
+   "rst_sent": "599",
+   "rst_received": "599",
+   "exchange_fields": {
+    "CALL": "AD1TOX",
+    "RSTs": "599",
+    "RSTr": "599",
+    "EXCHs": "IN",
+    "ZNUMs": "317",
+    "NAMEs": "MUMMY",
+    "EXCHr": "MA",
+    "ZNUMr": "1027",
+    "NAMEr": "ELVIRA"
+   },
+   "points": 0
+  },
+  {
+   "id": 5,
+   "serial": 5,
+   "timestamp": "2026-10-30T20:40:00Z",
+   "frequency": 7040,
+   "band": "40m",
+   "mode": "CW",
+   "callsign": "AD1TOX",
+   "duplicate": false,
+   "rst_sent": "599",
+   "rst_received": "599",
+   "exchange_fields": {
+    "CALL": "AD1TOX",
+    "RSTs": "599",
+    "RSTr": "599",
+    "EXCHs": "IN",
+    "ZNUMs": "317",
+    "NAMEs": "MUMMY",
+    "EXCHr": "MA",
+    "ZNUMr": "1027",
+    "NAMEr": "ELVIRA"
+   },
+   "points": 0
+  },
+  {
+   "id": 6,
+   "serial": 6,
+   "timestamp": "2026-10-30T20:45:00Z",
+   "frequency": 7040,
+   "band": "40m",
+   "mode": "CW",
+   "callsign": "N7WDT",
+   "duplicate": false,
+   "rst_sent": "599",
+   "rst_received": "599",
+   "exchange_fields": {
+    "CALL": "N7WDT",
+    "RSTs": "599",
+    "RSTr": "599",
+    "EXCHs": "IN",
+    "ZNUMs": "317",
+    "NAMEs": "MUMMY",
+    "EXCHr": "AZ",
+    "ZNUMr": "480",
+    "NAMEr": "GHOUL"
+   },
+   "points": 0
+  },
+  {
+   "id": 7,
+   "serial": 7,
+   "timestamp": "2026-10-30T21:00:00Z",
+   "frequency": 21060,
+   "band": "15m",
+   "mode": "CW",
+   "callsign": "VO1TW",
+   "duplicate": false,
+   "rst_sent": "599",
+   "rst_received": "599",
+   "exchange_fields": {
+    "CALL": "VO1TW",
+    "RSTs": "599",
+    "RSTr": "599",
+    "EXCHs": "IN",
+    "ZNUMs": "317",
+    "NAMEs": "MUMMY",
+    "EXCHr": "NL",
+    "ZNUMr": "709",
+    "NAMEr": "BANSHEE"
+   },
+   "points": 0
+  },
+  {
+   "id": 8,
+   "serial": 8,
+   "timestamp": "2026-10-30T21:05:00Z",
+   "frequency": 28060,
+   "band": "10m",
+   "mode": "CW",
+   "callsign": "XE3KWA",
+   "duplicate": false,
+   "rst_sent": "599",
+   "rst_received": "599",
+   "exchange_fields": {
+    "CALL": "XE3KWA",
+    "RSTs": "599",
+    "RSTr": "599",
+    "EXCHs": "IN",
+    "ZNUMs": "317",
+    "NAMEs": "MUMMY",
+    "EXCHr": "MEXICO",
+    "ZNUMr": "52",
+    "NAMEr": "CHUPACABRA"
+   },
+   "points": 0
+  },
+  {
+   "id": 9,
+   "serial": 9,
+   "timestamp": "2026-10-30T22:30:00Z",
+   "frequency": 14060,
+   "band": "20m",
+   "mode": "CW",
+   "callsign": "AD1TOX",
+   "duplicate": false,
+   "rst_sent": "599",
+   "rst_received": "599",
+   "exchange_fields": {
+    "CALL": "AD1TOX",
+    "RSTs": "599",
+    "RSTr": "599",
+    "EXCHs": "IN",
+    "ZNUMs": "317",
+    "NAMEs": "MUMMY",
+    "EXCHr": "MA",
+    "ZNUMr": "1027",
+    "NAMEr": "ELVIRA"
+   },
+   "points": 0
+  }
+ ]
+}

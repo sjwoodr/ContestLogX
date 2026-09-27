@@ -560,6 +560,11 @@
       "name": "ILQP non-IL op W9NE IN (6 QSOs incl 1 dupe, IL counties once, CW then RTTY is a dupe, county-line mobile twice, W9AWE +100)",
       "log_file": "test_ilqp_nonil.clx",
       "expected_score": 136
+    },
+    {
+      "name": "Zombie Shuffle W9NE (9 QSOs incl 1 dupe, per band (QSOs + bonus) x sum of Zombie numbers, bonus station 3333, 10m and 15m scored together, Rebirth Rule: same station on 20m after 30 min is a dupe, after 150 min counts again, +666 Crummy Band bonus)",
+      "log_file": "test_zombie_shuffle.clx",
+      "expected_score": 36732
     }
   ]
 }

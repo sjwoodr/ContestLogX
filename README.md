@@ -110,6 +110,7 @@ Most contest loggers are Windows-only, closed-source, or locked to a fixed set o
 | West Virginia QSO Party | `wvqp.json` |
 | Winter Field Day | `winter_field_day.json` |
 | YB DX Contest | `ybdx.json` |
+| Zombie Shuffle (QRP fun event) | `zombie_shuffle.json` |
 
 Adding a new contest is as simple as creating a JSON file in the `contests/` directory. See the existing definitions for examples.
 

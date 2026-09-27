@@ -13,6 +13,7 @@
 #include <QJsonDocument>
 #include <QRegularExpression>
 #include <QtMath>
+#include <climits>
 
 ContestEngine::ContestEngine(QObject *parent)
     : QObject(parent)
@@ -409,6 +410,10 @@ void ContestEngine::cacheContestProperties()
     for (const QJsonValue& v : m_contestDef["contest"].toObject()["excludedModes"].toArray())
         m_cachedExcludedModes.append(v.toString().toUpper());
 
+    m_cachedFlatBonus = m_contestDef["scoring"].toObject()["flatBonus"].toInt(0);
+    m_cachedDupeRebirthMinutes = 0;
+    m_cachedDupeCwDigitalSame = false;
+
     // Dupe scope
     m_cachedDupeScope = "overall";
     if (m_contestDef.contains("dupeChecking")) {
@@ -422,6 +427,7 @@ void ContestEngine::cacheContestProperties()
             else if (t == "perBandAndGridSquare") m_cachedDupeScope = "per_band_grid";
             else if (t == "perBandModeAndExchange") m_cachedDupeScope = "per_band_mode_exch";
             m_cachedDupeCwDigitalSame = dcv.toObject()["cwDigitalSameMode"].toBool(false);
+            m_cachedDupeRebirthMinutes = dcv.toObject()["rebirthMinutes"].toInt(0);
         } else if (dcv.isString()) {
             m_cachedDupeScope = dcv.toString();
         }
@@ -836,6 +842,13 @@ bool ContestEngine::isDupe(const QsoRecord& qso, const QList<QsoRecord>& existin
         
         if (existing.getCall().toUpper() == qso.getCall().toUpper()
                 && dupeScopeKey(existing, dupeScope) == dupeScopeKey(qso, dupeScope)) {
+            // Rebirth rule (Zombie Shuffle): the station may be worked again once
+            // rebirthMinutes have passed since a counted QSO.
+            if (m_cachedDupeRebirthMinutes > 0) {
+                if (existing.isDupe()) continue;
+                const qint64 gap = qAbs(existing.getDateTime().secsTo(qso.getDateTime()));
+                if (gap >= qint64(m_cachedDupeRebirthMinutes) * 60) continue;
+            }
             return true;
         }
     }
@@ -870,6 +883,12 @@ QString ContestEngine::getDupeReason(const QsoRecord& qso, const QList<QsoRecord
         
         if (existing.getCall().toUpper() == qso.getCall().toUpper()
                 && dupeScopeKey(existing, dupeScope) == dupeScopeKey(qso, dupeScope)) {
+            if (m_cachedDupeRebirthMinutes > 0) {
+                if (existing.isDupe()) continue;
+                const qint64 gap = qAbs(existing.getDateTime().secsTo(qso.getDateTime()));
+                if (gap >= qint64(m_cachedDupeRebirthMinutes) * 60) continue;
+                return QString("band (again after %1 minutes)").arg(m_cachedDupeRebirthMinutes);
+            }
             if (dupeScope == "per_band")       return "band";
             if (dupeScope == "per_mode")       return "mode";
             if (dupeScope == "per_band_mode")  return "band/mode";
@@ -2962,8 +2981,8 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
             }
         }
         
-        // For objectiveMultipliers, skip QSO-based multiplier extraction (no mults per QSO)
-        if (multType == "objectiveMultipliers") {
+        // For objectiveMultipliers / exchangeSumPerBand, skip QSO-based multiplier extraction
+        if (multType == "objectiveMultipliers" || multType == "exchangeSumPerBand") {
             qso.setMultiplierCount(0);
             qso.setDxccCount(0);
             qso.setGridSquareMultiplierCount(0);
@@ -3373,6 +3392,8 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
         }
     }
 
+    m_runningScore.bonusPoints += m_cachedFlatBonus;
+
     QStringList multCategories = getMultiplierCategories();
     m_runningScore.maxScoredMults = m_cachedMaxScoredMults;
     m_runningScore.maxDxccMults = m_cachedMaxDxccMults;
@@ -3383,8 +3404,48 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
         dxccExcess = m_runningScore.dxccMultCount - m_cachedMaxDxccMults;
     m_runningScore.multipliers -= dxccExcess;
     
-    // Skip score calculation if already handled by objectiveMultipliers
-    if (multType == "objectiveMultipliers") {
+    if (multType == "exchangeSumPerBand") {
+        // Zombie Shuffle: per band group, (QSO points + bonus QSOs) x sum of a
+        // numeric exchange field (the Zombie numbers worked); bonus stations send
+        // bonusValue. Band groups combine bands (10m + 15m).
+        const QJsonObject cfg = m_contestDef["scoring"].toObject()["multipliers"].toObject();
+        const QString field = cfg["field"].toString();
+        const QString bonusValue = cfg["bonusValue"].toString();
+        const QJsonObject groups = cfg["bandGroups"].toObject();
+        QMap<QString, ContestScore::ExchangeSumBand> byGroup;
+        QStringList order;
+        for (const QJsonValue& b : m_contestDef["contest"].toObject()["bands"].toArray()) {
+            const QString g = groups.value(b.toString()).toString(b.toString());
+            if (!order.contains(g)) order.append(g);
+        }
+        for (const QsoRecord& qso : qsos) {
+            if (qso.isDupe() || qso.isOutOfBand() || qso.getPoints() <= 0) continue;
+            const QString band = qso.getBand();
+            const QString g = groups.value(band).toString(band);
+            ContestScore::ExchangeSumBand& row = byGroup[g];
+            row.group = g;
+            row.qsos += qso.getPoints();
+            const QString value = qso.getExchangeField(field).trimmed();
+            row.fieldSum += value.toLongLong();
+            if (!bonusValue.isEmpty() && value == bonusValue)
+                row.bonusQsos++;
+        }
+        qint64 total = 0;
+        for (const QString& g : order) {
+            if (!byGroup.contains(g)) continue;
+            ContestScore::ExchangeSumBand row = byGroup[g];
+            row.score = qint64(row.qsos + row.bonusQsos) * row.fieldSum;
+            total += row.score;
+            m_runningScore.exchangeSumBands.append(row);
+        }
+        m_runningScore.contestScore = int(qMin<qint64>(total + m_runningScore.bonusPoints, INT_MAX));
+        if (verbose) {
+            DebugLogger::instance().log("ContestEngine",
+                QString("Exchange-sum scoring: %1 + %2 bonus = %3")
+                    .arg(total).arg(m_runningScore.bonusPoints).arg(m_runningScore.contestScore));
+        }
+    } else if (multType == "objectiveMultipliers") {
+        // Skip score calculation - already handled by objectiveMultipliers
         // Score already calculated at line 2074
         if (verbose) {
             DebugLogger::instance().log("ContestEngine", 
@@ -3499,6 +3560,7 @@ void ContestEngine::rescoreAll(QList<QsoRecord>& qsos, const QString& myCallsign
     // Incremental dupe tracking: callUpper -> set of scope keys already worked.
     // Scope key is "" for overall, band for per_band, mode for per_mode, band_mode for per_band_mode.
     QHash<QString, QSet<QString>> workedCalls;
+    QHash<QString, QDateTime> lastCountedAt;  // rebirth rule: call|scope -> time of last counted QSO
 
     for (int i = 0; i < qsos.count(); ++i) {
         QsoRecord& qso = qsos[i];
@@ -3524,8 +3586,15 @@ void ContestEngine::rescoreAll(QList<QsoRecord>& qsos, const QString& myCallsign
         const QString callUpper = qso.getCall().toUpper();
         const QString scopeKey = dupeScopeKey(qso, dupeScope);
 
-        const bool isDupe = workedCalls.contains(callUpper)
-                            && workedCalls[callUpper].contains(scopeKey);
+        bool isDupe = workedCalls.contains(callUpper)
+                      && workedCalls[callUpper].contains(scopeKey);
+        // Rebirth rule: workable again rebirthMinutes after the last counted QSO
+        const QString rebirthKey = callUpper + "|" + scopeKey;
+        if (isDupe && m_cachedDupeRebirthMinutes > 0) {
+            const QDateTime last = lastCountedAt.value(rebirthKey);
+            if (last.isValid() && last.secsTo(qso.getDateTime()) >= qint64(m_cachedDupeRebirthMinutes) * 60)
+                isDupe = false;
+        }
 
         if (isDupe) {
             qso.setDupe(true);
@@ -3545,6 +3614,8 @@ void ContestEngine::rescoreAll(QList<QsoRecord>& qsos, const QString& myCallsign
 
         // Register this QSO in the dupe tracking hash
         workedCalls[callUpper].insert(scopeKey);
+        if (m_cachedDupeRebirthMinutes > 0)
+            lastCountedAt.insert(rebirthKey, qso.getDateTime());
 
         // Points - updateRunningScore will re-derive this, but we set it here so
         // the per-QSO column in the table is correct after replaceAll.
