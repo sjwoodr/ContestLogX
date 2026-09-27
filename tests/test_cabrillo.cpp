@@ -36,6 +36,7 @@ private slots:
     void exportsCqwwRttyQsoLine();
     void exportsZeroPointCqwwQso();
     void exportsAmAsPhone();
+    void mapsJidxPhoneContestName();
 
 private:
     QStringList exportLines(const QJsonObject& contestDef,
@@ -288,6 +289,26 @@ void TestCabrillo::exportsAmAsPhone()
         if (l.startsWith("QSO:")) { qsoLine = l; break; }
     }
     QCOMPARE(qsoLine, QStringLiteral("QSO:  3885 PH 2026-11-07 2145 N9OH 59 IN K1UI 59 CT"));
+}
+
+// JIDX log upload accepts JIDX-CW and JIDX-PHONE; the Phone weekend's
+// CONTEST header must match.
+void TestCabrillo::mapsJidxPhoneContestName()
+{
+    const QString path = QStringLiteral(CLX_SOURCE_DIR "/contests/jidx.json");
+    QFile f(path);
+    QVERIFY2(f.open(QIODevice::ReadOnly), qPrintable("cannot open " + path));
+    const QJsonObject def = QJsonDocument::fromJson(f.readAll()).object();
+    QVERIFY(!def.isEmpty());
+
+    QsoRecord qso = makeSsQso();
+    qso.setMode("SSB");
+    qso.setFrequency("14200");
+    qso.setRstSent("59");
+    qso.setRstReceived("59");
+
+    QVERIFY(exportLines(def, {qso}, "N9OH", "SSB").contains(QStringLiteral("CONTEST: JIDX-PHONE")));
+    QVERIFY(exportLines(def, {qso}, "N9OH", "CW").contains(QStringLiteral("CONTEST: JIDX-CW")));
 }
 
 QTEST_MAIN(TestCabrillo)

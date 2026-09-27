@@ -513,7 +513,7 @@ import Layout from '../layouts/Layout.astro';
             An optional object inside <code>scoring</code> listing contacts an operator's class may not
             score. Keys are station class ids or userPrompt values; each lists partners that earn 0 points
             and no multipliers (the QSO is still logged and exported). An entry is a cty.dat primary prefix
-            (<code>"K"</code>, <code>"VE"</code>), <code>"continent:XX"</code>, or <code>"notContinent:XX"</code>.
+            (<code>"K"</code>, <code>"VE"</code>), <code>"continent:XX"</code>, <code>"notContinent:XX"</code> (with <code>+PFX</code> exceptions), or <code>"notPrefix:PFX+PFX"</code> (partner is none of these).
             ARRL DX uses <code>{`{"W_VE": ["K", "VE"]}`}</code>; the Oceania DX Contest uses
             <code>{`{"NONOC": ["notContinent:OC"]}`}</code> so stations outside Oceania score only with Oceania.
           </p>

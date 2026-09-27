@@ -1,0 +1,120 @@
+{
+ "format": "ContestLogX",
+ "format_version": "1.0",
+ "created": "2026-04-11T07:01:00Z",
+ "modified": "2026-04-11T07:05:00Z",
+ "contest": {
+  "name": "Japan International DX Contest",
+  "contest_file": "jidx.json",
+  "mode": "CW",
+  "version": "1.0.0",
+  "year": 2026,
+  "categories": {
+   "station_class": "JA",
+   "userPrompt_contestMode": "CW",
+   "userPrompt_operatingCategory": "SOLP-AB"
+  }
+ },
+ "station": {
+  "callsign": "JA1DX",
+  "operator": "STEVE"
+ },
+ "statistics": {},
+ "qsos": [
+  {
+   "id": 1,
+   "serial": 1,
+   "timestamp": "2026-04-11T07:01:00Z",
+   "frequency": 14010,
+   "band": "20m",
+   "mode": "CW",
+   "callsign": "W4WOD",
+   "duplicate": false,
+   "rst_sent": "599",
+   "rst_received": "599",
+   "exchange_fields": {
+    "CALL": "W4WOD",
+    "RST": "599",
+    "EXCHs": "10",
+    "EXCHr": "05"
+   },
+   "points": 0
+  },
+  {
+   "id": 2,
+   "serial": 2,
+   "timestamp": "2026-04-11T07:02:00Z",
+   "frequency": 14010,
+   "band": "20m",
+   "mode": "CW",
+   "callsign": "JA2KVD",
+   "duplicate": false,
+   "rst_sent": "599",
+   "rst_received": "599",
+   "exchange_fields": {
+    "CALL": "JA2KVD",
+    "RST": "599",
+    "EXCHs": "10",
+    "EXCHr": "25"
+   },
+   "points": 0
+  },
+  {
+   "id": 3,
+   "serial": 3,
+   "timestamp": "2026-04-11T07:03:00Z",
+   "frequency": 14010,
+   "band": "20m",
+   "mode": "CW",
+   "callsign": "JD1YBV",
+   "duplicate": false,
+   "rst_sent": "599",
+   "rst_received": "599",
+   "exchange_fields": {
+    "CALL": "JD1YBV",
+    "RST": "599",
+    "EXCHs": "10",
+    "EXCHr": "27"
+   },
+   "points": 0
+  },
+  {
+   "id": 4,
+   "serial": 4,
+   "timestamp": "2026-04-11T07:04:00Z",
+   "frequency": 14010,
+   "band": "20m",
+   "mode": "CW",
+   "callsign": "W9NE/MM",
+   "duplicate": false,
+   "rst_sent": "599",
+   "rst_received": "599",
+   "exchange_fields": {
+    "CALL": "W9NE/MM",
+    "RST": "599",
+    "EXCHs": "10",
+    "EXCHr": "08"
+   },
+   "points": 0
+  },
+  {
+   "id": 5,
+   "serial": 5,
+   "timestamp": "2026-04-11T07:05:00Z",
+   "frequency": 28010,
+   "band": "10m",
+   "mode": "CW",
+   "callsign": "HL4MTB",
+   "duplicate": false,
+   "rst_sent": "599",
+   "rst_received": "599",
+   "exchange_fields": {
+    "CALL": "HL4MTB",
+    "RST": "599",
+    "EXCHs": "10",
+    "EXCHr": "25"
+   },
+   "points": 0
+  }
+ ]
+}

@@ -31,6 +31,8 @@ All notable changes to ContestLogX are documented in this file.
 - A contest can now cap how many multipliers count toward the score (`maxScoredMultipliers`). Every multiplier worked is still tracked, and the score panel and summary sheet show both the worked count and the capped count
 
 ### Other Changes and Bugfixes
+- Fixed JIDX scoring QSOs that the rules give no credit: DX stations working other DX stations, and JA stations working JA or the JD1 islands (Ogasawara, Minami-Torishima). These are still logged but now earn no points or multipliers
+- JIDX Phone logs now export with CONTEST: JIDX-PHONE, the name the JIDX log upload page uses (was JIDX-PH)
 - AM QSOs now export to Cabrillo as PH; AM is not a Cabrillo mode
 - A long multiplier name on the summary sheet no longer runs into its count
 - FM and AM QSOs now score as phone. They were scoring at the digital point value, which in Winter Field Day gave FM contacts 2 points instead of 1

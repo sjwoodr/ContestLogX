@@ -11,6 +11,7 @@
     "modes": ["CW", "SSB"],
     "bands": ["160m", "80m", "40m", "20m", "15m", "10m"],
     "url": "https://jidx.org/",
+    "sponsorEmail": "jidx-chairman@jidx.org",
     "categories": {
       "power": ["HIGH", "LOW"],
       "stations": ["SINGLE_OP", "MULTI_SINGLE", "MULTI_TWO", "MARITIME_MOBILE"]
@@ -254,8 +255,9 @@
       }
     },
     "invalidPartners": {
-      "JA": ["JA"],
-      "__comment": "JA stations may only work DX stations. JA-JA contacts score 0 points and no multipliers."
+      "JA": ["JA", "JD/o", "JD/m"],
+      "DX": ["notPrefix:JA+JD/o+JD/m"],
+      "__comment": "Only JA-DX contacts count. JA stations may not work JA or the JD1 islands (Ogasawara JD/o, Minami-Torishima JD/m - JD1 is also excluded as a DXCC multiplier); DX stations score only with JA and JD1 stations. Those QSOs are logged but earn 0 points and no multipliers."
     },
     "finalScore": "SUM(points) * (namedMults + dxccMultipliers)"
   },
@@ -270,7 +272,7 @@
       "contest": "JIDX-CW",
       "contestMapping": {
         "CW": "JIDX-CW",
-        "SSB": "JIDX-PH"
+        "SSB": "JIDX-PHONE"
       },
       "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {rst_sent} {exch_sent} {call} {rst_rcvd} {exch_rcvd}",
       "requiredHeaders": ["CONTEST", "CALLSIGN", "CATEGORY-BAND", "CATEGORY-MODE", "CATEGORY-OPERATOR", "CATEGORY-POWER", "CATEGORY-TRANSMITTER", "CLAIMED-SCORE", "CLUB", "CREATED-BY", "NAME", "ADDRESS", "EMAIL", "OPERATORS", "SOAPBOX"]

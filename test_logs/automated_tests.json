@@ -212,6 +212,16 @@
       "expected_score": 12060
     },
     {
+      "name": "JIDX DX op N9OH partner rules (6 QSOs: DX-DX QSOs with W9NE and DL4EX score 0 and no mult, JA and JD1 score, 160m 4 pts / 80m 2 pts, prefectures per band)",
+      "log_file": "test_jidx_dx_partners.clx",
+      "expected_score": 32
+    },
+    {
+      "name": "JIDX JA op JA1DX partner rules (5 QSOs: JA-JA JA2KVD and JA-JD1 JD1YBV score 0 and no mult, /MM earns points and a zone but no DXCC entity)",
+      "log_file": "test_jidx_ja_partners.clx",
+      "expected_score": 20
+    },
+    {
       "name": "OK-OM DX SSB DX Station (97 QSOs, multsPerBand, Counties+DXCC+WAE, byPrompt points)",
       "log_file": "test_okom_wve.clx",
       "expected_score": 91875

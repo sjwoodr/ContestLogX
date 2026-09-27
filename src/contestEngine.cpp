@@ -1745,6 +1745,12 @@ bool ContestEngine::isInvalidPartner(const QsoRecord& qso) const
                     && theirEntity.continent != parts.first()
                     && !parts.mid(1).contains(theirEntity.primaryPrefix))
                 return true;
+        } else if (rule.startsWith("notPrefix:")) {
+            // "notPrefix:JA+JD/o+JD/m" - partner is none of these entities
+            // (JIDX: DX stations score only with JA and the JD1 islands).
+            const QStringList allowed = rule.mid(10).split('+', Qt::SkipEmptyParts);
+            if (!theirEntity.primaryPrefix.isEmpty() && !allowed.contains(theirEntity.primaryPrefix))
+                return true;
         } else if (rule.startsWith("continent:")) {
             if (theirEntity.continent == rule.mid(10))
                 return true;

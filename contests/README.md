@@ -341,7 +341,7 @@ Contacts that an operator's class may not score. Keys are station class ids or u
 }
 ```
 
-ARRL DX uses the prefix form (W/VE may not work W/VE); the Oceania DX Contest uses `notContinent:OC` (stations outside Oceania score only with Oceania). Exceptions follow a `+`: `notContinent:NA+KH6` is outside North America except KH6 (NA SSB Sprint).
+ARRL DX uses the prefix form (W/VE may not work W/VE); the Oceania DX Contest uses `notContinent:OC` (stations outside Oceania score only with Oceania). Exceptions follow a `+`: `notContinent:NA+KH6` is outside North America except KH6 (NA SSB Sprint). `"notPrefix:JA+JD/o+JD/m"` matches a partner that is none of the listed entities (JIDX: DX stations score only with JA and the JD1 islands).
 
 **Continent-Limited DXCC Multipliers (`multipliers.dxccContinents`):**
 Only DXCC entities on the listed continents count as DXCC mults, e.g. `["NA"]` for the NA SSB Sprint, where only other North American countries are multipliers and everything else counts for QSO points only.
