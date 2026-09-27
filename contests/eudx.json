@@ -10,7 +10,9 @@
     "offTimeGapMinutes": 0,
     "modes": ["CW", "SSB"],
     "bands": ["160m", "80m", "40m", "20m", "15m", "10m"],
-    "url": "https://eudxcc.altervista.org/",
+    "url": "https://www.eudx-contest.com/",
+    "sponsorEmail": "ik6qon@gmail.com",
+    "__sponsorContact_comment": "EU-DX Contest Committee (IK6QON)",
     "categories": {
       "stations": ["SINGLE_OP", "MULTI_OP"],
       "power": ["HIGH", "LOW", "QRP"],

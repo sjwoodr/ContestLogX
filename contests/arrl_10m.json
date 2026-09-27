@@ -9,7 +9,8 @@
     "offTimeGapMinutes": 30,
     "modes": ["CW", "SSB", "DIGITAL"],
     "bands": ["10m"],
-    "url": "https://contests.arrl.org/contestrules/10-meter-contest-rules/",
+    "url": "https://contests.arrl.org/ContestRules/10M-Rules.pdf",
+    "sponsorEmail": "contests@arrl.org",
     "categories": {
       "power": ["HIGH", "LOW", "QRP"],
       "modes": ["CW", "SSB", "MIXED", "DIGITAL"],

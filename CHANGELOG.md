@@ -4,6 +4,11 @@ All notable changes to ContestLogX are documented in this file.
 
 ## [0.9.13]
 
+### Contest Updates
+- Every contest definition now records the sponsor's contact email, or its contact-form page when no email is published
+- Updated contest website links that had moved or stopped working, including the ARRL 10 Meter, DX and VHF rules, CWops CWT, EU DX, Hawaii, Louisiana, Missouri, Mississippi, NAQP, SP DX, UN DX and Virginia QSO Party pages
+- Corrected the Delaware QSO Party link and sponsor (First State ARC) and the South Dakota QSO Party sponsor (Prairie Dog ARC)
+
 ## [0.9.12]
 
 ### Contest Updates

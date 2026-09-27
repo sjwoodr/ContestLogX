@@ -9,7 +9,9 @@
     "offTimeGapMinutes": 30,
     "modes": ["CW", "SSB", "RTTY"],
     "bands": ["160m", "80m", "40m", "20m", "15m", "10m"],
-    "url": "https://www.ncjweb.com/naqp.html",
+    "url": "https://ncjweb.com/naqp/",
+    "sponsorEmail": "cwnaqpmgr@ncjweb.com",
+    "__sponsorContact_comment": "CW manager; SSB is ssbnaqpmgr@ncjweb.com and RTTY is rttynaqpmgr@ncjweb.com",
     "categories": {
       "mode": ["CW", "SSB", "RTTY"],
       "stations": ["SINGLE_OP", "MULTI_OP"],

@@ -11,6 +11,7 @@
     "modes": ["CW", "SSB"],
     "bands": ["160m", "80m", "40m", "20m", "15m", "10m"],
     "url": "https://www.cqwpx.com/rules.htm",
+    "sponsorEmail": "director@cqwpx.com",
     "categories": {
       "stations": ["SINGLE_OP", "MULTI_ONE", "MULTI_TWO", "MULTI_UNLIMITED", "MULTI_DISTRIBUTED"],
       "power": ["HIGH", "LOW", "QRP"],

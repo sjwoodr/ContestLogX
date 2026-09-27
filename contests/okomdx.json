@@ -11,6 +11,7 @@
     "modes": ["CW", "SSB"],
     "bands": ["160m", "80m", "40m", "20m", "15m", "10m"],
     "url": "http://okomdx.crk.cz/",
+    "sponsorEmail": "okomdxcontest@gmail.com",
     "categories": {
       "stations": ["SINGLE_OP", "MULTI_SINGLE", "MULTI_TWO"],
       "power": ["HIGH", "LOW", "QRP"]

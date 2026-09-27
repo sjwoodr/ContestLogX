@@ -3,7 +3,7 @@
     "name": "South Dakota QSO Party",
     "abbreviation": "SDQP",
     "version": "1.0.0",
-    "sponsor": "Northern Plains Amateur Radio Club (W0OJY)",
+    "sponsor": "Prairie Dog Amateur Radio Club (W0OJY)",
     "description": "Second full weekend of October, 1800Z Saturday to 1800Z Sunday. SD stations work everyone; everyone else works SD stations. Exchange is RS(T) + SD county (SD stations) or state/province/DXCC country. CW 2 points, Phone 1 point; no digital. SD stations count SD counties, US states, Canadian provinces and DXCC countries; everyone else counts the 66 SD counties. Each multiplier counts once. One-time 100-point bonus for working W0OJY.",
     "startDate": "Second full weekend of October (2026: October 10, 1800Z - October 11, 1800Z)",
     "duration": 24,
@@ -25,7 +25,9 @@
       "1.25m",
       "70cm"
     ],
-    "url": "https://www.sdqsoparty.com/",
+    "url": "https://pdarc.org/sd-qso-party",
+    "sponsorEmail": "w0ej@goldenwest.net",
+    "__sponsorContact_comment": "Questions (W0EJ); logs go to w0ej@arrl.net",
     "categories": {
       "stations": [
         "FIXED",

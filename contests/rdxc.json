@@ -11,6 +11,7 @@
     "modes": ["CW", "SSB"],
     "bands": ["160m", "80m", "40m", "20m", "15m", "10m"],
     "url": "https://www.rdxc.org",
+    "sponsorEmail": "info@rdxc.org",
     "categories": {
       "stations": ["SINGLE_OP", "MULTI_SINGLE", "MULTI_TWO", "MULTI_MULTI"],
       "power": ["HIGH", "LOW", "QRP"],

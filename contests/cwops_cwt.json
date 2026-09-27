@@ -9,7 +9,9 @@
     "offTimeGapMinutes": 0,
     "modes": ["CW"],
     "bands": ["10m", "15m", "20m", "40m", "80m", "160m"],
-    "url": "https://www.cwops.org/cwt.html",
+    "url": "https://cwops.org/cwops-tests/",
+    "sponsorEmail": "ve3iay@gmail.com",
+    "__sponsorContact_comment": "CWT Manager (VE3KI)",
     "categories": {
       "stations": ["SINGLE_OP"]
     }

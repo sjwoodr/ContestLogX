@@ -21,6 +21,7 @@
       "10m"
     ],
     "url": "https://www.arrl.org/iaru-hf-world-championship",
+    "sponsorEmail": "contests@arrl.org",
     "categories": {
       "stations": [
         "SINGLE_OP",

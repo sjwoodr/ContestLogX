@@ -11,6 +11,7 @@
     "modes": ["CW", "SSB", "DIGITAL"],
     "bands": ["80m", "40m", "20m", "15m", "10m"],
     "url": "https://www.neqp.org",
+    "sponsorEmail": "info@neqp.org",
     "categories": {
       "stations": ["SINGLE_OP", "MULTI_OP", "MOBILE"],
       "power": ["LOW_POWER", "QRP", "HIGH_POWER"],

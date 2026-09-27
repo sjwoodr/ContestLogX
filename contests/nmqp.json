@@ -11,6 +11,8 @@
     "modes": ["CW", "SSB", "RTTY"],
     "bands": ["160m", "80m", "40m", "20m", "15m", "10m", "6m", "2m"],
     "url": "https://www.newmexicoqsoparty.org/",
+    "sponsorContactUrl": "https://www.newmexicoqsoparty.org/wp/contact-us/",
+    "__sponsorContact_comment": "Logs go to logs@newmexicoqsoparty.org",
     "categories": {
       "stations": ["SINGLE_OP", "MULTI_OP", "MOBILE"],
       "power": ["HIGH", "LOW", "QRP"]

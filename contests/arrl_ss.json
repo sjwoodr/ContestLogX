@@ -11,6 +11,7 @@
     "modes": ["CW", "SSB"],
     "bands": ["160m", "80m", "40m", "20m", "15m", "10m"],
     "url": "https://contests.arrl.org/ContestRules/SS-Rules.pdf",
+    "sponsorEmail": "contests@arrl.org",
     "categories": {
       "power": ["HIGH", "LOW", "QRP"],
       "stations": ["SINGLE_OP", "SINGLE_OP_UNLIMITED", "MULTI_SINGLE", "SCHOOL_CLUB"],

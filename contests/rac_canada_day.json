@@ -11,6 +11,8 @@
     "modes": ["CW", "SSB"],
     "bands": ["160m", "80m", "40m", "20m", "15m", "10m", "6m", "2m"],
     "url": "https://www.rac.ca/contesting-results/",
+    "sponsorEmail": "ve5cpu@rac.ca",
+    "__sponsorContact_comment": "Contest manager (VE5CPU) for questions; logs go to canadaday@rac.ca",
     "categories": {
       "stations": ["SINGLE_OP", "SINGLE_OP_ASSISTED", "MULTI_OP_SINGLE_TX", "MULTI_OP_MULTI_TX"],
       "power": ["HIGH_POWER", "LOW_POWER", "QRP"],

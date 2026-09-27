@@ -10,7 +10,8 @@
     "offTimeGapMinutes": 0,
     "modes": ["CW", "SSB"],
     "bands": ["160m", "80m", "40m", "20m", "15m", "10m", "6m", "2m"],
-    "url": "https://laqp.org/",
+    "url": "https://laqp.louisianacontestclub.org/laqso-rules-htm/",
+    "sponsorEmail": "questions@laqp.org",
     "categories": {
       "stations": ["SINGLE_OP", "ROVER"],
       "power": ["QRP", "LOW_POWER", "HIGH_POWER"],

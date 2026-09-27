@@ -10,7 +10,9 @@
     "offTimeGapMinutes": 0,
     "modes": ["CW", "SSB", "RTTY"],
     "bands": ["160m", "80m", "40m", "20m", "15m", "10m", "6m", "2m", "1.25m", "70cm"],
-    "url": "https://www.w0ma.org/index.php/missouri-qso-party",
+    "url": "https://moqp.org/",
+    "sponsorEmail": "moqsoparty@w0ma.org",
+    "__sponsorContact_comment": "Log-submission address; the only one published",
     "categories": {
       "stations": ["SINGLE_OP", "MULTI_OP", "MOBILE", "PORTABLE", "EXPEDITION"],
       "power": ["HIGH", "LOW", "QRP"]

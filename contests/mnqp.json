@@ -11,6 +11,7 @@
     "modes": ["CW", "SSB"],
     "bands": ["160m", "80m", "40m", "20m", "15m", "10m"],
     "url": "https://www.w0aa.org/mn-qso-party/",
+    "sponsorEmail": "mnqp-committee@w0aa.org",
     "categories": {
       "stations": ["SINGLE_OP", "MULTI_OP", "MOBILE", "ROVER"],
       "power": ["LOW_POWER", "QRP", "HIGH_POWER"],

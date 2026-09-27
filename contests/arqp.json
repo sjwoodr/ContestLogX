@@ -11,6 +11,7 @@
     "modes": ["CW", "SSB", "DIGITAL"],
     "bands": ["160m", "80m", "40m", "20m", "15m", "10m", "6m", "2m"],
     "url": "https://arkqp.com",
+    "sponsorEmail": "arkansasqsoparty@gmail.com",
     "categories": {
       "stations": ["SINGLE_OP", "MULTI_OP", "MOBILE", "PORTABLE", "ROVER", "DX"],
       "power": ["LOW_POWER", "QRP", "HIGH_POWER"],

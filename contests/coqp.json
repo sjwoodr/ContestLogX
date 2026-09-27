@@ -10,7 +10,8 @@
     "offTimeGapMinutes": 0,
     "modes": ["CW", "SSB"],
     "bands": ["80m", "40m", "20m", "15m", "10m", "6m", "2m"],
-    "url": "https://coqp.contesting.com/",
+    "url": "https://coloradoqsoparty.org/getting-started/rules/",
+    "sponsorEmail": "info@coloradoqsoparty.org",
     "categories": {
       "stations": ["FIXED", "MOBILE", "PORTABLE"],
       "power": ["QRP", "LOW", "HIGH"],

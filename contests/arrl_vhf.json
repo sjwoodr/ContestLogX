@@ -5,7 +5,8 @@
     "version": "1.0.0",
     "sponsor": "ARRL",
     "description": "ARRL VHF/UHF Contest runs three times per year: January, June, and September",
-    "url": "https://www.arrl.org/vhf-uh-f-contests",
+    "url": "https://contests.arrl.org/ContestRules/JanJunSep-VHF-Rules.pdf",
+    "sponsorEmail": "contests@arrl.org",
     "offTimeGapMinutes": 30,
     "modes": ["CW", "SSB", "FM", "DIGITAL"],
     "bands": ["6m", "2m", "1.25m", "70cm", "33cm", "23cm", "13cm", "9cm", "6cm", "3cm", "1.25cm", "6mm", "4mm", "2.5mm", "2mm", "1mm"]

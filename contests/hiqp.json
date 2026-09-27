@@ -10,7 +10,8 @@
     "offTimeGapMinutes": 0,
     "modes": ["CW", "SSB", "DIGITAL"],
     "bands": ["160m", "80m", "40m", "20m", "15m", "10m"],
-    "url": "https://www.hiqsoparty.org/",
+    "url": "https://www.hawaiiqsoparty.org/rules-page/",
+    "sponsorEmail": "info@hawaiiqsoparty.org",
     "categories": {
       "stations": ["SINGLE_OP", "MULTI_MULTI"],
       "power": ["QRP", "LOW", "HIGH"],

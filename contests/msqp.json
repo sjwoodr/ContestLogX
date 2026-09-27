@@ -10,7 +10,9 @@
     "offTimeGapMinutes": 0,
     "modes": ["CW", "SSB", "RTTY", "FT8"],
     "bands": ["160m", "80m", "40m", "20m", "15m", "10m", "6m", "2m"],
-    "url": "https://www.arrlmiss.org/msqp",
+    "url": "https://arrlmiss.org/mississippi-qso-party/",
+    "sponsorEmail": "w5xx@arrl.net",
+    "__sponsorContact_comment": "Rules also list w5ue@arrl.net for questions",
     "categories": {
       "stations": ["SINGLE_OP", "MULTI_OP", "MOBILE", "PORTABLE"],
       "power": [],

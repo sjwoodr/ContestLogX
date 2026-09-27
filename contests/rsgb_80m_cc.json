@@ -11,6 +11,7 @@
     "modes": ["CW", "SSB", "PSK63", "RTTY"],
     "bands": ["80m"],
     "url": "https://www.rsgbcc.org/hf/rules/2026/r80mcc.shtml",
+    "sponsorEmail": "hf.query@rsgbcc.org",
     "categories": {
       "stations": ["SINGLE_OP", "MULTI_OP"],
       "power": ["LOW_POWER", "QRP"],
