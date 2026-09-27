@@ -4,8 +4,8 @@
 #   make              - Build with parallel jobs (default: nproc)
 #   make JOBS=4       - Build with 4 parallel jobs
 #   make info         - Display project statistics
-#   make test         - Run unit tests
-#   make test-logs    - Run automated contest log tests (parallel, default 4 workers)
+#   make test         - Build, then run unit tests
+#   make test-logs    - Build, then run automated contest log tests (parallel, default 4 workers)
 #   make test-logs-headless - Run automated contest log tests in headless mode (no display required)
 #   make test-logs-headless WORKERS=8 - Run with 8 parallel workers
 #   make clean        - Clean build artifacts
@@ -56,20 +56,21 @@ clean:
 info:
 	@scripts/project_info.sh
 
-# Run unit tests
-test: build/Makefile
+# Run unit tests. Depends on all so the app and test binaries are rebuilt
+# first - ctest alone runs whatever binaries are already in build/.
+test: all
 	@echo "Running unit tests..."
 	cd build && ctest --output-on-failure
 	@echo "Cleaning up test artifacts..."
 	rm -rf build/Testing/
 
 # Run automated contest log tests
-test-logs: clx
+test-logs: all
 	@echo "Running automated contest log tests..."
 	@python3 -u scripts/run_log_tests.py --workers $(WORKERS)
 
 # Run automated contest log tests in headless mode (no display required)
-test-logs-headless: clx
+test-logs-headless: all
 	@echo "Running automated contest log tests in headless mode..."
 	@QT_QPA_PLATFORM=offscreen python3 -u scripts/run_log_tests.py --workers $(WORKERS)
 
