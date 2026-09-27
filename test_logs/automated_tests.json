@@ -88,7 +88,8 @@
     {
       "name": "Winter Field Day",
       "log_file": "test_wfd_mixed_log.clx",
-      "expected_score": 658
+      "__comment": "546 = 78 pts x 7. Was 658 while FM QSOs were wrongly scored at the digital value (2) instead of phone (1); 16 valid FM QSOs.",
+      "expected_score": 546
     },
     {
       "name": "ARRL Field Day 3A (53 QSOs incl 3 dupes, no multipliers, Phone/CW/Digital point values, LOW power x2)",
@@ -519,6 +520,16 @@
       "name": "AZQP non-AZ op W9NE IN (9 QSOs incl 1 dupe, AZ counties per band per mode, county-line mobile logged twice, mobile AE4NOQ re-worked from a new county, K7A +100 once)",
       "log_file": "test_azqp_nonaz.clx",
       "expected_score": 205
+    },
+    {
+      "name": "PAQP PA mobile AD1TOX/M (15 QSOs incl 1 dupe, CW 2 / Phone 1, SSB then FM on 2m is a dupe, multsOnce sections+counties+DX, EPA/WPA auto-credited after a PA county, county-changing mobile re-worked, own move MGY -> BUX re-opens stations, +500 for MGY with 11 QSOs, none for BUX with 3; QRP doubles the 24 x 13 but not the bonus)",
+      "log_file": "test_paqp_pa_mobile.clx",
+      "expected_score": 1124
+    },
+    {
+      "name": "PAQP non-PA QRP W9NE (7 QSOs incl 1 dupe, PA counties once per contest, mobile re-worked from a new county, QRP doubles QSO points)",
+      "log_file": "test_paqp_nonpa_qrp.clx",
+      "expected_score": 80
     }
   ]
 }

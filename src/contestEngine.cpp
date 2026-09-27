@@ -373,7 +373,21 @@ void ContestEngine::cacheContestProperties()
             QJsonObject vals = sm["values"].toObject();
             for (auto it = vals.begin(); it != vals.end(); ++it)
                 m_cachedScoreMultiplierValues[it.key()] = it.value().toInt(1);
+            m_cachedScoreMultiplierQsoPointsOnly = (sm["appliesTo"].toString() == "qsoPoints");
         }
+    }
+
+    m_cachedActivationPromptId.clear();
+    m_cachedActivationValues.clear();
+    m_cachedActivationPoints = 0;
+    m_cachedActivationMinQsos = 1;
+    if (m_contestDef["scoring"].toObject().contains("activationBonus")) {
+        QJsonObject ab = m_contestDef["scoring"].toObject()["activationBonus"].toObject();
+        m_cachedActivationPromptId = ab["promptId"].toString();
+        for (const QJsonValue& v : ab["values"].toArray())
+            m_cachedActivationValues.append(v.toString());
+        m_cachedActivationPoints = ab["pointsEach"].toInt(0);
+        m_cachedActivationMinQsos = ab["minQsos"].toInt(1);
     }
 
     // Whether the callsign itself is a multiplier
@@ -1628,7 +1642,11 @@ QString ContestEngine::dupeScopeKey(const QsoRecord& qso, const QString& dupeSco
         // QSO parties: once per band per mode per county. A county-line or
         // mobile station sending a different county (EXCHr) is a new QSO, and
         // so is every QSO after our own mobile moves county (EXCHs).
-        return qso.getBand() + "_" + qso.getMode() + "_" + qso.getExchangeField("EXCHr").toUpper()
+        // Mode by category: SSB, FM and AM are all phone (PAQP 6.c.2).
+        const QString norm = ModeUtils::normalizeMode(qso.getMode());
+        const QString modeCat = (norm == "CW") ? QStringLiteral("CW")
+                              : ModeUtils::isDigital(norm) ? QStringLiteral("DIG") : QStringLiteral("PH");
+        return qso.getBand() + "_" + modeCat + "_" + qso.getExchangeField("EXCHr").toUpper()
                + "_" + qso.getExchangeField("EXCHs").toUpper();
     }
     return QString();  // overall
@@ -2416,8 +2434,11 @@ int ContestEngine::getPointsForMode(const QString& mode) const
             QString modeUpper = ModeUtils::normalizeMode(mode);
             if (modeUpper == "CW" && points.contains("cw")) {
                 return points["cw"].toInt();
-            } else if ((modeUpper == "SSB" || modeUpper == "USB" || modeUpper == "LSB") 
+            } else if ((modeUpper == "SSB" || modeUpper == "USB" || modeUpper == "LSB"
+                        || modeUpper == "FM" || modeUpper == "AM")
                        && points.contains("phone")) {
+                // FM and AM are voice modes too - previously they fell through
+                // to the digital value (or the 1-point default).
                 return points["phone"].toInt();
             } else if (points.contains("digital")) {
                 return points["digital"].toInt();
@@ -3302,6 +3323,22 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
         }
     }
     
+    // Activation bonus (PAQP mobiles/rovers): points for each county we sent
+    // (EXCHs) with at least minQsos valid QSOs.
+    if (m_cachedActivationPoints > 0 && !m_cachedActivationPromptId.isEmpty()
+            && m_cachedActivationValues.contains(getUserPromptValue(m_cachedActivationPromptId))) {
+        QHash<QString, int> qsosBySent;
+        for (const QsoRecord& qso : qsos) {
+            if (qso.isDupe() || qso.isOutOfBand()) continue;
+            const QString sent = qso.getExchangeField("EXCHs").trimmed().toUpper();
+            if (!sent.isEmpty()) qsosBySent[sent]++;
+        }
+        for (auto it = qsosBySent.constBegin(); it != qsosBySent.constEnd(); ++it) {
+            if (it.value() >= m_cachedActivationMinQsos)
+                m_runningScore.bonusPoints += m_cachedActivationPoints;
+        }
+    }
+
     QStringList multCategories = getMultiplierCategories();
     m_runningScore.maxScoredMults = m_cachedMaxScoredMults;
     
@@ -3355,8 +3392,16 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
         QString promptValue = getUserPromptValue(m_cachedScoreMultiplierPromptId);
         if (m_cachedScoreMultiplierValues.contains(promptValue)) {
             m_runningScore.scoreMultiplier = m_cachedScoreMultiplierValues[promptValue];
-            if (m_runningScore.scoreMultiplier != 1)
-                m_runningScore.contestScore *= m_runningScore.scoreMultiplier;
+            if (m_runningScore.scoreMultiplier != 1) {
+                if (m_cachedScoreMultiplierQsoPointsOnly) {
+                    // Only the QSO-points x mults part is multiplied; bonus points are not.
+                    const int qsoPart = m_runningScore.contestScore - m_runningScore.bonusPoints;
+                    m_runningScore.contestScore = qsoPart * m_runningScore.scoreMultiplier
+                                                  + m_runningScore.bonusPoints;
+                } else {
+                    m_runningScore.contestScore *= m_runningScore.scoreMultiplier;
+                }
+            }
         }
     }
 

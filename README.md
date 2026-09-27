@@ -99,6 +99,7 @@ Most contest loggers are Windows-only, closed-source, or locked to a fixed set o
 | Ohio QSO Party | `ohqp.json` |
 | OK-OM DX Contest | `okomdx.json` |
 | Oceania DX Contest (Phone and CW) | `ocdx.json` |
+| Pennsylvania QSO Party | `paqp.json` |
 | North American QSO Party (CW/SSB/RTTY) | `naqp.json` |
 | Russian DX Contest | `rdxc.json` |
 | SP DX Contest | `spdx.json` |

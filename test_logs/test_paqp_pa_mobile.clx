@@ -1,0 +1,296 @@
+{
+ "format": "ContestLogX",
+ "format_version": "1.0",
+ "created": "2026-10-10T16:01:00Z",
+ "modified": "2026-10-10T16:15:00Z",
+ "contest": {
+  "name": "Pennsylvania QSO Party",
+  "abbreviation": "PAQP",
+  "contest_file": "paqp.json",
+  "version": "1.0.0",
+  "year": 2026,
+  "categories": {
+   "userPrompt_stationType": "PA",
+   "userPrompt_myExchange": "BUX",
+   "userPrompt_operatingCategory": "MOBILE-SO",
+   "userPrompt_powerCategory": "QRP"
+  }
+ },
+ "station": {
+  "callsign": "AD1TOX/M",
+  "operator": "STEVE"
+ },
+ "statistics": {},
+ "qsos": [
+  {
+   "id": 1,
+   "serial": 1,
+   "timestamp": "2026-10-10T16:01:00Z",
+   "frequency": 14040,
+   "band": "20m",
+   "mode": "CW",
+   "callsign": "W9NE",
+   "duplicate": false,
+   "exchange_fields": {
+    "CALL": "W9NE",
+    "SNs": "1",
+    "EXCHs": "MGY",
+    "SNr": "12",
+    "EXCHr": "IN"
+   },
+   "points": 0
+  },
+  {
+   "id": 2,
+   "serial": 2,
+   "timestamp": "2026-10-10T16:02:00Z",
+   "frequency": 14040,
+   "band": "20m",
+   "mode": "CW",
+   "callsign": "AE4NOQ",
+   "duplicate": false,
+   "exchange_fields": {
+    "CALL": "AE4NOQ",
+    "SNs": "2",
+    "EXCHs": "MGY",
+    "SNr": "31",
+    "EXCHr": "NC"
+   },
+   "points": 0
+  },
+  {
+   "id": 3,
+   "serial": 3,
+   "timestamp": "2026-10-10T16:03:00Z",
+   "frequency": 14040,
+   "band": "20m",
+   "mode": "CW",
+   "callsign": "N7WDT",
+   "duplicate": false,
+   "exchange_fields": {
+    "CALL": "N7WDT",
+    "SNs": "3",
+    "EXCHs": "MGY",
+    "SNr": "8",
+    "EXCHr": "AZ"
+   },
+   "points": 0
+  },
+  {
+   "id": 4,
+   "serial": 4,
+   "timestamp": "2026-10-10T16:04:00Z",
+   "frequency": 14040,
+   "band": "20m",
+   "mode": "CW",
+   "callsign": "VO1TW",
+   "duplicate": false,
+   "exchange_fields": {
+    "CALL": "VO1TW",
+    "SNs": "4",
+    "EXCHs": "MGY",
+    "SNr": "44",
+    "EXCHr": "NL"
+   },
+   "points": 0
+  },
+  {
+   "id": 5,
+   "serial": 5,
+   "timestamp": "2026-10-10T16:05:00Z",
+   "frequency": 14250,
+   "band": "20m",
+   "mode": "SSB",
+   "callsign": "VA5YZ",
+   "duplicate": false,
+   "exchange_fields": {
+    "CALL": "VA5YZ",
+    "SNs": "5",
+    "EXCHs": "MGY",
+    "SNr": "19",
+    "EXCHr": "SK"
+   },
+   "points": 0
+  },
+  {
+   "id": 6,
+   "serial": 6,
+   "timestamp": "2026-10-10T16:06:00Z",
+   "frequency": 14250,
+   "band": "20m",
+   "mode": "SSB",
+   "callsign": "DL4EX",
+   "duplicate": false,
+   "exchange_fields": {
+    "CALL": "DL4EX",
+    "SNs": "6",
+    "EXCHs": "MGY",
+    "SNr": "102",
+    "EXCHr": "DX"
+   },
+   "points": 0
+  },
+  {
+   "id": 7,
+   "serial": 7,
+   "timestamp": "2026-10-10T16:07:00Z",
+   "frequency": 14040,
+   "band": "20m",
+   "mode": "CW",
+   "callsign": "JR9YP",
+   "duplicate": false,
+   "exchange_fields": {
+    "CALL": "JR9YP",
+    "SNs": "7",
+    "EXCHs": "MGY",
+    "SNr": "77",
+    "EXCHr": "DX"
+   },
+   "points": 0
+  },
+  {
+   "id": 8,
+   "serial": 8,
+   "timestamp": "2026-10-10T16:08:00Z",
+   "frequency": 144200,
+   "band": "2m",
+   "mode": "SSB",
+   "callsign": "K8KT",
+   "duplicate": false,
+   "exchange_fields": {
+    "CALL": "K8KT",
+    "SNs": "8",
+    "EXCHs": "MGY",
+    "SNr": "5",
+    "EXCHr": "ALL"
+   },
+   "points": 0
+  },
+  {
+   "id": 9,
+   "serial": 9,
+   "timestamp": "2026-10-10T16:09:00Z",
+   "frequency": 146550,
+   "band": "2m",
+   "mode": "FM",
+   "callsign": "K8KT",
+   "duplicate": false,
+   "exchange_fields": {
+    "CALL": "K8KT",
+    "SNs": "9",
+    "EXCHs": "MGY",
+    "SNr": "6",
+    "EXCHr": "ALL"
+   },
+   "points": 0
+  },
+  {
+   "id": 10,
+   "serial": 10,
+   "timestamp": "2026-10-10T16:10:00Z",
+   "frequency": 7040,
+   "band": "40m",
+   "mode": "CW",
+   "callsign": "W8EE",
+   "duplicate": false,
+   "exchange_fields": {
+    "CALL": "W8EE",
+    "SNs": "10",
+    "EXCHs": "MGY",
+    "SNr": "61",
+    "EXCHr": "EMA"
+   },
+   "points": 0
+  },
+  {
+   "id": 11,
+   "serial": 11,
+   "timestamp": "2026-10-10T16:11:00Z",
+   "frequency": 7040,
+   "band": "40m",
+   "mode": "CW",
+   "callsign": "N9EZRA/M",
+   "duplicate": false,
+   "exchange_fields": {
+    "CALL": "N9EZRA/M",
+    "SNs": "11",
+    "EXCHs": "MGY",
+    "SNr": "14",
+    "EXCHr": "PHI"
+   },
+   "points": 0
+  },
+  {
+   "id": 12,
+   "serial": 12,
+   "timestamp": "2026-10-10T16:12:00Z",
+   "frequency": 7040,
+   "band": "40m",
+   "mode": "CW",
+   "callsign": "N9EZRA/M",
+   "duplicate": false,
+   "exchange_fields": {
+    "CALL": "N9EZRA/M",
+    "SNs": "12",
+    "EXCHs": "MGY",
+    "SNr": "15",
+    "EXCHr": "BUX"
+   },
+   "points": 0
+  },
+  {
+   "id": 13,
+   "serial": 13,
+   "timestamp": "2026-10-10T16:13:00Z",
+   "frequency": 14040,
+   "band": "20m",
+   "mode": "CW",
+   "callsign": "W9NE",
+   "duplicate": false,
+   "exchange_fields": {
+    "CALL": "W9NE",
+    "SNs": "13",
+    "EXCHs": "BUX",
+    "SNr": "40",
+    "EXCHr": "IN"
+   },
+   "points": 0
+  },
+  {
+   "id": 14,
+   "serial": 14,
+   "timestamp": "2026-10-10T16:14:00Z",
+   "frequency": 21300,
+   "band": "15m",
+   "mode": "SSB",
+   "callsign": "XE3KWA",
+   "duplicate": false,
+   "exchange_fields": {
+    "CALL": "XE3KWA",
+    "SNs": "14",
+    "EXCHs": "BUX",
+    "SNr": "90",
+    "EXCHr": "DX"
+   },
+   "points": 0
+  },
+  {
+   "id": 15,
+   "serial": 15,
+   "timestamp": "2026-10-10T16:15:00Z",
+   "frequency": 21040,
+   "band": "15m",
+   "mode": "CW",
+   "callsign": "VY2VK",
+   "duplicate": false,
+   "exchange_fields": {
+    "CALL": "VY2VK",
+    "SNs": "15",
+    "EXCHs": "BUX",
+    "SNr": "23",
+    "EXCHr": "PE"
+   },
+   "points": 0
+  }
+ ]
+}

@@ -12,15 +12,18 @@ All notable changes to ContestLogX are documented in this file.
 - Added the CQ World-Wide VHF Contest, both the SSB/CW/FM weekend and the Digital weekend. Exchange is the 4-character grid locator. QSOs are 1 point on 6m and 2 points on 2m, and grids count as multipliers per band. A rover that moves is a new station, and a rover's own multipliers start over in each new grid
 - Added the Oceania DX Contest, Phone and CW weekends. Exchange is RS(T) and serial number. Points depend on the band: 20 on 160m, 10 on 80m, 5 on 40m, 1 on 20m, 2 on 15m and 3 on 10m. Multipliers are WPX prefixes, counted per band. Stations outside Oceania score only with Oceania stations; other QSOs are logged but earn nothing
 - Added the Arizona QSO Party (AZQP). Arizona stations send their county and count states, provinces and DXCC entities once per mode; everyone else sends state, province or DXCC prefix and counts the 15 Arizona counties once per band and mode. CW QSOs are 2 points and Phone 1, plus a one-time 100-point bonus for working K7A. County-line and mobile stations can be worked again for each county
+- Added the Pennsylvania QSO Party (PAQP). Exchange is serial number plus PA county, ARRL/RAC section or DX. CW QSOs are 2 points and Phone 1, with SSB, FM and AM counting as one phone mode. PA stations count ARRL and Canadian sections, PA counties and one DX multiplier; everyone else counts the 67 PA counties, each once. QRP doubles QSO points, and PA mobiles and rovers earn 500 points for each county with 10 or more QSOs. The yearly bonus station is not scored
 
 ### Contest Engine Changes
 - A contest can now make contacts score nothing based on the partner's continent, such as stations outside Oceania working each other in the Oceania DX Contest. This now also withholds multipliers in contests whose multipliers are not DXCC entities
 - A QSO party can now allow a station once per band and mode per county, so county-line and mobile stations can be worked again in each county
+- A contest can now award bonus points for each county a mobile or rover activates with enough QSOs, and can apply a power multiplier to QSO points only rather than to the whole score
 - A mode-restricted contest weekend can now allow a group of modes, such as SSB, CW and FM together, or any digital mode
 - CQ zones are now a multiplier type. The zone comes from its own exchange field, so one QSO can count as a zone, a country and a state at the same time, as it does in CQ WW RTTY
 - A contest can now cap how many multipliers count toward the score (`maxScoredMultipliers`). Every multiplier worked is still tracked, and the score panel and summary sheet show both the worked count and the capped count
 
 ### Other Changes and Bugfixes
+- FM and AM QSOs now score as phone. They were scoring at the digital point value, which in Winter Field Day gave FM contacts 2 points instead of 1
 - Fixed ARRL VHF marking a station worked on a second band as a dupe. A station can now be worked once per band, and a rover can be worked again from each new grid it moves to
 - Grid multipliers now compare on the 4-character grid, so EN52AB and EN52 are the same multiplier
 - A maritime mobile (/MM) contact no longer counts as a DXCC country multiplier in any contest

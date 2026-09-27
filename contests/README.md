@@ -341,6 +341,16 @@ ARRL DX uses the prefix form (W/VE may not work W/VE); the Oceania DX Contest us
 **Dupe Scope per County (`dupeChecking.type: "perBandModeAndExchange"`):**
 For QSO parties that allow a station once per band per mode *per county*: the dupe key is band + mode + received exchange + sent exchange. A county-line station logged under each county, or a mobile that changes county, is a new QSO, and so is every QSO after your own mobile moves county (change your exchange in Contest Setup). Used by AZQP.
 
+**Activation Bonus (`scoring.activationBonus`):**
+Bonus points for each distinct sent exchange (county) with at least `minQsos` valid QSOs, when the named prompt has one of the listed values. PAQP: PA mobiles and rovers earn 500 points per county operated from with 10 or more QSOs.
+
+```json
+"activationBonus": {"promptId": "operatingCategory", "values": ["MOBILE-SO", "ROVER-SO"], "pointsEach": 500, "minQsos": 10}
+```
+
+**Score Multiplier on QSO Points Only (`scoreMultiplier.appliesTo`):**
+By default `scoreMultiplier` multiplies the whole score. With `"appliesTo": "qsoPoints"` only the QSO points x multipliers part is multiplied and bonus points are added afterwards (PAQP: QRP doubles QSO points).
+
 **Capped Multipliers (`maxScoredMultipliers`):**
 Caps how many multipliers count toward the score. Every multiplier worked is still tracked and shown, but the score uses at most this many. CQP uses 58: a California station can work 63 states and provinces, but only 58 count.
 

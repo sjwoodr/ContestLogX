@@ -244,6 +244,14 @@ private:
     // Cached contest properties - populated in loadContest(), avoids repeated JSON parsing
     QString m_cachedScoreMultiplierPromptId;
     QMap<QString, int> m_cachedScoreMultiplierValues;
+    bool m_cachedScoreMultiplierQsoPointsOnly = false;  // appliesTo "qsoPoints": bonus points not multiplied (PAQP QRP x2)
+    // scoring.activationBonus: pointsEach for every distinct sent exchange
+    // (county) with at least minQsos valid QSOs, for the listed prompt values
+    // (PAQP: 500 per county a mobile/rover activates with 10+ QSOs).
+    QString m_cachedActivationPromptId;
+    QStringList m_cachedActivationValues;
+    int m_cachedActivationPoints = 0;
+    int m_cachedActivationMinQsos = 1;
     QString m_cachedMultType;
     QString m_cachedDupeScope;
     QStringList m_cachedMultCategories;

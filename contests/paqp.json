@@ -1,0 +1,776 @@
+{
+  "contest": {
+    "name": "Pennsylvania QSO Party",
+    "abbreviation": "PAQP",
+    "version": "1.0.0",
+    "sponsor": "PA QSO Party Association",
+    "description": "Second full weekend of October in two sessions: 1600Z Saturday to 0400Z Sunday and 1300Z to 2200Z Sunday. PA stations work everyone; everyone else works PA stations. Exchange is serial number + PA county, ARRL/RAC section, or DX. CW 2 points, Phone 1 point (SSB, FM and AM count as one phone mode). PA stations count ARRL sections, Canadian sections, PA counties and one DX multiplier; everyone else counts the 67 PA counties. Multipliers count once, not per band. QRP doubles QSO points. PA mobiles and rovers earn 500 points for each county with 10 or more QSOs.",
+    "startDate": "Second full weekend of October (2026: October 10, 1600Z - October 11, 0400Z and 1300Z - 2200Z)",
+    "duration": 21,
+    "offTimeGapMinutes": 0,
+    "modes": [
+      "CW",
+      "SSB",
+      "FM",
+      "AM"
+    ],
+    "bands": [
+      "160m",
+      "80m",
+      "40m",
+      "20m",
+      "15m",
+      "10m",
+      "6m",
+      "2m",
+      "1.25m",
+      "70cm"
+    ],
+    "url": "https://paqso.org/",
+    "categories": {
+      "stations": [
+        "FIXED",
+        "PORTABLE",
+        "ROVER",
+        "MOBILE",
+        "COUNTY_LINE"
+      ],
+      "power": [
+        "HIGH",
+        "LOW",
+        "QRP"
+      ],
+      "modes": [
+        "MIXED",
+        "CW",
+        "PHONE"
+      ]
+    }
+  },
+  "frequencies": {
+    "160m": {
+      "start": 1800,
+      "end": 2000,
+      "cw": {
+        "start": 1800,
+        "end": 2000
+      },
+      "phone": {
+        "start": 1800,
+        "end": 2000
+      }
+    },
+    "80m": {
+      "start": 3500,
+      "end": 4000,
+      "cw": {
+        "start": 3500,
+        "end": 3600
+      },
+      "phone": {
+        "start": 3600,
+        "end": 4000
+      }
+    },
+    "40m": {
+      "start": 7000,
+      "end": 7300,
+      "cw": {
+        "start": 7000,
+        "end": 7125
+      },
+      "phone": {
+        "start": 7125,
+        "end": 7300
+      }
+    },
+    "20m": {
+      "start": 14000,
+      "end": 14350,
+      "cw": {
+        "start": 14000,
+        "end": 14150
+      },
+      "phone": {
+        "start": 14150,
+        "end": 14350
+      }
+    },
+    "15m": {
+      "start": 21000,
+      "end": 21450,
+      "cw": {
+        "start": 21000,
+        "end": 21200
+      },
+      "phone": {
+        "start": 21200,
+        "end": 21450
+      }
+    },
+    "10m": {
+      "start": 28000,
+      "end": 29700,
+      "cw": {
+        "start": 28000,
+        "end": 28300
+      },
+      "phone": {
+        "start": 28300,
+        "end": 29700
+      }
+    },
+    "6m": {
+      "start": 50000,
+      "end": 54000,
+      "cw": {
+        "start": 50000,
+        "end": 54000
+      },
+      "phone": {
+        "start": 50000,
+        "end": 54000
+      }
+    },
+    "2m": {
+      "start": 144000,
+      "end": 148000,
+      "cw": {
+        "start": 144000,
+        "end": 148000
+      },
+      "phone": {
+        "start": 144000,
+        "end": 148000
+      }
+    },
+    "1.25m": {
+      "start": 222000,
+      "end": 225000,
+      "cw": {
+        "start": 222000,
+        "end": 225000
+      },
+      "phone": {
+        "start": 222000,
+        "end": 225000
+      }
+    },
+    "70cm": {
+      "start": 420000,
+      "end": 450000,
+      "cw": {
+        "start": 420000,
+        "end": 450000
+      },
+      "phone": {
+        "start": 420000,
+        "end": 450000
+      }
+    }
+  },
+  "stationClasses": {
+    "enabled": false
+  },
+  "userPrompts": [
+    {
+      "id": "stationType",
+      "question": "Select your station location",
+      "type": "select",
+      "options": [
+        {
+          "value": "PA",
+          "label": "Pennsylvania - send your PA county"
+        },
+        {
+          "value": "NONPA",
+          "label": "Outside Pennsylvania - send your ARRL/RAC section, or DX"
+        }
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "PA stations work everyone and count sections, counties and DX. Everyone else works PA stations and counts PA counties."
+    },
+    {
+      "id": "myExchange",
+      "question": "Enter your QTH (PA county e.g. MGY, ARRL/RAC section e.g. IN or ONS, or DX)",
+      "type": "text",
+      "required": true,
+      "forceUppercase": true,
+      "storeInMeta": true,
+      "description": "Mobiles and rovers: change this in Contest Setup when you move to a new county - every station can then be worked again. County-line stations: log one QSO per county.",
+      "exchangeFieldMapping": {
+        "myExchange": "EXCHs"
+      }
+    },
+    {
+      "id": "operatingCategory",
+      "question": "Select your entry division",
+      "type": "select",
+      "options": [
+        {
+          "value": "SO-CW",
+          "label": "Single Op - CW"
+        },
+        {
+          "value": "SO-PH",
+          "label": "Single Op - Phone"
+        },
+        {
+          "value": "SO-MIXED",
+          "label": "Single Op - Mixed Mode"
+        },
+        {
+          "value": "MULTI",
+          "label": "Multi Op"
+        },
+        {
+          "value": "PORTABLE-SO",
+          "label": "Portable - Single Op (PA only)"
+        },
+        {
+          "value": "PORTABLE-MULTI",
+          "label": "Portable - Multi Op (PA only)"
+        },
+        {
+          "value": "ROVER-SO",
+          "label": "Rover - Single Op (PA only)"
+        },
+        {
+          "value": "ROVER-MULTI",
+          "label": "Rover - Multi Op (PA only)"
+        },
+        {
+          "value": "MOBILE-SO",
+          "label": "Mobile - Single Op (PA only)"
+        },
+        {
+          "value": "MOBILE-MULTI",
+          "label": "Mobile - Multi Op (PA only)"
+        },
+        {
+          "value": "COUNTYLINE-SO",
+          "label": "County Line - Single Op (PA only)"
+        },
+        {
+          "value": "COUNTYLINE-MULTI",
+          "label": "County Line - Multi Op (PA only)"
+        }
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "Mobile and Rover entries earn 500 bonus points for each PA county operated from with 10 or more valid QSOs."
+    },
+    {
+      "id": "powerCategory",
+      "question": "Select your power category (highest power used)",
+      "type": "select",
+      "options": [
+        {
+          "value": "HP",
+          "label": "High Power (more than 100W)"
+        },
+        {
+          "value": "LP",
+          "label": "Low Power (more than 5W, up to 100W)"
+        },
+        {
+          "value": "QRP",
+          "label": "QRP (5W maximum) - QSO points x 2"
+        }
+      ],
+      "required": true,
+      "storeInMeta": true
+    }
+  ],
+  "exchangeFields": {
+    "sent": [
+      {
+        "name": "SNs",
+        "type": "serial",
+        "required": true,
+        "description": "Serial number sent"
+      },
+      {
+        "name": "EXCHs",
+        "type": "string",
+        "required": true,
+        "description": "PA county, ARRL/RAC section, or DX"
+      }
+    ],
+    "received": [
+      {
+        "name": "SNr",
+        "type": "serial",
+        "required": true,
+        "description": "Serial number received"
+      },
+      {
+        "name": "EXCHr",
+        "type": "string",
+        "required": true,
+        "description": "PA county (from PA stations), ARRL/RAC section, or DX"
+      }
+    ]
+  },
+  "qsoFields": [
+    {
+      "name": "Date",
+      "column": "DATE",
+      "type": "date",
+      "format": "yyyy-MM-dd",
+      "required": true
+    },
+    {
+      "name": "Time",
+      "column": "TIME",
+      "type": "time",
+      "format": "HH:mm:ss",
+      "required": true
+    },
+    {
+      "name": "Callsign",
+      "column": "CALL",
+      "type": "string",
+      "required": true,
+      "uppercase": true
+    },
+    {
+      "name": "Frequency",
+      "column": "FREQ",
+      "type": "number",
+      "unit": "kHz",
+      "required": true
+    },
+    {
+      "name": "Mode",
+      "column": "MODE",
+      "type": "enum",
+      "values": [
+        "CW",
+        "SSB",
+        "FM",
+        "AM"
+      ],
+      "required": true
+    },
+    {
+      "name": "Nr Sent",
+      "column": "SNs",
+      "type": "number",
+      "required": true
+    },
+    {
+      "name": "QTH Sent",
+      "column": "EXCHs",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "Nr Rcvd",
+      "column": "SNr",
+      "type": "number",
+      "required": true
+    },
+    {
+      "name": "QTH Rcvd",
+      "column": "EXCHr",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "Points",
+      "column": "POINTS",
+      "type": "number",
+      "calculated": true
+    },
+    {
+      "name": "Mult",
+      "column": "M",
+      "type": "string",
+      "calculated": true
+    }
+  ],
+  "scoring": {
+    "points": {
+      "__comment": "CW 2 points, Phone 1 point (SSB, FM, AM).",
+      "cw": 2,
+      "phone": 1
+    },
+    "multipliers": {
+      "__comment": "Counted once, not per band. PA stations: 71 ARRL sections + 14 Canadian sections + 67 PA counties + 1 DX. EPA and WPA are credited automatically once a PA county is worked (the sponsor adds them during rescoring; PA stations send counties, never sections). Non-PA stations: the 67 PA counties.",
+      "type": "multsOnce",
+      "description": "PA: sections, counties and DX. Non-PA: PA counties. Counted once each",
+      "categories": [
+        "namedMults"
+      ],
+      "automaticMultipliers": {
+        "promptId": "stationType",
+        "rules": {
+          "PA": [
+            "EPA",
+            "WPA"
+          ]
+        },
+        "requiresWorkedFrom": "inStateMults"
+      },
+      "namedMultsLabels": {
+        "PA": "Sections/Counties/DX",
+        "NONPA": "PA Counties"
+      }
+    },
+    "scoreMultiplier": {
+      "__comment": "QRP doubles QSO points only - bonus points are not doubled.",
+      "promptId": "powerCategory",
+      "values": {
+        "QRP": 2,
+        "LP": 1,
+        "HP": 1
+      },
+      "appliesTo": "qsoPoints"
+    },
+    "activationBonus": {
+      "__comment": "PA Mobile and Rover: 500 points for each PA county operated from with at least 10 valid QSOs.",
+      "promptId": "operatingCategory",
+      "values": [
+        "ROVER-SO",
+        "ROVER-MULTI",
+        "MOBILE-SO",
+        "MOBILE-MULTI"
+      ],
+      "pointsEach": 500,
+      "minQsos": 10
+    },
+    "finalScore": "SUM(points) * SUM(multipliers) + bonus"
+  },
+  "dupeChecking": {
+    "type": "perBandModeAndExchange",
+    "description": "Once per band and mode (SSB, FM and AM are one phone mode). Mobiles, rovers and county-line stations may be worked again for each county, and so may every station after your own mobile or rover changes county."
+  },
+  "logging": {
+    "requiredFields": [
+      "date",
+      "time",
+      "frequency",
+      "mode",
+      "callsign",
+      "serialSent",
+      "exchSent",
+      "serialReceived",
+      "exchReceived"
+    ],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "PA-QSO-PARTY",
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {SNs} {EXCHs} {call} {SNr} {EXCHr}",
+      "requiredHeaders": [
+        "CONTEST",
+        "CALLSIGN",
+        "LOCATION",
+        "CATEGORY-OPERATOR",
+        "CATEGORY-POWER",
+        "CATEGORY-MODE",
+        "CATEGORY-STATION",
+        "CATEGORY-TRANSMITTER",
+        "CLAIMED-SCORE",
+        "CLUB",
+        "CREATED-BY",
+        "NAME",
+        "ADDRESS",
+        "EMAIL",
+        "OPERATORS",
+        "SOAPBOX"
+      ],
+      "notes": "Set CATEGORY-STATION to FIXED, PORTABLE, MOBILE or ROVER; County Line is selected on the log submission page."
+    }
+  },
+  "callHistory": {
+    "fieldsToSave": [
+      "EXCHr"
+    ],
+    "description": "Save county/section for future autofill"
+  },
+  "validation": {
+    "minimumQSOs": 1,
+    "maxOperatingTime": 21,
+    "offTimesRequired": false,
+    "namedMults": [
+      "ADA",
+      "ALL",
+      "ARM",
+      "BEA",
+      "BED",
+      "BER",
+      "BLA",
+      "BRA",
+      "BUX",
+      "BUT",
+      "CMB",
+      "CRN",
+      "CAR",
+      "CEN",
+      "CHE",
+      "CLA",
+      "CLE",
+      "CLI",
+      "COL",
+      "CRA",
+      "CUM",
+      "DAU",
+      "DCO",
+      "ELK",
+      "ERI",
+      "FAY",
+      "FUL",
+      "FOR",
+      "FRA",
+      "GRE",
+      "HUN",
+      "INN",
+      "JEF",
+      "JUN",
+      "LAC",
+      "LAN",
+      "LAW",
+      "LEB",
+      "LEH",
+      "LUZ",
+      "LYC",
+      "MCK",
+      "MER",
+      "MIF",
+      "MOE",
+      "MGY",
+      "MTR",
+      "NHA",
+      "NUM",
+      "PER",
+      "PHI",
+      "PIK",
+      "POT",
+      "SCH",
+      "SNY",
+      "SOM",
+      "SUL",
+      "SUS",
+      "TIO",
+      "UNI",
+      "VEN",
+      "WAR",
+      "WAS",
+      "WAY",
+      "WES",
+      "WYO",
+      "YOR",
+      "CO",
+      "IA",
+      "KS",
+      "MN",
+      "MO",
+      "ND",
+      "NE",
+      "SD",
+      "CT",
+      "EMA",
+      "ME",
+      "NH",
+      "RI",
+      "VT",
+      "WMA",
+      "ENY",
+      "NLI",
+      "NNJ",
+      "NNY",
+      "SNJ",
+      "WNY",
+      "DE",
+      "EPA",
+      "MDC",
+      "WPA",
+      "AL",
+      "GA",
+      "KY",
+      "NC",
+      "NFL",
+      "PR",
+      "SC",
+      "SFL",
+      "TN",
+      "VA",
+      "VI",
+      "WCF",
+      "AR",
+      "LA",
+      "MS",
+      "NM",
+      "NTX",
+      "OK",
+      "STX",
+      "WTX",
+      "EB",
+      "LAX",
+      "ORG",
+      "PAC",
+      "SB",
+      "SCV",
+      "SDG",
+      "SF",
+      "SJV",
+      "SV",
+      "AK",
+      "AZ",
+      "EWA",
+      "ID",
+      "MT",
+      "NV",
+      "OR",
+      "UT",
+      "WWA",
+      "WY",
+      "MI",
+      "OH",
+      "WV",
+      "IL",
+      "IN",
+      "WI",
+      "AB",
+      "BC",
+      "GH",
+      "MB",
+      "NB",
+      "NL",
+      "NS",
+      "ONE",
+      "ONN",
+      "ONS",
+      "PE",
+      "QC",
+      "SK",
+      "TER",
+      "DX"
+    ],
+    "inStateMults": [
+      "ADA",
+      "ALL",
+      "ARM",
+      "BEA",
+      "BED",
+      "BER",
+      "BLA",
+      "BRA",
+      "BUX",
+      "BUT",
+      "CMB",
+      "CRN",
+      "CAR",
+      "CEN",
+      "CHE",
+      "CLA",
+      "CLE",
+      "CLI",
+      "COL",
+      "CRA",
+      "CUM",
+      "DAU",
+      "DCO",
+      "ELK",
+      "ERI",
+      "FAY",
+      "FUL",
+      "FOR",
+      "FRA",
+      "GRE",
+      "HUN",
+      "INN",
+      "JEF",
+      "JUN",
+      "LAC",
+      "LAN",
+      "LAW",
+      "LEB",
+      "LEH",
+      "LUZ",
+      "LYC",
+      "MCK",
+      "MER",
+      "MIF",
+      "MOE",
+      "MGY",
+      "MTR",
+      "NHA",
+      "NUM",
+      "PER",
+      "PHI",
+      "PIK",
+      "POT",
+      "SCH",
+      "SNY",
+      "SOM",
+      "SUL",
+      "SUS",
+      "TIO",
+      "UNI",
+      "VEN",
+      "WAR",
+      "WAS",
+      "WAY",
+      "WES",
+      "WYO",
+      "YOR"
+    ],
+    "exchangeValidation": {
+      "type": "namedMultOnly",
+      "description": "PA stations: PA county, ARRL/RAC section, or DX. Non-PA stations: the received exchange must be a PA county."
+    },
+    "receivedExchangeFilter": {
+      "promptId": "stationType",
+      "rules": {
+        "NONPA": "inStateMults"
+      }
+    }
+  },
+  "ui": {
+    "showMultiplierPanel": true,
+    "logColumns": [
+      "DATE",
+      "TIME",
+      "CALL",
+      "FREQ",
+      "MODE",
+      "SNs",
+      "EXCHs",
+      "SNr",
+      "EXCHr",
+      "POINTS",
+      "M",
+      "COMMENT"
+    ],
+    "entryFields": [
+      "CALL",
+      "SNr",
+      "EXCHr"
+    ],
+    "fieldNavigation": {
+      "keys": "tab"
+    },
+    "bandMap": {
+      "enabled": true,
+      "bands": [
+        "160m",
+        "80m",
+        "40m",
+        "20m",
+        "15m",
+        "10m",
+        "6m",
+        "2m",
+        "1.25m",
+        "70cm"
+      ]
+    },
+    "multiplierDisplay": {
+      "showCounties": true,
+      "showSections": true
+    }
+  }
+}
