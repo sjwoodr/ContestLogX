@@ -1,0 +1,503 @@
+{
+  "contest": {
+    "name": "CQ World Wide 160-Meter Contest",
+    "abbreviation": "CQ160",
+    "version": "1.0.0",
+    "sponsor": "CQ Magazine",
+    "description": "Top band only. CW is the last full weekend of January, SSB the last full weekend of February, scored as separate contests, each 2200Z Friday to 2200Z Sunday. Exchange is RS(T) + state (USA), province (Canada) or CQ zone (DX - a location only, not a multiplier). 2 points own country, 5 points same continent, 10 points other continent, 5 points maritime mobile. Multipliers once: 48 states + DC, 14 Canadian areas (VO1 and VO2 separate), and DXCC + WAE countries. USA and Canada do not count as countries.",
+    "startDate": "CW: last full weekend of January (2026: January 23-25); SSB: last full weekend of February (2026: February 27 - March 1). 2200Z Friday - 2200Z Sunday",
+    "duration": 48,
+    "offTimeGapMinutes": 30,
+    "modes": [
+      "CW",
+      "SSB"
+    ],
+    "bands": [
+      "160m"
+    ],
+    "url": "https://cq160.com/rules.htm",
+    "categories": {
+      "stations": [
+        "SINGLE_OP",
+        "SINGLE_OP_ASSISTED",
+        "MULTI_OP"
+      ],
+      "power": [
+        "HIGH",
+        "LOW",
+        "QRP"
+      ],
+      "modes": [
+        "CW",
+        "SSB"
+      ]
+    }
+  },
+  "frequencies": {
+    "160m": {
+      "start": 1800,
+      "end": 2000,
+      "cw": {
+        "start": 1800,
+        "end": 2000
+      },
+      "phone": {
+        "start": 1800,
+        "end": 2000
+      }
+    }
+  },
+  "stationClasses": {
+    "enabled": false
+  },
+  "userPrompts": [
+    {
+      "id": "contestMode",
+      "question": "Which contest weekend are you entering?",
+      "type": "select",
+      "options": [
+        {
+          "value": "CW",
+          "label": "CW (last full weekend of January)"
+        },
+        {
+          "value": "SSB",
+          "label": "SSB (last full weekend of February)"
+        }
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "restrictMode": true,
+      "description": "CW and SSB are separate contests with separate logs and results. Only the selected mode may be used."
+    },
+    {
+      "id": "myExchange",
+      "question": "Enter your QTH (US state, Canadian province, or your CQ zone if DX)",
+      "type": "text",
+      "required": true,
+      "forceUppercase": true,
+      "storeInMeta": true,
+      "description": "USA: state abbreviation (e.g. IN) or DC. Canada: NB NS PE QC ON MB SK AB BC NT YT NU, or NF (VO1) / LB (VO2). Everyone else, including Alaska and Hawaii: your CQ zone number.",
+      "exchangeFieldMapping": {
+        "myExchange": "EXCHs"
+      }
+    },
+    {
+      "id": "operatingCategory",
+      "question": "Select your operating category",
+      "type": "select",
+      "options": [
+        {
+          "value": "SO-HP",
+          "label": "(A) Single Operator - High Power (30 hours max)"
+        },
+        {
+          "value": "SO-LP",
+          "label": "(B) Single Operator - Low Power, 100W (30 hours max)"
+        },
+        {
+          "value": "QRP",
+          "label": "(C) QRP, 5W - assistance allowed (30 hours max)"
+        },
+        {
+          "value": "SOA-HP",
+          "label": "(D) Single Operator Assisted - High Power (30 hours max)"
+        },
+        {
+          "value": "SOA-LP",
+          "label": "(E) Single Operator Assisted - Low Power, 100W (30 hours max)"
+        },
+        {
+          "value": "MULTI",
+          "label": "(F) Multi-Operator - High Power only (40 hours max)"
+        },
+        {
+          "value": "CHECKLOG",
+          "label": "Checklog"
+        }
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "Single operators may operate 30 of the 48 hours and multi-op 40, with off-times of at least 30 minutes."
+    }
+  ],
+  "exchangeFields": {
+    "sent": [
+      {
+        "name": "RST",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report sent (599 CW / 59 SSB)"
+      },
+      {
+        "name": "EXCHs",
+        "type": "string",
+        "required": true,
+        "description": "Your state, province, or CQ zone (DX)"
+      }
+    ],
+    "received": [
+      {
+        "name": "RST",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report received"
+      },
+      {
+        "name": "EXCHr",
+        "type": "string",
+        "required": true,
+        "description": "State (USA), province (Canada) or CQ zone (DX)"
+      }
+    ]
+  },
+  "qsoFields": [
+    {
+      "name": "Date",
+      "column": "DATE",
+      "type": "date",
+      "format": "yyyy-MM-dd",
+      "required": true
+    },
+    {
+      "name": "Time",
+      "column": "TIME",
+      "type": "time",
+      "format": "HH:mm:ss",
+      "required": true
+    },
+    {
+      "name": "Callsign",
+      "column": "CALL",
+      "type": "string",
+      "required": true,
+      "uppercase": true
+    },
+    {
+      "name": "Frequency",
+      "column": "FREQ",
+      "type": "number",
+      "unit": "kHz",
+      "required": true
+    },
+    {
+      "name": "Mode",
+      "column": "MODE",
+      "type": "enum",
+      "values": [
+        "CW",
+        "SSB"
+      ],
+      "required": true
+    },
+    {
+      "name": "RST Sent",
+      "column": "RSTs",
+      "type": "string",
+      "required": true,
+      "default": "599"
+    },
+    {
+      "name": "RST Rcvd",
+      "column": "RSTr",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "Exch Sent",
+      "column": "EXCHs",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "Exch Rcvd",
+      "column": "EXCHr",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "Points",
+      "column": "POINTS",
+      "type": "number",
+      "calculated": true
+    },
+    {
+      "name": "Mult",
+      "column": "M",
+      "type": "string",
+      "calculated": true
+    }
+  ],
+  "scoring": {
+    "mobilePoints": 5,
+    "mobileSuffixes": [
+      "/MM"
+    ],
+    "points": {
+      "__comment": "2 points own country, 5 points same continent, 10 points other continent. Maritime mobile (/MM) is 5 points via mobilePoints and earns no multiplier.",
+      "sameDxccEntity": {
+        "CW": 2,
+        "SSB": 2
+      },
+      "sameContinent": {
+        "CW": 5,
+        "SSB": 5
+      },
+      "differentContinent": {
+        "CW": 10,
+        "SSB": 10
+      }
+    },
+    "precedence": [
+      "sameDxccEntity",
+      "sameContinent",
+      "differentContinent"
+    ],
+    "multipliers": {
+      "__comment": "Once for the contest: namedMults (48 states + DC + 14 Canadian areas) from EXCHr, plus DXCC + WAE countries. usAndCanadaCountDxcc false: W and VE count only as their state/province. AK and HI are countries (they send a zone, or AK/HI, which map to a sentinel). DX zones map to the same sentinel, so a zone is never a multiplier.",
+      "type": "multsOnce",
+      "description": "US states + DC, Canadian areas and DX countries, each counted once",
+      "categories": [
+        "namedMults",
+        "dxcc"
+      ],
+      "includeWaeEntities": true,
+      "usAndCanadaCountDxcc": false,
+      "alaskaAndHawaiiCountDxcc": false,
+      "namedMultsLabel": "States/Provinces"
+    },
+    "finalScore": "SUM(points) * (namedMults + dxccMultipliers)"
+  },
+  "dupeChecking": {
+    "type": "overall",
+    "description": "Each station may be worked once (one band, one mode per contest)"
+  },
+  "logging": {
+    "requiredFields": [
+      "date",
+      "time",
+      "frequency",
+      "mode",
+      "callsign",
+      "rstSent",
+      "rstReceived",
+      "exchSent",
+      "exchReceived"
+    ],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "CQ-160-CW",
+      "contestMapping": {
+        "CW": "CQ-160-CW",
+        "SSB": "CQ-160-SSB"
+      },
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {rst_sent} {EXCHs} {call} {rst_rcvd} {EXCHr}",
+      "requiredHeaders": [
+        "CONTEST",
+        "CALLSIGN",
+        "LOCATION",
+        "CATEGORY-OPERATOR",
+        "CATEGORY-ASSISTED",
+        "CATEGORY-BAND",
+        "CATEGORY-MODE",
+        "CATEGORY-POWER",
+        "CATEGORY-TRANSMITTER",
+        "CLAIMED-SCORE",
+        "CLUB",
+        "CREATED-BY",
+        "NAME",
+        "ADDRESS",
+        "EMAIL",
+        "OPERATORS",
+        "SOAPBOX"
+      ]
+    }
+  },
+  "callHistory": {
+    "fieldsToSave": [
+      "EXCHr"
+    ],
+    "description": "Save state/province/zone for future autofill"
+  },
+  "validation": {
+    "minimumQSOs": 1,
+    "maxOperatingTime": 40,
+    "offTimesRequired": false,
+    "namedMults": [
+      "AL",
+      "AZ",
+      "AR",
+      "CA",
+      "CO",
+      "CT",
+      "DE",
+      "FL",
+      "GA",
+      "ID",
+      "IL",
+      "IN",
+      "IA",
+      "KS",
+      "KY",
+      "LA",
+      "ME",
+      "MD",
+      "MA",
+      "MI",
+      "MN",
+      "MS",
+      "MO",
+      "MT",
+      "NE",
+      "NV",
+      "NH",
+      "NJ",
+      "NM",
+      "NY",
+      "NC",
+      "ND",
+      "OH",
+      "OK",
+      "OR",
+      "PA",
+      "RI",
+      "SC",
+      "SD",
+      "TN",
+      "TX",
+      "UT",
+      "VT",
+      "VA",
+      "WA",
+      "WV",
+      "WI",
+      "WY",
+      "DC",
+      "NB",
+      "NS",
+      "PE",
+      "QC",
+      "ON",
+      "MB",
+      "SK",
+      "AB",
+      "BC",
+      "NT",
+      "YT",
+      "NU",
+      "NF",
+      "LB"
+    ],
+    "namedMultAliases": {
+      "PEI": "PE",
+      "NWT": "NT",
+      "NL": "NF",
+      "VE1": "NS",
+      "VE2": "QC",
+      "VE3": "ON",
+      "VE4": "MB",
+      "VE5": "SK",
+      "VE6": "AB",
+      "VE7": "BC",
+      "VE8": "NT",
+      "VE9": "NB",
+      "VY0": "NU",
+      "VY1": "YT",
+      "VY2": "PE",
+      "VO1": "NF",
+      "VO2": "LB",
+      "1": "__ZONE__",
+      "01": "__ZONE__",
+      "2": "__ZONE__",
+      "02": "__ZONE__",
+      "3": "__ZONE__",
+      "03": "__ZONE__",
+      "4": "__ZONE__",
+      "04": "__ZONE__",
+      "5": "__ZONE__",
+      "05": "__ZONE__",
+      "6": "__ZONE__",
+      "06": "__ZONE__",
+      "7": "__ZONE__",
+      "07": "__ZONE__",
+      "8": "__ZONE__",
+      "08": "__ZONE__",
+      "9": "__ZONE__",
+      "09": "__ZONE__",
+      "10": "__ZONE__",
+      "11": "__ZONE__",
+      "12": "__ZONE__",
+      "13": "__ZONE__",
+      "14": "__ZONE__",
+      "15": "__ZONE__",
+      "16": "__ZONE__",
+      "17": "__ZONE__",
+      "18": "__ZONE__",
+      "19": "__ZONE__",
+      "20": "__ZONE__",
+      "21": "__ZONE__",
+      "22": "__ZONE__",
+      "23": "__ZONE__",
+      "24": "__ZONE__",
+      "25": "__ZONE__",
+      "26": "__ZONE__",
+      "27": "__ZONE__",
+      "28": "__ZONE__",
+      "29": "__ZONE__",
+      "30": "__ZONE__",
+      "31": "__ZONE__",
+      "32": "__ZONE__",
+      "33": "__ZONE__",
+      "34": "__ZONE__",
+      "35": "__ZONE__",
+      "36": "__ZONE__",
+      "37": "__ZONE__",
+      "38": "__ZONE__",
+      "39": "__ZONE__",
+      "40": "__ZONE__",
+      "DX": "__ZONE__",
+      "AK": "__ZONE__",
+      "HI": "__ZONE__"
+    },
+    "exchangeValidation": {
+      "type": "namedMultOnly",
+      "description": "State, DC, Canadian area, or a CQ zone number 1-40 (DX). Call-area forms like VE3 or VO1, and PEI/NWT/NL, are accepted and mapped; NL maps to NF (VO1) - log LB for VO2."
+    }
+  },
+  "ui": {
+    "showMultiplierPanel": true,
+    "logColumns": [
+      "DATE",
+      "TIME",
+      "CALL",
+      "FREQ",
+      "MODE",
+      "RSTs",
+      "RSTr",
+      "EXCHs",
+      "EXCHr",
+      "POINTS",
+      "M",
+      "COMMENT"
+    ],
+    "entryFields": [
+      "CALL",
+      "RSTr",
+      "EXCHr"
+    ],
+    "fieldNavigation": {
+      "keys": "tab"
+    },
+    "bandMap": {
+      "enabled": true,
+      "bands": [
+        "160m"
+      ]
+    },
+    "multiplierDisplay": {
+      "showStates": true,
+      "showProvinces": true,
+      "showDXCC": true
+    }
+  }
+}

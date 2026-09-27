@@ -1,0 +1,226 @@
+{
+ "format": "ContestLogX",
+ "format_version": "1.0",
+ "created": "2026-02-27T22:01:00Z",
+ "modified": "2026-02-27T22:10:00Z",
+ "contest": {
+  "name": "CQ World Wide 160-Meter Contest",
+  "abbreviation": "CQ160",
+  "mode": "SSB",
+  "contest_file": "cq160.json",
+  "version": "1.0.0",
+  "year": 2026,
+  "categories": {
+   "userPrompt_contestMode": "SSB",
+   "userPrompt_myExchange": "14",
+   "userPrompt_operatingCategory": "SO-LP"
+  }
+ },
+ "station": {
+  "callsign": "DJ8WG",
+  "operator": "STEVE"
+ },
+ "statistics": {},
+ "qsos": [
+  {
+   "id": 1,
+   "serial": 1,
+   "timestamp": "2026-02-27T22:01:00Z",
+   "frequency": 1850,
+   "band": "160m",
+   "mode": "SSB",
+   "callsign": "DL0TW",
+   "duplicate": false,
+   "rst_sent": "59",
+   "rst_received": "59",
+   "exchange_fields": {
+    "CALL": "DL0TW",
+    "RSTs": "59",
+    "RSTr": "59",
+    "EXCHs": "14",
+    "EXCHr": "14"
+   },
+   "points": 0
+  },
+  {
+   "id": 2,
+   "serial": 2,
+   "timestamp": "2026-02-27T22:02:00Z",
+   "frequency": 1850,
+   "band": "160m",
+   "mode": "SSB",
+   "callsign": "F8SWE",
+   "duplicate": false,
+   "rst_sent": "59",
+   "rst_received": "59",
+   "exchange_fields": {
+    "CALL": "F8SWE",
+    "RSTs": "59",
+    "RSTr": "59",
+    "EXCHs": "14",
+    "EXCHr": "14"
+   },
+   "points": 0
+  },
+  {
+   "id": 3,
+   "serial": 3,
+   "timestamp": "2026-02-27T22:03:00Z",
+   "frequency": 1850,
+   "band": "160m",
+   "mode": "SSB",
+   "callsign": "F0AK",
+   "duplicate": false,
+   "rst_sent": "59",
+   "rst_received": "59",
+   "exchange_fields": {
+    "CALL": "F0AK",
+    "RSTs": "59",
+    "RSTr": "59",
+    "EXCHs": "14",
+    "EXCHr": "14"
+   },
+   "points": 0
+  },
+  {
+   "id": 4,
+   "serial": 4,
+   "timestamp": "2026-02-27T22:04:00Z",
+   "frequency": 1850,
+   "band": "160m",
+   "mode": "SSB",
+   "callsign": "AD1TOX",
+   "duplicate": false,
+   "rst_sent": "59",
+   "rst_received": "59",
+   "exchange_fields": {
+    "CALL": "AD1TOX",
+    "RSTs": "59",
+    "RSTr": "59",
+    "EXCHs": "14",
+    "EXCHr": "MA"
+   },
+   "points": 0
+  },
+  {
+   "id": 5,
+   "serial": 5,
+   "timestamp": "2026-02-27T22:05:00Z",
+   "frequency": 1850,
+   "band": "160m",
+   "mode": "SSB",
+   "callsign": "N7WDT",
+   "duplicate": false,
+   "rst_sent": "59",
+   "rst_received": "59",
+   "exchange_fields": {
+    "CALL": "N7WDT",
+    "RSTs": "59",
+    "RSTr": "59",
+    "EXCHs": "14",
+    "EXCHr": "CA"
+   },
+   "points": 0
+  },
+  {
+   "id": 6,
+   "serial": 6,
+   "timestamp": "2026-02-27T22:06:00Z",
+   "frequency": 1850,
+   "band": "160m",
+   "mode": "SSB",
+   "callsign": "K8KT",
+   "duplicate": false,
+   "rst_sent": "59",
+   "rst_received": "59",
+   "exchange_fields": {
+    "CALL": "K8KT",
+    "RSTs": "59",
+    "RSTr": "59",
+    "EXCHs": "14",
+    "EXCHr": "OH"
+   },
+   "points": 0
+  },
+  {
+   "id": 7,
+   "serial": 7,
+   "timestamp": "2026-02-27T22:07:00Z",
+   "frequency": 1850,
+   "band": "160m",
+   "mode": "SSB",
+   "callsign": "VO1TW",
+   "duplicate": false,
+   "rst_sent": "59",
+   "rst_received": "59",
+   "exchange_fields": {
+    "CALL": "VO1TW",
+    "RSTs": "59",
+    "RSTr": "59",
+    "EXCHs": "14",
+    "EXCHr": "VO1"
+   },
+   "points": 0
+  },
+  {
+   "id": 8,
+   "serial": 8,
+   "timestamp": "2026-02-27T22:08:00Z",
+   "frequency": 1850,
+   "band": "160m",
+   "mode": "SSB",
+   "callsign": "VA5YZ",
+   "duplicate": false,
+   "rst_sent": "59",
+   "rst_received": "59",
+   "exchange_fields": {
+    "CALL": "VA5YZ",
+    "RSTs": "59",
+    "RSTr": "59",
+    "EXCHs": "14",
+    "EXCHr": "SK"
+   },
+   "points": 0
+  },
+  {
+   "id": 9,
+   "serial": 9,
+   "timestamp": "2026-02-27T22:09:00Z",
+   "frequency": 1850,
+   "band": "160m",
+   "mode": "SSB",
+   "callsign": "JA5SU",
+   "duplicate": false,
+   "rst_sent": "59",
+   "rst_received": "59",
+   "exchange_fields": {
+    "CALL": "JA5SU",
+    "RSTs": "59",
+    "RSTr": "59",
+    "EXCHs": "14",
+    "EXCHr": "25"
+   },
+   "points": 0
+  },
+  {
+   "id": 10,
+   "serial": 10,
+   "timestamp": "2026-02-27T22:10:00Z",
+   "frequency": 1850,
+   "band": "160m",
+   "mode": "SSB",
+   "callsign": "F8SWE",
+   "duplicate": false,
+   "rst_sent": "59",
+   "rst_received": "59",
+   "exchange_fields": {
+    "CALL": "F8SWE",
+    "RSTs": "59",
+    "RSTr": "59",
+    "EXCHs": "14",
+    "EXCHr": "14"
+   },
+   "points": 0
+  }
+ ]
+}

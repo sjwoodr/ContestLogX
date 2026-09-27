@@ -474,6 +474,16 @@
       "name": "CQ WW SSB DX op DJ8WG zone 14 (10 QSOs incl 1 dupe, own country 0 pts with mults, same continent 1 pt, other continents 3 pts, zone 5 and 05 are the same mult, per-band re-credit on 15m)",
       "log_file": "test_cqww_ssb.clx",
       "expected_score": 234
+    },
+    {
+      "name": "CQ 160 CW W op W9NE IN (12 QSOs incl 1 dupe - once per contest, 2/5/10 pts own country/continent/other, /MM 5 pts no mult, multsOnce states+DC+Canadian areas+DX countries, W/VE not countries, VY2 maps to PE, VO1/VO2 separate, DX zone is not a mult)",
+      "log_file": "test_cq160_cw.clx",
+      "expected_score": 549
+    },
+    {
+      "name": "CQ 160 SSB DX op DJ8WG zone 14 (10 QSOs incl 1 dupe, own country 2 pts, EU 5 pts, NA/AS 10 pts, states and provinces are mults for DX too, VO1 maps to NF)",
+      "log_file": "test_cq160_ssb.clx",
+      "expected_score": 576
     }
   ]
 }

@@ -1413,9 +1413,9 @@ QList<ContestEngine::MultiplierInfo> ContestEngine::getMultipliersWithCategory(c
             }
         }
 
-        // CQ contests: maritime mobile counts for a zone mult only, never a country.
-        if (shouldAddDxcc && m_cachedMultCategories.contains("cqZones")
-                && qso.getCall().toUpper().endsWith("/MM")) {
+        // Maritime mobile is not in any DXCC entity, so it never earns a country
+        // mult (CQ WW: zone only; CQ 160: no mult at all).
+        if (shouldAddDxcc && qso.getCall().toUpper().endsWith("/MM")) {
             shouldAddDxcc = false;
         }
 

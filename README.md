@@ -75,6 +75,7 @@ Most contest loggers are Windows-only, closed-source, or locked to a fixed set o
 | ARRL VHF | `arrl_vhf.json` |
 | California QSO Party | `cqp.json` |
 | Colorado QSO Party | `coqp.json` |
+| CQ World Wide 160-Meter Contest (CW and SSB) | `cq160.json` |
 | CQ World Wide RTTY DX Contest | `cqww_rtty.json` |
 | CQ World-Wide DX Contest (CW and SSB) | `cqww.json` |
 | CWops Mini-CWT | `cwops_cwt.json` |
