@@ -904,30 +904,10 @@ int ContestEngine::calculatePoints(const QsoRecord& qso, const QString& myCallsi
 
         // Check if the partner station is an invalid contact for this station class
         // (e.g., W/VE stations may not work other W/VE stations in ARRL DX)
-        if (scoring.contains("invalidPartners")) {
-            QJsonObject invalidPartners = scoring["invalidPartners"].toObject();
-            // Resolve effective class: formal station class or userPrompt value
-            QString effectiveClass = m_stationClass;
-            if (effectiveClass.isEmpty()) {
-                for (const QString& ipKey : invalidPartners.keys()) {
-                    if (ipKey.startsWith("_")) continue;
-                    for (const QString& pv : m_userPromptValues.values()) {
-                        if (pv == ipKey) { effectiveClass = ipKey; break; }
-                    }
-                    if (!effectiveClass.isEmpty()) break;
-                }
-            }
-            if (!effectiveClass.isEmpty() && invalidPartners.contains(effectiveClass)) {
-                QString theirPrefix = theirEntity.primaryPrefix;
-                for (const QJsonValue& v : invalidPartners[effectiveClass].toArray()) {
-                    if (v.toString() == theirPrefix) {
-                        DebugLogger::instance().log("ContestEngine",
-                            QString("  Partner %1 (%2) is invalid for station class %3 - 0 points")
-                                .arg(theirCall).arg(theirPrefix).arg(effectiveClass));
-                        return 0;
-                    }
-                }
-            }
+        if (isInvalidPartner(qso)) {
+            DebugLogger::instance().log("ContestEngine",
+                QString("  Partner %1 is invalid for this station class - 0 points").arg(theirCall));
+            return 0;
         }
 
         // Check if worked station's callsign suffix overrides mode-based points
@@ -1321,34 +1301,10 @@ QList<ContestEngine::MultiplierInfo> ContestEngine::getMultipliersWithCategory(c
     QList<MultiplierInfo> result;
 
     // Check if the partner station is invalid for this station class (no mults awarded)
-    if (m_cachedDxccIsMult && m_dxccDatabase) {
-        QJsonObject scoring = m_contestDef["scoring"].toObject();
-        if (scoring.contains("invalidPartners")) {
-            QJsonObject invalidPartners = scoring["invalidPartners"].toObject();
-            // Resolve effective class: formal station class or userPrompt value
-            QString effectiveClass = m_stationClass;
-            if (effectiveClass.isEmpty()) {
-                for (const QString& ipKey : invalidPartners.keys()) {
-                    if (ipKey.startsWith("_")) continue;
-                    for (const QString& pv : m_userPromptValues.values()) {
-                        if (pv == ipKey) { effectiveClass = ipKey; break; }
-                    }
-                    if (!effectiveClass.isEmpty()) break;
-                }
-            }
-            if (!effectiveClass.isEmpty() && invalidPartners.contains(effectiveClass)) {
-                DxccEntity theirEntity = dxccLookup(qso.getCall());
-                QString theirPrefix = theirEntity.primaryPrefix;
-                for (const QJsonValue& v : invalidPartners[effectiveClass].toArray()) {
-                    if (v.toString() == theirPrefix) {
-                        DebugLogger::instance().log("ContestEngine",
-                            QString("  Partner %1 (%2) is invalid for station class %3 - no mults")
-                                .arg(qso.getCall()).arg(theirPrefix).arg(effectiveClass));
-                        return result;  // empty
-                    }
-                }
-            }
-        }
+    if (isInvalidPartner(qso)) {
+        DebugLogger::instance().log("ContestEngine",
+            QString("  Partner %1 is invalid for this station class - no mults").arg(qso.getCall()));
+        return result;  // empty
     }
 
     if (m_cachedCallsignIsMult) {
@@ -1667,6 +1623,45 @@ QString ContestEngine::dupeScopeKey(const QsoRecord& qso, const QString& dupeSco
                + "_" + qso.getExchangeField("GRIDs").left(4).toUpper();
     }
     return QString();  // overall
+}
+
+bool ContestEngine::isInvalidPartner(const QsoRecord& qso) const
+{
+    if (!m_dxccDatabase || !m_dxccDatabase->isLoaded())
+        return false;
+    const QJsonObject scoring = m_contestDef["scoring"].toObject();
+    if (!scoring.contains("invalidPartners"))
+        return false;
+    const QJsonObject invalidPartners = scoring["invalidPartners"].toObject();
+
+    // Resolve effective class: formal station class or userPrompt value
+    QString effectiveClass = m_stationClass;
+    if (effectiveClass.isEmpty()) {
+        for (const QString& ipKey : invalidPartners.keys()) {
+            if (ipKey.startsWith("_")) continue;
+            if (m_userPromptValues.values().contains(ipKey)) { effectiveClass = ipKey; break; }
+        }
+    }
+    if (effectiveClass.isEmpty() || !invalidPartners.contains(effectiveClass))
+        return false;
+
+    // Entries are DXCC primary prefixes ("K", "VE"), or a continent test:
+    // "continent:NA" (partner is in NA) / "notContinent:OC" (partner is not in
+    // OC - OCDX: non-Oceania stations score only with Oceania stations).
+    const DxccEntity theirEntity = dxccLookup(m_dxccDatabase->stripPortableSuffixes(qso.getCall()));
+    for (const QJsonValue& v : invalidPartners[effectiveClass].toArray()) {
+        const QString rule = v.toString();
+        if (rule.startsWith("notContinent:")) {
+            if (!theirEntity.continent.isEmpty() && theirEntity.continent != rule.mid(13))
+                return true;
+        } else if (rule.startsWith("continent:")) {
+            if (theirEntity.continent == rule.mid(10))
+                return true;
+        } else if (rule == theirEntity.primaryPrefix) {
+            return true;
+        }
+    }
+    return false;
 }
 
 bool ContestEngine::isRoverOperator() const

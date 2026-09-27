@@ -1,0 +1,266 @@
+{
+ "format": "ContestLogX",
+ "format_version": "1.0",
+ "created": "2026-10-10T06:01:00Z",
+ "modified": "2026-10-10T06:12:00Z",
+ "contest": {
+  "name": "Oceania DX Contest",
+  "abbreviation": "OCDX",
+  "mode": "CW",
+  "contest_file": "ocdx.json",
+  "version": "1.0.0",
+  "year": 2026,
+  "categories": {
+   "userPrompt_contestMode": "CW",
+   "userPrompt_stationLocation": "NONOC",
+   "userPrompt_operatingCategory": "SO-LP"
+  }
+ },
+ "station": {
+  "callsign": "W9NE",
+  "operator": "STEVE"
+ },
+ "statistics": {},
+ "qsos": [
+  {
+   "id": 1,
+   "serial": 1,
+   "timestamp": "2026-10-10T06:01:00Z",
+   "frequency": 14020,
+   "band": "20m",
+   "mode": "CW",
+   "callsign": "VK6HH",
+   "duplicate": false,
+   "rst_sent": "599",
+   "rst_received": "599",
+   "exchange_fields": {
+    "CALL": "VK6HH",
+    "RSTs": "599",
+    "RSTr": "599",
+    "SNs": "001",
+    "SNr": "012"
+   },
+   "points": 0
+  },
+  {
+   "id": 2,
+   "serial": 2,
+   "timestamp": "2026-10-10T06:02:00Z",
+   "frequency": 14020,
+   "band": "20m",
+   "mode": "CW",
+   "callsign": "VK4JU",
+   "duplicate": false,
+   "rst_sent": "599",
+   "rst_received": "599",
+   "exchange_fields": {
+    "CALL": "VK4JU",
+    "RSTs": "599",
+    "RSTr": "599",
+    "SNs": "002",
+    "SNr": "033"
+   },
+   "points": 0
+  },
+  {
+   "id": 3,
+   "serial": 3,
+   "timestamp": "2026-10-10T06:03:00Z",
+   "frequency": 14020,
+   "band": "20m",
+   "mode": "CW",
+   "callsign": "ZL4HUB",
+   "duplicate": false,
+   "rst_sent": "599",
+   "rst_received": "599",
+   "exchange_fields": {
+    "CALL": "ZL4HUB",
+    "RSTs": "599",
+    "RSTr": "599",
+    "SNs": "003",
+    "SNr": "041"
+   },
+   "points": 0
+  },
+  {
+   "id": 4,
+   "serial": 4,
+   "timestamp": "2026-10-10T06:04:00Z",
+   "frequency": 14020,
+   "band": "20m",
+   "mode": "CW",
+   "callsign": "DL4EX",
+   "duplicate": false,
+   "rst_sent": "599",
+   "rst_received": "599",
+   "exchange_fields": {
+    "CALL": "DL4EX",
+    "RSTs": "599",
+    "RSTr": "599",
+    "SNs": "004",
+    "SNr": "101"
+   },
+   "points": 0
+  },
+  {
+   "id": 5,
+   "serial": 5,
+   "timestamp": "2026-10-10T06:05:00Z",
+   "frequency": 14020,
+   "band": "20m",
+   "mode": "CW",
+   "callsign": "AD1TOX",
+   "duplicate": false,
+   "rst_sent": "599",
+   "rst_received": "599",
+   "exchange_fields": {
+    "CALL": "AD1TOX",
+    "RSTs": "599",
+    "RSTr": "599",
+    "SNs": "005",
+    "SNr": "055"
+   },
+   "points": 0
+  },
+  {
+   "id": 6,
+   "serial": 6,
+   "timestamp": "2026-10-10T06:06:00Z",
+   "frequency": 14020,
+   "band": "20m",
+   "mode": "CW",
+   "callsign": "VK6HH",
+   "duplicate": false,
+   "rst_sent": "599",
+   "rst_received": "599",
+   "exchange_fields": {
+    "CALL": "VK6HH",
+    "RSTs": "599",
+    "RSTr": "599",
+    "SNs": "006",
+    "SNr": "012"
+   },
+   "points": 0
+  },
+  {
+   "id": 7,
+   "serial": 7,
+   "timestamp": "2026-10-10T06:07:00Z",
+   "frequency": 7020,
+   "band": "40m",
+   "mode": "CW",
+   "callsign": "VK6HH",
+   "duplicate": false,
+   "rst_sent": "599",
+   "rst_received": "599",
+   "exchange_fields": {
+    "CALL": "VK6HH",
+    "RSTs": "599",
+    "RSTr": "599",
+    "SNs": "007",
+    "SNr": "150"
+   },
+   "points": 0
+  },
+  {
+   "id": 8,
+   "serial": 8,
+   "timestamp": "2026-10-10T06:08:00Z",
+   "frequency": 7020,
+   "band": "40m",
+   "mode": "CW",
+   "callsign": "VK3JF",
+   "duplicate": false,
+   "rst_sent": "599",
+   "rst_received": "599",
+   "exchange_fields": {
+    "CALL": "VK3JF",
+    "RSTs": "599",
+    "RSTr": "599",
+    "SNs": "008",
+    "SNr": "077"
+   },
+   "points": 0
+  },
+  {
+   "id": 9,
+   "serial": 9,
+   "timestamp": "2026-10-10T06:09:00Z",
+   "frequency": 21020,
+   "band": "15m",
+   "mode": "CW",
+   "callsign": "ZL4HUB",
+   "duplicate": false,
+   "rst_sent": "599",
+   "rst_received": "599",
+   "exchange_fields": {
+    "CALL": "ZL4HUB",
+    "RSTs": "599",
+    "RSTr": "599",
+    "SNs": "009",
+    "SNr": "190"
+   },
+   "points": 0
+  },
+  {
+   "id": 10,
+   "serial": 10,
+   "timestamp": "2026-10-10T06:10:00Z",
+   "frequency": 28020,
+   "band": "10m",
+   "mode": "CW",
+   "callsign": "VK3JF",
+   "duplicate": false,
+   "rst_sent": "599",
+   "rst_received": "599",
+   "exchange_fields": {
+    "CALL": "VK3JF",
+    "RSTs": "599",
+    "RSTr": "599",
+    "SNs": "010",
+    "SNr": "201"
+   },
+   "points": 0
+  },
+  {
+   "id": 11,
+   "serial": 11,
+   "timestamp": "2026-10-10T06:11:00Z",
+   "frequency": 1820,
+   "band": "160m",
+   "mode": "CW",
+   "callsign": "VK4JU",
+   "duplicate": false,
+   "rst_sent": "599",
+   "rst_received": "599",
+   "exchange_fields": {
+    "CALL": "VK4JU",
+    "RSTs": "599",
+    "RSTr": "599",
+    "SNs": "011",
+    "SNr": "250"
+   },
+   "points": 0
+  },
+  {
+   "id": 12,
+   "serial": 12,
+   "timestamp": "2026-10-10T06:12:00Z",
+   "frequency": 3520,
+   "band": "80m",
+   "mode": "CW",
+   "callsign": "ZL4HUB",
+   "duplicate": false,
+   "rst_sent": "599",
+   "rst_received": "599",
+   "exchange_fields": {
+    "CALL": "ZL4HUB",
+    "RSTs": "599",
+    "RSTr": "599",
+    "SNs": "012",
+    "SNr": "260"
+   },
+   "points": 0
+  }
+ ]
+}

@@ -263,6 +263,9 @@ private:
     QString m_cachedRoverPromptId;
     QStringList m_cachedRoverValues;
     bool isRoverOperator() const;
+    // scoring.invalidPartners: true when this QSO's partner may not be worked
+    // for credit by the operator's class (0 points, no mults).
+    bool isInvalidPartner(const QsoRecord& qso) const;
     // Scope key for dupe checking: two QSOs with the same call are dupes when
     // their keys match. Shared by isDupe, getDupeReason and rescoreAll.
     QString dupeScopeKey(const QsoRecord& qso, const QString& dupeScope) const;

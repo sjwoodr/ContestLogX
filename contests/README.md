@@ -326,6 +326,18 @@ For grid-square contests where a rover's multipliers count again from each grid 
 }
 ```
 
+**Invalid Partners (`scoring.invalidPartners`):**
+Contacts that an operator's class may not score. Keys are station class ids or userPrompt values; each lists partners that earn 0 points and no multipliers. An entry is a cty.dat primary prefix (`"K"`, `"VE"`), `"continent:XX"` (partner is in continent XX) or `"notContinent:XX"` (partner is outside continent XX). The QSO is still logged and exported.
+
+```json
+"invalidPartners": {
+  "W_VE": ["K", "VE"],
+  "NONOC": ["notContinent:OC"]
+}
+```
+
+ARRL DX uses the prefix form (W/VE may not work W/VE); the Oceania DX Contest uses `notContinent:OC` (stations outside Oceania score only with Oceania).
+
 **Capped Multipliers (`maxScoredMultipliers`):**
 Caps how many multipliers count toward the score. Every multiplier worked is still tracked and shown, but the score uses at most this many. CQP uses 58: a California station can work 63 states and provinces, but only 58 count.
 

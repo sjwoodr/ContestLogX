@@ -499,6 +499,16 @@
       "name": "CQ WW VHF rover N7WDT/R Digital weekend (6 FT8 QSOs incl 1 dupe, stations workable again after the rover moves EN52 -> EN51, grid mults count again per own grid)",
       "log_file": "test_cqww_vhf_rover.clx",
       "expected_score": 30
+    },
+    {
+      "name": "OCDX CW non-Oceania op W9NE (12 QSOs incl 1 dupe, QSOs with non-OC DL4EX and AD1TOX score 0 and no mult, band points 160=20/80=10/40=5/20=1/15=2/10=3, WPX prefixes per band)",
+      "log_file": "test_ocdx_nonoc.clx",
+      "expected_score": 432
+    },
+    {
+      "name": "OCDX SSB Oceania op VK2QRB (10 QSOs incl 1 dupe, OC works everyone, K8KT/4 counts as prefix K4, per-band prefix re-credit on 15m)",
+      "log_file": "test_ocdx_oc.clx",
+      "expected_score": 99
     }
   ]
 }

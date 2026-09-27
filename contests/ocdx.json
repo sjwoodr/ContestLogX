@@ -1,0 +1,419 @@
+{
+  "contest": {
+    "name": "Oceania DX Contest",
+    "abbreviation": "OCDX",
+    "version": "1.0.0",
+    "sponsor": "Oceania DX Contest Committee (WIA / NZART)",
+    "description": "Promotes HF contacts with Oceania (VK, ZL, KH6, YB, DU, 9M6, the Pacific islands). Phone is the first full weekend of October, CW the second, 06:00 UTC Saturday to 06:00 UTC Sunday, scored as separate contests. Oceania stations work everyone; everyone else works Oceania only - non-Oceania to non-Oceania QSOs score no points or multipliers. Exchange is RS(T) + serial number. Points by band: 160m 20, 80m 10, 40m 5, 20m 1, 15m 2, 10m 3. Multipliers are WPX prefixes per band.",
+    "startDate": "Phone: first full weekend of October (2026: October 3-4); CW: second full weekend (2026: October 10-11). 0600 UTC Sat - 0600 UTC Sun",
+    "duration": 24,
+    "offTimeGapMinutes": 0,
+    "modes": [
+      "CW",
+      "SSB"
+    ],
+    "bands": [
+      "160m",
+      "80m",
+      "40m",
+      "20m",
+      "15m",
+      "10m"
+    ],
+    "url": "https://www.oceaniadxcontest.com/",
+    "categories": {
+      "stations": [
+        "SINGLE_OP",
+        "MULTI_ONE",
+        "MULTI_TWO",
+        "MULTI_MULTI"
+      ],
+      "power": [
+        "HIGH",
+        "LOW",
+        "QRP"
+      ],
+      "modes": [
+        "CW",
+        "SSB"
+      ]
+    }
+  },
+  "frequencies": {
+    "160m": {
+      "start": 1800,
+      "end": 2000,
+      "cw": {
+        "start": 1800,
+        "end": 1850
+      },
+      "phone": {
+        "start": 1840,
+        "end": 2000
+      }
+    },
+    "80m": {
+      "start": 3500,
+      "end": 4000,
+      "cw": {
+        "start": 3500,
+        "end": 3600
+      },
+      "phone": {
+        "start": 3600,
+        "end": 4000
+      }
+    },
+    "40m": {
+      "start": 7000,
+      "end": 7300,
+      "cw": {
+        "start": 7000,
+        "end": 7125
+      },
+      "phone": {
+        "start": 7050,
+        "end": 7300
+      }
+    },
+    "20m": {
+      "start": 14000,
+      "end": 14350,
+      "cw": {
+        "start": 14000,
+        "end": 14150
+      },
+      "phone": {
+        "start": 14100,
+        "end": 14350
+      }
+    },
+    "15m": {
+      "start": 21000,
+      "end": 21450,
+      "cw": {
+        "start": 21000,
+        "end": 21200
+      },
+      "phone": {
+        "start": 21150,
+        "end": 21450
+      }
+    },
+    "10m": {
+      "start": 28000,
+      "end": 29700,
+      "cw": {
+        "start": 28000,
+        "end": 28300
+      },
+      "phone": {
+        "start": 28300,
+        "end": 29700
+      }
+    }
+  },
+  "stationClasses": {
+    "enabled": false
+  },
+  "userPrompts": [
+    {
+      "id": "contestMode",
+      "question": "Which contest weekend are you entering?",
+      "type": "select",
+      "options": [
+        {
+          "value": "SSB",
+          "label": "Phone (first full weekend of October)"
+        },
+        {
+          "value": "CW",
+          "label": "CW (second full weekend of October)"
+        }
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "restrictMode": true,
+      "description": "Phone and CW are separate contests with separate logs and results. Only the selected mode may be used."
+    },
+    {
+      "id": "stationLocation",
+      "question": "Is your station in Oceania?",
+      "type": "select",
+      "options": [
+        {
+          "value": "OC",
+          "label": "Oceania (VK, ZL, KH6, YB, DU, 9M6, Pacific islands...) - work everyone"
+        },
+        {
+          "value": "NONOC",
+          "label": "Outside Oceania - only QSOs with Oceania stations score"
+        }
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "Outside Oceania, QSOs with other non-Oceania stations are logged but score no points or multipliers."
+    },
+    {
+      "id": "operatingCategory",
+      "question": "Select your operating category",
+      "type": "select",
+      "options": [
+        {
+          "value": "SO-HP",
+          "label": "Single Operator - High Power (1500W PEP)"
+        },
+        {
+          "value": "SO-LP",
+          "label": "Single Operator - Low Power (100W PEP)"
+        },
+        {
+          "value": "SO-QRP",
+          "label": "Single Operator - QRP (5W PEP)"
+        },
+        {
+          "value": "M1",
+          "label": "Multi-Operator Single Transmitter (10 band changes per hour)"
+        },
+        {
+          "value": "M2",
+          "label": "Multi-Operator Two Transmitters"
+        },
+        {
+          "value": "MM",
+          "label": "Multi-Operator Multi-Transmitter"
+        },
+        {
+          "value": "CHECKLOG",
+          "label": "Check Log"
+        }
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "Single operators may enter all bands or a single band (set CATEGORY-BAND in the Cabrillo export). Spotting assistance is allowed in all categories."
+    }
+  ],
+  "exchangeFields": {
+    "sent": [
+      {
+        "name": "RST",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report sent"
+      },
+      {
+        "name": "SNs",
+        "type": "serial",
+        "required": true,
+        "description": "Serial number sent, starting at 001"
+      }
+    ],
+    "received": [
+      {
+        "name": "RST",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report received"
+      },
+      {
+        "name": "SNr",
+        "type": "serial",
+        "required": true,
+        "description": "Serial number received (log 001 if the station sent none)"
+      }
+    ]
+  },
+  "qsoFields": [
+    {
+      "name": "Date",
+      "column": "DATE",
+      "type": "date",
+      "format": "yyyy-MM-dd",
+      "required": true
+    },
+    {
+      "name": "Time",
+      "column": "TIME",
+      "type": "time",
+      "format": "HH:mm:ss",
+      "required": true
+    },
+    {
+      "name": "Callsign",
+      "column": "CALL",
+      "type": "string",
+      "required": true,
+      "uppercase": true
+    },
+    {
+      "name": "Frequency",
+      "column": "FREQ",
+      "type": "number",
+      "unit": "kHz",
+      "required": true
+    },
+    {
+      "name": "Mode",
+      "column": "MODE",
+      "type": "enum",
+      "values": [
+        "CW",
+        "SSB"
+      ],
+      "required": true
+    },
+    {
+      "name": "RST Sent",
+      "column": "RSTs",
+      "type": "string",
+      "required": true,
+      "default": "599"
+    },
+    {
+      "name": "Nr Sent",
+      "column": "SNs",
+      "type": "number",
+      "required": true
+    },
+    {
+      "name": "RST Rcvd",
+      "column": "RSTr",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "Nr Rcvd",
+      "column": "SNr",
+      "type": "number",
+      "required": true
+    },
+    {
+      "name": "Points",
+      "column": "POINTS",
+      "type": "number",
+      "calculated": true
+    },
+    {
+      "name": "Mult",
+      "column": "M",
+      "type": "string",
+      "calculated": true
+    }
+  ],
+  "scoring": {
+    "invalidPartners": {
+      "__comment": "Non-Oceania stations score only with Oceania stations: any partner outside OC is 0 points and no multiplier.",
+      "NONOC": [
+        "notContinent:OC"
+      ]
+    },
+    "points": {
+      "__comment": "Points depend only on band.",
+      "byBand": {
+        "160m": 20,
+        "80m": 10,
+        "40m": 5,
+        "20m": 1,
+        "15m": 2,
+        "10m": 3
+      }
+    },
+    "multipliers": {
+      "__comment": "WPX prefixes (same rules as CQ WPX), each counted once per band.",
+      "type": "multsPerBand",
+      "description": "Different WPX prefixes worked, each counted once per band",
+      "categories": [
+        "wpxPrefix"
+      ]
+    },
+    "finalScore": "SUM(points) * wpxPrefix"
+  },
+  "dupeChecking": {
+    "type": "perBand",
+    "description": "A station may be worked once on each band. Log dupes - do not delete them"
+  },
+  "logging": {
+    "requiredFields": [
+      "date",
+      "time",
+      "frequency",
+      "mode",
+      "callsign",
+      "rstSent",
+      "rstReceived",
+      "serialSent",
+      "serialReceived"
+    ],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "OCEANIA-DX-SSB",
+      "contestMapping": {
+        "SSB": "OCEANIA-DX-SSB",
+        "CW": "OCEANIA-DX-CW"
+      },
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {rst_sent} {SNs} {call} {rst_rcvd} {SNr}",
+      "requiredHeaders": [
+        "CONTEST",
+        "CALLSIGN",
+        "CATEGORY-OPERATOR",
+        "CATEGORY-BAND",
+        "CATEGORY-MODE",
+        "CATEGORY-POWER",
+        "CATEGORY-TRANSMITTER",
+        "CLAIMED-SCORE",
+        "CLUB",
+        "CREATED-BY",
+        "NAME",
+        "ADDRESS",
+        "EMAIL",
+        "OPERATORS",
+        "SOAPBOX"
+      ],
+      "notes": "Name the log file callsign.log (e.g. zl2wb.log)."
+    }
+  },
+  "callHistory": {
+    "fieldsToSave": [],
+    "description": "Serial numbers change every QSO - nothing to save"
+  },
+  "validation": {
+    "minimumQSOs": 1,
+    "maxOperatingTime": 24,
+    "offTimesRequired": false
+  },
+  "ui": {
+    "logColumns": [
+      "DATE",
+      "TIME",
+      "CALL",
+      "FREQ",
+      "MODE",
+      "RSTs",
+      "SNs",
+      "RSTr",
+      "SNr",
+      "POINTS",
+      "M",
+      "COMMENT"
+    ],
+    "entryFields": [
+      "CALL",
+      "RSTr",
+      "SNr"
+    ],
+    "fieldNavigation": {
+      "keys": "tab"
+    },
+    "bandMap": {
+      "enabled": true,
+      "bands": [
+        "160m",
+        "80m",
+        "40m",
+        "20m",
+        "15m",
+        "10m"
+      ]
+    }
+  }
+}

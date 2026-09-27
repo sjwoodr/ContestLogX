@@ -505,6 +505,16 @@ import Layout from '../layouts/Layout.astro';
   "callAreaEntities": {"JA": "JA", "K": "W", "VE": "VE", "VK": "VK"}
 }`}</pre>
 
+          <h3 class="text-lg font-semibold mb-2 mt-4">invalidPartners</h3>
+          <p class="opacity-80 mb-2">
+            An optional object inside <code>scoring</code> listing contacts an operator's class may not
+            score. Keys are station class ids or userPrompt values; each lists partners that earn 0 points
+            and no multipliers (the QSO is still logged and exported). An entry is a cty.dat primary prefix
+            (<code>"K"</code>, <code>"VE"</code>), <code>"continent:XX"</code>, or <code>"notContinent:XX"</code>.
+            ARRL DX uses <code>{`{"W_VE": ["K", "VE"]}`}</code>; the Oceania DX Contest uses
+            <code>{`{"NONOC": ["notContinent:OC"]}`}</code> so stations outside Oceania score only with Oceania.
+          </p>
+
           <h3 class="text-lg font-semibold mb-2 mt-4">maxScoredMultipliers</h3>
           <p class="opacity-80 mb-2">
             An optional integer inside <code>multipliers</code> that caps how many multipliers count
