@@ -127,6 +127,7 @@ public:
         int dxccCount = 0;        // Total unique DXCC entities worked (for info)
         int scoreMultiplier = 1;  // Power/category multiplier applied to contestScore (e.g., ×3 QRP)
         int maxScoredMults = 0;   // Cap on mults counted toward the score (0 = none, CQP = 58)
+        int maxDxccMults = 0;     // Cap on DXCC mults counted (0 = none, ILQP = 5); dxccMultCount stays the worked count
         int bonusPoints = 0;
         int contestScore = 0;
         QMap<QString, int> objectiveMultiplierDetails;  // Maps OM code to point value (e.g., "ALT_POWER" -> 1)
@@ -277,6 +278,10 @@ private:
     // Scope key for dupe checking: two QSOs with the same call are dupes when
     // their keys match. Shared by isDupe, getDupeReason and rescoreAll.
     QString dupeScopeKey(const QsoRecord& qso, const QString& dupeScope) const;
+    bool m_cachedNamedMultsRequireWve = false;  // multipliers.namedMultsRequireWveCallsign
+    int m_cachedMaxDxccMults = 0;         // multipliers.maxDxccMultipliers: cap on DXCC mults (ILQP: 5), 0 = none
+    bool m_cachedDupeCwDigitalSame = false;  // dupeChecking.cwDigitalSameMode (ILQP: phone vs CW/digital)
+    QStringList m_cachedExcludedModes;    // contest.excludedModes: never valid (ILQP: FT8, FT4)
     int m_cachedMaxScoredMults = 0;  // 0 = no cap (CQP counts at most 58)
     int capScoredMults(int mults) const;
     void cacheContestProperties();

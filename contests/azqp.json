@@ -343,7 +343,8 @@
         "DX": "AZ Counties"
       },
       "alaskaAndHawaiiCountDxcc": false,
-      "usAndCanadaCountDxcc": false
+      "usAndCanadaCountDxcc": false,
+      "namedMultsRequireWveCallsign": true
     },
     "finalScore": "SUM(points) * SUM(multipliers) + SUM(bonus)"
   },

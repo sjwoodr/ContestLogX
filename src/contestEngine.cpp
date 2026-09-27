@@ -274,6 +274,8 @@ void ContestEngine::cacheContestProperties()
             // Optional cap on the multipliers counted toward the score. CQP:
             // California stations can work 63 states/provinces but only 58 count.
             m_cachedMaxScoredMults = mults["maxScoredMultipliers"].toInt(0);
+            m_cachedMaxDxccMults = mults["maxDxccMultipliers"].toInt(0);
+            m_cachedNamedMultsRequireWve = mults["namedMultsRequireWveCallsign"].toBool(false);
 
             m_cachedRoverPromptId.clear();
             m_cachedRoverValues.clear();
@@ -402,6 +404,11 @@ void ContestEngine::cacheContestProperties()
         }
     }
 
+    // Modes that never count even though the contest allows digital (ILQP: FT8/FT4)
+    m_cachedExcludedModes.clear();
+    for (const QJsonValue& v : m_contestDef["contest"].toObject()["excludedModes"].toArray())
+        m_cachedExcludedModes.append(v.toString().toUpper());
+
     // Dupe scope
     m_cachedDupeScope = "overall";
     if (m_contestDef.contains("dupeChecking")) {
@@ -414,6 +421,7 @@ void ContestEngine::cacheContestProperties()
             else if (t == "overall")        m_cachedDupeScope = "overall";
             else if (t == "perBandAndGridSquare") m_cachedDupeScope = "per_band_grid";
             else if (t == "perBandModeAndExchange") m_cachedDupeScope = "per_band_mode_exch";
+            m_cachedDupeCwDigitalSame = dcv.toObject()["cwDigitalSameMode"].toBool(false);
         } else if (dcv.isString()) {
             m_cachedDupeScope = dcv.toString();
         }
@@ -888,6 +896,11 @@ int ContestEngine::calculatePoints(const QsoRecord& qso, const QString& myCallsi
             QString("QSO on band %1 is out of band for contest - 0 points").arg(band));
         return 0;
     }
+    if (m_cachedExcludedModes.contains(ModeUtils::normalizeMode(qso.getMode()))) {
+        DebugLogger::instance().log("ContestEngine",
+            QString("QSO mode %1 earns no credit in this contest - 0 points").arg(qso.getMode()));
+        return 0;
+    }
     
     if (!m_dxccDatabase || !m_dxccDatabase->isLoaded()) {
         DebugLogger::instance().log("ContestEngine", "DXCC database not available for scoring");
@@ -1330,6 +1343,20 @@ QList<ContestEngine::MultiplierInfo> ContestEngine::getMultipliersWithCategory(c
 
     // Extract named multiplier from exchange (state/province/DX)
     QString mult = extractMultiplier(qso);
+
+    // namedMultsRequireWveCallsign: in QSO parties where DX stations send
+    // their DXCC prefix, a prefix can collide with a state (PA = Netherlands /
+    // Pennsylvania, CO = Cuba / Colorado). Only a US or Canadian callsign
+    // earns a state/province/county mult; anything else falls through to DXCC.
+    if (!mult.isEmpty() && m_cachedNamedMultsRequireWve && m_dxccDatabase && m_dxccDatabase->isLoaded()) {
+        const DxccEntity callEntity = dxccLookup(m_dxccDatabase->stripPortableSuffixes(qso.getCall()));
+        static const QSet<QString> wvePrefixes = {"K", "VE", "KL", "KH6"};
+        if (!callEntity.primaryPrefix.isEmpty() && !wvePrefixes.contains(callEntity.primaryPrefix)) {
+            DebugLogger::instance().log("ContestEngine",
+                QString("  %1 is not a W/VE call - exchange '%2' is not a named mult").arg(qso.getCall(), mult));
+            mult.clear();
+        }
+    }
     if (!mult.isEmpty() && m_validMultipliers.contains(mult.toUpper())) {
         const QString multUpper = mult.toUpper();
         result.append({multUpper, "namedMults"});
@@ -1644,8 +1671,10 @@ QString ContestEngine::dupeScopeKey(const QsoRecord& qso, const QString& dupeSco
         // so is every QSO after our own mobile moves county (EXCHs).
         // Mode by category: SSB, FM and AM are all phone (PAQP 6.c.2).
         const QString norm = ModeUtils::normalizeMode(qso.getMode());
-        const QString modeCat = (norm == "CW") ? QStringLiteral("CW")
-                              : ModeUtils::isDigital(norm) ? QStringLiteral("DIG") : QStringLiteral("PH");
+        QString modeCat = (norm == "CW") ? QStringLiteral("CW")
+                        : ModeUtils::isDigital(norm) ? QStringLiteral("DIG") : QStringLiteral("PH");
+        if (m_cachedDupeCwDigitalSame && modeCat == "DIG")
+            modeCat = QStringLiteral("CW");  // ILQP: phone vs CW/digital
         return qso.getBand() + "_" + modeCat + "_" + qso.getExchangeField("EXCHr").toUpper()
                + "_" + qso.getExchangeField("EXCHs").toUpper();
     }
@@ -2172,6 +2201,10 @@ bool ContestEngine::isValidMode(const QString& mode) const
     }
     
     QString upperMode = ModeUtils::normalizeMode(mode);
+
+    if (m_cachedExcludedModes.contains(upperMode)) {
+        return false;
+    }
     
     // Direct match
     if (allowed.contains(upperMode)) {
@@ -2893,7 +2926,8 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
             qso.setGridSquareMultiplierCount(qsoGridSquareMults);
             continue;
         }
-        if (qsoPoints == 0 && !isValidBand(qso.getFrequency().toDouble())) {  // Already in kHz
+        if ((qsoPoints == 0 && !isValidBand(qso.getFrequency().toDouble()))  // Already in kHz
+                || m_cachedExcludedModes.contains(ModeUtils::normalizeMode(qso.getMode()))) {
             qso.setMultiplierCount(qsoNamedMults);
             qso.setDxccCount(qsoDxccMults);
             qso.setGridSquareMultiplierCount(qsoGridSquareMults);
@@ -3341,6 +3375,13 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
 
     QStringList multCategories = getMultiplierCategories();
     m_runningScore.maxScoredMults = m_cachedMaxScoredMults;
+    m_runningScore.maxDxccMults = m_cachedMaxDxccMults;
+    // DXCC cap (ILQP: at most 5 DX countries count). dxccMultCount stays the
+    // worked count for display; the excess comes off the multiplier total.
+    int dxccExcess = 0;
+    if (m_cachedMaxDxccMults > 0 && m_runningScore.dxccMultCount > m_cachedMaxDxccMults)
+        dxccExcess = m_runningScore.dxccMultCount - m_cachedMaxDxccMults;
+    m_runningScore.multipliers -= dxccExcess;
     
     // Skip score calculation if already handled by objectiveMultipliers
     if (multType == "objectiveMultipliers") {
@@ -3376,7 +3417,7 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
         }
     } else if (!multCategories.isEmpty()) {
         // For multsOnce and multsPerBand: use simple points × mults formula
-        int totalMultipliers = capScoredMults(m_runningScore.namedMultCount + m_runningScore.dxccMultCount + m_runningScore.ituRegionMultCount + m_runningScore.namedCallPrefixCount + m_runningScore.gridSquareMultCount + m_runningScore.cqZoneMultCount);
+        int totalMultipliers = capScoredMults(m_runningScore.namedMultCount + m_runningScore.dxccMultCount - dxccExcess + m_runningScore.ituRegionMultCount + m_runningScore.namedCallPrefixCount + m_runningScore.gridSquareMultCount + m_runningScore.cqZoneMultCount);
         m_runningScore.contestScore = (m_runningScore.contactScore * totalMultipliers) + m_runningScore.bonusPoints;
     } else if (m_runningScore.multipliers > 0) {
         // Traditional scoring: points * mults
@@ -3462,11 +3503,13 @@ void ContestEngine::rescoreAll(QList<QsoRecord>& qsos, const QString& myCallsign
     for (int i = 0; i < qsos.count(); ++i) {
         QsoRecord& qso = qsos[i];
 
-        // Out-of-band check
-        if (!isValidBand(qso.getFrequency().toDouble())) {
+        // Out-of-band check (also modes the contest gives no credit, e.g. ILQP FT8)
+        const bool excludedMode = m_cachedExcludedModes.contains(ModeUtils::normalizeMode(qso.getMode()));
+        if (!isValidBand(qso.getFrequency().toDouble()) || excludedMode) {
             qso.setOutOfBand(true);
             qso.setDupe(false);
-            qso.setComment("Out of band for contest");
+            qso.setComment(excludedMode ? QString("%1 earns no credit in this contest").arg(qso.getMode())
+                                        : QString("Out of band for contest"));
             qso.setPoints(0);
             qso.setMultiplierCount(0);
             qso.setDxccCount(0);

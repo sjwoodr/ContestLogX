@@ -83,6 +83,7 @@ Most contest loggers are Windows-only, closed-source, or locked to a fixed set o
 | CWops Mini-CWT | `cwops_cwt.json` |
 | EU DX Contest | `eudx.json` |
 | Florida QSO Party | `fqp.json` |
+| Illinois QSO Party | `ilqp.json` |
 | General DXCC | `general_dxcc.json` |
 | Georgia QSO Party | `gaqp.json` |
 | Hawaii QSO Party | `hiqp.json` |

@@ -550,6 +550,16 @@
       "name": "NYQP non-NY op W9NE IN (7 QSOs incl 1 dupe, NY counties once per contest, same station on CW/RTTY/SSB, county-line mobile twice)",
       "log_file": "test_nyqp_nonny.clx",
       "expected_score": 44
+    },
+    {
+      "name": "ILQP IL op AD1TOX ADAM (17 QSOs incl 1 dupe + 1 FT8, Phone 1 / CW-digital 2, RTTY after CW is a dupe (same mode), 6 DX countries worked but only 5 count, county-line mobile twice, W9AWE and W9OAB +100 each, FT8 earns no credit)",
+      "log_file": "test_ilqp_il.clx",
+      "expected_score": 512
+    },
+    {
+      "name": "ILQP non-IL op W9NE IN (6 QSOs incl 1 dupe, IL counties once, CW then RTTY is a dupe, county-line mobile twice, W9AWE +100)",
+      "log_file": "test_ilqp_nonil.clx",
+      "expected_score": 136
     }
   ]
 }

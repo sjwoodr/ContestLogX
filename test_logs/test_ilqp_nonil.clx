@@ -1,0 +1,145 @@
+{
+ "format": "ContestLogX",
+ "format_version": "1.0",
+ "created": "2026-10-18T17:01:00Z",
+ "modified": "2026-10-18T17:06:00Z",
+ "contest": {
+  "name": "Illinois QSO Party",
+  "abbreviation": "ILQP",
+  "contest_file": "ilqp.json",
+  "version": "1.0.0",
+  "year": 2026,
+  "categories": {
+   "userPrompt_stationType": "WVE",
+   "userPrompt_myExchange": "IN",
+   "userPrompt_operatingCategory": "OUT-LP"
+  }
+ },
+ "station": {
+  "callsign": "W9NE",
+  "operator": "STEVE"
+ },
+ "statistics": {},
+ "qsos": [
+  {
+   "id": 1,
+   "serial": 1,
+   "timestamp": "2026-10-18T17:01:00Z",
+   "frequency": 14040,
+   "band": "20m",
+   "mode": "CW",
+   "callsign": "K8KT",
+   "duplicate": false,
+   "rst_sent": "599",
+   "rst_received": "599",
+   "exchange_fields": {
+    "CALL": "K8KT",
+    "RSTs": "599",
+    "RSTr": "599",
+    "EXCHs": "IN",
+    "EXCHr": "COOK"
+   },
+   "points": 0
+  },
+  {
+   "id": 2,
+   "serial": 2,
+   "timestamp": "2026-10-18T17:02:00Z",
+   "frequency": 14080,
+   "band": "20m",
+   "mode": "RTTY",
+   "callsign": "K8KT",
+   "duplicate": false,
+   "rst_sent": "599",
+   "rst_received": "599",
+   "exchange_fields": {
+    "CALL": "K8KT",
+    "RSTs": "599",
+    "RSTr": "599",
+    "EXCHs": "IN",
+    "EXCHr": "COOK"
+   },
+   "points": 0
+  },
+  {
+   "id": 3,
+   "serial": 3,
+   "timestamp": "2026-10-18T17:03:00Z",
+   "frequency": 14250,
+   "band": "20m",
+   "mode": "SSB",
+   "callsign": "K8KT",
+   "duplicate": false,
+   "rst_sent": "59",
+   "rst_received": "59",
+   "exchange_fields": {
+    "CALL": "K8KT",
+    "RSTs": "59",
+    "RSTr": "59",
+    "EXCHs": "IN",
+    "EXCHr": "COOK"
+   },
+   "points": 0
+  },
+  {
+   "id": 4,
+   "serial": 4,
+   "timestamp": "2026-10-18T17:04:00Z",
+   "frequency": 7040,
+   "band": "40m",
+   "mode": "CW",
+   "callsign": "N9EZRA/M",
+   "duplicate": false,
+   "rst_sent": "599",
+   "rst_received": "599",
+   "exchange_fields": {
+    "CALL": "N9EZRA/M",
+    "RSTs": "599",
+    "RSTr": "599",
+    "EXCHs": "IN",
+    "EXCHr": "PEOR"
+   },
+   "points": 0
+  },
+  {
+   "id": 5,
+   "serial": 5,
+   "timestamp": "2026-10-18T17:05:00Z",
+   "frequency": 7040,
+   "band": "40m",
+   "mode": "CW",
+   "callsign": "N9EZRA/M",
+   "duplicate": false,
+   "rst_sent": "599",
+   "rst_received": "599",
+   "exchange_fields": {
+    "CALL": "N9EZRA/M",
+    "RSTs": "599",
+    "RSTr": "599",
+    "EXCHs": "IN",
+    "EXCHr": "TAZW"
+   },
+   "points": 0
+  },
+  {
+   "id": 6,
+   "serial": 6,
+   "timestamp": "2026-10-18T17:06:00Z",
+   "frequency": 21040,
+   "band": "15m",
+   "mode": "CW",
+   "callsign": "W9AWE",
+   "duplicate": false,
+   "rst_sent": "599",
+   "rst_received": "599",
+   "exchange_fields": {
+    "CALL": "W9AWE",
+    "RSTs": "599",
+    "RSTr": "599",
+    "EXCHs": "IN",
+    "EXCHr": "ADAM"
+   },
+   "points": 0
+  }
+ ]
+}

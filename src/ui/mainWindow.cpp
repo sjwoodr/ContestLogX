@@ -8117,7 +8117,10 @@ QString MainWindow::generateSummaryString()
             QStringList engineCats = m_contestEngine->getMultiplierCategories();
             const bool isEadx100 = engineCats.contains("eadx100") && !engineCats.contains("dxcc");
             const QString label = isEadx100 ? "EADX-100 Multipliers:    " : "DXCC Multipliers:         ";
-            out << label << score.dxccMultCount << "\n";
+            out << label << score.dxccMultCount;
+            if (score.maxDxccMults > 0 && score.dxccMultCount > score.maxDxccMults)
+                out << " (" << score.maxDxccMults << " count)";
+            out << "\n";
             multTypes.append(isEadx100 ? "EADX-100" : "DXCC");
         }
         if (score.ituRegionMultCount > 0) {

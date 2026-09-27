@@ -351,6 +351,12 @@ Bonus points for each distinct sent exchange (county) with at least `minQsos` va
 **Score Multiplier on QSO Points Only (`scoreMultiplier.appliesTo`):**
 By default `scoreMultiplier` multiplies the whole score. With `"appliesTo": "qsoPoints"` only the QSO points x multipliers part is multiplied and bonus points are added afterwards (PAQP: QRP doubles QSO points).
 
+**QSO Party Options for DX Exchanges and Modes:**
+- `multipliers.maxDxccMultipliers` - at most this many DXCC countries count toward the score (ILQP: 5). The summary sheet shows the worked count with the counted number, e.g. `6 (5 count)`.
+- `multipliers.namedMultsRequireWveCallsign` - a state/province/county mult is only credited when the callsign is in the US (K, KL7, KH6) or Canada. For QSO parties where DX stations send their DXCC prefix, so a prefix that looks like a state (PA = Netherlands, CO = Cuba) counts as the country, not the state.
+- `dupeChecking.cwDigitalSameMode` - with `perBandModeAndExchange`, CW and digital are one mode for dupes (ILQP: phone vs CW/digital).
+- `contest.excludedModes` - modes that earn no credit even though the contest allows digital (ILQP: `["FT8", "FT4"]`). They are rejected at entry and marked invalid on rescore.
+
 **Capped Multipliers (`maxScoredMultipliers`):**
 Caps how many multipliers count toward the score. Every multiplier worked is still tracked and shown, but the score uses at most this many. CQP uses 58: a California station can work 63 states and provinces, but only 58 count.
 

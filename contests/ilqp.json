@@ -1,0 +1,811 @@
+{
+  "contest": {
+    "name": "Illinois QSO Party",
+    "abbreviation": "ILQP",
+    "version": "1.0.0",
+    "sponsor": "Western Illinois Amateur Radio Club (W9AWE)",
+    "description": "Third Sunday of October, 1700Z to 0100Z. IL stations work everyone; everyone else works IL stations. Exchange is RS(T) + IL county (IL stations) or state/province/country. Phone 1 point, CW/digital 2 points; FT8 and FT4 earn no credit. Once per band and mode (phone, CW/digital), and once per band/mode/county for IL mobiles, rovers and county lines. IL stations count IL counties, US states, Canadian provinces and up to 5 DXCC countries; everyone else counts the 102 IL counties. 100-point bonus each for working W9AWE and W9OAB.",
+    "startDate": "Third Sunday of October (2025: October 19, 1700Z - 0100Z)",
+    "duration": 8,
+    "offTimeGapMinutes": 0,
+    "modes": [
+      "CW",
+      "SSB",
+      "FM",
+      "RTTY",
+      "DIGITAL"
+    ],
+    "excludedModes": [
+      "FT8",
+      "FT4"
+    ],
+    "bands": [
+      "160m",
+      "80m",
+      "40m",
+      "20m",
+      "15m",
+      "10m",
+      "6m",
+      "2m"
+    ],
+    "url": "https://w9awe.org/ilqp/",
+    "categories": {
+      "stations": [
+        "FIXED",
+        "PORTABLE",
+        "MOBILE",
+        "ROVER",
+        "UNLIMITED"
+      ],
+      "power": [
+        "HIGH",
+        "LOW",
+        "QRP"
+      ],
+      "modes": [
+        "MIXED",
+        "CW",
+        "PHONE"
+      ]
+    }
+  },
+  "frequencies": {
+    "160m": {
+      "start": 1800,
+      "end": 2000,
+      "cw": {
+        "start": 1800,
+        "end": 2000
+      },
+      "phone": {
+        "start": 1800,
+        "end": 2000
+      },
+      "digital": {
+        "start": 1800,
+        "end": 2000
+      }
+    },
+    "80m": {
+      "start": 3500,
+      "end": 4000,
+      "cw": {
+        "start": 3500,
+        "end": 3600
+      },
+      "phone": {
+        "start": 3600,
+        "end": 4000
+      },
+      "digital": {
+        "start": 3500,
+        "end": 3600
+      }
+    },
+    "40m": {
+      "start": 7000,
+      "end": 7300,
+      "cw": {
+        "start": 7000,
+        "end": 7125
+      },
+      "phone": {
+        "start": 7125,
+        "end": 7300
+      },
+      "digital": {
+        "start": 7000,
+        "end": 7125
+      }
+    },
+    "20m": {
+      "start": 14000,
+      "end": 14350,
+      "cw": {
+        "start": 14000,
+        "end": 14150
+      },
+      "phone": {
+        "start": 14150,
+        "end": 14350
+      },
+      "digital": {
+        "start": 14000,
+        "end": 14150
+      }
+    },
+    "15m": {
+      "start": 21000,
+      "end": 21450,
+      "cw": {
+        "start": 21000,
+        "end": 21200
+      },
+      "phone": {
+        "start": 21200,
+        "end": 21450
+      },
+      "digital": {
+        "start": 21000,
+        "end": 21200
+      }
+    },
+    "10m": {
+      "start": 28000,
+      "end": 29700,
+      "cw": {
+        "start": 28000,
+        "end": 28300
+      },
+      "phone": {
+        "start": 28300,
+        "end": 29700
+      },
+      "digital": {
+        "start": 28000,
+        "end": 28300
+      }
+    },
+    "6m": {
+      "start": 50000,
+      "end": 54000,
+      "cw": {
+        "start": 50000,
+        "end": 54000
+      },
+      "phone": {
+        "start": 50000,
+        "end": 54000
+      },
+      "digital": {
+        "start": 50000,
+        "end": 54000
+      }
+    },
+    "2m": {
+      "start": 144000,
+      "end": 148000,
+      "cw": {
+        "start": 144000,
+        "end": 148000
+      },
+      "phone": {
+        "start": 144000,
+        "end": 148000
+      },
+      "digital": {
+        "start": 144000,
+        "end": 148000
+      }
+    }
+  },
+  "stationClasses": {
+    "enabled": false
+  },
+  "userPrompts": [
+    {
+      "id": "stationType",
+      "question": "Select your station location",
+      "type": "select",
+      "options": [
+        {
+          "value": "IL",
+          "label": "Illinois - send your IL county"
+        },
+        {
+          "value": "WVE",
+          "label": "W/VE (US or Canada outside Illinois) - send state or province"
+        },
+        {
+          "value": "DX",
+          "label": "DX (outside US/Canada) - send your country (DXCC prefix)"
+        }
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "IL stations work everyone and count counties, states, provinces and up to 5 DX countries. Everyone else works IL stations and counts IL counties."
+    },
+    {
+      "id": "myExchange",
+      "question": "Enter your QTH (IL county e.g. ADAM, state e.g. IN, province e.g. ON, or DXCC prefix e.g. DL)",
+      "type": "text",
+      "required": true,
+      "forceUppercase": true,
+      "storeInMeta": true,
+      "description": "IL mobiles and rovers: change this in Contest Setup when you move to a new county - every station can then be worked again. County-line and corner stations: log one QSO per county.",
+      "exchangeFieldMapping": {
+        "myExchange": "EXCHs"
+      }
+    },
+    {
+      "id": "operatingCategory",
+      "question": "Select your entry class",
+      "type": "select",
+      "options": [
+        {
+          "value": "IL-FIXED-HP",
+          "label": "IL Fixed Station - High Power (>100W PEP)"
+        },
+        {
+          "value": "IL-FIXED-LP",
+          "label": "IL Fixed Station - Low Power (100W PEP or less)"
+        },
+        {
+          "value": "IL-PORTABLE",
+          "label": "Illinois Portable"
+        },
+        {
+          "value": "IL-MOBILE",
+          "label": "Illinois Mobile"
+        },
+        {
+          "value": "IL-ROVER",
+          "label": "Illinois Rover"
+        },
+        {
+          "value": "OUT-HP",
+          "label": "Outside Illinois - High Power"
+        },
+        {
+          "value": "OUT-LP",
+          "label": "Outside Illinois - Low Power"
+        },
+        {
+          "value": "UNLIMITED",
+          "label": "Unlimited (multiple transmitted signals, single site)"
+        }
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "QRP (5W or less at all times) is claimed by marking QRP as the power category in the Cabrillo export. Self-spotting is allowed in all classes."
+    }
+  ],
+  "exchangeFields": {
+    "sent": [
+      {
+        "name": "RSTs",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report sent"
+      },
+      {
+        "name": "EXCHs",
+        "type": "string",
+        "required": true,
+        "description": "IL county, state/province, or country"
+      }
+    ],
+    "received": [
+      {
+        "name": "RSTr",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report received"
+      },
+      {
+        "name": "EXCHr",
+        "type": "string",
+        "required": true,
+        "description": "IL county (from IL stations), state/province, or country prefix"
+      }
+    ]
+  },
+  "qsoFields": [
+    {
+      "name": "Date",
+      "column": "DATE",
+      "type": "date",
+      "format": "yyyy-MM-dd",
+      "required": true
+    },
+    {
+      "name": "Time",
+      "column": "TIME",
+      "type": "time",
+      "format": "HH:mm:ss",
+      "required": true
+    },
+    {
+      "name": "Callsign",
+      "column": "CALL",
+      "type": "string",
+      "required": true,
+      "uppercase": true
+    },
+    {
+      "name": "Frequency",
+      "column": "FREQ",
+      "type": "number",
+      "unit": "kHz",
+      "required": true
+    },
+    {
+      "name": "Mode",
+      "column": "MODE",
+      "type": "enum",
+      "values": [
+        "CW",
+        "SSB",
+        "FM",
+        "RTTY",
+        "DIGITAL"
+      ],
+      "required": true
+    },
+    {
+      "name": "RST Sent",
+      "column": "RSTs",
+      "type": "string",
+      "required": true,
+      "default": "599"
+    },
+    {
+      "name": "RST Rcvd",
+      "column": "RSTr",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "Exch Sent",
+      "column": "EXCHs",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "Exch Rcvd",
+      "column": "EXCHr",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "Points",
+      "column": "POINTS",
+      "type": "number",
+      "calculated": true
+    },
+    {
+      "name": "Mult",
+      "column": "M",
+      "type": "string",
+      "calculated": true
+    }
+  ],
+  "scoring": {
+    "points": {
+      "__comment": "Phone 1 point, CW and digital 2 points. FT8/FT4 earn no credit (contest.excludedModes).",
+      "cw": 2,
+      "phone": 1,
+      "digital": 2
+    },
+    "multipliers": {
+      "__comment": "Counted once. IL stations: 102 IL counties + US states (incl. AK/HI - KH6/KL7 are not DX) + 13 Canadian provinces + DXCC countries, at most 5 DX counted (maxDxccMultipliers). Canada, KH6 and KL7 do not count as DX. Non-IL stations: the 102 IL counties.",
+      "type": "multsOnce",
+      "description": "IL: counties, states, provinces and up to 5 DXCC. Non-IL: IL counties. Counted once each",
+      "categories": [
+        "namedMults"
+      ],
+      "maxDxccMultipliers": 5,
+      "stationClassMultipliers": {
+        "IL": [
+          "namedMults",
+          "dxcc"
+        ],
+        "WVE": [
+          "namedMults"
+        ],
+        "DX": [
+          "namedMults"
+        ]
+      },
+      "namedMultsLabels": {
+        "IL": "Counties/States/Provinces",
+        "WVE": "IL Counties",
+        "DX": "IL Counties"
+      },
+      "alaskaAndHawaiiCountDxcc": false,
+      "usAndCanadaCountDxcc": false,
+      "namedMultsRequireWveCallsign": true
+    },
+    "finalScore": "SUM(points) * (namedMults + MIN(dxccMultipliers, 5)) + bonus"
+  },
+  "bonusStations": [
+    {
+      "name": "W9AWE",
+      "pointsEach": 100,
+      "type": "bonusOnce",
+      "stations": [
+        "W9AWE"
+      ],
+      "note": "Sponsoring club's historical call (mostly CW). 100 points, once."
+    },
+    {
+      "name": "W9OAB",
+      "pointsEach": 100,
+      "type": "bonusOnce",
+      "stations": [
+        "W9OAB"
+      ],
+      "note": "Sponsoring club's second call (mostly phone). 100 points, once."
+    }
+  ],
+  "dupeChecking": {
+    "type": "perBandModeAndExchange",
+    "cwDigitalSameMode": true,
+    "description": "Once per band and mode, where the modes are phone and CW/digital (CW and digital are the same mode). IL mobiles, rovers and county-line stations are new in each county, and every station is new after your own mobile or rover changes county."
+  },
+  "logging": {
+    "requiredFields": [
+      "date",
+      "time",
+      "frequency",
+      "mode",
+      "callsign",
+      "rstSent",
+      "rstReceived",
+      "exchSent",
+      "exchReceived"
+    ],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "IL-QSO-PARTY",
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {rst_sent} {exch_sent} {call} {rst_rcvd} {exch_rcvd}",
+      "requiredHeaders": [
+        "CONTEST",
+        "CALLSIGN",
+        "LOCATION",
+        "CATEGORY-OPERATOR",
+        "CATEGORY-POWER",
+        "CATEGORY-MODE",
+        "CATEGORY-STATION",
+        "CATEGORY-TRANSMITTER",
+        "CLAIMED-SCORE",
+        "CLUB",
+        "CREATED-BY",
+        "NAME",
+        "ADDRESS",
+        "EMAIL",
+        "OPERATORS",
+        "SOAPBOX"
+      ],
+      "notes": "Email the Cabrillo file to the log checker listed on the ILQP site; do not send ADIF."
+    }
+  },
+  "callHistory": {
+    "fieldsToSave": [
+      "EXCHr"
+    ],
+    "description": "Save county/state/province for future autofill"
+  },
+  "validation": {
+    "minimumQSOs": 1,
+    "maxOperatingTime": 8,
+    "offTimesRequired": false,
+    "namedMults": [
+      "ADAM",
+      "ALEX",
+      "BOND",
+      "BOON",
+      "BROW",
+      "BURO",
+      "CALH",
+      "CARR",
+      "CASS",
+      "CHAM",
+      "CHRS",
+      "CLRK",
+      "CLAY",
+      "CLNT",
+      "COLE",
+      "COOK",
+      "CRAW",
+      "CUMB",
+      "DEKA",
+      "DEWT",
+      "DOUG",
+      "DUPG",
+      "EDGR",
+      "EDWA",
+      "EFFG",
+      "FAYE",
+      "FORD",
+      "FRNK",
+      "FULT",
+      "GALL",
+      "GREE",
+      "GRUN",
+      "HAML",
+      "HANC",
+      "HARD",
+      "HNDR",
+      "HENR",
+      "IROQ",
+      "JACK",
+      "JASP",
+      "JEFF",
+      "JERS",
+      "JODA",
+      "JOHN",
+      "KANE",
+      "KANK",
+      "KEND",
+      "KNOX",
+      "LAKE",
+      "LASA",
+      "LAWR",
+      "LEE",
+      "LIVG",
+      "LOGN",
+      "MACN",
+      "MCPN",
+      "MADN",
+      "MARI",
+      "MSHL",
+      "MASN",
+      "MSSC",
+      "MCDN",
+      "MCHE",
+      "MCLN",
+      "MNRD",
+      "MRCR",
+      "MNRO",
+      "MNTG",
+      "MORG",
+      "MOUL",
+      "OGLE",
+      "PEOR",
+      "PERR",
+      "PIAT",
+      "PIKE",
+      "POPE",
+      "PULA",
+      "PUTN",
+      "RAND",
+      "RICH",
+      "ROCK",
+      "SALI",
+      "SANG",
+      "SCHY",
+      "SCOT",
+      "SHEL",
+      "STAR",
+      "SCLA",
+      "STEP",
+      "TAZW",
+      "UNIO",
+      "VERM",
+      "WABA",
+      "WARR",
+      "WASH",
+      "WAYN",
+      "WHIT",
+      "WTSD",
+      "WILL",
+      "WMSN",
+      "WBGO",
+      "WOOD",
+      "AL",
+      "AK",
+      "AZ",
+      "AR",
+      "CA",
+      "CO",
+      "CT",
+      "DE",
+      "FL",
+      "GA",
+      "HI",
+      "ID",
+      "IL",
+      "IN",
+      "IA",
+      "KS",
+      "KY",
+      "LA",
+      "ME",
+      "MD",
+      "MA",
+      "MI",
+      "MN",
+      "MS",
+      "MO",
+      "MT",
+      "NE",
+      "NV",
+      "NH",
+      "NJ",
+      "NM",
+      "NY",
+      "NC",
+      "ND",
+      "OH",
+      "OK",
+      "OR",
+      "PA",
+      "RI",
+      "SC",
+      "SD",
+      "TN",
+      "TX",
+      "UT",
+      "VT",
+      "VA",
+      "WA",
+      "WV",
+      "WI",
+      "WY",
+      "AB",
+      "BC",
+      "MB",
+      "NB",
+      "NL",
+      "NS",
+      "NT",
+      "NU",
+      "ON",
+      "PE",
+      "QC",
+      "SK",
+      "YT"
+    ],
+    "inStateMults": [
+      "ADAM",
+      "ALEX",
+      "BOND",
+      "BOON",
+      "BROW",
+      "BURO",
+      "CALH",
+      "CARR",
+      "CASS",
+      "CHAM",
+      "CHRS",
+      "CLRK",
+      "CLAY",
+      "CLNT",
+      "COLE",
+      "COOK",
+      "CRAW",
+      "CUMB",
+      "DEKA",
+      "DEWT",
+      "DOUG",
+      "DUPG",
+      "EDGR",
+      "EDWA",
+      "EFFG",
+      "FAYE",
+      "FORD",
+      "FRNK",
+      "FULT",
+      "GALL",
+      "GREE",
+      "GRUN",
+      "HAML",
+      "HANC",
+      "HARD",
+      "HNDR",
+      "HENR",
+      "IROQ",
+      "JACK",
+      "JASP",
+      "JEFF",
+      "JERS",
+      "JODA",
+      "JOHN",
+      "KANE",
+      "KANK",
+      "KEND",
+      "KNOX",
+      "LAKE",
+      "LASA",
+      "LAWR",
+      "LEE",
+      "LIVG",
+      "LOGN",
+      "MACN",
+      "MCPN",
+      "MADN",
+      "MARI",
+      "MSHL",
+      "MASN",
+      "MSSC",
+      "MCDN",
+      "MCHE",
+      "MCLN",
+      "MNRD",
+      "MRCR",
+      "MNRO",
+      "MNTG",
+      "MORG",
+      "MOUL",
+      "OGLE",
+      "PEOR",
+      "PERR",
+      "PIAT",
+      "PIKE",
+      "POPE",
+      "PULA",
+      "PUTN",
+      "RAND",
+      "RICH",
+      "ROCK",
+      "SALI",
+      "SANG",
+      "SCHY",
+      "SCOT",
+      "SHEL",
+      "STAR",
+      "SCLA",
+      "STEP",
+      "TAZW",
+      "UNIO",
+      "VERM",
+      "WABA",
+      "WARR",
+      "WASH",
+      "WAYN",
+      "WHIT",
+      "WTSD",
+      "WILL",
+      "WMSN",
+      "WBGO",
+      "WOOD"
+    ],
+    "exchangeValidation": {
+      "type": "namedMultOrDxcc",
+      "description": "IL stations: IL county, state, province or DXCC prefix. Non-IL stations: the received exchange must be an IL county (4-letter abbreviation; LEE for Lee)."
+    },
+    "receivedExchangeFilter": {
+      "promptId": "stationType",
+      "rules": {
+        "WVE": "inStateMults",
+        "DX": "inStateMults"
+      }
+    }
+  },
+  "ui": {
+    "showMultiplierPanel": true,
+    "logColumns": [
+      "DATE",
+      "TIME",
+      "CALL",
+      "FREQ",
+      "MODE",
+      "RSTs",
+      "RSTr",
+      "EXCHs",
+      "EXCHr",
+      "POINTS",
+      "M",
+      "COMMENT"
+    ],
+    "entryFields": [
+      "CALL",
+      "RSTr",
+      "EXCHr"
+    ],
+    "fieldNavigation": {
+      "keys": "tab"
+    },
+    "bandMap": {
+      "enabled": true,
+      "bands": [
+        "160m",
+        "80m",
+        "40m",
+        "20m",
+        "15m",
+        "10m",
+        "6m",
+        "2m"
+      ]
+    },
+    "multiplierDisplay": {
+      "showCounties": true,
+      "showStates": true,
+      "showProvinces": true,
+      "showDXCC": true
+    }
+  }
+}

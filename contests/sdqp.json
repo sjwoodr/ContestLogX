@@ -399,7 +399,8 @@
         "DX": "SD Counties"
       },
       "alaskaAndHawaiiCountDxcc": false,
-      "usAndCanadaCountDxcc": false
+      "usAndCanadaCountDxcc": false,
+      "namedMultsRequireWveCallsign": true
     },
     "finalScore": "SUM(points) * SUM(multipliers) + bonus"
   },
