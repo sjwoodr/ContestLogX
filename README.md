@@ -102,6 +102,7 @@ Most contest loggers are Windows-only, closed-source, or locked to a fixed set o
 | Pennsylvania QSO Party | `paqp.json` |
 | North American QSO Party (CW/SSB/RTTY) | `naqp.json` |
 | Russian DX Contest | `rdxc.json` |
+| South Dakota QSO Party | `sdqp.json` |
 | SP DX Contest | `spdx.json` |
 | Virginia QSO Party | `vaqp.json` |
 | West Virginia QSO Party | `wvqp.json` |

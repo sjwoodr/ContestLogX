@@ -530,6 +530,16 @@
       "name": "PAQP non-PA QRP W9NE (7 QSOs incl 1 dupe, PA counties once per contest, mobile re-worked from a new county, QRP doubles QSO points)",
       "log_file": "test_paqp_nonpa_qrp.clx",
       "expected_score": 80
+    },
+    {
+      "name": "SDQP SD rover AD1TOX/M (14 QSOs incl 1 dupe, CW 2 / Phone 1, multsOnce counties+states+provinces+DXCC, DC counts as MD, SHAN maps to OGLA, county-line mobile logged twice, 2m FM then SSB with W0OJY is a dupe, W0OJY +100 once, own move MINN -> PENN re-opens stations)",
+      "log_file": "test_sdqp_sd_rover.clx",
+      "expected_score": 320
+    },
+    {
+      "name": "SDQP non-SD op W9NE IN (8 QSOs incl 1 dupe, SD counties once per contest, county-line mobile, W0OJY +100 once across two bands)",
+      "log_file": "test_sdqp_nonsd.clx",
+      "expected_score": 148
     }
   ]
 }

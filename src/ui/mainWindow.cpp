@@ -8105,7 +8105,10 @@ QString MainWindow::generateSummaryString()
         if (score.namedMultCount > 0) {
             QString namedLabel = m_contestEngine->getNamedMultsLabel();
             QString namedLine = namedLabel + ":";
-            out << namedLine.leftJustified(26) << score.namedMultCount << "\n";
+            // Pad to the column, but always leave a space before the count -
+            // a 26+ character label ("Counties/States/Provinces:") ran into it.
+            out << (namedLine.length() >= 26 ? namedLine + " " : namedLine.leftJustified(26))
+                << score.namedMultCount << "\n";
             multTypes.append(namedLabel);
         }
         if (score.dxccMultCount > 0) {

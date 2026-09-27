@@ -13,6 +13,7 @@ All notable changes to ContestLogX are documented in this file.
 - Added the Oceania DX Contest, Phone and CW weekends. Exchange is RS(T) and serial number. Points depend on the band: 20 on 160m, 10 on 80m, 5 on 40m, 1 on 20m, 2 on 15m and 3 on 10m. Multipliers are WPX prefixes, counted per band. Stations outside Oceania score only with Oceania stations; other QSOs are logged but earn nothing
 - Added the Arizona QSO Party (AZQP). Arizona stations send their county and count states, provinces and DXCC entities once per mode; everyone else sends state, province or DXCC prefix and counts the 15 Arizona counties once per band and mode. CW QSOs are 2 points and Phone 1, plus a one-time 100-point bonus for working K7A. County-line and mobile stations can be worked again for each county
 - Added the Pennsylvania QSO Party (PAQP). Exchange is serial number plus PA county, ARRL/RAC section or DX. CW QSOs are 2 points and Phone 1, with SSB, FM and AM counting as one phone mode. PA stations count ARRL and Canadian sections, PA counties and one DX multiplier; everyone else counts the 67 PA counties, each once. QRP doubles QSO points, and PA mobiles and rovers earn 500 points for each county with 10 or more QSOs. The yearly bonus station is not scored
+- Added the South Dakota QSO Party (SDQP). South Dakota stations send their county and count SD counties, US states, Canadian provinces and DXCC countries; everyone else sends state, province or DXCC prefix and counts the 66 SD counties. Each multiplier counts once. CW QSOs are 2 points and Phone 1, on 160m through 70cm, plus a one-time 100-point bonus for working the sponsoring club station W0OJY. Rovers and county-line stations can be worked again for each county
 
 ### Contest Engine Changes
 - A contest can now make contacts score nothing based on the partner's continent, such as stations outside Oceania working each other in the Oceania DX Contest. This now also withholds multipliers in contests whose multipliers are not DXCC entities
@@ -23,6 +24,7 @@ All notable changes to ContestLogX are documented in this file.
 - A contest can now cap how many multipliers count toward the score (`maxScoredMultipliers`). Every multiplier worked is still tracked, and the score panel and summary sheet show both the worked count and the capped count
 
 ### Other Changes and Bugfixes
+- A long multiplier name on the summary sheet no longer runs into its count
 - FM and AM QSOs now score as phone. They were scoring at the digital point value, which in Winter Field Day gave FM contacts 2 points instead of 1
 - Fixed ARRL VHF marking a station worked on a second band as a dupe. A station can now be worked once per band, and a rover can be worked again from each new grid it moves to
 - Grid multipliers now compare on the 4-character grid, so EN52AB and EN52 are the same multiplier
