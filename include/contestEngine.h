@@ -122,6 +122,7 @@ public:
         int ituRegionMultCount = 0;   // ITU Region multipliers (for category scoring)
         int namedCallPrefixCount = 0;  // Call prefix multipliers (for category scoring)
         int gridSquareMultCount = 0;  // Grid square multipliers (for category scoring)
+        int cqZoneMultCount = 0;      // CQ zone multipliers (cqZones category, CQ WW)
         int objectiveMultiplierCount = 0;  // Objective Multiplier count for WFD-style contests
         int dxccCount = 0;        // Total unique DXCC entities worked (for info)
         int scoreMultiplier = 1;  // Power/category multiplier applied to contestScore (e.g., ×3 QRP)
@@ -256,6 +257,7 @@ private:
     // DXCC primary prefix -> call-area tag (e.g. "K" -> "W"). QSOs with these
     // entities earn a "<tag><digit>" call-area mult instead of the DXCC mult.
     QHash<QString, QString> m_cachedCallAreaEntities;
+    QString m_cachedCqZoneField = QStringLiteral("ZONEr");  // exchange field holding the received CQ zone
     int m_cachedMaxScoredMults = 0;  // 0 = no cap (CQP counts at most 58)
     int capScoredMults(int mults) const;
     void cacheContestProperties();

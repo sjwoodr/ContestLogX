@@ -304,6 +304,17 @@ Some contests count certain countries by call area rather than as one DXCC entit
 }
 ```
 
+**CQ Zone Multipliers (`cqZones` category):**
+Adds CQ zones 1-40 as a multiplier category. The zone is read from its own received exchange field (`cqZoneField`, default `ZONEr`), not from `EXCHr`, so a single QSO can earn a zone AND a named mult - in CQ WW RTTY a W/VE contact is worth a zone, a country and a state/province. Zones are normalized to two digits, so "5" and "05" are the same mult. With `cqZones` in use, maritime mobile (`/MM`) calls earn a zone but no DXCC mult.
+
+```json
+"multipliers": {
+  "type": "multsPerBand",
+  "categories": ["namedMults", "dxcc", "cqZones"],
+  "cqZoneField": "ZONEr"
+}
+```
+
 **Capped Multipliers (`maxScoredMultipliers`):**
 Caps how many multipliers count toward the score. Every multiplier worked is still tracked and shown, but the score uses at most this many. CQP uses 58: a California station can work 63 states and provinces, but only 58 count.
 

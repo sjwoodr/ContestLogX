@@ -63,7 +63,8 @@ def validate_multipliers(log_content, test_name):
     if mults_section:
         known_labels = {'Contact Points', 'Named Multipliers', 'DXCC Multipliers',
                         'EADX-100 Multipliers', 'Grid Square Multipliers',
-                        'Call Prefix Multipliers', 'ITU Region Multipliers'}
+                        'Call Prefix Multipliers', 'ITU Region Multipliers',
+                        'CQ Zone Multipliers'}
         for m in re.finditer(r'^([A-Za-z][^:\n]+):\s+(\d+)\s*$', mults_section.group(0), re.MULTILINE):
             label = m.group(1).strip()
             if label not in known_labels:
@@ -86,6 +87,10 @@ def validate_multipliers(log_content, test_name):
     prefix_match = re.search(r'Call Prefix Multipliers:\s+(\d+)', summary)
     if prefix_match:
         claimed_mults['Call Prefixes'] = int(prefix_match.group(1))
+
+    zone_match = re.search(r'CQ Zone Multipliers:\s+(\d+)', summary)
+    if zone_match:
+        claimed_mults['CQ Zones'] = int(zone_match.group(1))
 
     points_match = re.search(r'Contact Points:\s+(\d+)', summary)
     score_match = re.search(r'CLAIMED SCORE:\s+(\d+)', normalized)

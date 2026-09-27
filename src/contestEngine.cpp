@@ -275,6 +275,11 @@ void ContestEngine::cacheContestProperties()
             // California stations can work 63 states/provinces but only 58 count.
             m_cachedMaxScoredMults = mults["maxScoredMultipliers"].toInt(0);
 
+            // cqZones category reads the received zone from its own exchange
+            // field, so a QSO can earn a zone AND a named mult (CQ WW RTTY:
+            // zone + W/VE QTH) - named mults only ever come from EXCHr.
+            m_cachedCqZoneField = mults["cqZoneField"].toString(QStringLiteral("ZONEr"));
+
             m_cachedCallAreaEntities.clear();
             if (mults.contains("callAreaEntities")) {
                 QJsonObject areas = mults["callAreaEntities"].toObject();
@@ -1408,6 +1413,12 @@ QList<ContestEngine::MultiplierInfo> ContestEngine::getMultipliersWithCategory(c
             }
         }
 
+        // CQ contests: maritime mobile counts for a zone mult only, never a country.
+        if (shouldAddDxcc && m_cachedMultCategories.contains("cqZones")
+                && qso.getCall().toUpper().endsWith("/MM")) {
+            shouldAddDxcc = false;
+        }
+
         if (shouldAddDxcc) {
             DxccEntity entity = dxccLookup(qso.getCall());
             if (!entity.prefixes.isEmpty()) {
@@ -1538,6 +1549,23 @@ QList<ContestEngine::MultiplierInfo> ContestEngine::getMultipliersWithCategory(c
         }
     }
 
+    // CQ zone multiplier (CQ WW). Read from its own exchange field, normalized
+    // to two digits so "5" and "05" are the same mult. Zones are 1-40.
+    if (m_cachedMultCategories.contains("cqZones")) {
+        const QString raw = qso.getExchangeField(m_cachedCqZoneField).trimmed();
+        bool ok = false;
+        const int zone = raw.toInt(&ok);
+        if (ok && zone >= 1 && zone <= 40) {
+            const QString zoneMult = QString("%1").arg(zone, 2, 10, QChar('0'));
+            result.append({zoneMult, "cqZones"});
+            DebugLogger::instance().log("ContestEngine",
+                QString("  Found CQ zone multiplier '%1' from %2").arg(zoneMult, qso.getCall()));
+        } else if (!raw.isEmpty()) {
+            DebugLogger::instance().log("ContestEngine",
+                QString("  Invalid CQ zone '%1' for %2 - no zone mult").arg(raw, qso.getCall()));
+        }
+    }
+
     // Check if Grid Squares are a multiplier category
     bool gridSquareIsMult = m_cachedMultCategories.contains("gridSquares");
     if (gridSquareIsMult) {
@@ -1602,7 +1630,8 @@ ContestEngine::QsoMultiplierCredit ContestEngine::getQsoMultiplierCredit(const Q
         
         if (isNew) {
             if (multInfo.category == "named" || multInfo.category == "namedMults"
-                    || multInfo.category == "namedCallPrefixes" || multInfo.category == "wpxPrefix") {
+                    || multInfo.category == "namedCallPrefixes" || multInfo.category == "wpxPrefix"
+                    || multInfo.category == "cqZones") {
                 credit.namedMultCount++;
             } else if (multInfo.category == "dxcc" || multInfo.category == "eadx100") {
                 // dxcc and eadx100 cover ~99% the same entity set, so they share
@@ -2755,10 +2784,10 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
     QSet<QString> cwMultipliers, ssbMultipliers, digitalMultipliers;
     
      // Track multipliers by type (named vs DXCC vs ITU Regions vs namedCallPrefixes vs gridSquares)
-    QSet<QString> namedMultsOnce, dxccMultsOnce, ituRegionMultsOnce, namedCallPrefixesOnce, gridSquaresOnce;
-    QSet<QString> namedMultsPerBand, dxccMultsPerBand, ituRegionMultsPerBand, namedCallPrefixesPerBand, gridSquaresPerBand;
-    QSet<QString> namedMultsPerMode, dxccMultsPerMode, ituRegionMultsPerMode, namedCallPrefixesPerMode, gridSquaresPerMode;
-    QSet<QString> namedMultsPerBandAndMode, dxccMultsPerBandAndMode, ituRegionMultsPerBandAndMode, namedCallPrefixesPerBandAndMode, gridSquaresPerBandAndMode;
+    QSet<QString> namedMultsOnce, dxccMultsOnce, ituRegionMultsOnce, namedCallPrefixesOnce, gridSquaresOnce, cqZonesOnce;
+    QSet<QString> namedMultsPerBand, dxccMultsPerBand, ituRegionMultsPerBand, namedCallPrefixesPerBand, gridSquaresPerBand, cqZonesPerBand;
+    QSet<QString> namedMultsPerMode, dxccMultsPerMode, ituRegionMultsPerMode, namedCallPrefixesPerMode, gridSquaresPerMode, cqZonesPerMode;
+    QSet<QString> namedMultsPerBandAndMode, dxccMultsPerBandAndMode, ituRegionMultsPerBandAndMode, namedCallPrefixesPerBandAndMode, gridSquaresPerBandAndMode, cqZonesPerBandAndMode;
     
     // Track DXCC entities separately (for informational purposes)
     QSet<int> uniqueDxccEntities;
@@ -2888,6 +2917,8 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
                     if (!dxccMultsOnce.contains(mult)) dxccMultsOnce.insert(mult);
                 } else if (category == "ituRegions") {
                     if (!ituRegionMultsOnce.contains(mult)) ituRegionMultsOnce.insert(mult);
+                } else if (category == "cqZones") {
+                    cqZonesOnce.insert(mult);
                 } else if (category == "namedCallPrefixes" || category == "wpxPrefix") {
                     if (!namedCallPrefixesOnce.contains(mult)) namedCallPrefixesOnce.insert(mult);
                 } else if (category == "gridSquares") {
@@ -2911,6 +2942,8 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
                     if (!dxccMultsPerBand.contains(oldKey)) dxccMultsPerBand.insert(oldKey);
                 } else if (category == "ituRegions") {
                     if (!ituRegionMultsPerBand.contains(oldKey)) ituRegionMultsPerBand.insert(oldKey);
+                } else if (category == "cqZones") {
+                    cqZonesPerBand.insert(oldKey);
                 } else if (category == "namedCallPrefixes" || category == "wpxPrefix") {
                     if (!namedCallPrefixesPerBand.contains(oldKey)) namedCallPrefixesPerBand.insert(oldKey);
                 } else if (category == "gridSquares") {
@@ -2945,6 +2978,8 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
                     if (!dxccMultsPerMode.contains(oldKey)) dxccMultsPerMode.insert(oldKey);
                 } else if (category == "ituRegions") {
                     if (!ituRegionMultsPerMode.contains(oldKey)) ituRegionMultsPerMode.insert(oldKey);
+                } else if (category == "cqZones") {
+                    cqZonesPerMode.insert(oldKey);
                 } else if (category == "namedCallPrefixes" || category == "wpxPrefix") {
                     if (!namedCallPrefixesPerMode.contains(oldKey)) namedCallPrefixesPerMode.insert(oldKey);
                 } else if (category == "gridSquares") {
@@ -2968,6 +3003,8 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
                     if (!dxccMultsPerBandAndMode.contains(oldKey)) dxccMultsPerBandAndMode.insert(oldKey);
                 } else if (category == "ituRegions") {
                     if (!ituRegionMultsPerBandAndMode.contains(oldKey)) ituRegionMultsPerBandAndMode.insert(oldKey);
+                } else if (category == "cqZones") {
+                    cqZonesPerBandAndMode.insert(oldKey);
                 } else if (category == "namedCallPrefixes" || category == "wpxPrefix") {
                     if (!namedCallPrefixesPerBandAndMode.contains(oldKey)) namedCallPrefixesPerBandAndMode.insert(oldKey);
                 } else if (category == "gridSquares") {
@@ -2984,7 +3021,8 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
                 // Call-prefix mults (YBDX, WPX, JARL call areas) share the named
                 // mult column so a new prefix still flags the QSO as a mult.
                 if (category == "named" || category == "namedMults"
-                        || category == "namedCallPrefixes" || category == "wpxPrefix") {
+                        || category == "namedCallPrefixes" || category == "wpxPrefix"
+                        || category == "cqZones") {
                     qsoNamedMults++;
                 } else if (category == "dxcc" || category == "eadx100") {
                     qsoDxccMults++;
@@ -3032,6 +3070,7 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
         m_runningScore.ituRegionMultCount = ituRegionMultsOnce.size();
         m_runningScore.namedCallPrefixCount = namedCallPrefixesOnce.size();
         m_runningScore.gridSquareMultCount = gridSquaresOnce.size();
+        m_runningScore.cqZoneMultCount = cqZonesOnce.size();
         m_runningScore.multipliers = uniqueMultipliers.size();
         if (verbose) {
             DebugLogger::instance().log("ContestEngine", 
@@ -3049,6 +3088,7 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
         m_runningScore.ituRegionMultCount = ituRegionMultsPerBand.size();
         m_runningScore.namedCallPrefixCount = namedCallPrefixesPerBand.size();
         m_runningScore.gridSquareMultCount = gridSquaresPerBand.size();
+        m_runningScore.cqZoneMultCount = cqZonesPerBand.size();
         m_runningScore.multipliers = multPerBand.size();
         if (verbose) {
             DebugLogger::instance().log("ContestEngine", 
@@ -3066,6 +3106,7 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
         m_runningScore.ituRegionMultCount = ituRegionMultsPerMode.size();
         m_runningScore.namedCallPrefixCount = namedCallPrefixesPerMode.size();
         m_runningScore.gridSquareMultCount = gridSquaresPerMode.size();
+        m_runningScore.cqZoneMultCount = cqZonesPerMode.size();
         m_runningScore.multipliers = multPerMode.size();
         if (verbose) {
             DebugLogger::instance().log("ContestEngine", 
@@ -3083,6 +3124,7 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
         m_runningScore.ituRegionMultCount = ituRegionMultsPerBandAndMode.size();
         m_runningScore.namedCallPrefixCount = namedCallPrefixesPerBandAndMode.size();
         m_runningScore.gridSquareMultCount = gridSquaresPerBandAndMode.size();
+        m_runningScore.cqZoneMultCount = cqZonesPerBandAndMode.size();
         m_runningScore.multipliers = multPerBandAndMode.size();
         DebugLogger::instance().log("ContestEngine", 
             QString("Mults per band/mode: %1 total (named:%2 dxcc:%3 itu:%4 prefixes:%5 grid:%6)")
@@ -3277,7 +3319,7 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
         }
     } else if (!multCategories.isEmpty()) {
         // For multsOnce and multsPerBand: use simple points × mults formula
-        int totalMultipliers = capScoredMults(m_runningScore.namedMultCount + m_runningScore.dxccMultCount + m_runningScore.ituRegionMultCount + m_runningScore.namedCallPrefixCount + m_runningScore.gridSquareMultCount);
+        int totalMultipliers = capScoredMults(m_runningScore.namedMultCount + m_runningScore.dxccMultCount + m_runningScore.ituRegionMultCount + m_runningScore.namedCallPrefixCount + m_runningScore.gridSquareMultCount + m_runningScore.cqZoneMultCount);
         m_runningScore.contestScore = (m_runningScore.contactScore * totalMultipliers) + m_runningScore.bonusPoints;
     } else if (m_runningScore.multipliers > 0) {
         // Traditional scoring: points * mults

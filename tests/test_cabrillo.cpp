@@ -33,6 +33,7 @@ private slots:
     void mapsCabrilloContestNameToMode();
     void resolvesUnknownPlaceholderToEmpty();
     void leavesClassicTemplatesUnchanged();
+    void exportsCqwwRttyQsoLine();
 
 private:
     QStringList exportLines(const QJsonObject& contestDef,
@@ -191,6 +192,40 @@ void TestCabrillo::leavesClassicTemplatesUnchanged()
     }
     QCOMPARE(qsoLine,
              QStringLiteral("QSO:  7040 CW 2026-11-07 2145 N9OH 599 IN K1UI 599 CT"));
+}
+
+// CQ WW RTTY sends RST + zone + QTH on both sides; zone and QTH are separate
+// exchange fields (ZONEs/EXCHs, ZONEr/EXCHr), resolved by name from the
+// shipped template. RTTY exports as RY.
+void TestCabrillo::exportsCqwwRttyQsoLine()
+{
+    const QString path = QStringLiteral(CLX_SOURCE_DIR "/contests/cqww_rtty.json");
+    QFile f(path);
+    QVERIFY2(f.open(QIODevice::ReadOnly), qPrintable("cannot open " + path));
+    const QJsonObject def = QJsonDocument::fromJson(f.readAll()).object();
+    QVERIFY(!def.isEmpty());
+
+    QsoRecord qso;
+    qso.setCall("DL4EX");
+    QDateTime dt = QDateTime::fromString("2026-09-26T00:07:00", Qt::ISODate);
+    dt.setTimeSpec(Qt::UTC);
+    qso.setDateTime(dt);
+    qso.setFrequency("14085");
+    qso.setMode("RTTY");
+    qso.setRstSent("599");
+    qso.setRstReceived("599");
+    qso.setExchangeField("ZONEs", "04");
+    qso.setExchangeField("EXCHs", "IN");
+    qso.setExchangeField("ZONEr", "14");
+    qso.setExchangeField("EXCHr", "DX");
+    qso.setPoints(3);
+
+    QString qsoLine;
+    for (const QString& l : exportLines(def, {qso}, "N9OH", QString())) {
+        if (l.startsWith("QSO:")) { qsoLine = l; break; }
+    }
+    QCOMPARE(qsoLine,
+             QStringLiteral("QSO: 14085 RY 2026-09-26 0007 N9OH 599 04 IN DL4EX 599 14 DX"));
 }
 
 QTEST_MAIN(TestCabrillo)

@@ -228,6 +228,9 @@ void ScoreWidget::updateMultsSummary(const ContestEngine::ContestScore& score)
         // the URE EADX-100 list, not ARRL DXCC.
         parts.append(QString("EADX-100: %1").arg(score.dxccMultCount));
     }
+    if (m_multCategories.contains("cqZones") && score.cqZoneMultCount > 0) {
+        parts.append(QString("Zones: %1").arg(score.cqZoneMultCount));
+    }
     if (m_multCategories.contains("ituRegions") && score.ituRegionMultCount > 0) {
         parts.append(QString("ITU: %1").arg(score.ituRegionMultCount));
     }

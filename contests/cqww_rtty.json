@@ -1,0 +1,512 @@
+{
+  "contest": {
+    "name": "CQ World Wide RTTY DX Contest",
+    "abbreviation": "CQWW-RTTY",
+    "version": "1.0.0",
+    "sponsor": "CQ Magazine",
+    "description": "Worldwide RTTY contest, last full weekend of September. Everyone works everyone. Exchange is RST + CQ zone; stations in the continental USA and Canada also send their state or Canadian call area. 1 point same country, 2 points same continent, 3 points different continent. Multipliers per band: CQ zones, countries (DXCC + WAE) and W/VE QTHs (48 states + DC + 14 Canadian call areas).",
+    "startDate": "Last full weekend of September (2026: September 26-27, 0000 UTC Sat - 2359 UTC Sun)",
+    "duration": 48,
+    "offTimeGapMinutes": 60,
+    "modes": [
+      "RTTY"
+    ],
+    "bands": [
+      "80m",
+      "40m",
+      "20m",
+      "15m",
+      "10m"
+    ],
+    "url": "https://www.cqwwrtty.com/rules.htm",
+    "categories": {
+      "stations": [
+        "SINGLE_OP",
+        "SINGLE_OP_ASSISTED",
+        "MULTI_SINGLE",
+        "MULTI_TWO",
+        "MULTI_MULTI",
+        "MULTI_DISTRIBUTED"
+      ],
+      "power": [
+        "HIGH",
+        "LOW",
+        "QRP"
+      ],
+      "modes": [
+        "RTTY"
+      ]
+    }
+  },
+  "frequencies": {
+    "80m": {
+      "start": 3500,
+      "end": 4000,
+      "digital": {
+        "start": 3500,
+        "end": 3650
+      }
+    },
+    "40m": {
+      "start": 7000,
+      "end": 7300,
+      "digital": {
+        "start": 7000,
+        "end": 7125
+      }
+    },
+    "20m": {
+      "start": 14000,
+      "end": 14350,
+      "digital": {
+        "start": 14000,
+        "end": 14150
+      }
+    },
+    "15m": {
+      "start": 21000,
+      "end": 21450,
+      "digital": {
+        "start": 21000,
+        "end": 21200
+      }
+    },
+    "10m": {
+      "start": 28000,
+      "end": 29700,
+      "digital": {
+        "start": 28000,
+        "end": 28300
+      }
+    }
+  },
+  "stationClasses": {
+    "enabled": false
+  },
+  "userPrompts": [
+    {
+      "id": "myZone",
+      "question": "Enter your CQ zone (1-40)",
+      "type": "text",
+      "required": true,
+      "storeInMeta": true,
+      "description": "Continental USA is zones 3, 4 and 5; most of Europe is 14, 15, 16 and 20; Japan is 25.",
+      "exchangeFieldMapping": {
+        "myZone": "ZONEs"
+      }
+    },
+    {
+      "id": "myQth",
+      "question": "Enter your QTH (continental US state, DC, Canadian call area, or DX)",
+      "type": "text",
+      "required": true,
+      "forceUppercase": true,
+      "storeInMeta": true,
+      "description": "Continental USA: state abbreviation (e.g. MA), or DC. Canada: call area - NB NS QC ON MB SK AB BC NT NF LB NU YT PE. Everyone else, including Alaska and Hawaii: DX.",
+      "exchangeFieldMapping": {
+        "myQth": "EXCHs"
+      }
+    },
+    {
+      "id": "operatingCategory",
+      "question": "Select your operating category",
+      "type": "select",
+      "options": [
+        {
+          "value": "SO",
+          "label": "Single Operator (no QSO finding assistance)"
+        },
+        {
+          "value": "SOA",
+          "label": "Single Operator Assisted"
+        },
+        {
+          "value": "MS",
+          "label": "Multi-Single"
+        },
+        {
+          "value": "M2",
+          "label": "Multi-Two"
+        },
+        {
+          "value": "MM",
+          "label": "Multi-Multi"
+        },
+        {
+          "value": "MD",
+          "label": "Multi-Distributed"
+        },
+        {
+          "value": "CHECKLOG",
+          "label": "Checklog"
+        }
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "Single operators may enter all band or a single band (set CATEGORY-BAND in the Cabrillo export). Overlays CLASSIC, ROOKIE and YOUTH are also set in the Cabrillo export."
+    },
+    {
+      "id": "powerCategory",
+      "question": "Select your power category",
+      "type": "select",
+      "options": [
+        {
+          "value": "HP",
+          "label": "High Power (1500W or less)"
+        },
+        {
+          "value": "LP",
+          "label": "Low Power (100W or less)"
+        },
+        {
+          "value": "QRP",
+          "label": "QRP (5W or less)"
+        }
+      ],
+      "required": true,
+      "storeInMeta": true
+    }
+  ],
+  "exchangeFields": {
+    "sent": [
+      {
+        "name": "RST",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report sent (599)"
+      },
+      {
+        "name": "ZONEs",
+        "type": "string",
+        "required": true,
+        "description": "Your CQ zone"
+      },
+      {
+        "name": "EXCHs",
+        "type": "string",
+        "required": true,
+        "description": "Your state/Canadian call area, or DX"
+      }
+    ],
+    "received": [
+      {
+        "name": "RST",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report received"
+      },
+      {
+        "name": "ZONEr",
+        "type": "string",
+        "required": true,
+        "pattern": "^(0?[1-9]|[1-3][0-9]|40)$",
+        "description": "CQ zone received (1-40)"
+      },
+      {
+        "name": "EXCHr",
+        "type": "string",
+        "required": true,
+        "description": "State or Canadian call area (continental W/VE), or DX for everyone else"
+      }
+    ]
+  },
+  "qsoFields": [
+    {
+      "name": "Date",
+      "column": "DATE",
+      "type": "date",
+      "format": "yyyy-MM-dd",
+      "required": true
+    },
+    {
+      "name": "Time",
+      "column": "TIME",
+      "type": "time",
+      "format": "HH:mm:ss",
+      "required": true
+    },
+    {
+      "name": "Callsign",
+      "column": "CALL",
+      "type": "string",
+      "required": true,
+      "uppercase": true
+    },
+    {
+      "name": "Frequency",
+      "column": "FREQ",
+      "type": "number",
+      "unit": "kHz",
+      "required": true
+    },
+    {
+      "name": "Mode",
+      "column": "MODE",
+      "type": "enum",
+      "values": [
+        "RTTY"
+      ],
+      "required": true
+    },
+    {
+      "name": "RST Sent",
+      "column": "RSTs",
+      "type": "string",
+      "required": true,
+      "default": "599"
+    },
+    {
+      "name": "RST Rcvd",
+      "column": "RSTr",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "Zone Sent",
+      "column": "ZONEs",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "QTH Sent",
+      "column": "EXCHs",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "Zone Rcvd",
+      "column": "ZONEr",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "QTH Rcvd",
+      "column": "EXCHr",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "Points",
+      "column": "POINTS",
+      "type": "number",
+      "calculated": true
+    },
+    {
+      "name": "Mult",
+      "column": "M",
+      "type": "string",
+      "calculated": true
+    }
+  ],
+  "scoring": {
+    "points": {
+      "__comment": "1 point same country, 2 points same continent (different country), 3 points different continent.",
+      "sameDxccEntity": {
+        "RTTY": 1,
+        "DIGITAL": 1
+      },
+      "sameContinent": {
+        "RTTY": 2,
+        "DIGITAL": 2
+      },
+      "differentContinent": {
+        "RTTY": 3,
+        "DIGITAL": 3
+      }
+    },
+    "precedence": [
+      "sameDxccEntity",
+      "sameContinent",
+      "differentContinent"
+    ],
+    "multipliers": {
+      "__comment": "Per band: CQ zones (from ZONEr), countries (DXCC + WAE list, which includes IG9/IH9) and W/VE QTHs (namedMults from EXCHr: 48 continental states + DC + 14 Canadian call areas). USA and Canada also count as countries. AK and HI count as countries only; DX, AK and HI in EXCHr map to a sentinel outside namedMults so they earn no QTH mult. Maritime mobile counts for a zone only.",
+      "type": "multsPerBand",
+      "description": "CQ zones, countries and W/VE QTHs, each counted once per band",
+      "categories": [
+        "namedMults",
+        "dxcc",
+        "cqZones"
+      ],
+      "cqZoneField": "ZONEr",
+      "includeWaeEntities": true,
+      "namedMultsLabel": "W/VE QTHs"
+    },
+    "finalScore": "SUM(points) * (cqZones + dxccMultipliers + namedMults)"
+  },
+  "dupeChecking": {
+    "type": "perBand",
+    "description": "A station may be worked once on each band"
+  },
+  "logging": {
+    "requiredFields": [
+      "date",
+      "time",
+      "frequency",
+      "mode",
+      "callsign",
+      "rstSent",
+      "rstReceived",
+      "exchSent",
+      "exchReceived"
+    ],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "CQ-WW-RTTY",
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {rst_sent} {ZONEs} {EXCHs} {call} {rst_rcvd} {ZONEr} {EXCHr}",
+      "requiredHeaders": [
+        "CONTEST",
+        "CALLSIGN",
+        "LOCATION",
+        "CATEGORY-OPERATOR",
+        "CATEGORY-ASSISTED",
+        "CATEGORY-BAND",
+        "CATEGORY-MODE",
+        "CATEGORY-POWER",
+        "CATEGORY-TRANSMITTER",
+        "CATEGORY-OVERLAY",
+        "CLAIMED-SCORE",
+        "CLUB",
+        "CREATED-BY",
+        "NAME",
+        "ADDRESS",
+        "EMAIL",
+        "OPERATORS",
+        "SOAPBOX"
+      ],
+      "notes": "LOCATION is the US state or Canadian call area for W/VE stations, DX for everyone else. Rookies and youth give their first-licensed date or birth date in SOAPBOX."
+    }
+  },
+  "callHistory": {
+    "fieldsToSave": [
+      "ZONEr",
+      "EXCHr"
+    ],
+    "description": "Save zone and QTH for future autofill"
+  },
+  "validation": {
+    "minimumQSOs": 1,
+    "maxOperatingTime": 48,
+    "offTimesRequired": false,
+    "namedMults": [
+      "AL",
+      "AZ",
+      "AR",
+      "CA",
+      "CO",
+      "CT",
+      "DE",
+      "FL",
+      "GA",
+      "ID",
+      "IL",
+      "IN",
+      "IA",
+      "KS",
+      "KY",
+      "LA",
+      "ME",
+      "MD",
+      "MA",
+      "MI",
+      "MN",
+      "MS",
+      "MO",
+      "MT",
+      "NE",
+      "NV",
+      "NH",
+      "NJ",
+      "NM",
+      "NY",
+      "NC",
+      "ND",
+      "OH",
+      "OK",
+      "OR",
+      "PA",
+      "RI",
+      "SC",
+      "SD",
+      "TN",
+      "TX",
+      "UT",
+      "VT",
+      "VA",
+      "WA",
+      "WV",
+      "WI",
+      "WY",
+      "DC",
+      "NB",
+      "NS",
+      "QC",
+      "ON",
+      "MB",
+      "SK",
+      "AB",
+      "BC",
+      "NT",
+      "NF",
+      "LB",
+      "NU",
+      "YT",
+      "PE"
+    ],
+    "namedMultAliases": {
+      "DX": "__NOQTH__",
+      "AK": "__NOQTH__",
+      "HI": "__NOQTH__",
+      "NWT": "NT",
+      "PEI": "PE"
+    },
+    "exchangeValidation": {
+      "type": "namedMultOnly",
+      "description": "Received QTH: continental US state, DC, Canadian call area, or DX. NWT and PEI are accepted for NT and PE; AK and HI are accepted but count as countries only."
+    }
+  },
+  "ui": {
+    "showMultiplierPanel": true,
+    "logColumns": [
+      "DATE",
+      "TIME",
+      "CALL",
+      "FREQ",
+      "MODE",
+      "RSTs",
+      "RSTr",
+      "ZONEs",
+      "EXCHs",
+      "ZONEr",
+      "EXCHr",
+      "POINTS",
+      "M",
+      "COMMENT"
+    ],
+    "entryFields": [
+      "CALL",
+      "RSTr",
+      "ZONEr",
+      "EXCHr"
+    ],
+    "fieldNavigation": {
+      "keys": "tab"
+    },
+    "bandMap": {
+      "enabled": true,
+      "bands": [
+        "80m",
+        "40m",
+        "20m",
+        "15m",
+        "10m"
+      ]
+    },
+    "multiplierDisplay": {
+      "showStates": true,
+      "showProvinces": true,
+      "showDXCC": true,
+      "showZones": true
+    }
+  }
+}

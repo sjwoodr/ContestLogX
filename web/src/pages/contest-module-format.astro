@@ -484,6 +484,7 @@ import Layout from '../layouts/Layout.astro';
               <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">dxcc</td><td>DXCC entities from the DXCC database</td></tr>
               <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">namedCallPrefixes</td><td>Call sign prefixes from a static <code>validation.namedCallPrefixes</code> list (e.g., YB DX). Also the bucket for call-area mults produced by <code>callAreaEntities</code></td></tr>
               <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">wpxPrefix</td><td>CQ WPX prefix extracted dynamically per call (portable designators, <code>/&lt;digit&gt;</code> call-area changes, license-class suffix stripping)</td></tr>
+              <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">cqZones</td><td>CQ zones 1-40, read from their own received exchange field (<code>cqZoneField</code>, default <code>ZONEr</code>) so one QSO can earn a zone and a named mult. "5" and "05" are the same zone. Maritime mobile (<code>/MM</code>) earns a zone but no DXCC mult (CQ WW RTTY)</td></tr>
               <tr class="border-b" style="border-color: #21262d;"><td class="py-2 pr-4 font-mono">gridSquares</td><td>Maidenhead grid squares (ARRL VHF)</td></tr>
               <tr><td class="py-2 pr-4 font-mono">objectiveMultipliers</td><td>User-selected objective checkboxes (Winter Field Day)</td></tr>
             </tbody>

@@ -454,6 +454,16 @@
       "name": "CQP Non-CA op N0FXO IN (13 QSOs incl 1 dupe, 3 pts per QSO, 10 CA counties once for the contest - a county on a new band or mode earns points but no new mult, MARN and MARP distinct)",
       "log_file": "test_cqp_nonca.clx",
       "expected_score": 360
+    },
+    {
+      "name": "CQ WW RTTY W op N9EZRA IN zone 4 (13 QSOs incl 1 dupe, 1/2/3 pts same country/continent/other, multsPerBand zones + countries + W/VE QTHs from one exchange, USA and Canada count as countries, PEI aliases to PE, DC is a QTH, DX earns no QTH mult)",
+      "log_file": "test_cqww_rtty_wve.clx",
+      "expected_score": 483
+    },
+    {
+      "name": "CQ WW RTTY DX op DJ8WG zone 14 (10 QSOs incl 1 dupe, own country 1 pt, EU 2 pts, other continents 3 pts, zone 5 and 05 are the same mult, per-band re-credit on 40m)",
+      "log_file": "test_cqww_rtty_dx.clx",
+      "expected_score": 330
     }
   ]
 }
