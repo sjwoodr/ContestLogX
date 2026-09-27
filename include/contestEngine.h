@@ -252,6 +252,9 @@ private:
     bool m_cachedAkHiCountDxcc = true;
     bool m_cachedUsAndCanadaCountDxcc = true;
     bool m_cachedIncludeWaeEntities = false;
+    // DXCC primary prefix -> call-area tag (e.g. "K" -> "W"). QSOs with these
+    // entities earn a "<tag><digit>" call-area mult instead of the DXCC mult.
+    QHash<QString, QString> m_cachedCallAreaEntities;
     void cacheContestProperties();
 
     // DXCC lookup cache - keyed by callsign, avoids repeated database scans per scoring pass

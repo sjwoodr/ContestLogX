@@ -293,6 +293,17 @@ By default, ContestLogX excludes these WAE-only entities from DXCC multiplier co
 }
 ```
 
+**Call-Area Multipliers (`callAreaEntities`):**
+Some contests count certain countries by call area rather than as one DXCC entity. `callAreaEntities` maps a cty.dat primary prefix to the tag the area is named with. A QSO with one of those entities earns `<tag><digit>` in the `namedCallPrefixes` bucket instead of a DXCC mult. The digit is the last digit of the prefix, so portable designators move it: `W1AW/4` is `W4`, `7K1ABC` is `JA1`, `VO1AA` is `VE1`. Offshore entities with their own DXCC status (KH6, KL7, JD1, VK9) still count as DXCC. Requires `dxcc` in `categories`.
+
+```json
+"multipliers": {
+  "type": "multsPerBand",
+  "categories": ["namedCallPrefixes", "dxcc"],
+  "callAreaEntities": {"JA": "JA", "K": "W", "VE": "VE", "VK": "VK"}
+}
+```
+
 **Multiplier Types:**
 The `type` field determines how multipliers are counted:
 - `multsOnce`: Each multiplier counts only once (e.g., work OH once for entire contest)

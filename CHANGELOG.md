@@ -4,6 +4,15 @@ All notable changes to ContestLogX are documented in this file.
 
 ## [0.9.11]
 
+### Contest Updates
+- Added the JARL World Wide RTTY Contest, the successor to the JARTS WW RTTY Contest, first run October 17-18, 2026. Exchange is RST plus your age (average age for multi-op). QSOs score 2 points on your own continent and 3 points otherwise. Multipliers are DXCC entities plus the JA, W, VE and VK call areas, counted per band. Categories are SOHP, SOLP, the new SOQRP, MMHP and MMLP; single ops 25 or younger can pick the YOUTH overlay in the Cabrillo export
+
+### Contest Engine Changes
+- A contest can now count selected countries by call area instead of as one DXCC entity (`callAreaEntities`). A portable designator moves the call area, so W1AW/4 counts as W4
+
+### Other Changes and Bugfixes
+- A new call-prefix multiplier (YB DX, CQ WPX) now shows in the QSO list's mult column. Previously only state, section and DXCC mults were flagged there, even though prefix mults were always scored correctly
+
 ## [0.9.10]
 
 ### Other Changes and Bugfixes

@@ -1,0 +1,186 @@
+{
+  "contest": {
+    "name": "JARL World Wide RTTY Contest",
+    "abbreviation": "JARL-RTTY",
+    "version": "1.0.0",
+    "sponsor": "Japan Amateur Radio League (JARL)",
+    "description": "Worldwide RTTY contest, successor to the JARTS WW RTTY Contest (JARL took it over in 2026). Everyone works everyone. Exchange is RST + operator's age (average age for multi-op). Mults are DXCC entities (except JA/W/VE/VK) plus JA/W/VE/VK call areas, per band.",
+    "startDate": "Third full weekend of October (00:00 UTC Saturday to 24:00 UTC Sunday)",
+    "duration": 48,
+    "offTimeGapMinutes": 0,
+    "modes": ["RTTY"],
+    "bands": ["80m", "40m", "20m", "15m", "10m"],
+    "url": "https://www.jarl.org/English/4_Library/A-4-3_Contests/rtty_rules_en.html",
+    "categories": {
+      "stations": ["SINGLE_OP", "MULTI_OP"],
+      "power": ["HIGH", "LOW", "QRP"],
+      "modes": ["RTTY"]
+    }
+  },
+  "frequencies": {
+    "80m": {
+      "start": 3500,
+      "end": 4000,
+      "digital": {"start": 3500, "end": 3650}
+    },
+    "40m": {
+      "start": 7000,
+      "end": 7300,
+      "digital": {"start": 7000, "end": 7125}
+    },
+    "20m": {
+      "start": 14000,
+      "end": 14350,
+      "digital": {"start": 14000, "end": 14150}
+    },
+    "15m": {
+      "start": 21000,
+      "end": 21450,
+      "digital": {"start": 21000, "end": 21200}
+    },
+    "10m": {
+      "start": 28000,
+      "end": 29700,
+      "digital": {"start": 28000, "end": 28300}
+    }
+  },
+  "stationClasses": {
+    "enabled": false
+  },
+  "userPrompts": [
+    {
+      "id": "operatingCategory",
+      "question": "Select your operating category",
+      "type": "select",
+      "options": [
+        {"value": "SOHP", "label": "Single Op All Band - High Power"},
+        {"value": "SOLP", "label": "Single Op All Band - Low Power (100W or less)"},
+        {"value": "SOQRP", "label": "Single Op All Band - QRP (5W or less)"},
+        {"value": "MMHP", "label": "Multi Op All Band - High Power"},
+        {"value": "MMLP", "label": "Multi Op All Band - Low Power (100W or less)"}
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "Single ops 25 or younger may also enter the YOUTH overlay (set CATEGORY-OVERLAY: YOUTH in the Cabrillo export)"
+    },
+    {
+      "id": "myAge",
+      "question": "Enter your age (multi-op: average age of the operators)",
+      "type": "text",
+      "required": true,
+      "storeInMeta": true,
+      "description": "Two digits, e.g. 07 or 58. The rules also allow 00 or 99 for operators who prefer not to send their age",
+      "exchangeFieldMapping": {"myAge": "EXCHs"}
+    }
+  ],
+  "exchangeFields": {
+    "sent": [
+      {
+        "name": "RST",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report sent (599)"
+      },
+      {
+        "name": "EXCHs",
+        "type": "string",
+        "required": true,
+        "description": "Operator's age (average age for multi-op)"
+      }
+    ],
+    "received": [
+      {
+        "name": "RST",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report received"
+      },
+      {
+        "name": "EXCHr",
+        "type": "string",
+        "required": true,
+        "pattern": "^[0-9]{1,2}$",
+        "description": "Operator's age (average age for multi-op)"
+      }
+    ]
+  },
+  "qsoFields": [
+    {"name": "Date",      "column": "DATE",   "type": "date",   "format": "yyyy-MM-dd", "required": true},
+    {"name": "Time",      "column": "TIME",   "type": "time",   "format": "HH:mm:ss",   "required": true},
+    {"name": "Callsign",  "column": "CALL",   "type": "string", "required": true, "uppercase": true},
+    {"name": "Frequency", "column": "FREQ",   "type": "number", "unit": "kHz",    "required": true},
+    {"name": "Mode",      "column": "MODE",   "type": "enum",   "values": ["RTTY"], "required": true},
+    {"name": "RST Sent",  "column": "RSTs",   "type": "string", "required": true, "default": "599"},
+    {"name": "RST Rcvd",  "column": "RSTr",   "type": "string", "required": true},
+    {"name": "Age Sent",  "column": "EXCHs",  "type": "string", "required": true},
+    {"name": "Age Rcvd",  "column": "EXCHr",  "type": "string", "required": true},
+    {"name": "Points",    "column": "POINTS", "type": "number", "calculated": true},
+    {"name": "Mult",      "column": "M",      "type": "string", "calculated": true}
+  ],
+  "scoring": {
+    "points": {
+      "__comment": "2 points for a QSO on the same continent (including your own country), 3 points for a different continent.",
+      "sameContinent": {
+        "RTTY": 2,
+        "DIGITAL": 2
+      },
+      "differentContinent": {
+        "RTTY": 3,
+        "DIGITAL": 3
+      }
+    },
+    "precedence": [
+      "sameContinent",
+      "differentContinent"
+    ],
+    "multipliers": {
+      "type": "multsPerBand",
+      "description": "DXCC entities (except JA, W, VE and VK mainland) plus JA/W/VE/VK call areas, each counted once per band",
+      "categories": ["namedCallPrefixes", "dxcc"],
+      "__comment_callAreaEntities": "Keyed by cty.dat primary prefix. These entities do not count as DXCC mults; instead each call area (last digit of the prefix, or the /digit portable designator) counts, e.g. W1AW/4 -> W4, 7K1ABC -> JA1, VO1AA -> VE1. JD1, KH6, KL7, VK9 and the like are separate DXCC entities and count as DXCC mults.",
+      "callAreaEntities": {
+        "JA": "JA",
+        "K": "W",
+        "VE": "VE",
+        "VK": "VK"
+      }
+    },
+    "finalScore": "SUM(points) * (namedCallPrefixes + dxccMultipliers)"
+  },
+  "dupeChecking": {
+    "type": "perBand",
+    "description": "A station may be worked once on each band"
+  },
+  "logging": {
+    "requiredFields": ["date", "time", "frequency", "mode", "callsign", "rstSent", "rstReceived", "exchSent", "exchReceived"],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "JARL-WW-RTTY",
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {rst_sent} {exch_sent} {call} {rst_rcvd} {exch_rcvd}",
+      "requiredHeaders": ["CONTEST", "CALLSIGN", "CATEGORY-BAND", "CATEGORY-MODE", "CATEGORY-OPERATOR", "CATEGORY-POWER", "CATEGORY-TRANSMITTER", "CATEGORY-OVERLAY", "CLAIMED-SCORE", "CLUB", "CREATED-BY", "NAME", "ADDRESS", "EMAIL", "OPERATORS", "SOAPBOX"]
+    }
+  },
+  "callHistory": {
+    "fieldsToSave": ["EXCHr"],
+    "description": "Save received age for future lookups"
+  },
+  "validation": {
+    "minimumQSOs": 1,
+    "maxOperatingTime": 48,
+    "offTimesRequired": false
+  },
+  "ui": {
+    "logColumns": ["DATE", "TIME", "CALL", "FREQ", "MODE", "RSTs", "RSTr", "EXCHs", "EXCHr", "POINTS", "M", "COMMENT"],
+    "entryFields": ["CALL", "RSTr", "EXCHr"],
+    "fieldNavigation": {
+      "keys": "tab"
+    },
+    "bandMap": {
+      "enabled": true,
+      "bands": ["80m", "40m", "20m", "15m", "10m"]
+    },
+    "multiplierDisplay": {
+      "showDXCC": true
+    }
+  }
+}

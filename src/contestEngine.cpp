@@ -267,6 +267,19 @@ void ContestEngine::cacheContestProperties()
             m_cachedUsAndCanadaCountDxcc = mults["usAndCanadaCountDxcc"].toBool(true);
             m_cachedIncludeWaeEntities  = mults["includeWaeEntities"].toBool(false);
 
+            // Optional call-area multipliers (JARL WW RTTY). Maps a DXCC primary
+            // prefix to a call-area tag: {"JA": "JA", "K": "W", "VE": "VE", "VK": "VK"}.
+            // A QSO with one of those entities earns "<tag><digit>" (W4, JA1, ...)
+            // in the namedCallPrefixes bucket instead of the DXCC entity mult.
+            m_cachedCallAreaEntities.clear();
+            if (mults.contains("callAreaEntities")) {
+                QJsonObject areas = mults["callAreaEntities"].toObject();
+                for (auto it = areas.begin(); it != areas.end(); ++it) {
+                    if (it.key().startsWith("_")) continue;
+                    m_cachedCallAreaEntities.insert(it.key().toUpper(), it.value().toString().toUpper());
+                }
+            }
+
             // Multiplier categories (may be station-class specific)
             // JSON key is "stationClassMultipliers"; also accept legacy "stationClassCategories"
             // Resolves from m_stationClass first, then falls back to userPrompt values
@@ -1397,7 +1410,23 @@ QList<ContestEngine::MultiplierInfo> ContestEngine::getMultipliersWithCategory(c
                 if (!entity.waeOnly || m_cachedIncludeWaeEntities) {
                     QString dxccMult = entity.primaryPrefix.isEmpty()
                                        ? entity.prefixes.first().prefix : entity.primaryPrefix;
-                    result.append({dxccMult, "dxcc"});
+                    auto areaIt = m_cachedCallAreaEntities.constFind(dxccMult);
+                    if (areaIt != m_cachedCallAreaEntities.constEnd()) {
+                        // Call-area mult: the area is the last digit of the prefix,
+                        // so portable designators move it (W1AW/4 -> W4, 7K1ABC -> JA1).
+                        QString wpxPrefix = CallsignUtils::extractWpxPrefix(qso.getCall());
+                        if (!wpxPrefix.isEmpty() && wpxPrefix.back().isDigit()) {
+                            QString area = areaIt.value() + wpxPrefix.back();
+                            result.append({area, "namedCallPrefixes"});
+                            DebugLogger::instance().log("ContestEngine",
+                                QString("  Call-area mult '%1' from %2").arg(area, qso.getCall()));
+                        } else {
+                            DebugLogger::instance().log("ContestEngine",
+                                QString("  No call-area digit for %1 - no mult").arg(qso.getCall()));
+                        }
+                    } else {
+                        result.append({dxccMult, "dxcc"});
+                    }
                 }
             }
         }
@@ -1568,7 +1597,8 @@ ContestEngine::QsoMultiplierCredit ContestEngine::getQsoMultiplierCredit(const Q
         }
         
         if (isNew) {
-            if (multInfo.category == "named" || multInfo.category == "namedMults") {
+            if (multInfo.category == "named" || multInfo.category == "namedMults"
+                    || multInfo.category == "namedCallPrefixes" || multInfo.category == "wpxPrefix") {
                 credit.namedMultCount++;
             } else if (multInfo.category == "dxcc" || multInfo.category == "eadx100") {
                 // dxcc and eadx100 cover ~99% the same entity set, so they share
@@ -2936,7 +2966,10 @@ void ContestEngine::updateRunningScore(QList<QsoRecord>& qsos, const QString& my
             
             // Count this QSO's contribution to named and DXCC mults
             if (isNew) {
-                if (category == "named" || category == "namedMults") {
+                // Call-prefix mults (YBDX, WPX, JARL call areas) share the named
+                // mult column so a new prefix still flags the QSO as a mult.
+                if (category == "named" || category == "namedMults"
+                        || category == "namedCallPrefixes" || category == "wpxPrefix") {
                     qsoNamedMults++;
                 } else if (category == "dxcc" || category == "eadx100") {
                     qsoDxccMults++;

@@ -434,6 +434,16 @@
       "name": "ARRL SS Phone N9OH IN op (8 QSOs incl 1 dupe, 2 points per QSO on phone, 7 sections once for the contest)",
       "log_file": "test_arrl_ss_phone.clx",
       "expected_score": 98
+    },
+    {
+      "name": "JARL WW RTTY - NA op K9EB (20 QSOs incl 1 dupe, 2 pts same continent / 3 pts different, multsPerBand DXCC + JA/W/VE/VK call areas: K2BXL/7 counts as W7, VO2 as VE2, XE is a DXCC mult, W5/JA4 re-credit on a new band)",
+      "log_file": "test_jarl_rtty_na.clx",
+      "expected_score": 735
+    },
+    {
+      "name": "JARL WW RTTY - JA op JH3TC (18 QSOs incl 1 dupe, JA-JA counts 2 pts, JH8WSP/1 counts as JA1, W and VK call areas, G/GW/EA/I/HL DXCC mults, per-band re-credit on 10m)",
+      "log_file": "test_jarl_rtty_ja.clx",
+      "expected_score": 704
     }
   ]
 }
