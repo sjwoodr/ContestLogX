@@ -1,0 +1,147 @@
+{
+ "format": "ContestLogX",
+ "format_version": "1.0",
+ "created": "2026-11-01T00:01:00Z",
+ "modified": "2026-11-01T00:06:00Z",
+ "contest": {
+  "name": "North American SSB Sprint",
+  "abbreviation": "NASPRINT-SSB",
+  "contest_file": "nasprint_ssb.json",
+  "mode": "SSB",
+  "version": "1.0.0",
+  "year": 2026,
+  "categories": {
+   "userPrompt_stationLocation": "DX",
+   "userPrompt_myName": "STEVE",
+   "userPrompt_myLocation": "DX",
+   "userPrompt_powerCategory": "LP"
+  }
+ },
+ "station": {
+  "callsign": "DJ8WG",
+  "operator": "STEVE"
+ },
+ "statistics": {},
+ "qsos": [
+  {
+   "id": 1,
+   "serial": 1,
+   "timestamp": "2026-11-01T00:01:00Z",
+   "frequency": 14250,
+   "band": "20m",
+   "mode": "SSB",
+   "callsign": "W9NE",
+   "duplicate": false,
+   "exchange_fields": {
+    "CALL": "W9NE",
+    "SNs": "1",
+    "NAMEs": "STEVE",
+    "EXCHs": "DX",
+    "SNr": "1",
+    "NAMEr": "STEVE",
+    "EXCHr": "IN"
+   },
+   "points": 0
+  },
+  {
+   "id": 2,
+   "serial": 2,
+   "timestamp": "2026-11-01T00:02:00Z",
+   "frequency": 14250,
+   "band": "20m",
+   "mode": "SSB",
+   "callsign": "DL0TW",
+   "duplicate": false,
+   "exchange_fields": {
+    "CALL": "DL0TW",
+    "SNs": "2",
+    "NAMEs": "STEVE",
+    "EXCHs": "DX",
+    "SNr": "2",
+    "NAMEr": "KARL",
+    "EXCHr": "DX"
+   },
+   "points": 0
+  },
+  {
+   "id": 3,
+   "serial": 3,
+   "timestamp": "2026-11-01T00:03:00Z",
+   "frequency": 14250,
+   "band": "20m",
+   "mode": "SSB",
+   "callsign": "XE3KWA",
+   "duplicate": false,
+   "exchange_fields": {
+    "CALL": "XE3KWA",
+    "SNs": "3",
+    "NAMEs": "STEVE",
+    "EXCHs": "DX",
+    "SNr": "4",
+    "NAMEr": "JUAN",
+    "EXCHr": "MEXICO"
+   },
+   "points": 0
+  },
+  {
+   "id": 4,
+   "serial": 4,
+   "timestamp": "2026-11-01T00:04:00Z",
+   "frequency": 14250,
+   "band": "20m",
+   "mode": "SSB",
+   "callsign": "JA5SU",
+   "duplicate": false,
+   "exchange_fields": {
+    "CALL": "JA5SU",
+    "SNs": "4",
+    "NAMEs": "STEVE",
+    "EXCHs": "DX",
+    "SNr": "3",
+    "NAMEr": "TARO",
+    "EXCHr": "DX"
+   },
+   "points": 0
+  },
+  {
+   "id": 5,
+   "serial": 5,
+   "timestamp": "2026-11-01T00:05:00Z",
+   "frequency": 14250,
+   "band": "20m",
+   "mode": "SSB",
+   "callsign": "AH6QPZ",
+   "duplicate": false,
+   "exchange_fields": {
+    "CALL": "AH6QPZ",
+    "SNs": "5",
+    "NAMEs": "STEVE",
+    "EXCHs": "DX",
+    "SNr": "8",
+    "NAMEr": "KAI",
+    "EXCHr": "HI"
+   },
+   "points": 0
+  },
+  {
+   "id": 6,
+   "serial": 6,
+   "timestamp": "2026-11-01T00:06:00Z",
+   "frequency": 7200,
+   "band": "40m",
+   "mode": "SSB",
+   "callsign": "VO1TW",
+   "duplicate": false,
+   "exchange_fields": {
+    "CALL": "VO1TW",
+    "SNs": "6",
+    "NAMEs": "STEVE",
+    "EXCHs": "DX",
+    "SNr": "6",
+    "NAMEr": "JOE",
+    "EXCHr": "NL"
+   },
+   "points": 0
+  }
+ ]
+}

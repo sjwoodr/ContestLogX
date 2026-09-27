@@ -283,6 +283,7 @@ private:
     // their keys match. Shared by isDupe, getDupeReason and rescoreAll.
     QString dupeScopeKey(const QsoRecord& qso, const QString& dupeScope) const;
     bool m_cachedNamedMultsRequireWve = false;  // multipliers.namedMultsRequireWveCallsign
+    QStringList m_cachedDxccContinents;         // multipliers.dxccContinents: only these continents' entities are DXCC mults (NA Sprint: NA)  // multipliers.namedMultsRequireWveCallsign
     int m_cachedMaxDxccMults = 0;         // multipliers.maxDxccMultipliers: cap on DXCC mults (ILQP: 5), 0 = none
     bool m_cachedDupeCwDigitalSame = false;  // dupeChecking.cwDigitalSameMode (ILQP: phone vs CW/digital)
     QStringList m_cachedExcludedModes;    // contest.excludedModes: never valid (ILQP: FT8, FT4)

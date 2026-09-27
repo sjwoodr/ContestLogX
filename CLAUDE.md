@@ -137,9 +137,9 @@ JSON files defining contest rules. Key sections:
 
 **Required metadata for every new contest definition.** The `contest` object MUST include both:
 - `url` - the contest's website (rules page)
-- `sponsorEmail` - contact email for the sponsor / contest committee
+- `sponsorEmail` - contact email for the sponsor / contest committee. If the sponsor publishes no email, only a contact form, use `sponsorContactUrl` with the form's URL instead (e.g. the NA SSB Sprint)
 
-Do not guess either value. If the rules provided don't give the website or a sponsor contact email, ask the user for it before committing the new contest. Existing definitions predating this rule may lack `sponsorEmail`; add it when a definition is next touched and the address is known.
+Do not guess either value. If the rules provided don't give the website or a sponsor contact (email or contact form), ask the user for it before committing the new contest. Existing definitions predating this rule may lack `sponsorEmail`; add it when a definition is next touched and the address is known.
 
 **`CHANGELOG.md` is the authoritative engine evolution log.** Every contest-definition format extension (`automaticMultipliers`, `stationClassMultipliers`, `multAliases` / `namedMultAliases`, `wpxPrefix`, `eadx100`, `byBand`, `bothInXX`, `<ruleName>Callsigns`, etc.) is described under "Contest Engine Changes" in the release that introduced it. When trying to understand why a config field exists or what scopes it supports, search CHANGELOG before reading the engine.
 

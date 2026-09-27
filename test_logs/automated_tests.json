@@ -565,6 +565,16 @@
       "name": "Zombie Shuffle W9NE (9 QSOs incl 1 dupe, per band (QSOs + bonus) x sum of Zombie numbers, bonus station 3333, 10m and 15m scored together, Rebirth Rule: same station on 20m after 30 min is a dupe, after 150 min counts again, +666 Crummy Band bonus)",
       "log_file": "test_zombie_shuffle.clx",
       "expected_score": 36732
+    },
+    {
+      "name": "NA SSB Sprint NA op W9NE IN (9 QSOs incl 1 dupe, 1 pt each, multsOnce states+DC+provinces+NA countries, DC separate from MD, AL7 counts as AK not a country, XE is an NA country mult, DL counts for points but no mult, same station re-worked on 40m)",
+      "log_file": "test_nasprint_ssb_na.clx",
+      "expected_score": 48
+    },
+    {
+      "name": "NA SSB Sprint DX op DJ8WG (6 QSOs, non-NA partners DL0TW and JA5SU score nothing, KH6 counts as North America and as HI)",
+      "log_file": "test_nasprint_ssb_dx.clx",
+      "expected_score": 16
     }
   ]
 }

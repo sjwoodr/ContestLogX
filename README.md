@@ -103,6 +103,7 @@ Most contest loggers are Windows-only, closed-source, or locked to a fixed set o
 | Oceania DX Contest (Phone and CW) | `ocdx.json` |
 | Pennsylvania QSO Party | `paqp.json` |
 | North American QSO Party (CW/SSB/RTTY) | `naqp.json` |
+| North American SSB Sprint | `nasprint_ssb.json` |
 | Russian DX Contest | `rdxc.json` |
 | South Dakota QSO Party | `sdqp.json` |
 | SP DX Contest | `spdx.json` |

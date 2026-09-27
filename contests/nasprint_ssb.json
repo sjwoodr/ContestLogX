@@ -1,0 +1,430 @@
+{
+  "contest": {
+    "name": "North American SSB Sprint",
+    "abbreviation": "NASPRINT-SSB",
+    "version": "1.0.0",
+    "sponsor": "North American SSB Sprint (ssbsprint.com)",
+    "description": "Four-hour SSB sprint on 80, 40 and 20m, 0000-0359 UTC. North American stations work everyone; everyone else works North American stations. Exchange is both callsigns, serial number, name and location (US state, Canadian province/territory, or country; DX stations send DX). Each valid QSO is 1 point; multipliers are the 51 US (48 states, DC, AK, HI) and 13 Canadian multipliers plus other North American countries, counted once. KH6 counts as North America. Special QSY rule: after soliciting a call you may work only one station, then must move.",
+    "startDate": "Fall: first Sunday of November 0000-0359 UTC (2026: November 1); Spring: third Sunday of March 0000-0359 UTC (2027: March 21)",
+    "duration": 4,
+    "offTimeGapMinutes": 0,
+    "modes": [
+      "SSB"
+    ],
+    "bands": [
+      "80m",
+      "40m",
+      "20m"
+    ],
+    "url": "https://ssbsprint.com/rules/",
+    "sponsorContactUrl": "https://ssbsprint.com/contact-us/",
+    "categories": {
+      "stations": [
+        "SINGLE_OP"
+      ],
+      "power": [
+        "HIGH",
+        "LOW",
+        "QRP"
+      ],
+      "modes": [
+        "SSB"
+      ]
+    }
+  },
+  "frequencies": {
+    "80m": {
+      "start": 3500,
+      "end": 4000,
+      "phone": {
+        "start": 3600,
+        "end": 4000
+      }
+    },
+    "40m": {
+      "start": 7000,
+      "end": 7300,
+      "phone": {
+        "start": 7125,
+        "end": 7300
+      }
+    },
+    "20m": {
+      "start": 14000,
+      "end": 14350,
+      "phone": {
+        "start": 14150,
+        "end": 14350
+      }
+    }
+  },
+  "stationClasses": {
+    "enabled": false
+  },
+  "userPrompts": [
+    {
+      "id": "stationLocation",
+      "question": "Is your station in North America?",
+      "type": "select",
+      "options": [
+        {
+          "value": "NA",
+          "label": "North America (incl. KH6) - work everyone"
+        },
+        {
+          "value": "DX",
+          "label": "Outside North America - only QSOs with North American stations count; send DX as your location"
+        }
+      ],
+      "required": true,
+      "storeInMeta": true
+    },
+    {
+      "id": "myName",
+      "question": "Enter the name you will send",
+      "type": "text",
+      "required": true,
+      "forceUppercase": true,
+      "storeInMeta": true,
+      "exchangeFieldMapping": {
+        "myName": "NAMEs"
+      }
+    },
+    {
+      "id": "myLocation",
+      "question": "Enter your location (US state e.g. WI, DC, Canadian province e.g. ON, country, or DX)",
+      "type": "text",
+      "required": true,
+      "forceUppercase": true,
+      "storeInMeta": true,
+      "description": "DC is separate from MD. Stations outside North America send DX.",
+      "exchangeFieldMapping": {
+        "myLocation": "EXCHs"
+      }
+    },
+    {
+      "id": "powerCategory",
+      "question": "Select your power category",
+      "type": "select",
+      "options": [
+        {
+          "value": "HP",
+          "label": "High Power (up to 1500W)"
+        },
+        {
+          "value": "LP",
+          "label": "Low Power (up to 100W)"
+        },
+        {
+          "value": "QRP",
+          "label": "QRP (up to 5W)"
+        }
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "Single operator only; spotting assistance of any kind is prohibited."
+    }
+  ],
+  "exchangeFields": {
+    "sent": [
+      {
+        "name": "SNs",
+        "type": "serial",
+        "required": true,
+        "description": "Serial number sent, starting at 1"
+      },
+      {
+        "name": "NAMEs",
+        "type": "string",
+        "required": true,
+        "description": "Your name"
+      },
+      {
+        "name": "EXCHs",
+        "type": "string",
+        "required": true,
+        "description": "Your location"
+      }
+    ],
+    "received": [
+      {
+        "name": "SNr",
+        "type": "serial",
+        "required": true,
+        "description": "Serial number received"
+      },
+      {
+        "name": "NAMEr",
+        "type": "string",
+        "required": true,
+        "description": "Name received"
+      },
+      {
+        "name": "EXCHr",
+        "type": "string",
+        "required": true,
+        "description": "Location received: US state (DC separate from MD), Canadian province/territory, country, or DX. Log the 2-letter abbreviation for states and provinces."
+      }
+    ]
+  },
+  "qsoFields": [
+    {
+      "name": "Date",
+      "column": "DATE",
+      "type": "date",
+      "format": "yyyy-MM-dd",
+      "required": true
+    },
+    {
+      "name": "Time",
+      "column": "TIME",
+      "type": "time",
+      "format": "HH:mm:ss",
+      "required": true
+    },
+    {
+      "name": "Callsign",
+      "column": "CALL",
+      "type": "string",
+      "required": true,
+      "uppercase": true
+    },
+    {
+      "name": "Frequency",
+      "column": "FREQ",
+      "type": "number",
+      "unit": "kHz",
+      "required": true
+    },
+    {
+      "name": "Mode",
+      "column": "MODE",
+      "type": "enum",
+      "values": [
+        "SSB"
+      ],
+      "required": true
+    },
+    {
+      "name": "Nr Sent",
+      "column": "SNs",
+      "type": "number",
+      "required": true
+    },
+    {
+      "name": "Nr Rcvd",
+      "column": "SNr",
+      "type": "number",
+      "required": true
+    },
+    {
+      "name": "Name Rcvd",
+      "column": "NAMEr",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "Loc Rcvd",
+      "column": "EXCHr",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "Points",
+      "column": "POINTS",
+      "type": "number",
+      "calculated": true
+    },
+    {
+      "name": "Mult",
+      "column": "M",
+      "type": "string",
+      "calculated": true
+    }
+  ],
+  "scoring": {
+    "invalidPartners": {
+      "__comment": "A valid contact needs a North American station on at least one end. KH6 counts as North America here (cty.dat has it in Oceania).",
+      "DX": [
+        "notContinent:NA+KH6"
+      ]
+    },
+    "points": {
+      "__comment": "1 point per valid contact.",
+      "perQso": 1,
+      "phone": 1
+    },
+    "multipliers": {
+      "__comment": "Once for the contest. 51 US (lower 48 + DC + AK + HI) and 13 Canadian multipliers from the received location, plus other North American countries from the callsign (dxccContinents NA; US and Canada never count as countries; KL7/KH6 count only as AK/HI). Non-NA countries count for QSO points only.",
+      "type": "multsOnce",
+      "description": "US states + DC, Canadian provinces/territories and other North American countries, counted once each",
+      "categories": [
+        "namedMults",
+        "dxcc"
+      ],
+      "dxccContinents": [
+        "NA"
+      ],
+      "usAndCanadaCountDxcc": false,
+      "alaskaAndHawaiiCountDxcc": false,
+      "namedMultsRequireWveCallsign": true,
+      "namedMultsLabel": "States/Provinces"
+    },
+    "finalScore": "SUM(points) * (namedMults + dxccMultipliers)"
+  },
+  "dupeChecking": {
+    "type": "perBand",
+    "description": "A station may be worked once per band"
+  },
+  "logging": {
+    "requiredFields": [
+      "date",
+      "time",
+      "frequency",
+      "mode",
+      "callsign",
+      "serialSent",
+      "serialReceived"
+    ],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "NA-SPRINT-SSB",
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {SNs} {NAMEs} {EXCHs} {call} {SNr} {NAMEr} {EXCHr}",
+      "requiredHeaders": [
+        "CONTEST",
+        "CALLSIGN",
+        "LOCATION",
+        "CATEGORY-OPERATOR",
+        "CATEGORY-POWER",
+        "CATEGORY-MODE",
+        "CATEGORY-BAND",
+        "CLAIMED-SCORE",
+        "CLUB",
+        "CREATED-BY",
+        "NAME",
+        "ADDRESS",
+        "EMAIL",
+        "OPERATORS",
+        "SOAPBOX"
+      ],
+      "notes": "Upload via the Submit Log form on ssbsprint.com within 7 days; name the file CALLSIGN.LOG. Teams must be registered before the contest."
+    }
+  },
+  "callHistory": {
+    "fieldsToSave": [
+      "NAMEr",
+      "EXCHr"
+    ],
+    "description": "Save name and location for future autofill"
+  },
+  "validation": {
+    "minimumQSOs": 1,
+    "maxOperatingTime": 4,
+    "offTimesRequired": false,
+    "namedMults": [
+      "AL",
+      "AK",
+      "AZ",
+      "AR",
+      "CA",
+      "CO",
+      "CT",
+      "DE",
+      "FL",
+      "GA",
+      "HI",
+      "ID",
+      "IL",
+      "IN",
+      "IA",
+      "KS",
+      "KY",
+      "LA",
+      "ME",
+      "MD",
+      "MA",
+      "MI",
+      "MN",
+      "MS",
+      "MO",
+      "MT",
+      "NE",
+      "NV",
+      "NH",
+      "NJ",
+      "NM",
+      "NY",
+      "NC",
+      "ND",
+      "OH",
+      "OK",
+      "OR",
+      "PA",
+      "RI",
+      "SC",
+      "SD",
+      "TN",
+      "TX",
+      "UT",
+      "VT",
+      "VA",
+      "WA",
+      "WV",
+      "WI",
+      "WY",
+      "DC",
+      "AB",
+      "BC",
+      "MB",
+      "NB",
+      "NL",
+      "NS",
+      "NT",
+      "NU",
+      "ON",
+      "PE",
+      "QC",
+      "SK",
+      "YT"
+    ]
+  },
+  "ui": {
+    "showMultiplierPanel": true,
+    "logColumns": [
+      "DATE",
+      "TIME",
+      "CALL",
+      "FREQ",
+      "MODE",
+      "SNs",
+      "SNr",
+      "NAMEr",
+      "EXCHr",
+      "POINTS",
+      "M",
+      "COMMENT"
+    ],
+    "entryFields": [
+      "CALL",
+      "SNr",
+      "NAMEr",
+      "EXCHr"
+    ],
+    "fieldNavigation": {
+      "keys": "tab"
+    },
+    "bandMap": {
+      "enabled": true,
+      "bands": [
+        "80m",
+        "40m",
+        "20m"
+      ]
+    },
+    "multiplierDisplay": {
+      "showStates": true,
+      "showProvinces": true,
+      "showDXCC": true
+    }
+  }
+}

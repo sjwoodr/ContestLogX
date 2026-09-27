@@ -42,6 +42,7 @@ Each contest is defined in a JSON file with the following structure:
 
 - **url** - the contest's website (rules page)
 - **sponsorEmail** - contact email for the sponsor / contest committee
+- **sponsorContactUrl** - the sponsor's contact-form URL, used instead of `sponsorEmail` when no email is published
 
 ### Frequencies Section
 
@@ -340,7 +341,10 @@ Contacts that an operator's class may not score. Keys are station class ids or u
 }
 ```
 
-ARRL DX uses the prefix form (W/VE may not work W/VE); the Oceania DX Contest uses `notContinent:OC` (stations outside Oceania score only with Oceania).
+ARRL DX uses the prefix form (W/VE may not work W/VE); the Oceania DX Contest uses `notContinent:OC` (stations outside Oceania score only with Oceania). Exceptions follow a `+`: `notContinent:NA+KH6` is outside North America except KH6 (NA SSB Sprint).
+
+**Continent-Limited DXCC Multipliers (`multipliers.dxccContinents`):**
+Only DXCC entities on the listed continents count as DXCC mults, e.g. `["NA"]` for the NA SSB Sprint, where only other North American countries are multipliers and everything else counts for QSO points only.
 
 **Dupe Scope per County (`dupeChecking.type: "perBandModeAndExchange"`):**
 For QSO parties that allow a station once per band per mode *per county*: the dupe key is band + mode + received exchange + sent exchange. A county-line station logged under each county, or a mobile that changes county, is a new QSO, and so is every QSO after your own mobile moves county (change your exchange in Contest Setup). Used by AZQP.

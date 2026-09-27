@@ -277,6 +277,9 @@ void ContestEngine::cacheContestProperties()
             m_cachedMaxScoredMults = mults["maxScoredMultipliers"].toInt(0);
             m_cachedMaxDxccMults = mults["maxDxccMultipliers"].toInt(0);
             m_cachedNamedMultsRequireWve = mults["namedMultsRequireWveCallsign"].toBool(false);
+            m_cachedDxccContinents.clear();
+            for (const QJsonValue& v : mults["dxccContinents"].toArray())
+                m_cachedDxccContinents.append(v.toString().toUpper());
 
             m_cachedRoverPromptId.clear();
             m_cachedRoverValues.clear();
@@ -1425,6 +1428,14 @@ QList<ContestEngine::MultiplierInfo> ContestEngine::getMultipliersWithCategory(c
             shouldAddDxcc = false;
         }
 
+        if (shouldAddDxcc && !m_cachedDxccContinents.isEmpty()) {
+            // dxccContinents: only entities on these continents are mults
+            // (NA Sprint: other North American countries).
+            const DxccEntity e = dxccLookup(qso.getCall());
+            if (!m_cachedDxccContinents.contains(e.continent.toUpper()))
+                shouldAddDxcc = false;
+        }
+
         if (shouldAddDxcc) {
             DxccEntity entity = dxccLookup(qso.getCall());
             if (!entity.prefixes.isEmpty()) {
@@ -1727,7 +1738,12 @@ bool ContestEngine::isInvalidPartner(const QsoRecord& qso) const
     for (const QJsonValue& v : invalidPartners[effectiveClass].toArray()) {
         const QString rule = v.toString();
         if (rule.startsWith("notContinent:")) {
-            if (!theirEntity.continent.isEmpty() && theirEntity.continent != rule.mid(13))
+            // "notContinent:NA+KH6" - outside NA, except the listed primary
+            // prefixes (NA Sprint counts KH6 as North America).
+            const QStringList parts = rule.mid(13).split('+', Qt::SkipEmptyParts);
+            if (!parts.isEmpty() && !theirEntity.continent.isEmpty()
+                    && theirEntity.continent != parts.first()
+                    && !parts.mid(1).contains(theirEntity.primaryPrefix))
                 return true;
         } else if (rule.startsWith("continent:")) {
             if (theirEntity.continent == rule.mid(10))
