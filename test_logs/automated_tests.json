@@ -540,6 +540,16 @@
       "name": "SDQP non-SD op W9NE IN (8 QSOs incl 1 dupe, SD counties once per contest, county-line mobile, W0OJY +100 once across two bands)",
       "log_file": "test_sdqp_nonsd.clx",
       "expected_score": 148
+    },
+    {
+      "name": "NYQP NY op AD1TOX MON (12 QSOs incl 2 dupes, Phone 1 / CW 2 / RTTY 3 once per band per mode, multsOnce states+counties+provinces, NY auto-credited after the first county, DX earns points only, county-line mobile logged under two counties, 2m FM then SSB is a phone dupe)",
+      "log_file": "test_nyqp_ny.clx",
+      "expected_score": 152
+    },
+    {
+      "name": "NYQP non-NY op W9NE IN (7 QSOs incl 1 dupe, NY counties once per contest, same station on CW/RTTY/SSB, county-line mobile twice)",
+      "log_file": "test_nyqp_nonny.clx",
+      "expected_score": 44
     }
   ]
 }

@@ -95,6 +95,7 @@ Most contest loggers are Windows-only, closed-source, or locked to a fixed set o
 | Mississippi QSO Party | `msqp.json` |
 | Missouri QSO Party | `moqp.json` |
 | New Mexico QSO Party | `nmqp.json` |
+| New York QSO Party | `nyqp.json` |
 | North Dakota QSO Party | `ndqp.json` |
 | Ohio QSO Party | `ohqp.json` |
 | OK-OM DX Contest | `okomdx.json` |

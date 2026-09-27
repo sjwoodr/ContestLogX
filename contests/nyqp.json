@@ -1,0 +1,818 @@
+{
+  "contest": {
+    "name": "New York QSO Party",
+    "abbreviation": "NYQP",
+    "version": "1.0.0",
+    "sponsor": "New York QSO Party (nyqp.org)",
+    "description": "Third Saturday of October, 1400Z to 0159Z (12 hours). NY stations work everyone; everyone else works NY stations. Exchange is RS(T) + NY county (NY stations), state/province (W/VE) or DX. Phone 1 point, CW 2, RTTY/digital 3, each once per band per mode. NY stations count US states, the 62 NY counties and 13 Canadian provinces (125 max; the first NY county also counts as NY; DX earns points only). Everyone else counts the 62 NY counties. Multipliers count once.",
+    "startDate": "Third Saturday of October (2026: October 17, 1400Z - 0159Z)",
+    "duration": 12,
+    "offTimeGapMinutes": 0,
+    "modes": [
+      "CW",
+      "SSB",
+      "FM",
+      "AM",
+      "RTTY",
+      "DIGITAL"
+    ],
+    "bands": [
+      "160m",
+      "80m",
+      "40m",
+      "20m",
+      "15m",
+      "10m",
+      "6m",
+      "2m",
+      "1.25m",
+      "70cm",
+      "33cm",
+      "23cm"
+    ],
+    "url": "https://www.nyqp.org/",
+    "categories": {
+      "stations": [
+        "FIXED",
+        "MOBILE",
+        "PORTABLE",
+        "SCHOOL"
+      ],
+      "power": [
+        "HIGH",
+        "LOW",
+        "QRP"
+      ],
+      "modes": [
+        "CW",
+        "PHONE",
+        "MIXED"
+      ]
+    }
+  },
+  "frequencies": {
+    "160m": {
+      "start": 1800,
+      "end": 2000,
+      "cw": {
+        "start": 1800,
+        "end": 2000
+      },
+      "phone": {
+        "start": 1800,
+        "end": 2000
+      },
+      "digital": {
+        "start": 1800,
+        "end": 2000
+      }
+    },
+    "80m": {
+      "start": 3500,
+      "end": 4000,
+      "cw": {
+        "start": 3500,
+        "end": 3600
+      },
+      "phone": {
+        "start": 3600,
+        "end": 4000
+      },
+      "digital": {
+        "start": 3500,
+        "end": 3600
+      }
+    },
+    "40m": {
+      "start": 7000,
+      "end": 7300,
+      "cw": {
+        "start": 7000,
+        "end": 7125
+      },
+      "phone": {
+        "start": 7125,
+        "end": 7300
+      },
+      "digital": {
+        "start": 7000,
+        "end": 7125
+      }
+    },
+    "20m": {
+      "start": 14000,
+      "end": 14350,
+      "cw": {
+        "start": 14000,
+        "end": 14150
+      },
+      "phone": {
+        "start": 14150,
+        "end": 14350
+      },
+      "digital": {
+        "start": 14000,
+        "end": 14150
+      }
+    },
+    "15m": {
+      "start": 21000,
+      "end": 21450,
+      "cw": {
+        "start": 21000,
+        "end": 21200
+      },
+      "phone": {
+        "start": 21200,
+        "end": 21450
+      },
+      "digital": {
+        "start": 21000,
+        "end": 21200
+      }
+    },
+    "10m": {
+      "start": 28000,
+      "end": 29700,
+      "cw": {
+        "start": 28000,
+        "end": 28300
+      },
+      "phone": {
+        "start": 28300,
+        "end": 29700
+      },
+      "digital": {
+        "start": 28000,
+        "end": 28300
+      }
+    },
+    "6m": {
+      "start": 50000,
+      "end": 54000,
+      "cw": {
+        "start": 50000,
+        "end": 54000
+      },
+      "phone": {
+        "start": 50000,
+        "end": 54000
+      },
+      "digital": {
+        "start": 50000,
+        "end": 54000
+      }
+    },
+    "2m": {
+      "start": 144000,
+      "end": 148000,
+      "cw": {
+        "start": 144000,
+        "end": 148000
+      },
+      "phone": {
+        "start": 144000,
+        "end": 148000
+      },
+      "digital": {
+        "start": 144000,
+        "end": 148000
+      }
+    },
+    "1.25m": {
+      "start": 222000,
+      "end": 225000,
+      "cw": {
+        "start": 222000,
+        "end": 225000
+      },
+      "phone": {
+        "start": 222000,
+        "end": 225000
+      },
+      "digital": {
+        "start": 222000,
+        "end": 225000
+      }
+    },
+    "70cm": {
+      "start": 420000,
+      "end": 450000,
+      "cw": {
+        "start": 420000,
+        "end": 450000
+      },
+      "phone": {
+        "start": 420000,
+        "end": 450000
+      },
+      "digital": {
+        "start": 420000,
+        "end": 450000
+      }
+    },
+    "33cm": {
+      "start": 902000,
+      "end": 928000,
+      "cw": {
+        "start": 902000,
+        "end": 928000
+      },
+      "phone": {
+        "start": 902000,
+        "end": 928000
+      },
+      "digital": {
+        "start": 902000,
+        "end": 928000
+      }
+    },
+    "23cm": {
+      "start": 1240000,
+      "end": 1300000,
+      "cw": {
+        "start": 1240000,
+        "end": 1300000
+      },
+      "phone": {
+        "start": 1240000,
+        "end": 1300000
+      },
+      "digital": {
+        "start": 1240000,
+        "end": 1300000
+      }
+    }
+  },
+  "stationClasses": {
+    "enabled": false
+  },
+  "userPrompts": [
+    {
+      "id": "stationType",
+      "question": "Select your station location",
+      "type": "select",
+      "options": [
+        {
+          "value": "NY",
+          "label": "New York - send your NY county"
+        },
+        {
+          "value": "NONNY",
+          "label": "Outside New York - send your state, province, or DX"
+        }
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "NY stations work everyone and count states, counties and provinces. Everyone else works NY stations and counts NY counties."
+    },
+    {
+      "id": "myExchange",
+      "question": "Enter your QTH (NY county e.g. MON, state e.g. IN, province e.g. ON, or DX)",
+      "type": "text",
+      "required": true,
+      "forceUppercase": true,
+      "storeInMeta": true,
+      "description": "NY mobiles and portables: change this in Contest Setup when you move to a new county - every station can then be worked again. County-line stations send both counties (DUT/PUT) and both sides log one QSO per county.",
+      "exchangeFieldMapping": {
+        "myExchange": "EXCHs"
+      }
+    },
+    {
+      "id": "operatingCategory",
+      "question": "Select your entry class",
+      "type": "select",
+      "options": [
+        {
+          "value": "FIXED-SO",
+          "label": "Fixed - Single Op"
+        },
+        {
+          "value": "FIXED-M1",
+          "label": "Fixed - Multi-Single"
+        },
+        {
+          "value": "FIXED-MM",
+          "label": "Fixed - Multi-Multi"
+        },
+        {
+          "value": "MOBILE-SO",
+          "label": "Mobile - Single Op"
+        },
+        {
+          "value": "MOBILE-M1",
+          "label": "Mobile - Multi One"
+        },
+        {
+          "value": "MOBILE-MM",
+          "label": "Mobile - Multi-Multi"
+        },
+        {
+          "value": "PORTABLE-SO",
+          "label": "Portable - Single Op"
+        },
+        {
+          "value": "PORTABLE-M1",
+          "label": "Portable - Multi-One"
+        },
+        {
+          "value": "PORTABLE-MM",
+          "label": "Portable - Multi-Multi"
+        },
+        {
+          "value": "SCHOOL-SO",
+          "label": "School - Single Op (NY, Mixed, Low Power)"
+        },
+        {
+          "value": "SCHOOL-M1",
+          "label": "School - Multi-One (NY, Mixed, Low Power)"
+        }
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "Single-op mode (CW, Phone or Mixed) is set as CATEGORY-MODE in the Cabrillo export; RTTY/digital is allowed in Mixed only. Overlays (ROOKIE, YOUTH12, YOUTH17, YL) are Low Power only. Self-spotting is allowed for Mobile and Portable only."
+    },
+    {
+      "id": "powerCategory",
+      "question": "Select your power category",
+      "type": "select",
+      "options": [
+        {
+          "value": "HP",
+          "label": "High Power (more than 100W)"
+        },
+        {
+          "value": "LP",
+          "label": "Low Power (more than 5W, up to 100W)"
+        },
+        {
+          "value": "QRP",
+          "label": "QRP (5W or less)"
+        }
+      ],
+      "required": true,
+      "storeInMeta": true
+    }
+  ],
+  "exchangeFields": {
+    "sent": [
+      {
+        "name": "RSTs",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report sent"
+      },
+      {
+        "name": "EXCHs",
+        "type": "string",
+        "required": true,
+        "description": "NY county, state/province, or DX"
+      }
+    ],
+    "received": [
+      {
+        "name": "RSTr",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report received"
+      },
+      {
+        "name": "EXCHr",
+        "type": "string",
+        "required": true,
+        "description": "NY county (from NY stations), state/province, or DX"
+      }
+    ]
+  },
+  "qsoFields": [
+    {
+      "name": "Date",
+      "column": "DATE",
+      "type": "date",
+      "format": "yyyy-MM-dd",
+      "required": true
+    },
+    {
+      "name": "Time",
+      "column": "TIME",
+      "type": "time",
+      "format": "HH:mm:ss",
+      "required": true
+    },
+    {
+      "name": "Callsign",
+      "column": "CALL",
+      "type": "string",
+      "required": true,
+      "uppercase": true
+    },
+    {
+      "name": "Frequency",
+      "column": "FREQ",
+      "type": "number",
+      "unit": "kHz",
+      "required": true
+    },
+    {
+      "name": "Mode",
+      "column": "MODE",
+      "type": "enum",
+      "values": [
+        "CW",
+        "SSB",
+        "FM",
+        "AM",
+        "RTTY",
+        "DIGITAL"
+      ],
+      "required": true
+    },
+    {
+      "name": "RST Sent",
+      "column": "RSTs",
+      "type": "string",
+      "required": true,
+      "default": "599"
+    },
+    {
+      "name": "RST Rcvd",
+      "column": "RSTr",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "Exch Sent",
+      "column": "EXCHs",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "Exch Rcvd",
+      "column": "EXCHr",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "Points",
+      "column": "POINTS",
+      "type": "number",
+      "calculated": true
+    },
+    {
+      "name": "Mult",
+      "column": "M",
+      "type": "string",
+      "calculated": true
+    }
+  ],
+  "scoring": {
+    "points": {
+      "__comment": "Phone (SSB/FM/AM) 1 point, CW 2 points, RTTY/digital 3 points.",
+      "cw": 2,
+      "phone": 1,
+      "digital": 3
+    },
+    "multipliers": {
+      "__comment": "Counted once. NY stations: 50 states + 62 NY counties + 13 provinces (125 max). The NY state mult is credited automatically once any NY county is worked (the first NY county logged counts as NY as well as a county). DX is a valid exchange worth points but not a multiplier. Non-NY stations: the 62 NY counties.",
+      "type": "multsOnce",
+      "description": "NY: states, NY counties and provinces. Non-NY: NY counties. Counted once each",
+      "categories": [
+        "namedMults"
+      ],
+      "automaticMultipliers": {
+        "promptId": "stationType",
+        "rules": {
+          "NY": [
+            "NY"
+          ]
+        },
+        "requiresWorkedFrom": "inStateMults"
+      },
+      "namedMultsLabels": {
+        "NY": "States/Counties/Provinces",
+        "NONNY": "NY Counties"
+      }
+    },
+    "finalScore": "SUM(points) * SUM(multipliers)"
+  },
+  "multAliases": [
+    {
+      "promptId": "stationType",
+      "promptValue": "NY",
+      "sourceValues": [
+        "DX"
+      ],
+      "mapsTo": "__NYQPDX__",
+      "comment": "DX is a valid exchange for NY stations worth QSO points but not a multiplier. The sentinel is not in namedMults, so no mult is credited."
+    }
+  ],
+  "dupeChecking": {
+    "type": "perBandModeAndExchange",
+    "description": "Once per band per mode (Phone, CW, RTTY/digital). NY mobiles and portables are new stations in each county, county-line QSOs are logged once per county, and every station is new after your own mobile changes county."
+  },
+  "logging": {
+    "requiredFields": [
+      "date",
+      "time",
+      "frequency",
+      "mode",
+      "callsign",
+      "rstSent",
+      "rstReceived",
+      "exchSent",
+      "exchReceived"
+    ],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "NY-QSO-PARTY",
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {rst_sent} {exch_sent} {call} {rst_rcvd} {exch_rcvd}",
+      "requiredHeaders": [
+        "CONTEST",
+        "CALLSIGN",
+        "LOCATION",
+        "CATEGORY-OPERATOR",
+        "CATEGORY-ASSISTED",
+        "CATEGORY-BAND",
+        "CATEGORY-MODE",
+        "CATEGORY-POWER",
+        "CATEGORY-STATION",
+        "CATEGORY-TRANSMITTER",
+        "CATEGORY-OVERLAY",
+        "CLAIMED-SCORE",
+        "CLUB",
+        "CREATED-BY",
+        "NAME",
+        "ADDRESS",
+        "ADDRESS-CITY",
+        "ADDRESS-STATE-PROVINCE",
+        "ADDRESS-POSTALCODE",
+        "ADDRESS-COUNTRY",
+        "GRID-LOCATOR",
+        "EMAIL",
+        "OPERATORS",
+        "SOAPBOX"
+      ],
+      "notes": "LOCATION: NY county for NY stations (any county activated, for mobiles/portables), otherwise state, province or DX. Overlays: ROOKIE, YOUTH12, YOUTH17, YL."
+    }
+  },
+  "callHistory": {
+    "fieldsToSave": [
+      "EXCHr"
+    ],
+    "description": "Save county/state/province for future autofill"
+  },
+  "validation": {
+    "minimumQSOs": 1,
+    "maxOperatingTime": 12,
+    "offTimesRequired": false,
+    "namedMults": [
+      "ALB",
+      "ALL",
+      "BRX",
+      "BRM",
+      "CAT",
+      "CAY",
+      "CHA",
+      "CHE",
+      "CGO",
+      "CLI",
+      "COL",
+      "COR",
+      "DEL",
+      "DUT",
+      "ERI",
+      "ESS",
+      "FRA",
+      "FUL",
+      "GEN",
+      "GRE",
+      "HAM",
+      "HER",
+      "JEF",
+      "KIN",
+      "LEW",
+      "LIV",
+      "MAD",
+      "MON",
+      "MTG",
+      "NAS",
+      "NEW",
+      "NIA",
+      "ONE",
+      "ONO",
+      "ONT",
+      "ORA",
+      "ORL",
+      "OSW",
+      "OTS",
+      "PUT",
+      "QUE",
+      "REN",
+      "RIC",
+      "ROC",
+      "SAR",
+      "SCH",
+      "SCO",
+      "SCU",
+      "SEN",
+      "STL",
+      "STE",
+      "SUF",
+      "SUL",
+      "TIO",
+      "TOM",
+      "ULS",
+      "WAR",
+      "WAS",
+      "WAY",
+      "WES",
+      "WYO",
+      "YAT",
+      "AL",
+      "AK",
+      "AZ",
+      "AR",
+      "CA",
+      "CO",
+      "CT",
+      "DE",
+      "FL",
+      "GA",
+      "HI",
+      "ID",
+      "IL",
+      "IN",
+      "IA",
+      "KS",
+      "KY",
+      "LA",
+      "ME",
+      "MD",
+      "MA",
+      "MI",
+      "MN",
+      "MS",
+      "MO",
+      "MT",
+      "NE",
+      "NV",
+      "NH",
+      "NJ",
+      "NM",
+      "NY",
+      "NC",
+      "ND",
+      "OH",
+      "OK",
+      "OR",
+      "PA",
+      "RI",
+      "SC",
+      "SD",
+      "TN",
+      "TX",
+      "UT",
+      "VT",
+      "VA",
+      "WA",
+      "WV",
+      "WI",
+      "WY",
+      "AB",
+      "BC",
+      "MB",
+      "NB",
+      "NL",
+      "NT",
+      "NS",
+      "NU",
+      "ON",
+      "PE",
+      "QC",
+      "SK",
+      "YT",
+      "DX"
+    ],
+    "inStateMults": [
+      "ALB",
+      "ALL",
+      "BRX",
+      "BRM",
+      "CAT",
+      "CAY",
+      "CHA",
+      "CHE",
+      "CGO",
+      "CLI",
+      "COL",
+      "COR",
+      "DEL",
+      "DUT",
+      "ERI",
+      "ESS",
+      "FRA",
+      "FUL",
+      "GEN",
+      "GRE",
+      "HAM",
+      "HER",
+      "JEF",
+      "KIN",
+      "LEW",
+      "LIV",
+      "MAD",
+      "MON",
+      "MTG",
+      "NAS",
+      "NEW",
+      "NIA",
+      "ONE",
+      "ONO",
+      "ONT",
+      "ORA",
+      "ORL",
+      "OSW",
+      "OTS",
+      "PUT",
+      "QUE",
+      "REN",
+      "RIC",
+      "ROC",
+      "SAR",
+      "SCH",
+      "SCO",
+      "SCU",
+      "SEN",
+      "STL",
+      "STE",
+      "SUF",
+      "SUL",
+      "TIO",
+      "TOM",
+      "ULS",
+      "WAR",
+      "WAS",
+      "WAY",
+      "WES",
+      "WYO",
+      "YAT"
+    ],
+    "exchangeValidation": {
+      "type": "namedMultOnly",
+      "description": "NY stations: NY county, state, province or DX. Non-NY stations: the received exchange must be a NY county. County-line exchanges (DUT/PUT) are logged as one QSO per county."
+    },
+    "receivedExchangeFilter": {
+      "promptId": "stationType",
+      "rules": {
+        "NONNY": "inStateMults"
+      }
+    }
+  },
+  "ui": {
+    "showMultiplierPanel": true,
+    "logColumns": [
+      "DATE",
+      "TIME",
+      "CALL",
+      "FREQ",
+      "MODE",
+      "RSTs",
+      "RSTr",
+      "EXCHs",
+      "EXCHr",
+      "POINTS",
+      "M",
+      "COMMENT"
+    ],
+    "entryFields": [
+      "CALL",
+      "RSTr",
+      "EXCHr"
+    ],
+    "fieldNavigation": {
+      "keys": "tab"
+    },
+    "bandMap": {
+      "enabled": true,
+      "bands": [
+        "160m",
+        "80m",
+        "40m",
+        "20m",
+        "15m",
+        "10m",
+        "6m",
+        "2m",
+        "1.25m",
+        "70cm",
+        "33cm",
+        "23cm"
+      ]
+    },
+    "multiplierDisplay": {
+      "showCounties": true,
+      "showStates": true,
+      "showProvinces": true
+    }
+  }
+}

@@ -35,6 +35,7 @@ private slots:
     void leavesClassicTemplatesUnchanged();
     void exportsCqwwRttyQsoLine();
     void exportsZeroPointCqwwQso();
+    void exportsAmAsPhone();
 
 private:
     QStringList exportLines(const QJsonObject& contestDef,
@@ -263,6 +264,30 @@ void TestCabrillo::exportsZeroPointCqwwQso()
     for (const QString& l : lines)
         if (l.startsWith("QSO:")) qsoLines << l;
     QCOMPARE(qsoLines, QStringList{QStringLiteral("QSO: 14025 CW 2026-11-28 0001 N9OH 599 04 K1UI 599 05")});
+}
+
+// AM is not a Cabrillo mode; voice QSOs export as PH (NYQP allows PH and FM
+// only for phone).
+void TestCabrillo::exportsAmAsPhone()
+{
+    QJsonObject cabrillo {
+        {"contest", "TEST"},
+        {"qsoTemplate", "QSO: {freq} {mode} {date} {time} {mycall} {rst_sent} {exch_sent} "
+                        "{call} {rst_rcvd} {exch_rcvd}"}
+    };
+    QJsonObject def { {"logging", QJsonObject{{"cabrillo", cabrillo}}} };
+
+    QsoRecord qso = makeSsQso();
+    qso.setMode("AM");
+    qso.setFrequency("3885");
+    qso.setRstSent("59");
+    qso.setRstReceived("59");
+
+    QString qsoLine;
+    for (const QString& l : exportLines(def, {qso}, "N9OH", QString())) {
+        if (l.startsWith("QSO:")) { qsoLine = l; break; }
+    }
+    QCOMPARE(qsoLine, QStringLiteral("QSO:  3885 PH 2026-11-07 2145 N9OH 59 IN K1UI 59 CT"));
 }
 
 QTEST_MAIN(TestCabrillo)

@@ -293,7 +293,8 @@ QString CabrilloFile::generateQsoLine(const QsoRecord& qso, const QString& qsoTe
     QString modeStr = qso.getMode().toUpper();
     QString cabrilloMode;
     if (modeStr == "CW")                                                        cabrilloMode = "CW";
-    else if (modeStr == "USB" || modeStr == "LSB" || modeStr == "SSB")         cabrilloMode = "PH";
+    else if (modeStr == "USB" || modeStr == "LSB" || modeStr == "SSB"
+             || modeStr == "AM")                                                cabrilloMode = "PH";  // AM is not a Cabrillo mode
     else if (modeStr == "FM")                                                   cabrilloMode = "FM";
     else if (modeStr == "RTTY")                                                 cabrilloMode = "RY";
     else if (modeStr == "DIGITAL" || modeStr == "DIGI" || modeStr == "FT8"
