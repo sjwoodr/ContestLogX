@@ -368,6 +368,35 @@
     "cabrillo": {
       "version": "3.0",
       "contest": "ARRL-VHF",
+      "headerMap": {
+        "__comment": "ARRL VHF station classes: R classic rover, RL limited rover, RU unlimited rover, UM/LM unlimited/limited multi-op",
+        "CATEGORY-STATION": {
+          "stationClass": true,
+          "values": {
+            "R": "ROVER",
+            "RL": "ROVER-LIMITED",
+            "RU": "ROVER-UNLIMITED",
+            "SOP": "PORTABLE"
+          }
+        },
+        "CATEGORY-OPERATOR": {
+          "stationClass": true,
+          "values": {
+            "R": "SINGLE-OP",
+            "RL": "SINGLE-OP",
+            "RU": "SINGLE-OP",
+            "UM": "MULTI-OP",
+            "LM": "MULTI-OP"
+          }
+        },
+        "CATEGORY-TRANSMITTER": {
+          "stationClass": true,
+          "values": {
+            "UM": "UNLIMITED",
+            "LM": "LIMITED"
+          }
+        }
+      },
       "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {GRIDs} {call} {GRIDr}",
       "requiredHeaders": ["CONTEST", "CALLSIGN", "CATEGORY-OPERATOR", "CATEGORY-TRANSMITTER", "GRID-LOCATOR", "CLAIMED-SCORE", "CREATED-BY", "NAME", "ADDRESS", "ADDRESS-CITY", "ADDRESS-STATE-PROVINCE", "ADDRESS-POSTALCODE", "ADDRESS-COUNTRY", "EMAIL", "SOAPBOX"]
     }

@@ -270,6 +270,16 @@ QString CabrilloFile::generateHeader(const QJsonObject& contestDef,
     addIfRequired("CATEGORY-TRANSMITTER",  headerData["categoryTransmitter"].toString());
     addIfRequired("CATEGORY-ASSISTED",     headerData["categoryAssisted"].toString());
     addIfRequired("CATEGORY-OVERLAY",      headerData["categoryOverlay"].toString());
+    addIfRequired("CATEGORY-STATION",      headerData["categoryStation"].toString());
+    // Contest-specific headers from setup (logging.cabrillo.headerMap), e.g.
+    // RSGB IOTA's IOTA-ISLAND-NAME / CATEGORY-LOCATION / CATEGORY-TIME. The
+    // contest asked for them, so they are always written when filled in.
+    const QJsonObject extraHeaders = headerData["extraHeaders"].toObject();
+    for (auto it = extraHeaders.constBegin(); it != extraHeaders.constEnd(); ++it) {
+        const QString value = it.value().toString().trimmed();
+        if (!value.isEmpty())
+            header += QString("%1: %2\n").arg(it.key(), value);
+    }
     addIfRequired("CLUB",                  headerData["club"].toString());
     addIfRequired("NAME",                  headerData["name"].toString());
     addIfRequired("ADDRESS",               headerData["address"].toString());

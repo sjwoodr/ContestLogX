@@ -8,11 +8,13 @@
 #include <QtTest>
 #include <QTemporaryDir>
 #include <QFile>
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include "cabrilloFile.h"
 #include "qsoRecord.h"
 #include "utils/iotaUtils.h"
+#include "utils/cabrilloDefaults.h"
 
 /**
  * Cabrillo export tests.
@@ -40,6 +42,7 @@ private slots:
     void mapsJidxPhoneContestName();
     void normalizesIotaReferences();
     void exportsIotaQsoLines();
+    void writesSetupDerivedHeaders();
 
 private:
     QStringList exportLines(const QJsonObject& contestDef,
@@ -366,6 +369,58 @@ void TestCabrillo::exportsIotaQsoLines()
     QCOMPARE(lines[0], QStringLiteral("QSO: 14025 CW 2026-07-25 1201 W9NE 599 1 EU-005 F8SWE 599 31 OC-001"));
     QCOMPARE(lines[1], QStringLiteral("QSO: 14025 CW 2026-07-25 1201 W9NE 599 1 ------ DL4EX 599 31 ------"));
     QVERIFY(exportLines(def, {make("F8SWE", "EU5", "OC1")}, "W9NE", QString()).contains(QStringLiteral("CONTEST: RSGB-IOTA")));
+}
+
+// End to end: IOTA setup answers -> CabrilloDefaults -> header data as the
+// dialog builds it -> exported header. CATEGORY-STATION and the RSGB-specific
+// headers must reach the file.
+void TestCabrillo::writesSetupDerivedHeaders()
+{
+    const QString path = QStringLiteral(CLX_SOURCE_DIR "/contests/rsgb_iota.json");
+    QFile f(path);
+    QVERIFY2(f.open(QIODevice::ReadOnly), qPrintable("cannot open " + path));
+    const QJsonObject def = QJsonDocument::fromJson(f.readAll()).object();
+
+    const QMap<QString, QString> h = CabrilloDefaults::fromSetup(def, QString(),
+        {{"stationType", "DXPEDITION"}, {"islandName", "Lundy Island"}, {"operatingCategory", "SOA"},
+         {"operatingTime", "24-HOURS"}, {"powerCategory", "LP"}});
+
+    // What CabrilloDialog::getHeaderData() produces for these values
+    QJsonObject headerData;
+    headerData["callsign"] = "GB0LI";
+    headerData["categoryOperator"] = h.value("CATEGORY-OPERATOR");
+    headerData["categoryAssisted"] = h.value("CATEGORY-ASSISTED");
+    headerData["categoryPower"] = h.value("CATEGORY-POWER");
+    headerData["categoryStation"] = "PORTABLE";
+    QJsonObject extra;
+    for (const QString& k : {"IOTA-ISLAND-NAME", "CATEGORY-LOCATION", "CATEGORY-TIME"})
+        extra[k] = h.value(k);
+    headerData["extraHeaders"] = extra;
+
+    QsoRecord qso = makeSsQso();
+    qso.setPoints(5);
+    const QString out = m_tmp.filePath("iota-header.cbr");
+    CabrilloFile cab;
+    QJsonObject defWithStation = def;
+    QJsonObject logging = def["logging"].toObject();
+    QJsonObject cabrillo = logging["cabrillo"].toObject();
+    QJsonArray req = cabrillo["requiredHeaders"].toArray();
+    req.append("CATEGORY-STATION");
+    cabrillo["requiredHeaders"] = req;
+    logging["cabrillo"] = cabrillo;
+    defWithStation["logging"] = logging;
+    QVERIFY(cab.exportToFile(out, {qso}, defWithStation, headerData, "GB0LI", QString()));
+    QFile rf(out);
+    QVERIFY(rf.open(QIODevice::ReadOnly));
+    const QStringList lines = QString::fromUtf8(rf.readAll()).split('\n');
+
+    QVERIFY(lines.contains("CATEGORY-OPERATOR: SINGLE-OP"));
+    QVERIFY(lines.contains("CATEGORY-ASSISTED: ASSISTED"));
+    QVERIFY(lines.contains("CATEGORY-POWER: LOW"));
+    QVERIFY(lines.contains("CATEGORY-STATION: PORTABLE"));
+    QVERIFY(lines.contains("IOTA-ISLAND-NAME: Lundy Island"));
+    QVERIFY(lines.contains("CATEGORY-LOCATION: DXPEDITION"));
+    QVERIFY(lines.contains("CATEGORY-TIME: 24-HOURS"));
 }
 
 QTEST_MAIN(TestCabrillo)

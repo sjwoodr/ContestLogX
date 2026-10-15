@@ -437,6 +437,12 @@
       "version": "3.0",
       "contest": "RSGB-IOTA",
       "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {rst_sent} {SNs} {EXCHs} {call} {rst_rcvd} {SNr} {EXCHr}",
+      "headerMap": {
+        "__comment": "RSGB-specific headers filled from contest setup",
+        "CATEGORY-LOCATION": {"promptId": "stationType", "values": {"ISLAND": "NON-DXPEDITION", "DXPEDITION": "DXPEDITION", "WORLD": "WORLD"}},
+        "IOTA-ISLAND-NAME": {"promptId": "islandName"},
+        "CATEGORY-TIME": {"promptId": "operatingTime"}
+      },
       "fieldFormats": {
         "EXCHs": "iota",
         "EXCHr": "iota"

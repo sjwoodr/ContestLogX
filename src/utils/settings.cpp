@@ -1528,7 +1528,7 @@ void Settings::setCabrilloMode(const QString& mode)
 
 QString Settings::getCabrilloOperatorType() const
 {
-    return m_settings["cabrillo"].toObject()["operatorType"].toString("SINGLE");
+    return m_settings["cabrillo"].toObject()["operatorType"].toString("SINGLE-OP");
 }
 
 void Settings::setCabrilloOperatorType(const QString& opType)
@@ -1541,7 +1541,7 @@ void Settings::setCabrilloOperatorType(const QString& opType)
 
 QString Settings::getCabrilloBand() const
 {
-    return m_settings["cabrillo"].toObject()["band"].toString("ALL-BAND");
+    return m_settings["cabrillo"].toObject()["band"].toString("ALL");
 }
 
 void Settings::setCabrilloBand(const QString& band)
@@ -1567,7 +1567,7 @@ void Settings::setCabrilloTransmitter(const QString& transmitter)
 
 QString Settings::getCabrilloAssisted() const
 {
-    return m_settings["cabrillo"].toObject()["assisted"].toString("NO");
+    return m_settings["cabrillo"].toObject()["assisted"].toString("NON-ASSISTED");
 }
 
 void Settings::setCabrilloAssisted(const QString& assisted)
@@ -1587,6 +1587,19 @@ void Settings::setCabrilloOverlay(const QString& overlay)
 {
     QJsonObject cabrillo = m_settings["cabrillo"].toObject();
     cabrillo["overlay"] = overlay;
+    m_settings["cabrillo"] = cabrillo;
+    save();
+}
+
+QString Settings::getCabrilloStation() const
+{
+    return m_settings["cabrillo"].toObject()["station"].toString("");
+}
+
+void Settings::setCabrilloStation(const QString& station)
+{
+    QJsonObject cabrillo = m_settings["cabrillo"].toObject();
+    cabrillo["station"] = station;
     m_settings["cabrillo"] = cabrillo;
     save();
 }

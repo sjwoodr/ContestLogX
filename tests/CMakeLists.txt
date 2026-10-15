@@ -55,6 +55,7 @@ add_clx_test(test_dupecheck test_dupecheck.cpp
 add_clx_test(test_cabrillo test_cabrillo.cpp
     ${CMAKE_SOURCE_DIR}/src/fileformats/cabrilloFile.cpp
     ${CMAKE_SOURCE_DIR}/src/utils/iotaUtils.cpp
+    ${CMAKE_SOURCE_DIR}/src/utils/cabrilloDefaults.cpp
     ${CMAKE_SOURCE_DIR}/src/core/qsoRecord.cpp
     ${CMAKE_SOURCE_DIR}/src/utils/bandPlan.cpp
     ${CMAKE_SOURCE_DIR}/src/utils/modeUtils.cpp)
@@ -82,3 +83,9 @@ add_clx_test(test_bandmap test_bandmap.cpp
 add_clx_test(test_contestdefutils test_contestdefutils.cpp
     ${CMAKE_SOURCE_DIR}/src/utils/contestDefUtils.cpp)
 target_compile_definitions(test_contestdefutils PRIVATE CLX_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
+
+# Cabrillo header defaults inferred from contest setup, run against the
+# shipped contests/*.json
+add_clx_test(test_cabrillodefaults test_cabrillodefaults.cpp
+    ${CMAKE_SOURCE_DIR}/src/utils/cabrilloDefaults.cpp)
+target_compile_definitions(test_cabrillodefaults PRIVATE CLX_SOURCE_DIR="${CMAKE_SOURCE_DIR}")

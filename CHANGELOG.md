@@ -11,9 +11,13 @@ All notable changes to ContestLogX are documented in this file.
 - Corrected the Delaware QSO Party link and sponsor (First State ARC) and the South Dakota QSO Party sponsor (Prairie Dog ARC)
 
 ### Contest Engine Changes
+- A contest definition can map its setup answers to Cabrillo headers (`headerMap`), including headers specific to that contest
 - A contest can now take multipliers from an open set recognised by format, such as IOTA references, instead of a fixed list, and points can depend on whether the other station sent the same reference as you
 
 ### Other Changes and Bugfixes
+- The Cabrillo export now starts from your contest setup: operator category, assisted, power, mode, band, transmitter and station are filled in from the class and options you chose when you set up the contest, instead of whatever you used for the last contest. You can still change any of them before saving. Thanks K4RFK for the report
+- Cabrillo category headers now use the Cabrillo 3.0 values (SINGLE-OP, NON-ASSISTED, CATEGORY-BAND ALL, DIGI) - earlier versions wrote SINGLE, NO, ALL-BAND and DIGITAL, which some log robots reject. Settings saved by older versions are converted automatically
+- The Cabrillo export now writes CATEGORY-STATION (FIXED, MOBILE, PORTABLE, ROVER, EXPEDITION, ...), which QSO parties use to tell mobiles and rovers apart, and contest-specific headers such as RSGB IOTA's IOTA-ISLAND-NAME, CATEGORY-LOCATION and CATEGORY-TIME
 - In contests with a serial number in the exchange, the QSO Entry title now shows the next serial number you will send ("QSO Entry - Next S/N: 42", on both entry panels in SO2R), so you can check it without looking away from the entry fields. A new Next S/N panel (Window menu) also shows it in large type. Thanks K4RFK for the suggestion
 
 ## [0.9.12]

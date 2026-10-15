@@ -20,6 +20,7 @@
 #include "rateWidget.h"
 #include "nextSerialWidget.h"
 #include "../utils/contestDefUtils.h"
+#include "../utils/cabrilloDefaults.h"
 #include "scpLineEdit.h"
 #include "stationClassDialog.h"
 #include "contestSelectDialog.h"
@@ -5518,6 +5519,10 @@ void MainWindow::onExportCabrillo()
     // Show Cabrillo header dialog
     CabrilloDialog dialog(this);
     dialog.setCallsign(getSessionCallsign());
+    // Pre-fill category, power, mode, station, ... from contest setup so the
+    // operator doesn't have to pick them again (reported by K4RFK).
+    dialog.applySetupDefaults(CabrilloDefaults::fromSetup(
+        m_contestDefinition, m_contestEngine->getStationClass(), m_contestEngine->getUserPromptValues()));
     
     // Get the final contest score from the score widget (which is the only accurate representation)
     int totalScore = m_scoreWidget ? m_scoreWidget->getFinalScore() : 0;

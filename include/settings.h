@@ -107,6 +107,8 @@ public:
     
     QString getCabrilloOverlay() const;
     void setCabrilloOverlay(const QString& overlay);
+    QString getCabrilloStation() const;
+    void setCabrilloStation(const QString& station);
     
     // Rig connection - backend selection
     QString getRigBackend() const;       // "flrig" or "hamlib"

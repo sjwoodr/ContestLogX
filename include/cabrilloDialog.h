@@ -9,6 +9,7 @@
 #define CABRILLODIALOG_H
 
 #include <QDialog>
+#include <QMap>
 #include <QJsonObject>
 
 class QLineEdit;
@@ -27,6 +28,10 @@ public:
     void setCallsign(const QString& call);
     void setClaimedScore(int score);
     void loadFromSettings();
+    // Pre-fill from contest setup (CabrilloDefaults::fromSetup). Category
+    // dropdowns take the setup value; headers the dialog has no field for
+    // (IOTA-ISLAND-NAME, CATEGORY-LOCATION, ...) get an editable row each.
+    void applySetupDefaults(const QMap<QString, QString>& headers);
     
     void closeEvent(QCloseEvent *event) override;
 
@@ -41,6 +46,9 @@ private:
     QComboBox* m_categoryTransmitterCombo;
     QComboBox* m_categoryAssistedCombo;
     QComboBox* m_categoryOverlayCombo;
+    QComboBox* m_categoryStationCombo;
+    class QVBoxLayout* m_extraHeadersLayout = nullptr;
+    QMap<QString, QLineEdit*> m_extraHeaderEdits;  // header name -> field
     QLineEdit* m_addressCityEdit;
     QLineEdit* m_locationEdit;
     QLineEdit* m_clubEdit;

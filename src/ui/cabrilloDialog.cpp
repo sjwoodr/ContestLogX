@@ -7,6 +7,7 @@
 
 #include "cabrilloDialog.h"
 #include "settings.h"
+#include "../utils/cabrilloDefaults.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -85,7 +86,8 @@ void CabrilloDialog::setupUI()
     QHBoxLayout* modeLayout = new QHBoxLayout();
     modeLayout->addWidget(new QLabel("Mode:"));
     m_categoryModeCombo = new QComboBox();
-    m_categoryModeCombo->addItems({"CW", "SSB", "MIXED", "DIGITAL", "RTTY", "FT8"});
+    // Cabrillo 3.0 CATEGORY-MODE values
+    m_categoryModeCombo->addItems({"CW", "SSB", "MIXED", "DIGI", "RTTY", "FM"});
     modeLayout->addWidget(m_categoryModeCombo);
     formLayout->addLayout(modeLayout);
     
@@ -93,7 +95,7 @@ void CabrilloDialog::setupUI()
     QHBoxLayout* catOpLayout = new QHBoxLayout();
     catOpLayout->addWidget(new QLabel("Operator Type:"));
     m_categoryOperatorCombo = new QComboBox();
-    m_categoryOperatorCombo->addItems({"SINGLE", "MULTI", "CHECKLOG"});
+    m_categoryOperatorCombo->addItems({"SINGLE-OP", "MULTI-OP", "CHECKLOG"});
     catOpLayout->addWidget(m_categoryOperatorCombo);
     formLayout->addLayout(catOpLayout);
     
@@ -101,7 +103,8 @@ void CabrilloDialog::setupUI()
     QHBoxLayout* catBandLayout = new QHBoxLayout();
     catBandLayout->addWidget(new QLabel("Band:"));
     m_categoryBandCombo = new QComboBox();
-    m_categoryBandCombo->addItems({"ALL-BAND", "160M", "80M", "40M", "20M", "15M", "10M", "6M", "2M", "70CM"});
+    m_categoryBandCombo->addItems({"ALL", "160M", "80M", "40M", "20M", "15M", "10M", "6M", "2M", "222", "432",
+                                   "VHF-3-BAND", "VHF-FM-ONLY"});
     catBandLayout->addWidget(m_categoryBandCombo);
     formLayout->addLayout(catBandLayout);
     
@@ -109,7 +112,7 @@ void CabrilloDialog::setupUI()
     QHBoxLayout* txLayout = new QHBoxLayout();
     txLayout->addWidget(new QLabel("Transmitter:"));
     m_categoryTransmitterCombo = new QComboBox();
-    m_categoryTransmitterCombo->addItems({"ONE", "TWO", "LIMITED", "UNLIMITED"});
+    m_categoryTransmitterCombo->addItems({"ONE", "TWO", "LIMITED", "UNLIMITED", "SWL"});
     txLayout->addWidget(m_categoryTransmitterCombo);
     formLayout->addLayout(txLayout);
     
@@ -117,7 +120,7 @@ void CabrilloDialog::setupUI()
     QHBoxLayout* assistLayout = new QHBoxLayout();
     assistLayout->addWidget(new QLabel("Assisted:"));
     m_categoryAssistedCombo = new QComboBox();
-    m_categoryAssistedCombo->addItems({"YES", "NO"});
+    m_categoryAssistedCombo->addItems({"NON-ASSISTED", "ASSISTED"});
     assistLayout->addWidget(m_categoryAssistedCombo);
     formLayout->addLayout(assistLayout);
     
@@ -125,9 +128,22 @@ void CabrilloDialog::setupUI()
     QHBoxLayout* overlayLayout = new QHBoxLayout();
     overlayLayout->addWidget(new QLabel("Overlay:"));
     m_categoryOverlayCombo = new QComboBox();
-    m_categoryOverlayCombo->addItems({"", "CLASSIC", "ROOKIE", "TB-WIRES", "YOUTH", "NOVICE-TECH", "YL"});
+    m_categoryOverlayCombo->addItems({"", "CLASSIC", "ROOKIE", "TB-WIRES", "YOUTH", "NOVICE-TECH", "YL", "NEWCOMER"});
     overlayLayout->addWidget(m_categoryOverlayCombo);
     formLayout->addLayout(overlayLayout);
+
+    // Category Station
+    QHBoxLayout* stationLayout = new QHBoxLayout();
+    stationLayout->addWidget(new QLabel("Station:"));
+    m_categoryStationCombo = new QComboBox();
+    m_categoryStationCombo->addItems({"", "FIXED", "MOBILE", "PORTABLE", "ROVER", "ROVER-LIMITED", "ROVER-UNLIMITED",
+                                      "EXPEDITION", "HQ", "SCHOOL", "DISTRIBUTED"});
+    stationLayout->addWidget(m_categoryStationCombo);
+    formLayout->addLayout(stationLayout);
+
+    // Contest-specific headers (filled by applySetupDefaults)
+    m_extraHeadersLayout = new QVBoxLayout();
+    formLayout->addLayout(m_extraHeadersLayout);
     
     // Name
     QHBoxLayout* nameLayout = new QHBoxLayout();
@@ -283,6 +299,14 @@ QJsonObject CabrilloDialog::getHeaderData() const
     data["categoryTransmitter"] = m_categoryTransmitterCombo->currentText();
     data["categoryAssisted"] = m_categoryAssistedCombo->currentText();
     data["categoryOverlay"] = m_categoryOverlayCombo->currentText();
+    data["categoryStation"] = m_categoryStationCombo->currentText();
+    QJsonObject extra;
+    for (auto it = m_extraHeaderEdits.cbegin(); it != m_extraHeaderEdits.cend(); ++it) {
+        const QString v = it.value()->text().trimmed();
+        if (!v.isEmpty())
+            extra[it.key()] = v;
+    }
+    data["extraHeaders"] = extra;
     data["name"] = m_nameEdit->text();
     data["address"] = m_addressEdit->text();
     data["addressCity"] = m_addressCityEdit->text();
@@ -295,6 +319,39 @@ QJsonObject CabrilloDialog::getHeaderData() const
     data["claimedScore"] = m_claimedScoreLabel->text();
     data["soapbox"] = m_commentsEdit->toPlainText();
     return data;
+}
+
+void CabrilloDialog::applySetupDefaults(const QMap<QString, QString>& headers)
+{
+    const QMap<QString, QComboBox*> combos = {
+        {"CATEGORY-OPERATOR", m_categoryOperatorCombo}, {"CATEGORY-POWER", m_categoryPowerCombo},
+        {"CATEGORY-MODE", m_categoryModeCombo}, {"CATEGORY-BAND", m_categoryBandCombo},
+        {"CATEGORY-TRANSMITTER", m_categoryTransmitterCombo}, {"CATEGORY-ASSISTED", m_categoryAssistedCombo},
+        {"CATEGORY-OVERLAY", m_categoryOverlayCombo}, {"CATEGORY-STATION", m_categoryStationCombo}};
+
+    for (auto it = headers.cbegin(); it != headers.cend(); ++it) {
+        if (it.value().isEmpty())
+            continue;
+        if (QComboBox* combo = combos.value(it.key())) {
+            if (combo->findText(it.value()) < 0)
+                combo->addItem(it.value());
+            combo->setCurrentText(it.value());
+            combo->setToolTip("Set from your contest setup");
+            continue;
+        }
+        // A header the dialog has no field for - an editable row of its own.
+        QLineEdit* edit = m_extraHeaderEdits.value(it.key());
+        if (!edit) {
+            QHBoxLayout* row = new QHBoxLayout();
+            row->addWidget(new QLabel(it.key() + ":"));
+            edit = new QLineEdit();
+            edit->setToolTip("Contest-specific Cabrillo header, set from your contest setup");
+            row->addWidget(edit);
+            m_extraHeadersLayout->addLayout(row);
+            m_extraHeaderEdits.insert(it.key(), edit);
+        }
+        edit->setText(it.value());
+    }
 }
 
 void CabrilloDialog::setCallsign(const QString& call)
@@ -331,15 +388,20 @@ void CabrilloDialog::loadFromSettings()
     m_commentsEdit->setPlainText(settings.getCabrillSoapbox());
     m_emailEdit->setText(settings.getCabrilloEmail());
     
-    // Load dropdown values
+    // Load dropdown values. Values saved by older versions (SINGLE, YES,
+    // ALL-BAND, DIGITAL) are mapped to their Cabrillo 3.0 equivalents.
+    auto load = [](QComboBox* combo, const QString& header, const QString& saved) {
+        combo->setCurrentText(CabrilloDefaults::toCabrillo3(header, saved));
+    };
     m_categoryCombo->setCurrentText(settings.getCabrilloCategory());
-    m_categoryPowerCombo->setCurrentText(settings.getCabrilloPower());
-    m_categoryModeCombo->setCurrentText(settings.getCabrilloMode());
-    m_categoryOperatorCombo->setCurrentText(settings.getCabrilloOperatorType());
-    m_categoryBandCombo->setCurrentText(settings.getCabrilloBand());
-    m_categoryTransmitterCombo->setCurrentText(settings.getCabrilloTransmitter());
-    m_categoryAssistedCombo->setCurrentText(settings.getCabrilloAssisted());
-    m_categoryOverlayCombo->setCurrentText(settings.getCabrilloOverlay());
+    load(m_categoryPowerCombo, "CATEGORY-POWER", settings.getCabrilloPower());
+    load(m_categoryModeCombo, "CATEGORY-MODE", settings.getCabrilloMode());
+    load(m_categoryOperatorCombo, "CATEGORY-OPERATOR", settings.getCabrilloOperatorType());
+    load(m_categoryBandCombo, "CATEGORY-BAND", settings.getCabrilloBand());
+    load(m_categoryTransmitterCombo, "CATEGORY-TRANSMITTER", settings.getCabrilloTransmitter());
+    load(m_categoryAssistedCombo, "CATEGORY-ASSISTED", settings.getCabrilloAssisted());
+    load(m_categoryOverlayCombo, "CATEGORY-OVERLAY", settings.getCabrilloOverlay());
+    load(m_categoryStationCombo, "CATEGORY-STATION", settings.getCabrilloStation());
     
     // Restore dialog geometry
     QByteArray savedGeometry = settings.getCabrilloDialogGeometry();
@@ -366,6 +428,7 @@ void CabrilloDialog::saveToSettings() const
     settings.setCabrilloTransmitter(m_categoryTransmitterCombo->currentText());
     settings.setCabrilloAssisted(m_categoryAssistedCombo->currentText());
     settings.setCabrilloOverlay(m_categoryOverlayCombo->currentText());
+    settings.setCabrilloStation(m_categoryStationCombo->currentText());
 
     // Save dialog geometry
     settings.setCabrilloDialogGeometry(saveGeometry());

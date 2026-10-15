@@ -249,6 +249,35 @@
         "CW": "ARRL-SS-CW",
         "SSB": "ARRL-SS-SSB"
       },
+      "headerMap": {
+        "__comment": "ARRL SS precedence letters: Q/A/B single op QRP/low/high, U single op unlimited (assisted), M multi-op, S school club",
+        "CATEGORY-OPERATOR": {
+          "promptId": "operatingCategory",
+          "values": {
+            "Q": "SINGLE-OP",
+            "A": "SINGLE-OP",
+            "B": "SINGLE-OP",
+            "U": "SINGLE-OP",
+            "M": "MULTI-OP",
+            "S": "MULTI-OP"
+          }
+        },
+        "CATEGORY-ASSISTED": {
+          "promptId": "operatingCategory",
+          "values": {
+            "Q": "NON-ASSISTED",
+            "A": "NON-ASSISTED",
+            "B": "NON-ASSISTED",
+            "U": "ASSISTED"
+          }
+        },
+        "CATEGORY-STATION": {
+          "promptId": "operatingCategory",
+          "values": {
+            "S": "SCHOOL"
+          }
+        }
+      },
       "qsoTemplate": "QSO: {freq} {mode} {date} {time} {SNs} {PRECs} {mycall} {CHKs} {EXCHs} {SNr} {PRECr} {call} {CHKr} {EXCHr}",
       "requiredHeaders": ["CONTEST", "CALLSIGN", "LOCATION", "CATEGORY-ASSISTED", "CATEGORY-BAND", "CATEGORY-MODE", "CATEGORY-OPERATOR", "CATEGORY-POWER", "CATEGORY-TRANSMITTER", "CATEGORY-OVERLAY", "CLAIMED-SCORE", "CLUB", "CREATED-BY", "NAME", "ADDRESS", "ADDRESS-CITY", "ADDRESS-STATE-PROVINCE", "ADDRESS-POSTALCODE", "ADDRESS-COUNTRY", "EMAIL", "OPERATORS", "SOAPBOX"],
       "notes": "Both halves of the exchange carry a callsign: the sent block uses your call and the received block the worked station's call. CATEGORY-OVERLAY is LIMITED-ANTENNAS for the overlay entry."

@@ -380,6 +380,19 @@ For multipliers too numerous to list in `namedMults`, recognised by format inste
 **Cabrillo Field Formats (`logging.cabrillo.fieldFormats`):**
 Formats an exchange field written through a `{Name}` placeholder. `"iota"` writes IOTA references as `EU-005` and an empty field as `------` (RSGB IOTA, both sent and received columns).
 
+**Cabrillo Headers from Contest Setup (`logging.cabrillo.headerMap`):**
+The Cabrillo export dialog opens with its category fields filled in from contest setup. Most contests need nothing for this: CATEGORY-OPERATOR, -ASSISTED, -POWER, -MODE, -BAND, -TRANSMITTER and -STATION are read from the station class and the answers to the category prompts (`operatingCategory`, `operatingClass`, `powerCategory`, `contestMode`, `modeCategory`) - codes like `SOHP-AB`, `SO_ASSISTED_RTTY`, `MOBILE-SO`, `SOSB-20` or `M2`. Location prompts (`stationType`) are never read. `headerMap` handles anything else - letter codes, or a header the dialog has no field for, which then gets its own editable row and is always written:
+
+```json
+"headerMap": {
+  "CATEGORY-LOCATION": {"promptId": "stationType", "values": {"ISLAND": "NON-DXPEDITION", "WORLD": "WORLD"}},
+  "IOTA-ISLAND-NAME": {"promptId": "islandName"},
+  "CATEGORY-STATION": {"stationClass": true, "values": {"R": "ROVER", "RL": "ROVER-LIMITED"}}
+}
+```
+
+Without `values` the setup answer is used as-is. `stationClass: true` reads the station class id instead of a prompt. Used by RSGB IOTA, ARRL SS (precedence letters) and ARRL VHF (rover classes).
+
 **Capped Multipliers (`maxScoredMultipliers`):**
 Caps how many multipliers count toward the score. Every multiplier worked is still tracked and shown, but the score uses at most this many. CQP uses 58: a California station can work 63 states and provinces, but only 58 count.
 
