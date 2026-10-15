@@ -228,6 +228,11 @@ private:
     };
     QList<MultAlias> m_multAliases;
     QHash<QString, QString> m_namedMultAliases;  // 1:1 alias map (e.g., "5" → "05")
+    // validation.namedMultsFormat: named mults are an open set recognised by
+    // format rather than listed in namedMults ("iota": IOTA references, which
+    // number about 1,200). Empty = only the listed namedMults are valid.
+    QString m_namedMultsFormat;
+    QString normalizeOpenSetMult(const QString& value) const;
 
     QList<BonusStationGroup> m_bonusStationGroups;
 

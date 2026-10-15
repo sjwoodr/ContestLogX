@@ -5,9 +5,13 @@ All notable changes to ContestLogX are documented in this file.
 ## [0.9.13]
 
 ### Contest Updates
+- Added the RSGB IOTA Contest. Island Stations send RS(T), serial number and their IOTA reference; World Stations send RS(T) and serial number. Island stations score 5 points with World Stations or the same IOTA reference and 15 with other islands; World Stations score 2 with each other and 15 with islands. Multipliers are IOTA references, once per band on CW and once per band on SSB. EU5, EU005 and EU-005 are all accepted and logged as EU-005
 - Every contest definition now records the sponsor's contact email, or its contact-form page when no email is published
 - Updated contest website links that had moved or stopped working, including the ARRL 10 Meter, DX and VHF rules, CWops CWT, EU DX, Hawaii, Louisiana, Missouri, Mississippi, NAQP, SP DX, UN DX and Virginia QSO Party pages
 - Corrected the Delaware QSO Party link and sponsor (First State ARC) and the South Dakota QSO Party sponsor (Prairie Dog ARC)
+
+### Contest Engine Changes
+- A contest can now take multipliers from an open set recognised by format, such as IOTA references, instead of a fixed list, and points can depend on whether the other station sent the same reference as you
 
 ### Other Changes and Bugfixes
 - In contests with a serial number in the exchange, the QSO Entry title now shows the next serial number you will send ("QSO Entry - Next S/N: 42", on both entry panels in SO2R), so you can check it without looking away from the entry fields. A new Next S/N panel (Window menu) also shows it in large type. Thanks K4RFK for the suggestion

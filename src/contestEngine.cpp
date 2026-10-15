@@ -9,6 +9,7 @@
 #include "debugLogger.h"
 #include "utils/callsignUtils.h"
 #include "utils/modeUtils.h"
+#include "utils/iotaUtils.h"
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QRegularExpression>
@@ -58,6 +59,7 @@ bool ContestEngine::loadContest(const QJsonObject& contestDef)
     m_inStateMults.clear();
     m_multAliases.clear();
     m_namedMultAliases.clear();
+    m_namedMultsFormat.clear();
 
     // Load from validation.namedMults array (this is the single source of truth)
     if (contestDef.contains("validation")) {
@@ -97,6 +99,8 @@ bool ContestEngine::loadContest(const QJsonObject& contestDef)
                 m_inStateMults.insert(val.toString().toUpper());
             }
         }
+
+        m_namedMultsFormat = validation["namedMultsFormat"].toString().toLower();
 
         // Load namedMultAliases - unconditional 1:1 mapping (e.g., "5" → "05")
         if (validation.contains("namedMultAliases")) {
@@ -1089,6 +1093,9 @@ int ContestEngine::calculatePoints(const QsoRecord& qso, const QString& myCallsi
                     ruleApplies = sameContinent;
                 } else if (rule == "differentContinent") {
                     ruleApplies = !sameContinent;
+                } else if (rule == "anyStation") {
+                    // Catch-all, last in precedence (IOTA: World-station QSOs)
+                    ruleApplies = true;
                 } else if (rule.startsWith("bothIn") && rule.length() == 8) {
                     // "bothInXX" rule: matches when BOTH stations are located in
                     // continent XX (e.g., bothInNA for the CQ WPX NA-NA exception
@@ -1146,15 +1153,22 @@ int ContestEngine::calculatePoints(const QsoRecord& qso, const QString& myCallsi
 
                         if (er.contains("matchesPrompt")) {
                             const QString promptId = er["matchesPrompt"].toString();
-                            const QString myVal = m_userPromptValues.value(promptId).trimmed().toUpper();
-                            if (!myVal.isEmpty() && !rxExch.isEmpty()) {
+                            QString myVal = m_userPromptValues.value(promptId).trimmed().toUpper();
+                            // "normalize": "iota" - compare canonical IOTA references
+                            // (EU5 == EU005 == EU-005).
+                            QString rxCmp = rxExch;
+                            if (er["normalize"].toString() == "iota") {
+                                myVal = IotaUtils::normalizeRef(myVal);
+                                rxCmp = IotaUtils::normalizeRef(rxExch);
+                            }
+                            if (!myVal.isEmpty() && !rxCmp.isEmpty()) {
                                 bool okRx = false, okMy = false;
-                                const int rxNum = rxExch.toInt(&okRx);
+                                const int rxNum = rxCmp.toInt(&okRx);
                                 const int myNum = myVal.toInt(&okMy);
                                 if (okRx && okMy) {
                                     ruleApplies = (rxNum == myNum);
                                 } else {
-                                    ruleApplies = (rxExch == myVal);
+                                    ruleApplies = (rxCmp == myVal);
                                 }
                             }
                         }
@@ -1365,6 +1379,7 @@ QList<ContestEngine::MultiplierInfo> ContestEngine::getMultipliersWithCategory(c
 
     // Extract named multiplier from exchange (state/province/DX)
     QString mult = extractMultiplier(qso);
+    const bool openSetMult = !mult.isEmpty() && !normalizeOpenSetMult(mult).isEmpty();
 
     // namedMultsRequireWveCallsign: in QSO parties where DX stations send
     // their DXCC prefix, a prefix can collide with a state (PA = Netherlands /
@@ -1379,7 +1394,7 @@ QList<ContestEngine::MultiplierInfo> ContestEngine::getMultipliersWithCategory(c
             mult.clear();
         }
     }
-    if (!mult.isEmpty() && m_validMultipliers.contains(mult.toUpper())) {
+    if (!mult.isEmpty() && (m_validMultipliers.contains(mult.toUpper()) || openSetMult)) {
         const QString multUpper = mult.toUpper();
         result.append({multUpper, "namedMults"});
 
@@ -1682,6 +1697,13 @@ DxccEntity ContestEngine::dxccLookup(const QString& call) const
     DxccEntity entity = m_dxccDatabase->lookupCallsign(call);
     m_dxccCache.insert(call, entity);
     return entity;
+}
+
+QString ContestEngine::normalizeOpenSetMult(const QString& value) const
+{
+    if (m_namedMultsFormat == "iota")
+        return IotaUtils::normalizeRef(value);
+    return QString();
 }
 
 QString ContestEngine::dupeScopeKey(const QsoRecord& qso, const QString& dupeScope) const
@@ -2446,6 +2468,16 @@ QString ContestEngine::extractMultiplier(const QsoRecord& qso) const
             DebugLogger::instance().log("ContestEngine",
                 QString("Found multiplier via alias: '%1' -> '%2'").arg(cleanWord, canonical));
             return canonical;
+        }
+    }
+
+    // Open-set named mults (IOTA references): recognised by format, returned in
+    // canonical form so EU5 / EU005 / EU-005 are one multiplier.
+    if (!m_namedMultsFormat.isEmpty()) {
+        for (const QString& word : words) {
+            const QString canonical = normalizeOpenSetMult(word);
+            if (!canonical.isEmpty())
+                return canonical;
         }
     }
 

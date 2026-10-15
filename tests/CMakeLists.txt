@@ -54,6 +54,7 @@ add_clx_test(test_dupecheck test_dupecheck.cpp
 # Cabrillo export tests (QSO-line template placeholder resolution)
 add_clx_test(test_cabrillo test_cabrillo.cpp
     ${CMAKE_SOURCE_DIR}/src/fileformats/cabrilloFile.cpp
+    ${CMAKE_SOURCE_DIR}/src/utils/iotaUtils.cpp
     ${CMAKE_SOURCE_DIR}/src/core/qsoRecord.cpp
     ${CMAKE_SOURCE_DIR}/src/utils/bandPlan.cpp
     ${CMAKE_SOURCE_DIR}/src/utils/modeUtils.cpp)

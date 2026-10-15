@@ -371,6 +371,15 @@ Lets a station be worked again once this many minutes have passed since the last
 **Exchange-Sum Scoring (`multipliers.type: "exchangeSumPerBand"`) and `scoring.flatBonus`:**
 Per band group, (QSO points + QSOs whose `field` equals `bonusValue`) x the sum of the numeric `field` values worked on that band; the band scores are added, then `scoring.flatBonus`. `bandGroups` combines bands into one group. Used only by the Zombie Shuffle (`field: "ZNUMr"`, `bonusValue: "3333"`, 10m + 15m grouped, flat bonus 666).
 
+**Open-Set Named Multipliers (`validation.namedMultsFormat`):**
+For multipliers too numerous to list in `namedMults`, recognised by format instead. `"iota"` accepts any IOTA reference in the received exchange (EU5, EU005, EU-005) and counts it as one multiplier in canonical `EU-005` form. Used by the RSGB IOTA Contest with an empty `namedMults`.
+
+**Exchange-Based Points Rules (`scoring.exchangeRules`) and `anyStation`:**
+`exchangeRules.<rule>` may use `"matchesPrompt": "<promptId>"` (received exchange equals your own setup answer), optionally with `"normalize": "iota"` to compare IOTA references in canonical form, or `"exchangeIsAlpha": true` (received exchange contains a letter). The `anyStation` rule always applies, so put it last in `precedence` as the catch-all; combine with `byPrompt` for station-type-dependent values (IOTA: World-station partners score 5 for island stations, 2 for World Stations).
+
+**Cabrillo Field Formats (`logging.cabrillo.fieldFormats`):**
+Formats an exchange field written through a `{Name}` placeholder. `"iota"` writes IOTA references as `EU-005` and an empty field as `------` (RSGB IOTA, both sent and received columns).
+
 **Capped Multipliers (`maxScoredMultipliers`):**
 Caps how many multipliers count toward the score. Every multiplier worked is still tracked and shown, but the score uses at most this many. CQP uses 58: a California station can work 63 states and provinces, but only 58 count.
 

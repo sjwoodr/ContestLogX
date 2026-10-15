@@ -1,0 +1,512 @@
+{
+  "contest": {
+    "name": "RSGB IOTA Contest",
+    "abbreviation": "IOTA",
+    "version": "1.0.0",
+    "sponsor": "Radio Society of Great Britain (RSGB)",
+    "description": "Islands On The Air contest, last full weekend of July, 1200-1200 UTC. Everyone works everyone; Island Stations send RS(T), serial number and their IOTA reference, World Stations send RS(T) and serial number. Island stations score 5 points with World Stations or the same IOTA reference and 15 with other islands; World Stations score 2 with other World Stations and 15 with islands. Multipliers are IOTA references, counted once per band on CW and once per band on SSB.",
+    "startDate": "Last full weekend of July (2026: July 25-26), 1200 UTC Saturday - 1200 UTC Sunday",
+    "duration": 24,
+    "offTimeGapMinutes": 60,
+    "modes": [
+      "CW",
+      "SSB"
+    ],
+    "bands": [
+      "80m",
+      "40m",
+      "20m",
+      "15m",
+      "10m"
+    ],
+    "url": "https://www.rsgbcc.org/hf/rules/2026/riota.shtml",
+    "sponsorEmail": "iotacontest@rsgbcc.org",
+    "__sponsorContact_comment": "IOTA contest address from the RSGB IOTA FAQ; questions about the rules go to hf.query@rsgbcc.org",
+    "categories": {
+      "stations": [
+        "SINGLE_OP",
+        "SINGLE_OP_ASSISTED",
+        "MULTI_ONE",
+        "MULTI_TWO"
+      ],
+      "power": [
+        "HIGH",
+        "LOW",
+        "QRP"
+      ],
+      "modes": [
+        "MIXED",
+        "CW",
+        "SSB"
+      ]
+    }
+  },
+  "frequencies": {
+    "80m": {
+      "start": 3500,
+      "end": 4000,
+      "cw": {
+        "start": 3500,
+        "end": 3600
+      },
+      "phone": {
+        "start": 3600,
+        "end": 4000
+      }
+    },
+    "40m": {
+      "start": 7000,
+      "end": 7300,
+      "cw": {
+        "start": 7000,
+        "end": 7100
+      },
+      "phone": {
+        "start": 7050,
+        "end": 7300
+      }
+    },
+    "20m": {
+      "start": 14000,
+      "end": 14350,
+      "cw": {
+        "start": 14000,
+        "end": 14150
+      },
+      "phone": {
+        "start": 14100,
+        "end": 14350
+      }
+    },
+    "15m": {
+      "start": 21000,
+      "end": 21450,
+      "cw": {
+        "start": 21000,
+        "end": 21200
+      },
+      "phone": {
+        "start": 21150,
+        "end": 21450
+      }
+    },
+    "10m": {
+      "start": 28000,
+      "end": 29700,
+      "cw": {
+        "start": 28000,
+        "end": 28300
+      },
+      "phone": {
+        "start": 28300,
+        "end": 29700
+      }
+    }
+  },
+  "stationClasses": {
+    "enabled": false
+  },
+  "userPrompts": [
+    {
+      "id": "stationType",
+      "question": "Where are you operating from?",
+      "type": "select",
+      "options": [
+        {
+          "value": "ISLAND",
+          "label": "Island Station - Fixed (from a qualifying IOTA island)"
+        },
+        {
+          "value": "DXPEDITION",
+          "label": "Island Station - DXpedition (island reachable only by boat or air; temporary station)"
+        },
+        {
+          "value": "WORLD",
+          "label": "World Station (not on a qualifying island)"
+        }
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "Island Stations send their IOTA reference in the exchange. Check your island's reference at iota-world.org before the contest."
+    },
+    {
+      "id": "myIota",
+      "question": "Enter your IOTA reference (e.g. EU-005)",
+      "type": "text",
+      "required": true,
+      "forceUppercase": true,
+      "storeInMeta": true,
+      "visibleWhen": {
+        "promptId": "stationType",
+        "values": [
+          "ISLAND",
+          "DXPEDITION"
+        ]
+      },
+      "description": "EU5, EU005 and EU-005 are all accepted; logs and Cabrillo use EU-005.",
+      "exchangeFieldMapping": {
+        "myIota": "EXCHs"
+      }
+    },
+    {
+      "id": "islandName",
+      "question": "Enter your island name (e.g. Great Britain)",
+      "type": "text",
+      "required": false,
+      "storeInMeta": true,
+      "visibleWhen": {
+        "promptId": "stationType",
+        "values": [
+          "ISLAND",
+          "DXPEDITION"
+        ]
+      },
+      "description": "Goes in the Cabrillo IOTA-ISLAND-NAME header."
+    },
+    {
+      "id": "operatingCategory",
+      "question": "Select your category",
+      "type": "select",
+      "options": [
+        {
+          "value": "SO",
+          "label": "Single Operator Unassisted"
+        },
+        {
+          "value": "SOA",
+          "label": "Single Operator Assisted (cluster allowed)"
+        },
+        {
+          "value": "MULTI-1",
+          "label": "Island Multi-1 (island only, Mixed, 24 hours, Assisted)"
+        },
+        {
+          "value": "MULTI-2",
+          "label": "Island Multi-2 (island only, Mixed, 24 hours, Assisted)"
+        }
+      ],
+      "required": true,
+      "storeInMeta": true,
+      "description": "There are no World Station multi-operator categories. Single operators choose CW, SSB or Mixed (CATEGORY-MODE in the Cabrillo export)."
+    },
+    {
+      "id": "operatingTime",
+      "question": "Select your operating time",
+      "type": "select",
+      "options": [
+        {
+          "value": "24-HOURS",
+          "label": "24 hours"
+        },
+        {
+          "value": "12-HOURS",
+          "label": "12 hours (single operator; off-times at least 60 minutes)"
+        }
+      ],
+      "required": true,
+      "storeInMeta": true
+    },
+    {
+      "id": "powerCategory",
+      "question": "Select your power category",
+      "type": "select",
+      "options": [
+        {
+          "value": "HP",
+          "label": "High Power (up to 1500W)"
+        },
+        {
+          "value": "LP",
+          "label": "Low Power (100W)"
+        },
+        {
+          "value": "QRP",
+          "label": "QRP (5W)"
+        }
+      ],
+      "required": true,
+      "storeInMeta": true
+    }
+  ],
+  "exchangeFields": {
+    "sent": [
+      {
+        "name": "RST",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report sent"
+      },
+      {
+        "name": "SNs",
+        "type": "serial",
+        "required": true,
+        "description": "Serial number sent, starting at 1 (one sequence for CW and SSB)"
+      },
+      {
+        "name": "EXCHs",
+        "type": "string",
+        "required": false,
+        "description": "Your IOTA reference (Island Stations only)"
+      }
+    ],
+    "received": [
+      {
+        "name": "RST",
+        "type": "rst",
+        "required": true,
+        "description": "Signal report received"
+      },
+      {
+        "name": "SNr",
+        "type": "serial",
+        "required": true,
+        "description": "Serial number received (log 0 if none sent)"
+      },
+      {
+        "name": "EXCHr",
+        "type": "string",
+        "required": false,
+        "pattern": "^((AF|AN|AS|EU|NA|OC|SA)-?[0-9]{1,3})?$",
+        "description": "IOTA reference received (e.g. EU-005) - leave blank for World Stations"
+      }
+    ]
+  },
+  "qsoFields": [
+    {
+      "name": "Date",
+      "column": "DATE",
+      "type": "date",
+      "format": "yyyy-MM-dd",
+      "required": true
+    },
+    {
+      "name": "Time",
+      "column": "TIME",
+      "type": "time",
+      "format": "HH:mm:ss",
+      "required": true
+    },
+    {
+      "name": "Callsign",
+      "column": "CALL",
+      "type": "string",
+      "required": true,
+      "uppercase": true
+    },
+    {
+      "name": "Frequency",
+      "column": "FREQ",
+      "type": "number",
+      "unit": "kHz",
+      "required": true
+    },
+    {
+      "name": "Mode",
+      "column": "MODE",
+      "type": "enum",
+      "values": [
+        "CW",
+        "SSB"
+      ],
+      "required": true
+    },
+    {
+      "name": "RST Sent",
+      "column": "RSTs",
+      "type": "string",
+      "required": true,
+      "default": "599"
+    },
+    {
+      "name": "Nr Sent",
+      "column": "SNs",
+      "type": "number",
+      "required": true
+    },
+    {
+      "name": "RST Rcvd",
+      "column": "RSTr",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "Nr Rcvd",
+      "column": "SNr",
+      "type": "number",
+      "required": true
+    },
+    {
+      "name": "IOTA Rcvd",
+      "column": "EXCHr",
+      "type": "string",
+      "required": false
+    },
+    {
+      "name": "Points",
+      "column": "POINTS",
+      "type": "number",
+      "calculated": true
+    },
+    {
+      "name": "Mult",
+      "column": "M",
+      "type": "string",
+      "calculated": true
+    }
+  ],
+  "scoring": {
+    "exchangeRules": {
+      "__comment": "sameIota: the received IOTA reference equals ours (EU5 == EU-005). islandPartner: the received exchange is an IOTA reference (contains letters); World Stations send none.",
+      "sameIota": {
+        "matchesPrompt": "myIota",
+        "normalize": "iota"
+      },
+      "islandPartner": {
+        "exchangeIsAlpha": true
+      }
+    },
+    "scoringRuleConditions": {
+      "sameIota": {
+        "promptId": "stationType",
+        "values": [
+          "ISLAND",
+          "DXPEDITION"
+        ]
+      }
+    },
+    "points": {
+      "__comment": "Island Stations: 5 with World Stations or the same IOTA reference, 15 with other islands. World Stations: 2 with World Stations, 15 with islands. anyStation is the catch-all (World-station partner).",
+      "sameIota": {
+        "CW": 5,
+        "SSB": 5
+      },
+      "islandPartner": {
+        "CW": 15,
+        "SSB": 15
+      },
+      "anyStation": {
+        "CW": 2,
+        "SSB": 2,
+        "byPrompt": {
+          "stationType": {
+            "ISLAND": {
+              "CW": 5,
+              "SSB": 5
+            },
+            "DXPEDITION": {
+              "CW": 5,
+              "SSB": 5
+            }
+          }
+        }
+      }
+    },
+    "precedence": [
+      "sameIota",
+      "islandPartner",
+      "anyStation"
+    ],
+    "multipliers": {
+      "__comment": "Different IOTA references worked on each band on CW, plus on each band on SSB. IOTA references are an open set (validation.namedMultsFormat iota), compared in EU-005 form.",
+      "type": "multsPerBandAndMode",
+      "description": "IOTA references, once per band per mode",
+      "categories": [
+        "namedMults"
+      ],
+      "namedMultsLabel": "IOTA References"
+    },
+    "finalScore": "SUM(points) * SUM(multipliers)"
+  },
+  "dupeChecking": {
+    "type": "perBandAndMode",
+    "description": "A station may be worked once per band on CW and once per band on SSB"
+  },
+  "logging": {
+    "requiredFields": [
+      "date",
+      "time",
+      "frequency",
+      "mode",
+      "callsign",
+      "rstSent",
+      "rstReceived",
+      "serialSent",
+      "serialReceived"
+    ],
+    "cabrillo": {
+      "version": "3.0",
+      "contest": "RSGB-IOTA",
+      "qsoTemplate": "QSO: {freq} {mode} {date} {time} {mycall} {rst_sent} {SNs} {EXCHs} {call} {rst_rcvd} {SNr} {EXCHr}",
+      "fieldFormats": {
+        "EXCHs": "iota",
+        "EXCHr": "iota"
+      },
+      "requiredHeaders": [
+        "CONTEST",
+        "CALLSIGN",
+        "CATEGORY-OPERATOR",
+        "CATEGORY-ASSISTED",
+        "CATEGORY-OVERLAY",
+        "CATEGORY-MODE",
+        "CATEGORY-POWER",
+        "CLAIMED-SCORE",
+        "NAME",
+        "ADDRESS",
+        "EMAIL",
+        "OPERATORS",
+        "SOAPBOX",
+        "CREATED-BY"
+      ],
+      "notes": "IOTA references are written EU-005 and World Stations' as ------. RSGB also wants IOTA-ISLAND-NAME (island stations), CATEGORY-LOCATION (NON-DXPEDITION / DXPEDITION / WORLD) and CATEGORY-TIME (12-HOURS / 24-HOURS); Multi-1/Multi-2 QSO lines end with the transmitter number. Upload at rsgbcc.org within 5 days."
+    }
+  },
+  "callHistory": {
+    "fieldsToSave": [
+      "EXCHr"
+    ],
+    "description": "Save IOTA reference for future autofill"
+  },
+  "validation": {
+    "minimumQSOs": 1,
+    "maxOperatingTime": 24,
+    "offTimesRequired": false,
+    "namedMults": [],
+    "namedMultsFormat": "iota"
+  },
+  "ui": {
+    "logColumns": [
+      "DATE",
+      "TIME",
+      "CALL",
+      "FREQ",
+      "MODE",
+      "RSTs",
+      "SNs",
+      "RSTr",
+      "SNr",
+      "EXCHr",
+      "POINTS",
+      "M",
+      "COMMENT"
+    ],
+    "entryFields": [
+      "CALL",
+      "RSTr",
+      "SNr",
+      "EXCHr"
+    ],
+    "fieldNavigation": {
+      "keys": "tab"
+    },
+    "bandMap": {
+      "enabled": true,
+      "bands": [
+        "80m",
+        "40m",
+        "20m",
+        "15m",
+        "10m"
+      ]
+    }
+  }
+}

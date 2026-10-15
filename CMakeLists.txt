@@ -78,6 +78,7 @@ set(SOURCES
     src/utils/callsignUtils.cpp
     src/utils/modeUtils.cpp
     src/utils/contestDefUtils.cpp
+    src/utils/iotaUtils.cpp
     src/utils/ttsManager.cpp
     src/utils/piperManager.cpp
     src/database/dxccDatabase.cpp
@@ -161,6 +162,7 @@ set(HEADERS
      src/utils/callsignUtils.h
      src/utils/modeUtils.h
      src/utils/contestDefUtils.h
+     src/utils/iotaUtils.h
      include/dxccDatabase.h
      include/eadxDatabase.h
      include/qrzcqApi.h

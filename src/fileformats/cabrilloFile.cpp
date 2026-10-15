@@ -7,6 +7,7 @@
 
 #include "cabrilloFile.h"
 #include "../utils/bandPlan.h"
+#include "../utils/iotaUtils.h"
 #include <QApplication>
 #include <QFile>
 #include <QTextStream>
@@ -184,6 +185,7 @@ bool CabrilloFile::exportToFile(const QString& filename,
                                 const QString& selectedMode)
 {
     m_myCall = myCall;
+    m_fieldFormats = contestDef["logging"].toObject()["cabrillo"].toObject()["fieldFormats"].toObject();
     QFile file(filename);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
         m_lastError = QString("Cannot open file for writing: %1").arg(filename);
@@ -357,12 +359,23 @@ QString CabrilloFile::generateQsoLine(const QsoRecord& qso, const QString& qsoTe
     while (it.hasNext()) {
         QRegularExpressionMatch m = it.next();
         resolved += line.mid(pos, m.capturedStart() - pos);
-        resolved += qso.getExchangeField(m.captured(1));
+        resolved += formatField(m.captured(1), qso.getExchangeField(m.captured(1)));
         pos = m.capturedEnd();
     }
     resolved += line.mid(pos);
 
     return resolved;
+}
+
+QString CabrilloFile::formatField(const QString& name, const QString& value) const
+{
+    const QString format = m_fieldFormats.value(name).toString();
+    if (format == "iota") {
+        // RSGB IOTA: references as EU-005; World stations (no reference) as ------
+        const QString ref = IotaUtils::normalizeRef(value);
+        return ref.isEmpty() ? QStringLiteral("------") : ref;
+    }
+    return value;
 }
 
 QString CabrilloFile::formatFrequency(double freqKhz)

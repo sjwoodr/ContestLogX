@@ -1,0 +1,153 @@
+{
+ "format": "ContestLogX",
+ "format_version": "1.0",
+ "created": "2026-07-25T12:01:00Z",
+ "modified": "2026-07-25T12:06:00Z",
+ "contest": {
+  "name": "RSGB IOTA Contest",
+  "abbreviation": "IOTA",
+  "contest_file": "rsgb_iota.json",
+  "version": "1.0.0",
+  "year": 2026,
+  "categories": {
+   "userPrompt_stationType": "ISLAND",
+   "userPrompt_operatingCategory": "SO",
+   "userPrompt_operatingTime": "24-HOURS",
+   "userPrompt_powerCategory": "LP",
+   "userPrompt_myIota": "EU005"
+  }
+ },
+ "station": {
+  "callsign": "DJ8WG",
+  "operator": "STEVE"
+ },
+ "statistics": {},
+ "qsos": [
+  {
+   "id": 1,
+   "serial": 1,
+   "timestamp": "2026-07-25T12:01:00Z",
+   "frequency": 14025,
+   "band": "20m",
+   "mode": "CW",
+   "callsign": "F8SWE",
+   "duplicate": false,
+   "rst_sent": "599",
+   "rst_received": "599",
+   "exchange_fields": {
+    "CALL": "F8SWE",
+    "RST": "599",
+    "SNs": "1",
+    "SNr": "31",
+    "EXCHr": "EU5",
+    "EXCHs": "EU005"
+   },
+   "points": 0
+  },
+  {
+   "id": 2,
+   "serial": 2,
+   "timestamp": "2026-07-25T12:02:00Z",
+   "frequency": 14025,
+   "band": "20m",
+   "mode": "CW",
+   "callsign": "DL4EX",
+   "duplicate": false,
+   "rst_sent": "599",
+   "rst_received": "599",
+   "exchange_fields": {
+    "CALL": "DL4EX",
+    "RST": "599",
+    "SNs": "2",
+    "SNr": "101",
+    "EXCHr": "",
+    "EXCHs": "EU005"
+   },
+   "points": 0
+  },
+  {
+   "id": 3,
+   "serial": 3,
+   "timestamp": "2026-07-25T12:03:00Z",
+   "frequency": 14025,
+   "band": "20m",
+   "mode": "CW",
+   "callsign": "VK2YV",
+   "duplicate": false,
+   "rst_sent": "599",
+   "rst_received": "599",
+   "exchange_fields": {
+    "CALL": "VK2YV",
+    "RST": "599",
+    "SNs": "3",
+    "SNr": "12",
+    "EXCHr": "OC-001",
+    "EXCHs": "EU005"
+   },
+   "points": 0
+  },
+  {
+   "id": 4,
+   "serial": 4,
+   "timestamp": "2026-07-25T12:04:00Z",
+   "frequency": 14025,
+   "band": "20m",
+   "mode": "CW",
+   "callsign": "JR9YP",
+   "duplicate": false,
+   "rst_sent": "599",
+   "rst_received": "599",
+   "exchange_fields": {
+    "CALL": "JR9YP",
+    "RST": "599",
+    "SNs": "4",
+    "SNr": "77",
+    "EXCHr": "AS7",
+    "EXCHs": "EU005"
+   },
+   "points": 0
+  },
+  {
+   "id": 5,
+   "serial": 5,
+   "timestamp": "2026-07-25T12:05:00Z",
+   "frequency": 14025,
+   "band": "20m",
+   "mode": "CW",
+   "callsign": "W8EE",
+   "duplicate": false,
+   "rst_sent": "599",
+   "rst_received": "599",
+   "exchange_fields": {
+    "CALL": "W8EE",
+    "RST": "599",
+    "SNs": "5",
+    "SNr": "9",
+    "EXCHr": "",
+    "EXCHs": "EU005"
+   },
+   "points": 0
+  },
+  {
+   "id": 6,
+   "serial": 6,
+   "timestamp": "2026-07-25T12:06:00Z",
+   "frequency": 14250,
+   "band": "20m",
+   "mode": "SSB",
+   "callsign": "VK2YV",
+   "duplicate": false,
+   "rst_sent": "59",
+   "rst_received": "59",
+   "exchange_fields": {
+    "CALL": "VK2YV",
+    "RST": "59",
+    "SNs": "6",
+    "SNr": "40",
+    "EXCHr": "OC1",
+    "EXCHs": "EU005"
+   },
+   "points": 0
+  }
+ ]
+}

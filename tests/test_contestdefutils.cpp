@@ -54,7 +54,7 @@ bool TestContestDefUtils::sends(const QJsonObject& def, const QString& stationCl
 void TestContestDefUtils::serialContestsWithDefaultSetup()
 {
     const QStringList expected = {
-        "arrl_ss", "cqp", "cqwpx", "nasprint_ssb", "ocdx", "paqp", "vaqp"
+        "arrl_ss", "cqp", "cqwpx", "nasprint_ssb", "ocdx", "paqp", "rsgb_iota", "vaqp"
     };
 
     QDir dir(QStringLiteral(CLX_SOURCE_DIR "/contests"));

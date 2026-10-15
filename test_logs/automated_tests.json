@@ -585,6 +585,16 @@
       "name": "NA SSB Sprint DX op DJ8WG (6 QSOs, non-NA partners DL0TW and JA5SU score nothing, KH6 counts as North America and as HI)",
       "log_file": "test_nasprint_ssb_dx.clx",
       "expected_score": 16
+    },
+    {
+      "name": "RSGB IOTA World op W9NE (10 QSOs incl 1 dupe, World 2 pts / island 15 pts, IOTA refs per band per mode, EU5 / EU005 / EU-005 are one mult, same island on SSB and on 40m re-credits)",
+      "log_file": "test_iota_world.clx",
+      "expected_score": 480
+    },
+    {
+      "name": "RSGB IOTA Island op DJ8WG EU-005 (6 QSOs, same IOTA ref EU5 5 pts, World Stations 5 pts, other islands 15 pts, AS7 normalizes to AS-007)",
+      "log_file": "test_iota_island.clx",
+      "expected_score": 240
     }
   ]
 }

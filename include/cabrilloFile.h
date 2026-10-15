@@ -34,6 +34,11 @@ public:
 private:
     QString m_lastError;
     QString m_myCall;
+    // logging.cabrillo.fieldFormats: exchange field name -> format applied when
+    // the field is written through a {Name} placeholder ("iota": EU-005, or
+    // ------ when empty).
+    QJsonObject m_fieldFormats;
+    QString formatField(const QString& name, const QString& value) const;
 
     QString generateHeader(const QJsonObject& contestDef, const QJsonObject& headerData,
                            const QString& selectedMode = QString());

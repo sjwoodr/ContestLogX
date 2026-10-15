@@ -12,6 +12,7 @@
 #include <QJsonObject>
 #include "cabrilloFile.h"
 #include "qsoRecord.h"
+#include "utils/iotaUtils.h"
 
 /**
  * Cabrillo export tests.
@@ -37,6 +38,8 @@ private slots:
     void exportsZeroPointCqwwQso();
     void exportsAmAsPhone();
     void mapsJidxPhoneContestName();
+    void normalizesIotaReferences();
+    void exportsIotaQsoLines();
 
 private:
     QStringList exportLines(const QJsonObject& contestDef,
@@ -309,6 +312,60 @@ void TestCabrillo::mapsJidxPhoneContestName()
 
     QVERIFY(exportLines(def, {qso}, "N9OH", "SSB").contains(QStringLiteral("CONTEST: JIDX-PHONE")));
     QVERIFY(exportLines(def, {qso}, "N9OH", "CW").contains(QStringLiteral("CONTEST: JIDX-CW")));
+}
+
+// Operators send and type IOTA references several ways; all must compare as
+// one reference and export as XX-NNN.
+void TestCabrillo::normalizesIotaReferences()
+{
+    QCOMPARE(IotaUtils::normalizeRef("EU5"), QStringLiteral("EU-005"));
+    QCOMPARE(IotaUtils::normalizeRef("eu005"), QStringLiteral("EU-005"));
+    QCOMPARE(IotaUtils::normalizeRef(" EU-005 "), QStringLiteral("EU-005"));
+    QCOMPARE(IotaUtils::normalizeRef("OC-225"), QStringLiteral("OC-225"));
+    QCOMPARE(IotaUtils::normalizeRef("AS7"), QStringLiteral("AS-007"));
+    QVERIFY(IotaUtils::normalizeRef("").isEmpty());       // World Station
+    QVERIFY(IotaUtils::normalizeRef("0").isEmpty());
+    QVERIFY(IotaUtils::normalizeRef("XX-005").isEmpty()); // not a continent
+    QVERIFY(IotaUtils::normalizeRef("EU-000").isEmpty());
+    QVERIFY(IotaUtils::normalizeRef("EU-1234").isEmpty());
+}
+
+// RSGB IOTA Cabrillo: IOTA references as EU-005, and "------" where a World
+// Station sends none - on either side of the QSO line.
+void TestCabrillo::exportsIotaQsoLines()
+{
+    const QString path = QStringLiteral(CLX_SOURCE_DIR "/contests/rsgb_iota.json");
+    QFile f(path);
+    QVERIFY2(f.open(QIODevice::ReadOnly), qPrintable("cannot open " + path));
+    const QJsonObject def = QJsonDocument::fromJson(f.readAll()).object();
+    QVERIFY(!def.isEmpty());
+
+    auto make = [](const QString& call, const QString& sentIota, const QString& rcvdIota) {
+        QsoRecord qso;
+        qso.setCall(call);
+        QDateTime dt = QDateTime::fromString("2026-07-25T12:01:00", Qt::ISODate);
+        dt.setTimeSpec(Qt::UTC);
+        qso.setDateTime(dt);
+        qso.setFrequency("14025");
+        qso.setMode("CW");
+        qso.setRstSent("599");
+        qso.setRstReceived("599");
+        qso.setExchangeField("SNs", "1");
+        qso.setExchangeField("SNr", "31");
+        if (!sentIota.isEmpty())
+            qso.setExchangeField("EXCHs", sentIota);
+        qso.setExchangeField("EXCHr", rcvdIota);
+        qso.setPoints(15);
+        return qso;
+    };
+
+    QStringList lines;
+    for (const QString& l : exportLines(def, {make("F8SWE", "EU5", "OC1"), make("DL4EX", QString(), QString())}, "W9NE", QString()))
+        if (l.startsWith("QSO:")) lines << l;
+    QCOMPARE(lines.size(), 2);
+    QCOMPARE(lines[0], QStringLiteral("QSO: 14025 CW 2026-07-25 1201 W9NE 599 1 EU-005 F8SWE 599 31 OC-001"));
+    QCOMPARE(lines[1], QStringLiteral("QSO: 14025 CW 2026-07-25 1201 W9NE 599 1 ------ DL4EX 599 31 ------"));
+    QVERIFY(exportLines(def, {make("F8SWE", "EU5", "OC1")}, "W9NE", QString()).contains(QStringLiteral("CONTEST: RSGB-IOTA")));
 }
 
 QTEST_MAIN(TestCabrillo)
