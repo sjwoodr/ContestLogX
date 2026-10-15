@@ -18,6 +18,8 @@
 #include "ssbMemoriesWidget.h"
 #include "multiplierWidget.h"
 #include "rateWidget.h"
+#include "nextSerialWidget.h"
+#include "../utils/contestDefUtils.h"
 #include "scpLineEdit.h"
 #include "stationClassDialog.h"
 #include "contestSelectDialog.h"
@@ -1141,6 +1143,20 @@ void MainWindow::setupDocks(QSplitter* mainSplitter)
             m_rateWidgetAction->setChecked(visible);
     });
 
+    // Next S/N widget - large next-serial display, hidden by default
+    m_nextSerialDock = new QDockWidget("Next S/N", this);
+    m_nextSerialDock->setObjectName("nextSerialDock");  // Required for saveState/restoreState
+    m_nextSerialWidget = new NextSerialWidget(m_nextSerialDock);
+    m_nextSerialDock->setWidget(m_nextSerialWidget);
+    m_nextSerialDock->setAllowedAreas(Qt::AllDockWidgetAreas);
+    m_nextSerialDock->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable | QDockWidget::DockWidgetClosable);
+    addDockWidget(Qt::RightDockWidgetArea, m_nextSerialDock);
+    m_nextSerialDock->hide();  // Hidden by default
+    connect(m_nextSerialDock, &QDockWidget::visibilityChanged, this, [this](bool visible) {
+        if (m_nextSerialWidgetAction)
+            m_nextSerialWidgetAction->setChecked(visible);
+    });
+
     createBandMapDock();
 
     // If the last session quit with a Practice audio source selected, reset
@@ -1173,6 +1189,7 @@ void MainWindow::setupDocks(QSplitter* mainSplitter)
     installRedockOnMinimize(m_ssbMemoriesWidget);
     installRedockOnMinimize(m_multiplierDock);
     installRedockOnMinimize(m_rateDock);
+    installRedockOnMinimize(m_nextSerialDock);
     installRedockOnMinimize(m_bandMapWidget);
 
     // Load SSB memories (from contest or settings)
@@ -1459,6 +1476,11 @@ void MainWindow::setupMenus()
     m_rateWidgetAction->setCheckable(true);
     m_rateWidgetAction->setChecked(false);  // Hidden by default
     connect(m_rateWidgetAction, &QAction::triggered, this, &MainWindow::onToggleRateWidget);
+
+    m_nextSerialWidgetAction = windowMenu->addAction("&Next S/N");
+    m_nextSerialWidgetAction->setCheckable(true);
+    m_nextSerialWidgetAction->setChecked(false);  // Hidden by default
+    connect(m_nextSerialWidgetAction, &QAction::triggered, this, &MainWindow::onToggleNextSerialWidget);
 
     m_bandMapWidgetAction = windowMenu->addAction("&Band Map");
     m_bandMapWidgetAction->setCheckable(true);
@@ -1774,6 +1796,12 @@ void MainWindow::createConnections()
     wireEntryPanelConnections(m_entryWidgets, false);
     
     m_rateWidget->setModel(m_qsoModel);
+
+    // Keep the Next S/N display in step with every way QSOs come and go
+    // (log, delete, import, open, new log).
+    connect(m_qsoModel, &QAbstractItemModel::rowsInserted, this, [this]() { updateNextSerialDisplay(); });
+    connect(m_qsoModel, &QAbstractItemModel::rowsRemoved, this, [this]() { updateNextSerialDisplay(); });
+    connect(m_qsoModel, &QAbstractItemModel::modelReset, this, [this]() { updateNextSerialDisplay(); });
 
     connect(m_qsoModel, &QsoListModel::qsoAdded, this, [this]() {
         m_qsoCountLabel->setText(QString("QSOs: %1").arg(m_qsoModel->count()));
@@ -3250,6 +3278,9 @@ void MainWindow::applyFontSettings()
 
     if (m_rateWidget && !scoreFont.family().isEmpty())
         m_rateWidget->setBaseFont(scoreFont);
+
+    if (m_nextSerialWidget && !scoreFont.family().isEmpty())
+        m_nextSerialWidget->setBaseFont(scoreFont);
 
     QFont cwMemFont = settings.getPanelFont("cwMemories");
     if (m_cwConsole && !cwMemFont.family().isEmpty())
@@ -4980,6 +5011,38 @@ void MainWindow::onToggleRateWidget(bool checked)
     }
 }
 
+void MainWindow::onToggleNextSerialWidget(bool checked)
+{
+    if (m_nextSerialDock) {
+        m_nextSerialDock->setVisible(checked);
+        savePanelState();
+    }
+}
+
+void MainWindow::updateNextSerialDisplay()
+{
+    // Serials are assigned as count + 1 when a QSO is logged (see the SNs
+    // exchange field), so the next one is always the total QSO count + 1.
+    bool sendsSerial = false;
+    if (m_contestEngine && !m_contestDefinition.isEmpty()) {
+        sendsSerial = ContestDefUtils::sendsSerialNumber(
+            m_contestDefinition, m_contestEngine->getStationClass(),
+            [this](const QString& id) { return m_contestEngine->getUserPromptValue(id); });
+    }
+    const int next = m_qsoModel ? m_qsoModel->count() + 1 : 1;
+
+    // Shown on the entry dock title, where the operator is already looking.
+    // In SO2R both radios log into the same log, so both docks show the same
+    // next serial.
+    const QString suffix = sendsSerial ? QString(" - Next S/N: %1").arg(next) : QString();
+    if (m_entryDock)
+        m_entryDock->setWindowTitle((m_so2rEnabled ? QString("Radio L") : QString("QSO Entry")) + suffix);
+    if (m_entryDockR)
+        m_entryDockR->setWindowTitle(QString("Radio R") + suffix);
+    if (m_nextSerialWidget)
+        m_nextSerialWidget->setNextSerial(sendsSerial ? next : 0);
+}
+
 void MainWindow::installRedockOnMinimize(QDockWidget* dock)
 {
     if (!dock) return;
@@ -5431,6 +5494,7 @@ void MainWindow::onContestSetup()
 
     // Recalculate score with new settings
     onRecalculateScore();
+    updateNextSerialDisplay();  // station type can change whether a serial is sent (OK-OM)
 
     QMessageBox::information(this, "Contest Setup", "Contest setup parameters have been updated.");
 }
@@ -7004,6 +7068,7 @@ bool MainWindow::loadContestDefinition(const QString& filePath, bool restoreStat
     if (m_contestNameLabel) {
         m_contestNameLabel->setText(QString("Contest: %1").arg(contestName));
     }
+    updateNextSerialDisplay();
     
     // Extract and set contest bands for score widget
     if (m_scoreWidget && m_contestDefinition.contains("contest")) {
@@ -9300,8 +9365,8 @@ void MainWindow::enableSo2r()
         scpLineEditR->setScpEnabled(Settings::instance().getScpEnabled());
     }
 
-    // Relabel Radio L dock
-    m_entryDock->setWindowTitle("Radio L");
+    // Relabel Radio L dock (and both docks' Next S/N suffix)
+    updateNextSerialDisplay();
 
     // Stack both entry docks vertically - both always visible
     splitDockWidget(m_entryDock, m_entryDockR, Qt::Vertical);
@@ -9370,7 +9435,8 @@ void MainWindow::disableSo2r()
     m_entryWidgetsR = EntryPanelWidgets();
 
     // Restore Radio L dock title and clear all SO2R styling
-    m_entryDock->setWindowTitle("QSO Entry");
+    m_so2rEnabled = false;
+    updateNextSerialDisplay();
     m_entryDock->setStyleSheet("");
     if (m_entryWidgets.entryGroup)
         m_entryWidgets.entryGroup->setStyleSheet("");

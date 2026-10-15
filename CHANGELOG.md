@@ -9,6 +9,9 @@ All notable changes to ContestLogX are documented in this file.
 - Updated contest website links that had moved or stopped working, including the ARRL 10 Meter, DX and VHF rules, CWops CWT, EU DX, Hawaii, Louisiana, Missouri, Mississippi, NAQP, SP DX, UN DX and Virginia QSO Party pages
 - Corrected the Delaware QSO Party link and sponsor (First State ARC) and the South Dakota QSO Party sponsor (Prairie Dog ARC)
 
+### Other Changes and Bugfixes
+- In contests with a serial number in the exchange, the QSO Entry title now shows the next serial number you will send ("QSO Entry - Next S/N: 42", on both entry panels in SO2R), so you can check it without looking away from the entry fields. A new Next S/N panel (Window menu) also shows it in large type. Thanks K4RFK for the suggestion
+
 ## [0.9.12]
 
 ### Contest Updates

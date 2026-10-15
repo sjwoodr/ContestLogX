@@ -75,3 +75,9 @@ add_clx_test(test_bandmap test_bandmap.cpp
 
 # TODO: Add ContestEngine multiplier tests
 # Requires refactoring ContestEngine to be more testable (mock DxccDatabase)
+
+# Contest definition helpers (which contests show a Next S/N), run against the
+# shipped contests/*.json
+add_clx_test(test_contestdefutils test_contestdefutils.cpp
+    ${CMAKE_SOURCE_DIR}/src/utils/contestDefUtils.cpp)
+target_compile_definitions(test_contestdefutils PRIVATE CLX_SOURCE_DIR="${CMAKE_SOURCE_DIR}")

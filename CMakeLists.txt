@@ -40,6 +40,7 @@ set(SOURCES
     src/ui/bandMapWidget.cpp
     src/ui/scoreWidget.cpp
     src/ui/rateWidget.cpp
+    src/ui/nextSerialWidget.cpp
     src/ui/multiplierWidget.cpp
     src/ui/preferencesDialog.cpp
     src/stationClassDialog.cpp
@@ -76,6 +77,7 @@ set(SOURCES
     src/utils/bandPlan.cpp
     src/utils/callsignUtils.cpp
     src/utils/modeUtils.cpp
+    src/utils/contestDefUtils.cpp
     src/utils/ttsManager.cpp
     src/utils/piperManager.cpp
     src/database/dxccDatabase.cpp
@@ -123,6 +125,7 @@ set(HEADERS
     include/contestEngine.h
     include/scoreWidget.h
     include/rateWidget.h
+    include/nextSerialWidget.h
     include/multiplierWidget.h
     src/ui/freqModeDialog.h
     src/ui/cwWindow.h
@@ -157,6 +160,7 @@ set(HEADERS
      src/utils/bandPlan.h
      src/utils/callsignUtils.h
      src/utils/modeUtils.h
+     src/utils/contestDefUtils.h
      include/dxccDatabase.h
      include/eadxDatabase.h
      include/qrzcqApi.h

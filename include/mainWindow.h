@@ -39,6 +39,7 @@
 #include "ssbMemory.h"
 #include "memoryRole.h"
 #include "rateWidget.h"
+#include "nextSerialWidget.h"
 #include "wsjtxListener.h"
 #include "net/cloudStorageTypes.h"
 
@@ -153,6 +154,7 @@ private slots:
     void onToggleSsbMemoriesWidget(bool checked);
     void onToggleMultiplierWidget(bool checked);
     void onToggleRateWidget(bool checked);
+    void onToggleNextSerialWidget(bool checked);
     void onShowMultipliers();
     void onResetWidgetPositions();
     void onToggleFlrigDebug(bool checked);
@@ -232,6 +234,10 @@ private:
     void applyRestrictedModeFromUserPrompts();
     void promptForMissingUserPrompts();
     bool isFieldVisible(const QString& columnName) const;
+    // Refresh the next-serial display - " - Next S/N: N" on the entry dock
+    // title(s) and the Next S/N panel - from the QSO count; plain titles and
+    // "--" when the contest sends no serial number.
+    void updateNextSerialDisplay();
     void loadCWMemories();
     void loadSsbMemories();
     void updateMemoryTypeLabel();
@@ -345,6 +351,8 @@ private:
     class QDockWidget *m_multiplierDock;
     RateWidget *m_rateWidget;
     class QDockWidget *m_rateDock;
+    NextSerialWidget *m_nextSerialWidget = nullptr;
+    class QDockWidget *m_nextSerialDock = nullptr;
     class QSplitter *m_mainSplitter;
     class QSplitter *m_rightPanelSplitter;
 
@@ -368,6 +376,7 @@ private:
     QAction *m_ssbMemoriesWidgetAction;
     QAction *m_multiplierWidgetAction;
     QAction *m_rateWidgetAction;
+    QAction *m_nextSerialWidgetAction = nullptr;
     QAction *m_flrigDebugAction;
     QAction *m_contestEngineDebugAction;
     QAction *m_contestSelectDialogDebugAction;
