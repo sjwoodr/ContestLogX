@@ -13,6 +13,11 @@ sudo apt-get install -y \
     cmake build-essential libxml2-dev
 ```
 
+### Qt version
+On Linux, `make` builds against the same Qt the release packages ship (Qt 6.8.3), kept in `Qt6.8/` at the repo root (gitignored, ~1.8 GB). The first `make` downloads it with aqtinstall via [`uvx`](https://docs.astral.sh/uv/) if it's missing; `make qt` does just that step. Delete `Qt6.8/` to re-download it. The system Qt packages above are then only needed for the build tools (cmake, compiler) and as a fallback when running the raw CMake flow below.
+
+Switching an existing `build/` between Qt installs needs `make clean` first, because CMake caches the Qt it found.
+
 ### Build & run
 ```bash
 make              # configures + builds (drives cmake + ninja under the hood)

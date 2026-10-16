@@ -38,7 +38,8 @@ export CMAKE_PREFIX_PATH=$(brew --prefix qt6)  # if Qt6 not found automatically
 ## Build & Run
 
 ```bash
-make              # build
+make              # build (Linux: against Qt 6.8.3 in ./Qt6.8, auto-downloaded if missing)
+make qt           # just (re)install ./Qt6.8 - the Qt the release packages ship
 ./clx             # run
 ./clx --debug --log <logfile.clx>  # debug mode
 make test         # unit tests

@@ -14,6 +14,23 @@
 #   make reset        - Reset application settings
 #   make appimage     - Build portable AppImage via Docker (output: dist/)
 #   make macos        - Build macOS app bundle (requires macOS)
+#   make qt           - Install the Qt the release packages ship into Qt6.8/ if missing (aqtinstall via uvx)
+
+# Qt to build against: the Qt the release packages ship (Qt 6.8 LTS, see
+# .github/workflows/ci.yml), kept in Qt6.8/ under the project root (gitignored)
+# so local builds run what users run. `make` installs it there via aqtinstall
+# if it's missing (needs uvx). Linux only: CI already installs Qt with
+# install-qt-action (CI is set there), and macOS/Windows use their own Qt, so
+# in those cases CMake finds Qt as before.
+# Only read when build/ is first configured: after changing it, `make clean`
+# so CMake doesn't keep the cached Qt6_DIR.
+QT_VERSION ?= 6.8.3
+QT_ROOT ?= $(CURDIR)/Qt6.8
+QT_PREFIX ?= $(QT_ROOT)/$(QT_VERSION)/gcc_64
+ifeq ($(CI)$(shell uname -s),Linux)
+QT_DEP = $(QT_PREFIX)/lib/cmake/Qt6
+QT_CMAKE_ARGS = -DCMAKE_PREFIX_PATH=$(QT_PREFIX)
+endif
 
 # Number of parallel build jobs (default: number of CPU cores)
 JOBS ?= $(shell nproc)
@@ -44,9 +61,18 @@ $(ICON_DIR)/contestlogx.png: resources/contestlogx.png
 	-gtk-update-icon-cache -f -t $(HOME)/.local/share/icons/hicolor 2>/dev/null
 
 # Generate build system with CMake
-build/Makefile:
+build/Makefile: | $(QT_DEP)
 	mkdir -p build
-	cd build && cmake ..
+	cd build && cmake $(QT_CMAKE_ARGS) ..
+
+# Install the release Qt (same version and modules as CI) into Qt6.8/ if it
+# isn't there. Delete Qt6.8/ and run this (or just `make`) to re-download.
+qt: $(QT_PREFIX)/lib/cmake/Qt6
+
+$(QT_PREFIX)/lib/cmake/Qt6:
+	uvx --from aqtinstall==3.3.0 aqt install-qt linux desktop $(QT_VERSION) linux_gcc_64 \
+		-m qtmultimedia qtserialport qtnetworkauth -O $(QT_ROOT)
+	rm -f aqtinstall.log
 
 # Clean build artifacts
 clean:
@@ -170,4 +196,4 @@ appimage:
 macos:
 	@scripts/build-macos-bundle.sh
 
-.PHONY: all clean test test-logs test-logs-headless version reset appimage macos install-desktop
+.PHONY: all qt clean test test-logs test-logs-headless version reset appimage macos install-desktop
