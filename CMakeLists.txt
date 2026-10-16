@@ -234,8 +234,15 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 # plugin, QCoreApplication::checkPermission(QMicrophonePermission) always
 # returns Denied and the CW Decoder refuses to start even when System
 # Settings allows ContestLogX.
+#
+# The plugin's request half (the code that shows the macOS consent prompt) is
+# linked separately, only when the target carries the property Qt's Info.plist
+# scan would set; without it requestPermission() answers Denied without ever
+# prompting. Set that property by hand too.
 if(APPLE AND TARGET Qt6::QDarwinMicrophonePermissionPlugin)
     qt_import_plugins(${PROJECT_NAME} INCLUDE Qt6::QDarwinMicrophonePermissionPlugin)
+    set_target_properties(${PROJECT_NAME} PROPERTIES
+        _qt_has_QDarwinMicrophonePermissionPlugin_usage_description TRUE)
 endif()
 
 # Installation

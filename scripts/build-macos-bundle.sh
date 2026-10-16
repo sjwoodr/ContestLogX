@@ -23,10 +23,14 @@ cmake --build . -j"${JOBS}"
 cd ..
 
 # The CW Decoder's permission check needs Qt's microphone permission plugin
-# linked into the binary (see qt_import_plugins in CMakeLists.txt). Without it
-# Qt reports the microphone as denied regardless of System Settings.
-if ! grep -aq QDarwinMicrophonePermission "build/${APP_NAME}"; then
-    echo "ERROR: Qt microphone permission plugin not linked into build/${APP_NAME}" >&2
+# linked into the binary, check AND request halves (see qt_import_plugins in
+# CMakeLists.txt). Without the plugin Qt reports the microphone as denied
+# regardless of System Settings; without the request half it never shows the
+# macOS consent prompt. requestAccessForMediaType only appears in the request
+# half.
+if ! grep -aq QDarwinMicrophonePermission "build/${APP_NAME}" ||
+   ! grep -aq requestAccessForMediaType "build/${APP_NAME}"; then
+    echo "ERROR: Qt microphone permission plugin (check + request) not fully linked into build/${APP_NAME}" >&2
     exit 1
 fi
 
