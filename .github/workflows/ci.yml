@@ -2,7 +2,9 @@ name: Build and Test ContestLogX
 
 on:
   push:
-    branches: [ "main" ]
+    # sw/** pushes build all three packages (no release) so a platform or
+    # toolchain break surfaces before the merge to main.
+    branches: [ "main", "sw/**" ]
   pull_request:
     branches: [ "main" ]
   workflow_dispatch:
@@ -63,7 +65,7 @@ jobs:
 
   build-appimage:
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     needs: build-and-test
 
     steps:
@@ -108,7 +110,7 @@ jobs:
     # its successor's SDK lacks the AGL framework, which is why CI moved
     # from Qt 6.5 (links AGL) to Qt 6.8 LTS.
     runs-on: macos-15
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     needs: build-and-test
 
     steps:
@@ -159,7 +161,7 @@ jobs:
     # Qt 6.8 only uses it below _MSC_VER 1938. The win64_msvc2022_64 Qt
     # binaries are ABI-compatible with the newer MSVC (same v14x ABI).
     runs-on: windows-2025
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     needs: build-and-test
 
     steps:
