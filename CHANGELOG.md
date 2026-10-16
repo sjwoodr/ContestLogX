@@ -6,6 +6,7 @@ All notable changes to ContestLogX are documented in this file.
 
 ### Other Changes and Bugfixes
 - ContestLogX is now built with Qt 6.8 LTS on Linux, macOS and Windows (the Linux AppImage was on Qt 6.2). The macOS app now requires macOS 12 Monterey or later (previously macOS 11 Big Sur). On Linux the CW Decoder now captures audio through PulseAudio (or PipeWire) directly instead of GStreamer
+- macOS: the CW Decoder no longer refuses to start with "microphone access denied" when ContestLogX is allowed in System Settings > Privacy & Security > Microphone
 
 ## [0.9.13]
 

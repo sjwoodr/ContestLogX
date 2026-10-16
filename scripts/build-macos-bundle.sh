@@ -22,6 +22,14 @@ cmake -DCMAKE_BUILD_TYPE=Release \
 cmake --build . -j"${JOBS}"
 cd ..
 
+# The CW Decoder's permission check needs Qt's microphone permission plugin
+# linked into the binary (see qt_import_plugins in CMakeLists.txt). Without it
+# Qt reports the microphone as denied regardless of System Settings.
+if ! grep -aq QDarwinMicrophonePermission "build/${APP_NAME}"; then
+    echo "ERROR: Qt microphone permission plugin not linked into build/${APP_NAME}" >&2
+    exit 1
+fi
+
 # Sanity-check that the binary actually contains both architectures. lipo
 # prints "Architectures in the fat file: ... are: x86_64 arm64" on success;
 # CI logs make this easy to spot.

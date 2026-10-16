@@ -227,6 +227,17 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     Qt6::SerialPort
 )
 
+# macOS: link Qt's microphone permission backend. Qt only pulls it in
+# automatically for qt_add_executable targets whose MACOSX_BUNDLE_INFO_PLIST
+# declares NSMicrophoneUsageDescription; ours is a plain add_executable and the
+# Info.plist is written later by scripts/build-macos-bundle.sh. Without the
+# plugin, QCoreApplication::checkPermission(QMicrophonePermission) always
+# returns Denied and the CW Decoder refuses to start even when System
+# Settings allows ContestLogX.
+if(APPLE AND TARGET Qt6::QDarwinMicrophonePermissionPlugin)
+    qt_import_plugins(${PROJECT_NAME} INCLUDE Qt6::QDarwinMicrophonePermissionPlugin)
+endif()
+
 # Installation
 install(TARGETS ${PROJECT_NAME}
     RUNTIME DESTINATION bin
