@@ -4,6 +4,9 @@ All notable changes to ContestLogX are documented in this file.
 
 ## [0.9.14]
 
+### Other Changes and Bugfixes
+- ContestLogX is now built with Qt 6.8 LTS on macOS and Windows. The macOS app now requires macOS 12 Monterey or later (previously macOS 11 Big Sur)
+
 ## [0.9.13]
 
 ### Contest Updates

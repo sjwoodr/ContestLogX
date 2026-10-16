@@ -1,6 +1,6 @@
 # Building ContestLogX
 
-ContestLogX builds on Linux, macOS, and Windows. CI builds against Qt 6.5.* via [aqtinstall](https://github.com/miurahr/aqtinstall) (the same tool [`jurplel/install-qt-action`](https://github.com/jurplel/install-qt-action) wraps in `.github/workflows/ci.yml`); local builds work against any Qt 6.4+ install.
+ContestLogX builds on Linux, macOS, and Windows. CI builds against Qt 6.8.* (LTS) via [aqtinstall](https://github.com/miurahr/aqtinstall) (the same tool [`jurplel/install-qt-action`](https://github.com/jurplel/install-qt-action) wraps in `.github/workflows/ci.yml`); local builds work against any Qt 6.4+ install.
 
 ## Linux (Ubuntu / Debian)
 
@@ -60,15 +60,15 @@ The bundle is universal (x86_64 + arm64), ad-hoc signed, and includes `Info.plis
 
 1. **Visual Studio 2022 (Community is fine)** - install from https://visualstudio.microsoft.com/downloads/. In the installer pick the workload **"Desktop development with C++"**. That pulls in the MSVC compiler, Windows SDK, CMake, and the developer command prompts. The smaller **Build Tools for Visual Studio** package also works if you don't want the IDE.
 
-2. **Qt 6.5+ for Windows / MSVC 2019 64-bit**. Two options:
+2. **Qt 6.8 for Windows / MSVC 2022 64-bit**. Two options:
 
    - **Qt Online Installer** (GUI, requires a free Qt account):
-     https://www.qt.io/download-qt-installer → Custom installation → under "Qt 6.5.x" check **MSVC 2019 64-bit**, **Qt Multimedia**, and **Qt Network Authorization**. Default install path `C:\Qt\` is fine.
+     https://www.qt.io/download-qt-installer → Custom installation → under "Qt 6.8.x" check **MSVC 2022 64-bit**, **Qt Multimedia**, and **Qt Network Authorization**. Default install path `C:\Qt\` is fine.
 
    - **aqtinstall** (CLI, no Qt account, matches CI exactly):
      ```powershell
      pip install aqtinstall
-     python -m aqt install-qt windows desktop 6.5.3 win64_msvc2019_64 -m qtmultimedia qtnetworkauth -O C:\Qt
+     python -m aqt install-qt windows desktop 6.8.3 win64_msvc2022_64 -m qtmultimedia qtnetworkauth qtserialport -O C:\Qt
      ```
 
 3. **Git** - https://git-scm.com/download/win
@@ -85,15 +85,15 @@ Then in that cmd prompt:
 where cl
 
 :: Add Qt's bin to PATH so windeployqt + the Qt runtime DLLs resolve.
-:: Replace the path if you installed Qt somewhere other than C:\Qt\6.5.3\.
-set PATH=C:\Qt\6.5.3\msvc2019_64\bin;%PATH%
+:: Replace the path if you installed Qt somewhere other than C:\Qt\6.8.3\.
+set PATH=C:\Qt\6.8.3\msvc2022_64\bin;%PATH%
 
 :: Tell CMake where to find Qt's CMake config files. Without this the
 :: configure step fails with "Could not find a package configuration file
 :: provided by Qt6" / "Qt6Config.cmake or qt6-config.cmake".
 :: Path should be the Qt install root (containing bin\, lib\, include\),
 :: NOT the bin\ subdir.
-set CMAKE_PREFIX_PATH=C:\Qt\6.5.3\msvc2019_64
+set CMAKE_PREFIX_PATH=C:\Qt\6.8.3\msvc2022_64
 
 cd path\to\ContestLogX
 git pull

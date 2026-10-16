@@ -18,10 +18,10 @@ jobs:
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
-          version: '6.5.*'
+          version: '6.8.*'
           host: 'linux'
           target: 'desktop'
-          arch: 'gcc_64'
+          arch: 'linux_gcc_64'
           modules: 'qtnetworkauth qtmultimedia qtserialport'
           cache: true
 
@@ -103,11 +103,11 @@ jobs:
           retention-days: 1  # Intermediate - attached to Release by create-release job
 
   build-macos:
-    # Pinned to macos-14: macos-latest moved to macOS 15, whose SDK removed
-    # the AGL framework that Qt 6.5's Qt6::Gui CMake config still links
-    # against (fixed upstream only in Qt 6.6+), breaking the link step with
-    # "ld: framework 'AGL' not found". macOS 14 still ships the AGL stub.
-    runs-on: macos-14
+    # Pinned to macos-15 (not macos-latest) so a runner-image roll can't
+    # change the SDK under us mid-release. macos-14 is retired Nov 2026;
+    # its successor's SDK lacks the AGL framework, which is why CI moved
+    # from Qt 6.5 (links AGL) to Qt 6.8 LTS.
+    runs-on: macos-15
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: build-and-test
 
@@ -125,7 +125,7 @@ jobs:
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
-          version: '6.5.*'
+          version: '6.8.*'
           host: 'mac'
           target: 'desktop'
           modules: 'qtnetworkauth qtmultimedia qtserialport'
@@ -153,11 +153,12 @@ jobs:
           retention-days: 1  # Intermediate - attached to Release by create-release job
 
   build-windows:
-    # Pin to windows-2022 (VS 2022 / MSVC v143). windows-latest rolled to
-    # VS 2026 / MSVC 19.51, whose STL removed stdext::checked_array_iterator,
-    # which Qt 6.5.3's qvarlengtharray.h still references -> Qt headers fail
-    # to compile. This matches the win64_msvc2019_64 Qt build we install.
-    runs-on: windows-2022
+    # Pinned to windows-2025 (VS 2026 / MSVC 19.5x) rather than
+    # windows-latest. Qt 6.5 couldn't build here (its headers used
+    # stdext::checked_array_iterator, removed from the VS 2026 STL);
+    # Qt 6.8 only uses it below _MSC_VER 1938. The win64_msvc2022_64 Qt
+    # binaries are ABI-compatible with the newer MSVC (same v14x ABI).
+    runs-on: windows-2025
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: build-and-test
 
@@ -176,10 +177,10 @@ jobs:
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
-          version: '6.5.*'
+          version: '6.8.*'
           host: 'windows'
           target: 'desktop'
-          arch: 'win64_msvc2019_64'
+          arch: 'win64_msvc2022_64'
           modules: 'qtnetworkauth qtmultimedia qtserialport'
           cache: true
 
