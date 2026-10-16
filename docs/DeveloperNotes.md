@@ -77,7 +77,7 @@ Debug information is written to:
 - `resources/dashboard.html` - single-file static dashboard served at `/` (and `/dashboard.html`). Vanilla HTML/CSS/JS - no framework. Polls the 7 `/api/*` endpoints every 5 s in parallel via `Promise.all`. Responsive CSS grid: one column on phones, three on desktop, Score hero + Recent QSOs table span full width. Dark theme matching the app.
 - `src/ui/preferencesDialog.cpp` - "Dashboard" tab with enable toggle, port, bind mode (LAN / Localhost / Any), read-only token field with Rotate button, and a read-only "Phone URL" line with Copy-to-Clipboard. Changes apply on OK; MainWindow stops+starts the server.
 
-**Why not `Qt6::HttpServer`**: the module isn't in Qt 6.2 (the Ubuntu 22.04 / AppImage build base). Keeping the portability floor lets the AppImage run on older distros; rolling a small HTTP server on `QTcpServer` is ~300 LOC of straightforward wire-format handling.
+**Why not `Qt6::HttpServer`**: the module wasn't in Qt 6.2, the AppImage's Qt when this was written (it now ships Qt 6.8), and distro Qt packages still often omit it; rolling a small HTTP server on `QTcpServer` is ~300 LOC of straightforward wire-format handling.
 
 **Auth**: single bearer token, auto-generated (UUID-derived) on first enable. Accepted either as `Authorization: Bearer <token>` or `?token=<token>` query param - query form is what makes the URL bookmarkable on a phone home screen. No rate limiting in V1 (LAN-only scope makes it moot).
 

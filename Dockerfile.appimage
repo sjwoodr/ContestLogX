@@ -2,32 +2,43 @@ FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Build tools and Qt6 dev packages
+# Ubuntu 22.04 stays the base so the AppImage keeps its glibc 2.35 floor.
+# Qt itself comes from aqtinstall (Qt 6.8 LTS, same as the macOS/Windows CI
+# builds) instead of Ubuntu's Qt 6.2 packages. The runtime libs below are what
+# Qt's prebuilt linux_gcc_64 binaries and the plugins linuxdeploy-plugin-qt
+# deploys (xcb platform, gtk3 theme, multimedia) link against, so linuxdeploy
+# can resolve and bundle them. libpulse0 is the CW Decoder's audio path: Qt 6.8
+# Multimedia talks to PulseAudio (or PipeWire's pulse server) directly, so the
+# GStreamer plugin stack the Qt 6.2 build needed is gone.
 RUN apt-get update && apt-get install -y \
-    cmake g++ make \
-    qt6-base-dev libqt6serialport6-dev qt6-base-dev-tools \
-    qt6-multimedia-dev libqt6multimedia6 \
-    qt6-gtk-platformtheme \
-    libgl1-mesa-dev \
+    cmake g++ make python3-pip \
+    libgl1-mesa-dev libegl1 libfontconfig1 libfreetype6 libdbus-1-3 \
+    libxkbcommon0 libxkbcommon-x11-0 \
+    libxcb-cursor0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 \
+    libxcb-randr0 libxcb-render-util0 libxcb-shape0 libxcb-xinerama0 \
+    libxcb-xkb1 libxcb-sync1 libxcb-xfixes0 libxcb-shm0 libxcb-util1 \
+    libgtk-3-0 libpulse0 \
     libfuse2 file wget \
-    # Qt6 Multimedia on Ubuntu 22.04 / Qt 6.2 uses a GStreamer-based
-    # backend. The full plugin stack is copied into the AppImage so the
-    # bundle is self-contained and doesn't depend on the host having a
-    # compatible glib version. Needs:
-    #   - libgstreamer1.0-0 / libgstreamer-plugins-base1.0-0: runtime libs
-    #   - gstreamer1.0-plugins-base: coreelements, audioconvert, appsink,
-    #     audioresample - the pipeline primitives Qt Multimedia composes
-    #   - gstreamer1.0-plugins-good: pulseaudio/alsa sources, etc.
-    #   - gstreamer1.0-alsa / gstreamer1.0-pulseaudio: audio I/O backends
-    libgstreamer1.0-0 libgstreamer-plugins-base1.0-0 \
-    gstreamer1.0-plugins-base gstreamer1.0-plugins-good \
-    gstreamer1.0-alsa gstreamer1.0-pulseaudio \
     && rm -rf /var/lib/apt/lists/*
 
+# Qt 6.8 LTS via aqtinstall, matching the install-qt-action jobs in ci.yml.
+ARG QT_VERSION=6.8.3
+RUN pip3 install --no-cache-dir aqtinstall==3.3.0 && \
+    aqt install-qt linux desktop ${QT_VERSION} linux_gcc_64 \
+        -m qtmultimedia qtserialport qtnetworkauth -O /opt/Qt && \
+    # Drop the GStreamer media backend: we don't ship GStreamer, and
+    # linuxdeploy fails on a plugin whose deps it can't resolve. The FFmpeg
+    # backend (Qt's default, same as macOS/Windows) stays. The CW Decoder's
+    # QAudioSource capture doesn't strictly need it, but without any backend
+    # Qt logs a "No QtMultimedia backends found" warning at startup.
+    rm -f /opt/Qt/${QT_VERSION}/gcc_64/plugins/multimedia/libgstreamermediaplugin.so
+ENV QTDIR=/opt/Qt/${QT_VERSION}/gcc_64
+ENV CMAKE_PREFIX_PATH=${QTDIR}
+ENV PATH=${QTDIR}/bin:${PATH}
+
 # Download linuxdeploy, Qt plugin, appimagetool, and the modern type2 runtime.
-# We need appimagetool separately because after linuxdeploy bundles deps we
-# strip system libs (glib/gio/gobject) and then re-package - re-running
-# linuxdeploy would re-scan deps and bring those libs back.
+# We package with appimagetool separately (not linuxdeploy --output appimage)
+# so we can use the type2 runtime below.
 #
 # The runtime from AppImage/type2-runtime supports both fuse2 and fuse3 hosts;
 # the runtime bundled inside AppImage/AppImageKit's appimagetool is fuse2-only,

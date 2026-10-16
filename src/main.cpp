@@ -174,7 +174,7 @@ int main(int argc, char *argv[])
     // Don't set organization name to avoid double "ContestLogX" in AppDataLocation path
     // app.setOrganizationName("ContestLogX");
     app.setOrganizationDomain("contestlogx.com");
-    app.setDesktopFileName("ContestLogX.desktop");
+    app.setDesktopFileName("ContestLogX");
     app.setWindowIcon(QIcon(":/contestlogx.png"));
 
     // Parse command-line arguments FIRST to check for --debug flag

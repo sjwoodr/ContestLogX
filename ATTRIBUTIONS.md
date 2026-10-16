@@ -6,7 +6,7 @@ This file lists the third-party libraries distributed with ContestLogX and their
 
 ## Qt Framework
 
-**Modules used:** Qt6::Core, Qt6::Widgets, Qt6::Network, Qt6::Xml
+**Modules used:** Qt6::Core, Qt6::Widgets, Qt6::Network, Qt6::Xml, Qt6::Multimedia, Qt6::SerialPort
 
 **Copyright:** The Qt Company Ltd. and individual contributors
 
@@ -20,6 +20,21 @@ libraries (`.so` / `.dylib` / `.dll`) bundled in this distribution are unmodifie
 - Source code:  https://code.qt.io / https://www.qt.io/download
 
 Qt is a trademark of The Qt Company Ltd.
+
+---
+
+## FFmpeg
+
+**Copyright:** The FFmpeg developers
+
+**License:** GNU Lesser General Public License v2.1 or later (LGPL v2.1+)
+
+The FFmpeg shared libraries (libavcodec, libavformat, libavutil, libswresample,
+libswscale) are the LGPL build that ships with Qt Multimedia, bundled unmodified
+and dynamically linked.
+
+- License text: https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
+- Source code:  https://ffmpeg.org/download.html
 
 ---
 
