@@ -126,17 +126,20 @@ Pre-built packages are available on the [Releases](https://github.com/sjwoodr/Co
 ## Building from Source
 
 ### Requirements
-- C++17 compiler (GCC or Clang)
+- C++17 compiler (GCC, Clang, or MSVC)
 - CMake 3.16+
-- Qt6 (Core, Widgets, Network, Xml)
+- Qt 6.8 (Core, Widgets, Network, Xml, Multimedia, SerialPort) - the release packages ship Qt 6.8.3
 - Python 3 (for test scripts)
 
 ### Linux (Ubuntu/Debian)
 ```bash
-sudo apt install cmake build-essential qt6-base-dev libqt6xml6-dev
+sudo apt install cmake build-essential libgl1-mesa-dev
+curl -LsSf https://astral.sh/uv/install.sh | sh   # provides uvx, used to fetch Qt
 
 make
 ```
+
+The first `make` downloads Qt 6.8.3 into `Qt6.8/` at the repo root (gitignored, ~1.8 GB) so you build against the same Qt the AppImage ships. `make qt` does just that step; delete `Qt6.8/` to re-download it. If you previously built against another Qt, run `make clean` first so CMake drops the cached Qt path.
 
 ### macOS
 ```bash
@@ -145,6 +148,11 @@ export CMAKE_PREFIX_PATH=$(brew --prefix qt6)  # if Qt6 not found automatically
 
 make
 ```
+
+Homebrew installs the newest Qt 6, not 6.8. That's fine for development; to match the release build exactly, install Qt 6.8.3 with the Qt installer or aqtinstall and point `CMAKE_PREFIX_PATH` at it.
+
+### Windows
+See [docs/BUILD.md](docs/BUILD.md) (Qt 6.8.3 + MSVC 2022).
 
 ### Running
 ```bash

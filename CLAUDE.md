@@ -20,13 +20,14 @@ ContestLogX ships on Linux (AppImage), macOS (app bundle), and Windows (Inno Set
 ## Dependencies
 
 - **CMake** >= 3.16
-- **Qt6** (Core, Widgets, Network, Xml)
+- **Qt 6.8** (Core, Widgets, Network, Xml, Multimedia, SerialPort) - release packages ship Qt 6.8.3
 - **C++17** compiler (GCC, Clang, or MSVC)
 - **Python 3** (for test scripts)
 
 ### Linux (Ubuntu/Debian)
 ```bash
-sudo apt install cmake qt6-base-dev libqt6serialport6-dev libqt6xml6-dev
+sudo apt install cmake build-essential libgl1-mesa-dev
+# plus uv (for uvx): `make` downloads Qt 6.8.3 into ./Qt6.8 via aqtinstall if missing
 ```
 
 ### macOS
