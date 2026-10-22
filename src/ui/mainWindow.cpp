@@ -3688,30 +3688,8 @@ void MainWindow::onCallChanged(const QString& text)
                 QString("Pre-filled exchange from call history for %1").arg(callsign));
             // Check for dupe using active radio's freq/mode
             bool isRight = m_so2rEnabled && m_activeRadio == ActiveRadio::Right;
-            double activeFreq = isRight ? m_lastFrequencyR : m_lastFrequency;
-            const QString& activeMode = isRight ? m_lastModeR : m_lastMode;
-            QsoRecord tempQso;
-            tempQso.setCall(callsign);
-            tempQso.setFrequency(QString::number(activeFreq, 'f', 1));
-            tempQso.setMode(activeMode);
-            // Set band from current frequency - use same method as logged QSO
-            QString band = m_contestEngine->getBandFromFrequency(activeFreq);
-            if (!band.isEmpty()) {
-                tempQso.setBandName(band);
-            }
-            QList<QsoRecord> allQsos = m_qsoModel->getQsos();
-            
-            if (m_contestEngine && m_contestEngine->isDupe(tempQso, allQsos)) {
-                QString dupeDetails = getDupeQsoDetails(callsign, allQsos);
-                QString message = "<span style='color: red;'>⚠</span> DUPE: " + callsign;
-                if (!dupeDetails.isEmpty()) {
-                    message += " (" + dupeDetails + ")";
-                }
-                m_statusLabel->setText(message);
-                flashDupeWarning();
-            } else {
-                m_statusLabel->setText("Ready");
-            }
+            checkEntryDupe(callsign, isRight ? m_lastFrequencyR : m_lastFrequency,
+                           isRight ? m_lastModeR : m_lastMode, true);
             return;
         }
     }
@@ -3757,33 +3735,9 @@ void MainWindow::onCallChanged(const QString& text)
     }
     
     // Check for dupe regardless of pre-fill success - use active radio's freq/mode
-    {
     bool isRight = m_so2rEnabled && m_activeRadio == ActiveRadio::Right;
-    double activeFreq = isRight ? m_lastFrequencyR : m_lastFrequency;
-    const QString& activeMode = isRight ? m_lastModeR : m_lastMode;
-    QsoRecord tempQso;
-    tempQso.setCall(callsign);
-    tempQso.setFrequency(QString::number(activeFreq, 'f', 1));
-    tempQso.setMode(activeMode);
-    // Set band from current frequency
-    QString band = m_contestEngine->getBandFromFrequency(activeFreq);
-    if (!band.isEmpty()) {
-        tempQso.setBandName(band);
-    }
-    
-    
-    if (m_contestEngine && m_contestEngine->isDupe(tempQso, allQsos)) {
-        QString dupeDetails = getDupeQsoDetails(callsign, allQsos);
-        QString message = "<span style='color: red;'>⚠</span> DUPE: " + callsign;
-        if (!dupeDetails.isEmpty()) {
-            message += " (" + dupeDetails + ")";
-        }
-        m_statusLabel->setText(message);
-        flashDupeWarning();
-    } else {
-        m_statusLabel->setText("Ready");
-    }
-    } // dupe check scope
+    checkEntryDupe(callsign, isRight ? m_lastFrequencyR : m_lastFrequency,
+                   isRight ? m_lastModeR : m_lastMode, true);
 }
 
 void MainWindow::onModeChanged(int index)
@@ -3967,64 +3921,7 @@ void MainWindow::onLogQso()
             QString("Set GRIDs exchange field to: '%1'").arg(ourGrid));
     }
     
-    // Get exchange sent from contest class and station settings
-    QString stationQth = m_sessionStationInfo->state();
-
-    // Try to get split NAME and EXCH from contest engine
-    QString sentName = m_contestEngine->getSentExchangeName();
-    QString sentExch = m_contestEngine->getSentExchangeId();
-
-    // If name is not set from contest engine, fall back to session station info
-    if (sentName.isEmpty()) {
-        sentName = m_sessionStationInfo->operatorName();
-    }
-
-    // If exchange is not set from contest engine, fall back appropriately
-    if (sentExch.isEmpty()) {
-        if (m_contestEngine->getStationClassExchangeType() == "serial")
-            sentExch = serialSent;
-        else
-            sentExch = m_sessionStationInfo->state();
-    }
-    
-    // If we have split fields, set them individually
-    if (!sentName.isEmpty() || !sentExch.isEmpty()) {
-        // Store the split exchange in the QSO record using NAMEs and EXCHs fields
-        qso.setExchangeField("NAMEs", sentName);
-        qso.setExchangeField("EXCHs", sentExch);
-        
-        DebugLogger::instance().log("MainWindow", 
-            QString("Exchange sent - NAMEs: '%1', EXCHs: '%2'")
-            .arg(sentName).arg(sentExch));
-    } else {
-        // Fallback to the old method
-        QString exchSent = m_contestEngine->getDefaultSentExchange(stationQth, nextSerial);
-        qso.setExchangeSent(exchSent);
-        DebugLogger::instance().log("MainWindow", 
-            QString("Exchange sent (legacy): '%1'").arg(exchSent));
-    }
-    
-    // Apply exchangeFieldMapping from userPrompts
-    if (m_contestDefinition.contains("userPrompts")) {
-        QJsonArray prompts = m_contestDefinition["userPrompts"].toArray();
-        for (const QJsonValue& promptVal : prompts) {
-            QJsonObject promptObj = promptVal.toObject();
-            if (promptObj.contains("exchangeFieldMapping")) {
-                QJsonObject mapping = promptObj["exchangeFieldMapping"].toObject();
-                for (auto it = mapping.begin(); it != mapping.end(); ++it) {
-                    QString promptId = it.key();
-                    QString exchangeFieldName = it.value().toString();
-                    QString promptValue = m_contestEngine->getUserPromptValue(promptId);
-                    if (!promptValue.isEmpty()) {
-                        qso.setExchangeField(exchangeFieldName, promptValue);
-                        DebugLogger::instance().log("MainWindow", 
-                            QString("Exchange sent - %1: '%2' (from userPrompt %3)")
-                            .arg(exchangeFieldName, promptValue, promptId));
-                    }
-                }
-            }
-        }
-    }
+    applySentExchange(qso, serialSent, nextSerial, true);
     
     // Set exchange fields from dynamic inputs (received exchange)
     if (!exchFields.isEmpty()) {
@@ -6291,30 +6188,7 @@ void MainWindow::onDxSpotClicked(const QString& callsign, double frequency, cons
     }
 
     // Check for dupe with the clicked spot's frequency and mode
-    QsoRecord tempQso;
-    tempQso.setCall(callsign.toUpper());
-    tempQso.setFrequency(QString::number(frequency, 'f', 1));
-    tempQso.setMode(mode);
-    
-    // Set band from the clicked spot's frequency
-    QString band = m_contestEngine->getBandFromFrequency(frequency);
-    if (!band.isEmpty()) {
-        tempQso.setBandName(band);
-    }
-    
-     QList<QsoRecord> allQsos = m_qsoModel->getQsos();
-    if (m_contestEngine && m_contestEngine->isDupe(tempQso, allQsos)) {
-        QString dupeDetails = getDupeQsoDetails(callsign.toUpper(), allQsos);
-        QString message = "<span style='color: red;'>⚠</span> DUPE: " + callsign.toUpper();
-        if (!dupeDetails.isEmpty()) {
-            message += " (" + dupeDetails + ")";
-        }
-        m_statusLabel->setText(message);
-        DebugLogger::instance().log("MainWindow", QString("DUPE DETECTED for %1 from DX spot").arg(callsign));
-        flashDupeWarning();
-    } else {
-        m_statusLabel->setText("Ready");
-    }
+    checkEntryDupe(callsign.toUpper(), frequency, mode, true);
     
     activeCallEdit()->setFocus();
 
@@ -6336,6 +6210,126 @@ void MainWindow::onDxSpotClicked(const QString& callsign, double frequency, cons
         rig->setFrequency(static_cast<long>(frequency * 1000)); // Convert kHz to Hz
         rig->setMode(mode);
     }
+}
+
+// Fill in what we send (NAMEs/EXCHs, legacy exchangeSent, userPrompt
+// exchangeFieldMapping) exactly as a logged QSO gets it. Shared by onLogQso and
+// the pre-log dupe probe, so exchange-scoped dupe rules (QSO parties: our own
+// county as EXCHs) compare the same key before and after logging.
+void MainWindow::applySentExchange(QsoRecord& qso, const QString& serialSent, int nextSerial, bool logToDebug)
+{
+    // Get exchange sent from contest class and station settings
+    QString stationQth = m_sessionStationInfo->state();
+
+    // Try to get split NAME and EXCH from contest engine
+    QString sentName = m_contestEngine->getSentExchangeName();
+    QString sentExch = m_contestEngine->getSentExchangeId();
+
+    // If name is not set from contest engine, fall back to session station info
+    if (sentName.isEmpty()) {
+        sentName = m_sessionStationInfo->operatorName();
+    }
+
+    // If exchange is not set from contest engine, fall back appropriately
+    if (sentExch.isEmpty()) {
+        if (m_contestEngine->getStationClassExchangeType() == "serial")
+            sentExch = serialSent;
+        else
+            sentExch = m_sessionStationInfo->state();
+    }
+    
+    // If we have split fields, set them individually
+    if (!sentName.isEmpty() || !sentExch.isEmpty()) {
+        // Store the split exchange in the QSO record using NAMEs and EXCHs fields
+        qso.setExchangeField("NAMEs", sentName);
+        qso.setExchangeField("EXCHs", sentExch);
+        
+        if (logToDebug) DebugLogger::instance().log("MainWindow", 
+            QString("Exchange sent - NAMEs: '%1', EXCHs: '%2'")
+            .arg(sentName).arg(sentExch));
+    } else {
+        // Fallback to the old method
+        QString exchSent = m_contestEngine->getDefaultSentExchange(stationQth, nextSerial);
+        qso.setExchangeSent(exchSent);
+        if (logToDebug) DebugLogger::instance().log("MainWindow", 
+            QString("Exchange sent (legacy): '%1'").arg(exchSent));
+    }
+    
+    // Apply exchangeFieldMapping from userPrompts
+    if (m_contestDefinition.contains("userPrompts")) {
+        QJsonArray prompts = m_contestDefinition["userPrompts"].toArray();
+        for (const QJsonValue& promptVal : prompts) {
+            QJsonObject promptObj = promptVal.toObject();
+            if (promptObj.contains("exchangeFieldMapping")) {
+                QJsonObject mapping = promptObj["exchangeFieldMapping"].toObject();
+                for (auto it = mapping.begin(); it != mapping.end(); ++it) {
+                    QString promptId = it.key();
+                    QString exchangeFieldName = it.value().toString();
+                    QString promptValue = m_contestEngine->getUserPromptValue(promptId);
+                    if (!promptValue.isEmpty()) {
+                        qso.setExchangeField(exchangeFieldName, promptValue);
+                        if (logToDebug) DebugLogger::instance().log("MainWindow", 
+                            QString("Exchange sent - %1: '%2' (from userPrompt %3)")
+                            .arg(exchangeFieldName, promptValue, promptId));
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Pre-log dupe warning for the call being entered: build the QSO as it would
+// be logged (band from freq, mode, our sent exchange, the received exchange
+// typed so far) and flash the entry panel if it is a dupe. Exchange-scoped
+// rules (perBandModeAndExchange) only match once EXCHr holds the county, so
+// the EXCHr fields re-run this as they change. With clearIfNotDupe false, a
+// non-dupe result only clears a DUPE status line, not other status text.
+void MainWindow::checkEntryDupe(const QString& callsign, double freq, const QString& mode, bool clearIfNotDupe)
+{
+    if (!m_contestEngine || callsign.isEmpty()) return;
+
+    QsoRecord probe;
+    probe.setCall(callsign);
+    probe.setFrequency(QString::number(freq, 'f', 1));
+    probe.setMode(mode);
+    QString band = m_contestEngine->getBandFromFrequency(freq);
+    if (!band.isEmpty()) {
+        probe.setBandName(band);
+    }
+    applySentExchange(probe, QString::number(m_qsoModel->count() + 1), m_qsoModel->count() + 1, false);
+    auto& exchFields = activeExchangeFields();
+    if (QLineEdit* exchr = exchFields.value("EXCHr")) {
+        const QString value = exchr->text().trimmed().toUpper();
+        if (!value.isEmpty()) probe.setExchangeField("EXCHr", value);
+    }
+
+    QList<QsoRecord> allQsos = m_qsoModel->getQsos();
+    if (m_contestEngine->isDupe(probe, allQsos)) {
+        QString dupeDetails = getDupeQsoDetails(callsign, allQsos);
+        QString message = "<span style='color: red;'>⚠</span> DUPE: " + callsign;
+        if (!dupeDetails.isEmpty()) {
+            message += " (" + dupeDetails + ")";
+        }
+        m_statusLabel->setText(message);
+        flashDupeWarning();
+    } else if (clearIfNotDupe || m_statusLabel->text().contains("DUPE: ")) {
+        m_statusLabel->setText("Ready");
+    }
+}
+
+// EXCHr edited: for exchange-scoped dupe rules (QSO parties, dupe per county)
+// the county decides whether the entered call is a dupe, so re-check. Only the
+// active radio's panel counts; other contests' dupe keys ignore EXCHr.
+void MainWindow::recheckEntryDupeForExchange(bool isRadioR)
+{
+    if (!m_contestEngine || m_contestEngine->getDupeScope() != "per_band_mode_exch") return;
+    const bool rightActive = m_so2rEnabled && m_activeRadio == ActiveRadio::Right;
+    if (isRadioR != rightActive) return;
+    QLineEdit* callEdit = activeCallEdit();
+    if (!callEdit) return;
+    checkEntryDupe(callEdit->text().trimmed().toUpper(),
+                   rightActive ? m_lastFrequencyR : m_lastFrequency,
+                   rightActive ? m_lastModeR : m_lastMode, false);
 }
 
 void MainWindow::flashDupeWarning()
@@ -7394,6 +7388,9 @@ void MainWindow::updateQsoEntryFields()
         // Install event filter for Enter key handling
         edit->installEventFilter(this);
         
+        if (fieldName == "EXCHr")
+            connect(edit, &QLineEdit::textChanged, this, [this]() { recheckEntryDupeForExchange(false); });
+
         // Store field for later access
         m_exchangeFields[fieldName] = edit;
         m_entryFieldOrder.append(edit);  // Track order for Space-to-advance
@@ -7518,6 +7515,8 @@ void MainWindow::updateQsoEntryFields()
                 }
             });
             edit->installEventFilter(this);
+            if (fieldName == "EXCHr")
+                connect(edit, &QLineEdit::textChanged, this, [this]() { recheckEntryDupeForExchange(true); });
 
             m_entryWidgetsR.exchangeFields[fieldName] = edit;
             m_entryWidgetsR.entryFieldOrder.append(edit);

@@ -242,6 +242,9 @@ private:
     void loadSsbMemories();
     void updateMemoryTypeLabel();
     void flashDupeWarning();
+    void applySentExchange(QsoRecord& qso, const QString& serialSent, int nextSerial, bool logToDebug);
+    void checkEntryDupe(const QString& callsign, double freq, const QString& mode, bool clearIfNotDupe);
+    void recheckEntryDupeForExchange(bool isRadioR);
     
     void clearEntryForm();
     void clearEntryFormR();

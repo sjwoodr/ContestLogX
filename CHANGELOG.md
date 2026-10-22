@@ -4,6 +4,9 @@ All notable changes to ContestLogX are documented in this file.
 
 ## [0.9.15]
 
+### Other Changes and Bugfixes
+- QSO parties that count dupes per county (Arizona, Illinois, New York, Pennsylvania, South Dakota): the QSO Entry panel now flashes red for a dupe before you log it, once the county matches a QSO already logged on that band and mode. Before, the warning never appeared in these contests
+
 ## [0.9.14]
 
 ### Other Changes and Bugfixes
