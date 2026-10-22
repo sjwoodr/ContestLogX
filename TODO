@@ -59,3 +59,19 @@
      - Shares thread-safe QSO snapshot struct with items 3 (HTTP) and onlineScoreClient
      - Failure mode priority: never lose a local QSO; dropped peer messages are
        recovered via the sync-on-rejoin path
+
+5. SSB memory latency - cache TTS audio so a memory plays instantly on any CPU.
+   Today every F-key press spawns a fresh Piper process (voice model reloaded),
+   synthesizes the whole message, then spawns the player (src/utils/ttsManager.cpp).
+   ~0.5-0.7 s on a modern CPU; 3+ s reported on an AMD Phenom II (no AVX, so
+   onnxruntime runs its slow path) - K4RFK, 2026-10.
+   Plan:
+     - Render each memory's static text segments once (on save / startup / voice
+       change) and cache the WAVs, keyed by voice + text.
+     - Pre-render the phonetic alphabet (alpha..zulu, plus "stroke"/slash) and
+       digits zero..nine once per voice; expand {CALL}, {MYCALL}, {SNs}/{SN}/
+       {serial} by concatenating cached clips instead of synthesizing.
+     - At trigger time only join WAVs (same sample format) -> PTT -> play.
+   Smaller interim step: keep one Piper process alive with the model loaded
+   (removes model-load time, not synthesis time).
+   Related, separate feature: recorded-voice WAV memories (N1MM/WriteLog-style DVK).
