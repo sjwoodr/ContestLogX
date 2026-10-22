@@ -3727,6 +3727,14 @@ void MainWindow::onCallChanged(const QString& text)
                 if (!lastExch.isEmpty()) {
                     field->setText(lastExch.toUpper());
                 }
+            } else if (fieldName == "GRIDr" && !callsign.endsWith("/R")) {
+                // VHF: a fixed station's grid doesn't change, so pre-filling it
+                // lets the per-grid dupe check flash as soon as the call is
+                // entered. Rovers (/R) move between grids; leave theirs blank.
+                QString lastGrid = lastQso.getExchangeField("GRIDr");
+                if (!lastGrid.isEmpty()) {
+                    field->setText(lastGrid.toUpper());
+                }
             }
         }
         
@@ -3912,14 +3920,6 @@ void MainWindow::onLogQso()
     qso.setExchangeField("SNs", serialSent);
     DebugLogger::instance().log("MainWindow",
         QString("Set SNs exchange field to: '%1'").arg(serialSent));
-    
-    // Set our grid square if the contest has a myGridSquare user prompt
-    QString ourGrid = m_contestEngine->getUserPromptValue("myGridSquare");
-    if (!ourGrid.isEmpty()) {
-        qso.setExchangeField("GRIDs", ourGrid);
-        DebugLogger::instance().log("MainWindow", 
-            QString("Set GRIDs exchange field to: '%1'").arg(ourGrid));
-    }
     
     applySentExchange(qso, serialSent, nextSerial, true);
     
@@ -6212,12 +6212,21 @@ void MainWindow::onDxSpotClicked(const QString& callsign, double frequency, cons
     }
 }
 
-// Fill in what we send (NAMEs/EXCHs, legacy exchangeSent, userPrompt
+// Fill in what we send (GRIDs, NAMEs/EXCHs, legacy exchangeSent, userPrompt
 // exchangeFieldMapping) exactly as a logged QSO gets it. Shared by onLogQso and
-// the pre-log dupe probe, so exchange-scoped dupe rules (QSO parties: our own
-// county as EXCHs) compare the same key before and after logging.
+// the pre-log dupe probe, so exchange- and grid-scoped dupe rules (our own
+// county as EXCHs, our grid as GRIDs) compare the same key before and after
+// logging.
 void MainWindow::applySentExchange(QsoRecord& qso, const QString& serialSent, int nextSerial, bool logToDebug)
 {
+    // Set our grid square if the contest has a myGridSquare user prompt
+    QString ourGrid = m_contestEngine->getUserPromptValue("myGridSquare");
+    if (!ourGrid.isEmpty()) {
+        qso.setExchangeField("GRIDs", ourGrid);
+        if (logToDebug) DebugLogger::instance().log("MainWindow", 
+            QString("Set GRIDs exchange field to: '%1'").arg(ourGrid));
+    }
+
     // Get exchange sent from contest class and station settings
     QString stationQth = m_sessionStationInfo->state();
 
@@ -6280,9 +6289,10 @@ void MainWindow::applySentExchange(QsoRecord& qso, const QString& serialSent, in
 
 // Pre-log dupe warning for the call being entered: build the QSO as it would
 // be logged (band from freq, mode, our sent exchange, the received exchange
-// typed so far) and flash the entry panel if it is a dupe. Exchange-scoped
-// rules (perBandModeAndExchange) only match once EXCHr holds the county, so
-// the EXCHr fields re-run this as they change. With clearIfNotDupe false, a
+// typed so far) and flash the entry panel if it is a dupe. Exchange- and
+// grid-scoped rules (perBandModeAndExchange, perBandAndGridSquare) only match
+// once EXCHr holds the county or GRIDr the grid, so those fields re-run this
+// as they change. With clearIfNotDupe false, a
 // non-dupe result only clears a DUPE status line, not other status text.
 void MainWindow::checkEntryDupe(const QString& callsign, double freq, const QString& mode, bool clearIfNotDupe)
 {
@@ -6298,9 +6308,11 @@ void MainWindow::checkEntryDupe(const QString& callsign, double freq, const QStr
     }
     applySentExchange(probe, QString::number(m_qsoModel->count() + 1), m_qsoModel->count() + 1, false);
     auto& exchFields = activeExchangeFields();
-    if (QLineEdit* exchr = exchFields.value("EXCHr")) {
-        const QString value = exchr->text().trimmed().toUpper();
-        if (!value.isEmpty()) probe.setExchangeField("EXCHr", value);
+    for (const char* name : {"EXCHr", "GRIDr"}) {
+        if (QLineEdit* edit = exchFields.value(name)) {
+            const QString value = edit->text().trimmed().toUpper();
+            if (!value.isEmpty()) probe.setExchangeField(name, value);
+        }
     }
 
     QList<QsoRecord> allQsos = m_qsoModel->getQsos();
@@ -6317,12 +6329,15 @@ void MainWindow::checkEntryDupe(const QString& callsign, double freq, const QStr
     }
 }
 
-// EXCHr edited: for exchange-scoped dupe rules (QSO parties, dupe per county)
-// the county decides whether the entered call is a dupe, so re-check. Only the
-// active radio's panel counts; other contests' dupe keys ignore EXCHr.
+// EXCHr/GRIDr edited: for exchange- and grid-scoped dupe rules (QSO parties,
+// dupe per county; VHF, dupe per grid) that field decides whether the entered
+// call is a dupe, so re-check. Only the active radio's panel counts; other
+// contests' dupe keys ignore these fields.
 void MainWindow::recheckEntryDupeForExchange(bool isRadioR)
 {
-    if (!m_contestEngine || m_contestEngine->getDupeScope() != "per_band_mode_exch") return;
+    if (!m_contestEngine) return;
+    const QString scope = m_contestEngine->getDupeScope();
+    if (scope != "per_band_mode_exch" && scope != "per_band_grid") return;
     const bool rightActive = m_so2rEnabled && m_activeRadio == ActiveRadio::Right;
     if (isRadioR != rightActive) return;
     QLineEdit* callEdit = activeCallEdit();
@@ -7388,7 +7403,7 @@ void MainWindow::updateQsoEntryFields()
         // Install event filter for Enter key handling
         edit->installEventFilter(this);
         
-        if (fieldName == "EXCHr")
+        if (fieldName == "EXCHr" || fieldName == "GRIDr")
             connect(edit, &QLineEdit::textChanged, this, [this]() { recheckEntryDupeForExchange(false); });
 
         // Store field for later access
@@ -7515,7 +7530,7 @@ void MainWindow::updateQsoEntryFields()
                 }
             });
             edit->installEventFilter(this);
-            if (fieldName == "EXCHr")
+            if (fieldName == "EXCHr" || fieldName == "GRIDr")
                 connect(edit, &QLineEdit::textChanged, this, [this]() { recheckEntryDupeForExchange(true); });
 
             m_entryWidgetsR.exchangeFields[fieldName] = edit;

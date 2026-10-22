@@ -6,6 +6,7 @@ All notable changes to ContestLogX are documented in this file.
 
 ### Other Changes and Bugfixes
 - QSO parties that count dupes per county (Arizona, Illinois, New York, Pennsylvania, South Dakota): the QSO Entry panel now flashes red for a dupe before you log it, once the county matches a QSO already logged on that band and mode. Before, the warning never appeared in these contests
+- ARRL VHF and CQ WW VHF: the same pre-log dupe warning now appears once the grid matches a QSO already logged on that band. Entering a call you have already worked now fills in their grid from that QSO, so a dupe flashes right away; rovers (/R) are left blank since they change grids
 
 ## [0.9.14]
 
