@@ -617,6 +617,14 @@ F8  N9OH`}</pre>
             The callsign is also pre-filled in the entry field.
           </p>
 
+          <h3 class="text-lg font-semibold mb-2">Next / Previous Spot</h3>
+          <p class="opacity-80 mb-4">
+            For Search &amp; Pounce, press <strong>Ctrl+Up</strong> to tune to the next spot above your VFO and
+            <strong>Ctrl+Down</strong> for the next spot below, or use the arrow buttons at the right of the toolbar.
+            Each jump works like clicking the spot. Already-worked stations and spots hidden by the filters are skipped,
+            and the jump wraps around at the band edge. The keys are configurable in <strong>Preferences &rarr; Shortcuts</strong>.
+          </p>
+
           <h3 class="text-lg font-semibold mb-2">Zoom &amp; Pan</h3>
           <ul class="list-disc list-inside space-y-1 opacity-80 mb-4">
             <li><strong>Scroll wheel</strong> - zoom in/out centered on cursor position</li>
@@ -630,11 +638,12 @@ F8  N9OH`}</pre>
             When rig control is connected, a green vertical line shows your current VFO frequency on the band map, updating in real time as you tune.
           </p>
 
-          <h3 class="text-lg font-semibold mb-2">Spot Expiry &amp; Limits</h3>
+          <h3 class="text-lg font-semibold mb-2">Spot Age &amp; Limits</h3>
           <ul class="list-disc list-inside space-y-1 opacity-80 mb-4">
-            <li>Spots expire automatically after <strong>30 minutes</strong> by default.</li>
-            <li>A maximum of <strong>30 spots</strong> are displayed at a time; the oldest spot is evicted when the limit is reached.</li>
-            <li>Both thresholds are configurable via <code>QSettings</code> keys <code>BandMap/ExpiryMinutes</code> and <code>BandMap/MaxSpots</code>.</li>
+            <li><strong>Age</strong> - hide spots older than 5 to 60 minutes, in 5-minute steps (default 30). Lengthening the cut-off brings recent spots back; spots are kept for up to 60 minutes.</li>
+            <li><strong>Max</strong> - the most spots kept across all bands: 30 (default), 50, 100, 200 or 500. The oldest spot is dropped when the limit is reached.</li>
+            <li><strong>Hide worked</strong> - hide stations already in your log.</li>
+            <li>All three settings are remembered between sessions.</li>
           </ul>
 
           <h3 class="text-lg font-semibold mb-2">Band Changes</h3>

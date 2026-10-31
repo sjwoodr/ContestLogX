@@ -22,7 +22,9 @@ const QList<ShortcutsWidget::DefaultShortcut> ShortcutsWidget::DEFAULT_SHORTCUTS
     {"toggleRunSP",      "Toggle Run / S&P Operating Mode", "Ctrl+M"},
     {"toggleMemoryType", "Toggle Contest / Station Memories", "Ctrl+T"},
     {"switchRadio",      "Switch Active Radio (SO2R)", "`"},
-    {"qsyBack",          "QSY to Previous QSO Frequency/Mode", "Alt+B"}
+    {"qsyBack",          "QSY to Previous QSO Frequency/Mode", "Alt+B"},
+    {"bandMapNextSpot",  "Band Map: Tune to Next Spot Up", "Ctrl+Up"},
+    {"bandMapPrevSpot",  "Band Map: Tune to Next Spot Down", "Ctrl+Down"}
 };
 
 ShortcutsWidget::ShortcutsWidget(QWidget* parent)

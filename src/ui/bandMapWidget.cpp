@@ -13,6 +13,9 @@
 #include <QWheelEvent>
 #include <QToolTip>
 #include <QSettings>
+#include <QComboBox>
+#include <QCheckBox>
+#include <QToolButton>
 #include <QFontMetrics>
 #include <QtMath>
 
@@ -27,8 +30,9 @@ BandMapWidget::BandMapWidget(QWidget *parent)
 
     // Load persisted settings
     QSettings s;
-    m_expirySeconds = s.value("BandMap/ExpiryMinutes", 30).toInt() * 60;
+    m_maxAgeMinutes = s.value("BandMap/MaxAgeMinutes", 30).toInt();
     m_maxSpots      = s.value("BandMap/MaxSpots", 30).toInt();
+    m_hideWorked    = s.value("BandMap/HideWorked", false).toBool();
 
     // ------------------------------------------------------------------
     // Content widget: toolbar row + canvas
@@ -58,7 +62,57 @@ BandMapWidget::BandMapWidget(QWidget *parent)
     hl->addWidget(m_rangeLabel);
 
     hl->addStretch();
+
+    // Display filters: spot age cut-off, spot cap, hide worked
+    hl->addWidget(new QLabel("Age:", content));
+    m_ageCombo = new QComboBox(content);
+    for (int m = 5; m <= 60; m += 5)
+        m_ageCombo->addItem(QString("%1 min").arg(m), m);
+    m_ageCombo->setToolTip("Hide spots older than this");
+    hl->addWidget(m_ageCombo);
+
+    hl->addWidget(new QLabel("Max:", content));
+    m_maxSpotsCombo = new QComboBox(content);
+    for (int n : {30, 50, 100, 200, 500})
+        m_maxSpotsCombo->addItem(QString::number(n), n);
+    m_maxSpotsCombo->setToolTip("Maximum spots kept (all bands); the oldest is dropped first");
+    hl->addWidget(m_maxSpotsCombo);
+
+    m_hideWorkedCheck = new QCheckBox("Hide worked", content);
+    m_hideWorkedCheck->setToolTip("Hide stations already worked");
+    hl->addWidget(m_hideWorkedCheck);
+
+    // Previous / next spot (S&P)
+    QToolButton *prevBtn = new QToolButton(content);
+    prevBtn->setArrowType(Qt::LeftArrow);
+    prevBtn->setToolTip("Tune to the next unworked spot down the band (Ctrl+Down)");
+    connect(prevBtn, &QToolButton::clicked, this, [this]() { jumpToNextSpot(false); });
+    hl->addWidget(prevBtn);
+
+    QToolButton *nextBtn = new QToolButton(content);
+    nextBtn->setArrowType(Qt::RightArrow);
+    nextBtn->setToolTip("Tune to the next unworked spot up the band (Ctrl+Up)");
+    connect(nextBtn, &QToolButton::clicked, this, [this]() { jumpToNextSpot(true); });
+    hl->addWidget(nextBtn);
+
     vl->addLayout(hl);
+
+    // Reflect the loaded settings, then persist changes made in the toolbar
+    setMaxAgeMinutes(m_maxAgeMinutes);
+    setMaxSpots(m_maxSpots);
+    setHideWorked(m_hideWorked);
+    connect(m_ageCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int) {
+        setMaxAgeMinutes(m_ageCombo->currentData().toInt());
+        QSettings().setValue("BandMap/MaxAgeMinutes", m_maxAgeMinutes);
+    });
+    connect(m_maxSpotsCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int) {
+        setMaxSpots(m_maxSpotsCombo->currentData().toInt());
+        QSettings().setValue("BandMap/MaxSpots", m_maxSpots);
+    });
+    connect(m_hideWorkedCheck, &QCheckBox::toggled, this, [this](bool checked) {
+        setHideWorked(checked);
+        QSettings().setValue("BandMap/HideWorked", m_hideWorked);
+    });
 
     // Canvas (main drawing area)
     m_canvas = new BandMapCanvas(this, content);
@@ -106,21 +160,138 @@ void BandMapWidget::addOrUpdateSpot(const SpotData &spot)
         existing.spotter   = spot.spotter;
         existing.mode      = spot.mode;
     } else {
-        // Evict the oldest spot if at capacity
-        if (m_spots.size() >= m_maxSpots) {
-            QString oldestKey;
-            QDateTime oldestTime = QDateTime::currentDateTimeUtc();
-            for (auto it = m_spots.constBegin(); it != m_spots.constEnd(); ++it) {
-                if (it->timestamp < oldestTime) {
-                    oldestTime = it->timestamp;
-                    oldestKey  = it.key();
-                }
-            }
-            if (!oldestKey.isEmpty()) m_spots.remove(oldestKey);
-        }
+        // Evict the oldest spot(s) if at capacity
         m_spots.insert(key, spot);
+        evictToMaxSpots();
     }
 
+    if (m_canvas) m_canvas->update();
+}
+
+// ---------------------------------------------------------------------------
+// evictToMaxSpots - drop the oldest spots until at most m_maxSpots remain.
+// ---------------------------------------------------------------------------
+void BandMapWidget::evictToMaxSpots()
+{
+    while (m_maxSpots > 0 && m_spots.size() > m_maxSpots) {
+        auto oldest = m_spots.begin();
+        for (auto it = m_spots.begin(); it != m_spots.end(); ++it) {
+            if (it->timestamp < oldest->timestamp) oldest = it;
+        }
+        m_spots.erase(oldest);
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Display filters: max spots, age cut-off, hide worked.
+// ---------------------------------------------------------------------------
+void BandMapWidget::setMaxSpots(int n)
+{
+    m_maxSpots = n;
+    if (m_maxSpotsCombo) {
+        int idx = m_maxSpotsCombo->findData(n);
+        if (idx >= 0) {
+            QSignalBlocker block(m_maxSpotsCombo);
+            m_maxSpotsCombo->setCurrentIndex(idx);
+        }
+    }
+    evictToMaxSpots();
+    if (m_canvas) m_canvas->update();
+}
+
+void BandMapWidget::setMaxAgeMinutes(int minutes)
+{
+    m_maxAgeMinutes = minutes;
+    if (m_ageCombo) {
+        int idx = m_ageCombo->findData(minutes);
+        if (idx >= 0) {
+            QSignalBlocker block(m_ageCombo);
+            m_ageCombo->setCurrentIndex(idx);
+        }
+    }
+    if (m_canvas) m_canvas->update();
+}
+
+void BandMapWidget::setHideWorked(bool hide)
+{
+    m_hideWorked = hide;
+    if (m_hideWorkedCheck) {
+        QSignalBlocker block(m_hideWorkedCheck);
+        m_hideWorkedCheck->setChecked(hide);
+    }
+    if (m_canvas) m_canvas->update();
+}
+
+bool BandMapWidget::isSpotShown(const SpotData &spot) const
+{
+    if (m_hideWorked && spot.status == ContactStatus::Worked) return false;
+    QDateTime cutoff = QDateTime::currentDateTimeUtc().addSecs(-qint64(m_maxAgeMinutes) * 60);
+    return spot.timestamp >= cutoff;
+}
+
+// ---------------------------------------------------------------------------
+// findAdjacentSpot - nearest shown, unworked spot above/below the rig
+// frequency in the current band, wrapping to the far band edge if none.
+// Spots within 0.2 kHz of the rig count as "here" so a repeat press moves on.
+// ---------------------------------------------------------------------------
+const SpotData *BandMapWidget::findAdjacentSpot(bool up) const
+{
+    if (m_bandRange.maxMhz <= m_bandRange.minMhz) return nullptr;
+    const double tolerance = 0.0002; // 0.2 kHz
+
+    const SpotData *nearest = nullptr; // closest in the travel direction
+    const SpotData *wrap    = nullptr; // furthest the other way (band-edge wrap)
+    for (auto it = m_spots.constBegin(); it != m_spots.constEnd(); ++it) {
+        const SpotData &s = it.value();
+        if (s.freqMhz < m_bandRange.minMhz || s.freqMhz > m_bandRange.maxMhz) continue;
+        if (s.status == ContactStatus::Worked || !isSpotShown(s)) continue;
+
+        double delta = s.freqMhz - m_rigFreqMhz;
+        if (up ? delta > tolerance : delta < -tolerance) {
+            if (!nearest || (up ? s.freqMhz < nearest->freqMhz : s.freqMhz > nearest->freqMhz))
+                nearest = &s;
+        } else if (qAbs(delta) > tolerance) {
+            if (!wrap || (up ? s.freqMhz < wrap->freqMhz : s.freqMhz > wrap->freqMhz))
+                wrap = &s;
+        }
+    }
+    return nearest ? nearest : wrap;
+}
+
+// ---------------------------------------------------------------------------
+// jumpToNextSpot - tune to the adjacent spot via the click-to-tune path.
+// ---------------------------------------------------------------------------
+bool BandMapWidget::jumpToNextSpot(bool up)
+{
+    const SpotData *s = findAdjacentSpot(up);
+    if (!s) return false;
+
+    // Copy before emitting: the slot may refresh statuses or add spots
+    const SpotData spot = *s;
+
+    // Move the VFO line now so a quick repeat press steps from the new
+    // spot instead of waiting for the next rig poll.
+    m_rigFreqMhz = spot.freqMhz;
+    centerOn(spot.freqMhz);
+
+    emit spotClicked(spot.callsign, spot.freqMhz * 1000.0, spot.mode);
+    return true;
+}
+
+// ---------------------------------------------------------------------------
+// centerOn - pan a zoomed view so freqMhz is visible (no-op if already shown).
+// ---------------------------------------------------------------------------
+void BandMapWidget::centerOn(double freqMhz)
+{
+    if (freqMhz >= m_visibleMinMhz && freqMhz <= m_visibleMaxMhz) {
+        if (m_canvas) m_canvas->update();
+        return;
+    }
+    double range  = m_visibleMaxMhz - m_visibleMinMhz;
+    double newMin = qBound(m_bandRange.minMhz, freqMhz - range / 2.0, m_bandRange.maxMhz - range);
+    m_visibleMinMhz = newMin;
+    m_visibleMaxMhz = newMin + range;
+    updateRangeLabel();
     if (m_canvas) m_canvas->update();
 }
 
@@ -194,21 +365,19 @@ void BandMapWidget::setRigFrequency(double freqMhz)
 }
 
 // ---------------------------------------------------------------------------
-// onExpiryTimer - remove spots older than m_expirySeconds.
+// onExpiryTimer - remove spots older than m_expirySeconds and repaint so
+// the age filter hides spots as they cross the cut-off.
 // ---------------------------------------------------------------------------
 void BandMapWidget::onExpiryTimer()
 {
     QDateTime cutoff = QDateTime::currentDateTimeUtc().addSecs(-m_expirySeconds);
-    bool changed = false;
     for (auto it = m_spots.begin(); it != m_spots.end(); ) {
-        if (it->timestamp < cutoff) {
+        if (it->timestamp < cutoff)
             it = m_spots.erase(it);
-            changed = true;
-        } else {
+        else
             ++it;
-        }
     }
-    if (changed && m_canvas) m_canvas->update();
+    if (m_canvas) m_canvas->update();
 }
 
 // ---------------------------------------------------------------------------
@@ -318,6 +487,7 @@ const SpotData* BandMapCanvas::spotAtPixel(int x) const
         const SpotData &s = it.value();
         if (s.freqMhz < m_bandMap->m_visibleMinMhz || s.freqMhz > m_bandMap->m_visibleMaxMhz)
             continue;
+        if (!m_bandMap->isSpotShown(s)) continue;
         int sx   = freqToPixel(s.freqMhz);
         int dist = qAbs(sx - x);
         if (dist < bestDist) {
@@ -350,7 +520,7 @@ void BandMapCanvas::paintEvent(QPaintEvent *)
     // Count spots within the current band range
     bool hasVisibleSpots = false;
     for (auto it = m_bandMap->m_spots.constBegin(); it != m_bandMap->m_spots.constEnd(); ++it) {
-        if (it->freqMhz >= br.minMhz && it->freqMhz <= br.maxMhz) {
+        if (it->freqMhz >= br.minMhz && it->freqMhz <= br.maxMhz && m_bandMap->isSpotShown(*it)) {
             hasVisibleSpots = true;
             break;
         }
@@ -417,6 +587,7 @@ void BandMapCanvas::paintEvent(QPaintEvent *)
     for (auto it = m_bandMap->m_spots.constBegin(); it != m_bandMap->m_spots.constEnd(); ++it) {
         const SpotData &s = it.value();
         if (s.freqMhz < visMin || s.freqMhz > visMax) continue;
+        if (!m_bandMap->isSpotShown(s)) continue;
 
         int sx = freqToPixel(s.freqMhz);
 

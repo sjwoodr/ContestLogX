@@ -42,6 +42,8 @@ Most contest loggers are Windows-only, closed-source, or locked to a fixed set o
 - Color-coded contact status (needed, worked, dupe)
 - Zoom control and frequency axis labels
 - Click a spot to QSY
+- Ctrl+Up / Ctrl+Down to jump to the next unworked spot up or down the band
+- Spot age cut-off, spot limit and hide-worked filter
 
 ### Operating Aids
 - Super Check Partial (SCP) for partial callsign lookup

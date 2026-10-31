@@ -33,6 +33,17 @@ private slots:
     void testSetBandRange_resetsViewport();
     void testAddOrUpdateSpot_acceptsOutOfBandSpot();
 
+    void testAgeFilter_hidesOldSpots();
+    void testHideWorked();
+    void testSetMaxSpots_shrinkEvictsOldest();
+
+    void testFindAdjacentSpot_nearestUpAndDown();
+    void testFindAdjacentSpot_skipsWorkedAndFiltered();
+    void testFindAdjacentSpot_ignoresSpotUnderRig();
+    void testFindAdjacentSpot_wrapsAtBandEdge();
+    void testFindAdjacentSpot_ignoresOtherBands();
+    void testJumpToNextSpot_emitsAndSteps();
+
 private:
     SpotData makeSpot(const QString &call, double freqMhz,
                       const QString &mode = "CW",
@@ -244,6 +255,145 @@ void TestBandMap::testAddOrUpdateSpot_acceptsOutOfBandSpot()
     // 21 MHz is outside the 20m band range but spots are stored for all bands
     bm.addOrUpdateSpot(makeSpot("JA1ABC", 21.025));
     QCOMPARE(bm.spotCount(), 1);
+}
+
+// ── Display filter tests ───────────────────────────────────────────────────
+
+void TestBandMap::testAgeFilter_hidesOldSpots()
+{
+    BandMapWidget bm;
+    bm.setMaxAgeMinutes(10);
+    QVERIFY(bm.isSpotShown(makeSpot("W1AW", 14.025, "CW", ContactStatus::Unknown, 9 * 60)));
+    QVERIFY(!bm.isSpotShown(makeSpot("W1AW", 14.025, "CW", ContactStatus::Unknown, 11 * 60)));
+
+    // Widening the cut-off brings the spot back (filter, not deletion)
+    bm.setMaxAgeMinutes(15);
+    QVERIFY(bm.isSpotShown(makeSpot("W1AW", 14.025, "CW", ContactStatus::Unknown, 11 * 60)));
+}
+
+void TestBandMap::testHideWorked()
+{
+    BandMapWidget bm;
+    bm.setMaxAgeMinutes(30);
+    SpotData worked = makeSpot("W1AW", 14.025, "CW", ContactStatus::Worked);
+    bm.setHideWorked(false);
+    QVERIFY(bm.isSpotShown(worked));
+    bm.setHideWorked(true);
+    QVERIFY(!bm.isSpotShown(worked));
+    QVERIFY(bm.isSpotShown(makeSpot("K1TTT", 14.030, "CW", ContactStatus::NewMultiplier)));
+}
+
+void TestBandMap::testSetMaxSpots_shrinkEvictsOldest()
+{
+    BandMapWidget bm;
+    bm.setMaxSpots(50);
+    for (int i = 0; i < 5; ++i)
+        bm.addOrUpdateSpot(makeSpot(QString("K%1AAA").arg(i), 14.020 + i * 0.001,
+                                    "CW", ContactStatus::Unknown, 100 - i));
+    QCOMPARE(bm.spotCount(), 5);
+
+    bm.setMaxSpots(3);
+    QCOMPARE(bm.spotCount(), 3);
+    QVERIFY(bm.spotTimestamp("K0AAA").isNull());
+    QVERIFY(bm.spotTimestamp("K1AAA").isNull());
+    QVERIFY(!bm.spotTimestamp("K4AAA").isNull());
+}
+
+// ── Next / previous spot tests ─────────────────────────────────────────────
+
+static BandMapWidget *makeJumpMap()
+{
+    BandMapWidget *bm = new BandMapWidget;
+    bm->setMaxSpots(50);
+    bm->setMaxAgeMinutes(30);
+    bm->setHideWorked(false);
+    bm->setBandRange(14.0, 14.35, "20m");
+    return bm;
+}
+
+void TestBandMap::testFindAdjacentSpot_nearestUpAndDown()
+{
+    QScopedPointer<BandMapWidget> bm(makeJumpMap());
+    bm->addOrUpdateSpot(makeSpot("K1AAA", 14.010));
+    bm->addOrUpdateSpot(makeSpot("K2BBB", 14.020));
+    bm->addOrUpdateSpot(makeSpot("K3CCC", 14.030));
+    bm->addOrUpdateSpot(makeSpot("K4DDD", 14.040));
+    bm->setRigFrequency(14.025);
+
+    QCOMPARE(bm->findAdjacentSpot(true)->callsign,  QString("K3CCC"));
+    QCOMPARE(bm->findAdjacentSpot(false)->callsign, QString("K2BBB"));
+}
+
+void TestBandMap::testFindAdjacentSpot_skipsWorkedAndFiltered()
+{
+    QScopedPointer<BandMapWidget> bm(makeJumpMap());
+    bm->setMaxAgeMinutes(10);
+    bm->addOrUpdateSpot(makeSpot("K1AAA", 14.030, "CW", ContactStatus::Worked));
+    bm->addOrUpdateSpot(makeSpot("K2BBB", 14.035, "CW", ContactStatus::Unknown, 20 * 60));
+    bm->addOrUpdateSpot(makeSpot("K3CCC", 14.040, "CW", ContactStatus::UnworkedNonMult));
+    bm->setRigFrequency(14.025);
+
+    // Worked is skipped even when worked spots are displayed
+    QCOMPARE(bm->findAdjacentSpot(true)->callsign, QString("K3CCC"));
+}
+
+void TestBandMap::testFindAdjacentSpot_ignoresSpotUnderRig()
+{
+    QScopedPointer<BandMapWidget> bm(makeJumpMap());
+    bm->addOrUpdateSpot(makeSpot("K1AAA", 14.0251));
+    bm->addOrUpdateSpot(makeSpot("K2BBB", 14.030));
+    bm->setRigFrequency(14.025);
+
+    // K1AAA is within 0.2 kHz of the rig: treat it as the current spot
+    QCOMPARE(bm->findAdjacentSpot(true)->callsign, QString("K2BBB"));
+
+    // A lone spot under the rig gives nowhere to go
+    QScopedPointer<BandMapWidget> lone(makeJumpMap());
+    lone->addOrUpdateSpot(makeSpot("K1AAA", 14.025));
+    lone->setRigFrequency(14.025);
+    QVERIFY(lone->findAdjacentSpot(true) == nullptr);
+    QVERIFY(lone->findAdjacentSpot(false) == nullptr);
+}
+
+void TestBandMap::testFindAdjacentSpot_wrapsAtBandEdge()
+{
+    QScopedPointer<BandMapWidget> bm(makeJumpMap());
+    bm->addOrUpdateSpot(makeSpot("K1AAA", 14.010));
+    bm->addOrUpdateSpot(makeSpot("K2BBB", 14.020));
+    bm->addOrUpdateSpot(makeSpot("K3CCC", 14.300));
+
+    bm->setRigFrequency(14.310);
+    QCOMPARE(bm->findAdjacentSpot(true)->callsign, QString("K1AAA"));  // wrap to bottom
+
+    bm->setRigFrequency(14.005);
+    QCOMPARE(bm->findAdjacentSpot(false)->callsign, QString("K3CCC")); // wrap to top
+}
+
+void TestBandMap::testFindAdjacentSpot_ignoresOtherBands()
+{
+    QScopedPointer<BandMapWidget> bm(makeJumpMap());
+    bm->addOrUpdateSpot(makeSpot("JA1ABC", 21.025));
+    bm->addOrUpdateSpot(makeSpot("K1AAA",  14.010));
+    bm->setRigFrequency(14.020);
+    QCOMPARE(bm->findAdjacentSpot(true)->callsign, QString("K1AAA"));
+}
+
+void TestBandMap::testJumpToNextSpot_emitsAndSteps()
+{
+    QScopedPointer<BandMapWidget> bm(makeJumpMap());
+    bm->addOrUpdateSpot(makeSpot("K1AAA", 14.010));
+    bm->addOrUpdateSpot(makeSpot("K2BBB", 14.020));
+    bm->setRigFrequency(14.000);
+
+    QSignalSpy spy(bm.data(), &BandMapWidget::spotClicked);
+    QVERIFY(bm->jumpToNextSpot(true));
+    QVERIFY(bm->jumpToNextSpot(true)); // steps on without waiting for a rig poll
+    QVERIFY(bm->jumpToNextSpot(true)); // wraps back to the bottom
+    QCOMPARE(spy.count(), 3);
+    QCOMPARE(spy.at(0).at(0).toString(), QString("K1AAA"));
+    QCOMPARE(spy.at(0).at(1).toDouble(), 14010.0);
+    QCOMPARE(spy.at(1).at(0).toString(), QString("K2BBB"));
+    QCOMPARE(spy.at(2).at(0).toString(), QString("K1AAA"));
 }
 
 QTEST_MAIN(TestBandMap)

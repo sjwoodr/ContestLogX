@@ -17,6 +17,9 @@
 #include <QLabel>
 #include <functional>
 
+class QComboBox;
+class QCheckBox;
+
 // ---------------------------------------------------------------------------
 // ContactStatus - classification of a spot relative to the current log
 // ---------------------------------------------------------------------------
@@ -71,7 +74,18 @@ public:
 
     // Setters for configuration (also for test harness)
     void setExpirySeconds(int s) { m_expirySeconds = s; }
-    void setMaxSpots(int n)      { m_maxSpots = n; }
+    void setMaxSpots(int n);
+    void setMaxAgeMinutes(int minutes);
+    void setHideWorked(bool hide);
+    int  maxAgeMinutes() const { return m_maxAgeMinutes; }
+    bool hideWorked()    const { return m_hideWorked; }
+
+    // True when the spot passes the age and hide-worked display filters.
+    bool isSpotShown(const SpotData &spot) const;
+
+    // The next shown, unworked spot above (up=true) or below the rig frequency
+    // within the current band, wrapping at the band edge. nullptr if none.
+    const SpotData *findAdjacentSpot(bool up) const;
 
     // Returns the status of a stored spot by callsign, or Unknown if not found.
     ContactStatus spotStatus(const QString &callsign) const;
@@ -98,6 +112,10 @@ public slots:
     // For unit-test access to the expiry logic
     void onExpiryTimer();
 
+    // S&P: tune to the next spot up / down the band (wraps at the band edge).
+    // Returns false if there is no spot to jump to.
+    bool jumpToNextSpot(bool up);
+
 public:
     // Re-evaluate the status of every visible spot via the supplied resolver.
     // Not a slot because MOC does not support std::function parameters.
@@ -115,20 +133,27 @@ private:
     BandMapCanvas *m_canvas = nullptr;
     QSlider       *m_zoomSlider = nullptr;
     QLabel        *m_rangeLabel = nullptr;
+    QComboBox     *m_ageCombo = nullptr;
+    QComboBox     *m_maxSpotsCombo = nullptr;
+    QCheckBox     *m_hideWorkedCheck = nullptr;
 
     QHash<QString, SpotData> m_spots;
     BandRange m_bandRange;
     double m_visibleMinMhz = 0.0;
     double m_visibleMaxMhz = 0.0;
 
-    int    m_expirySeconds   = 1800; // 30 minutes default
+    int    m_expirySeconds   = 3600; // storage retention; covers the longest age filter
     int    m_maxSpots        = 30;
+    int    m_maxAgeMinutes   = 30;   // display filter
+    bool   m_hideWorked      = false;
     bool   m_clusterConnected = true;
     double m_rigFreqMhz      = 0.0;
 
     QTimer *m_expiryTimer = nullptr;
 
     void updateRangeLabel();
+    void evictToMaxSpots();
+    void centerOn(double freqMhz);
 
     friend class BandMapCanvas;
 };

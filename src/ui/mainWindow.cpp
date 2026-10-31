@@ -593,6 +593,8 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
                     {"toggleRunSP",      "Ctrl+M"},
                     {"toggleMemoryType", "Ctrl+T"},
                     {"qsyBack",          "Alt+B"},
+                    {"bandMapNextSpot",  "Ctrl+Up"},
+                    {"bandMapPrevSpot",  "Ctrl+Down"},
                 };
                 for (auto dit = shortcutDefaults.begin(); dit != shortcutDefaults.end(); ++dit) {
                     if (!shortcuts.contains(dit.key()))
@@ -617,6 +619,11 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
                     if (it.key() == "toggleRunSP")      { onToggleRunSP();        return true; }
                     if (it.key() == "toggleMemoryType") { onToggleMemoryType();   return true; }
                     if (it.key() == "qsyBack")          { onQsyBack();           return true; }
+                    if (it.key() == "bandMapNextSpot" || it.key() == "bandMapPrevSpot") {
+                        if (m_bandMapWidget)
+                            m_bandMapWidget->jumpToNextSpot(it.key() == "bandMapNextSpot");
+                        return true;
+                    }
                 }
             }
         }
@@ -3558,6 +3565,8 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
         {"toggleMemoryType", "Ctrl+T"},
         {"switchRadio",      "`"},
         {"qsyBack",          "Alt+B"},
+        {"bandMapNextSpot",  "Ctrl+Up"},
+        {"bandMapPrevSpot",  "Ctrl+Down"},
     };
     for (auto dit = defaultShortcuts.begin(); dit != defaultShortcuts.end(); ++dit) {
         if (!shortcuts.contains(dit.key()))
@@ -3595,6 +3604,10 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
                 return;
             } else if (it.key() == "qsyBack") {
                 onQsyBack();
+                return;
+            } else if (it.key() == "bandMapNextSpot" || it.key() == "bandMapPrevSpot") {
+                if (m_bandMapWidget)
+                    m_bandMapWidget->jumpToNextSpot(it.key() == "bandMapNextSpot");
                 return;
             }
         }
