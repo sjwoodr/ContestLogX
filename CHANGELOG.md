@@ -7,6 +7,7 @@ All notable changes to ContestLogX are documented in this file.
 ### Other Changes and Bugfixes
 - Band Map: new Age, Max and Hide worked controls on the toolbar. Age hides spots older than 5 to 60 minutes (default 30), Max sets how many spots are kept (30 to 500), and Hide worked removes stations already in the log. The settings are remembered
 - Band Map: Ctrl+Up / Ctrl+Down (or the arrow buttons on the toolbar) tune to the next spot up or down the band for faster S&P, skipping stations already worked and wrapping around at the band edge. The keys can be changed in Preferences > Shortcuts. Thanks K4RFK for both suggestions
+- Band Map: now works without a contest loaded, and on bands the contest does not cover, using the standard amateur band edges. Before, it stayed on "Connect rig to activate band map" even with the rig connected. Loading a different contest now updates the map straight away
 
 ## [0.9.15]
 

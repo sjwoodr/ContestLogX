@@ -71,6 +71,7 @@ public:
     int    spotCount()      const { return m_spots.size(); }
     double visibleMinMhz()  const { return m_visibleMinMhz; }
     double visibleMaxMhz()  const { return m_visibleMaxMhz; }
+    const BandRange &bandRange() const { return m_bandRange; }
 
     // Setters for configuration (also for test harness)
     void setExpirySeconds(int s) { m_expirySeconds = s; }

@@ -217,6 +217,7 @@ private:
     void createBandMapDock();
     void installRedockOnMinimize(QDockWidget* dock);
     ContactStatus resolveSpotStatus(const QString &callsign);
+    void updateBandMapRange(double freqKHz);
     void loadQsosIntoModel(const QList<QsoRecord>& qsos, QProgressDialog* progressDialog);
 
     // Cloud storage (specs/005-cloud-storage). Implemented in mainWindowCloud.cpp.
@@ -362,7 +363,6 @@ private:
     // Band map
     class BandMapWidget *m_bandMapWidget = nullptr;
     QAction *m_bandMapWidgetAction = nullptr;
-    QString m_lastBand; // tracks last-known band for change detection
 
     // CW Decoder widgets (SPEC-005) - one per radio when audio device configured
     class CwDecoderWidget *m_cwDecoderLeft = nullptr;

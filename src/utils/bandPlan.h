@@ -15,6 +15,8 @@ class BandPlan
 public:
     static QString freq2Mode(double freqMHz);
     static QString freq2Band(double freqKhz);
+    // Edges of a band named as freq2Band() names it ("20m"); false if unknown.
+    static bool bandEdgesKhz(const QString &band, double &startKhz, double &endKhz);
     static QString freq2CabrilloBand(double freqKhz);
 };
 

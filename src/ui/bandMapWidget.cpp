@@ -52,16 +52,17 @@ BandMapWidget::BandMapWidget(QWidget *parent)
     m_zoomSlider = new QSlider(Qt::Horizontal, content);
     m_zoomSlider->setRange(1, 20);
     m_zoomSlider->setValue(1); // 1 = full band
+    m_zoomSlider->setMinimumWidth(60);
     m_zoomSlider->setMaximumWidth(120);
     m_zoomSlider->setToolTip("Zoom frequency axis (1=full band, 20=narrowest)");
     connect(m_zoomSlider, &QSlider::valueChanged, this, &BandMapWidget::onZoomSliderChanged);
     hl->addWidget(m_zoomSlider);
 
     m_rangeLabel = new QLabel("", content);
-    m_rangeLabel->setMinimumWidth(160);
     hl->addWidget(m_rangeLabel);
 
     hl->addStretch();
+    hl->addSpacing(12); // keeps the range label off "Age:" when the dock is narrow
 
     // Display filters: spot age cut-off, spot cap, hide worked
     hl->addWidget(new QLabel("Age:", content));
@@ -514,7 +515,9 @@ void BandMapCanvas::paintEvent(QPaintEvent *)
     // ── Empty states ────────────────────────────────────────────────────────
     if (br.maxMhz <= 0.0) {
         p.setPen(Qt::gray);
-        p.drawText(rect(), Qt::AlignCenter, "Connect rig to activate band map");
+        p.drawText(rect(), Qt::AlignCenter,
+                   m_bandMap->m_rigFreqMhz > 0.0 ? "Rig is outside the amateur bands"
+                                                 : "Connect rig to activate band map");
         return;
     }
     // Count spots within the current band range

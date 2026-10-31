@@ -4435,25 +4435,7 @@ void MainWindow::onUpdateRigDisplay()
         if (m_bandMapWidget)
             m_bandMapWidget->setRigFrequency(freqKHz / 1000.0); // MHz
 
-        // Detect band change - update band map range and clear spots
-        if (m_contestEngine && m_bandMapWidget) {
-            QString currentBand = m_contestEngine->getBandFromFrequency(freqKHz);
-            if (!currentBand.isEmpty() && currentBand != m_lastBand) {
-                m_lastBand = currentBand;
-                // Retrieve band limits from contest definition
-                double minMhz = 0.0, maxMhz = 0.0;
-                if (m_contestDefinition.contains("frequencies")) {
-                    QJsonObject freqs = m_contestDefinition["frequencies"].toObject();
-                    if (freqs.contains(currentBand)) {
-                        QJsonObject bandObj = freqs[currentBand].toObject();
-                        minMhz = bandObj["start"].toDouble() / 1000.0; // kHz → MHz
-                        maxMhz = bandObj["end"].toDouble() / 1000.0;
-                    }
-                }
-                if (minMhz > 0.0 && maxMhz > minMhz)
-                    m_bandMapWidget->setBandRange(minMhz, maxMhz, currentBand);
-            }
-        }
+        updateBandMapRange(freqKHz);
     }
     
     // Update mode if changed. Rigs name the sideband as well as the mode
@@ -5009,6 +4991,40 @@ void MainWindow::createBandMapDock()
         if (connected)
             m_bandMapWidget->clearAllSpots();
     });
+}
+
+// ---------------------------------------------------------------------------
+// updateBandMapRange - point the band map at the band the rig is on. The
+// loaded contest's band edges win; with no contest, or on a band the contest
+// does not define, the standard amateur band edges are used. Re-evaluated on
+// every poll so loading or changing the contest takes effect right away.
+// ---------------------------------------------------------------------------
+void MainWindow::updateBandMapRange(double freqKHz)
+{
+    if (!m_bandMapWidget)
+        return;
+
+    QString band;
+    double startKhz = 0.0, endKhz = 0.0;
+    if (m_contestEngine && !m_contestDefinition.isEmpty()) {
+        band = m_contestEngine->getBandFromFrequency(freqKHz);
+        const QJsonObject bandObj = m_contestDefinition.value("frequencies").toObject()
+                                        .value(band).toObject();
+        startKhz = bandObj.value("start").toDouble();
+        endKhz   = bandObj.value("end").toDouble();
+    }
+    if (endKhz <= startKhz) {
+        band = BandPlan::freq2Band(freqKHz);
+        if (band.isEmpty() || !BandPlan::bandEdgesKhz(band, startKhz, endKhz))
+            return; // outside the amateur bands: leave the map as it is
+    }
+
+    const BandRange &current = m_bandMapWidget->bandRange();
+    const double minMhz = startKhz / 1000.0;
+    const double maxMhz = endKhz / 1000.0;
+    if (band != current.band || !qFuzzyCompare(minMhz, current.minMhz)
+        || !qFuzzyCompare(maxMhz, current.maxMhz))
+        m_bandMapWidget->setBandRange(minMhz, maxMhz, band);
 }
 
 void MainWindow::onSpotReceived(const SpotData &spot)

@@ -20,6 +20,7 @@ private slots:
     void testFreq2CabrilloBandVHF();
     void testFreq2CabrilloBandMicrowave();
     void testFreq2CabrilloBand10GHz();
+    void testBandEdgesKhz();
 };
 
 void TestBandPlan::testFreq2BandHF()
@@ -91,6 +92,27 @@ void TestBandPlan::testFreq2CabrilloBand10GHz()
     QCOMPARE(BandPlan::freq2CabrilloBand(10100000.0), QString("10G"));
     QCOMPARE(BandPlan::freq2CabrilloBand(10000000.0), QString("10G"));
     QCOMPARE(BandPlan::freq2CabrilloBand(10450000.0), QString("10G"));
+}
+
+void TestBandPlan::testBandEdgesKhz()
+{
+    double start = 0.0, end = 0.0;
+    QVERIFY(BandPlan::bandEdgesKhz("20m", start, end));
+    QCOMPARE(start, 14000.0);
+    QCOMPARE(end, 14350.0);
+
+    QVERIFY(BandPlan::bandEdgesKhz("17m", start, end));
+    QCOMPARE(start, 18068.0);
+    QCOMPARE(end, 18168.0);
+
+    // Every band freq2Band names has edges that contain the frequency
+    for (double khz : {1830.0, 3550.0, 7050.0, 10120.0, 21300.0, 28400.0, 50125.0, 144200.0}) {
+        QString band = BandPlan::freq2Band(khz);
+        QVERIFY(BandPlan::bandEdgesKhz(band, start, end));
+        QVERIFY(khz >= start && khz < end);
+    }
+
+    QVERIFY(!BandPlan::bandEdgesKhz("11m", start, end));
 }
 
 QTEST_MAIN(TestBandPlan)
